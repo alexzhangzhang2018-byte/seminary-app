@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>神学院招生系统</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f4f5ff;color:#1e1e2e;font-size:14px}
+button{cursor:pointer;border:none;background:none;font-family:inherit;font-size:inherit}
+input,textarea,select{font-family:inherit;font-size:inherit}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:#c5c8e0;border-radius:3px}
+
+/* Layout */
+.row{display:flex;align-items:center}.col{display:flex;flex-direction:column}.wrap{flex-wrap:wrap}.center{justify-content:center;align-items:center}
+.g1{gap:4px}.g2{gap:8px}.g3{gap:12px}.g4{gap:16px}.g6{gap:24px}
+.ml-auto{margin-left:auto}.flex1{flex:1}.shrink0{flex-shrink:0}.ovx{overflow-x:auto}.ovy{overflow-y:auto}
+
+/* Spacing */
+.p2{padding:8px}.p3{padding:12px}.p4{padding:16px}.p5{padding:20px}.p6{padding:24px}
+.px3{padding-left:12px;padding-right:12px}.px4{padding-left:16px;padding-right:16px}.px6{padding-left:24px;padding-right:24px}
+.py2{padding-top:8px;padding-bottom:8px}.py3{padding-top:12px;padding-bottom:12px}.py4{padding-top:16px;padding-bottom:16px}
+.py6{padding-top:24px;padding-bottom:24px}.py10{padding-top:40px;padding-bottom:40px}.py12{padding-top:48px;padding-bottom:48px}
+.mt1{margin-top:4px}.mt2{margin-top:8px}.mt3{margin-top:12px}.mt4{margin-top:16px}.mt5{margin-top:20px}.mt6{margin-top:24px}.mt8{margin-top:32px}
+.mb1{margin-bottom:4px}.mb2{margin-bottom:8px}.mb3{margin-bottom:12px}.mb4{margin-bottom:16px}.mb5{margin-bottom:20px}.mb6{margin-bottom:24px}
+
+/* Typography */
+.t11{font-size:11px}.t12{font-size:12px}.t13{font-size:13px}.t14{font-size:14px}.t16{font-size:16px}.t18{font-size:18px}.t20{font-size:20px}.t22{font-size:22px}.t24{font-size:24px}.t48{font-size:48px}
+.fw5{font-weight:500}.fw6{font-weight:600}.fw7{font-weight:700}.fw8{font-weight:800}
+.tc{text-align:center}.tl{text-align:left}.nowrap{white-space:nowrap}.lh16{line-height:1.6}
+.c-gray4{color:#9ca3af}.c-gray5{color:#6b7280}.c-gray6{color:#4b5563}.c-gray7{color:#374151}.c-gray8{color:#1f2937}
+.c-indigo4{color:#818cf8}.c-indigo6{color:#4f46e5}.c-green6{color:#16a34a}.c-amber6{color:#d97706}.c-red6{color:#dc2626}.c-violet7{color:#6d28d9}.c-white{color:#fff}
+
+/* Colors */
+.bg-white{background:#fff}.bg-gray50{background:#f9fafb}.bg-gray100{background:#f3f4f6}
+.bg-indigo50{background:#eef2ff}.bg-indigo100{background:#e0e7ff}
+.bg-green50{background:#f0fdf4}.bg-green100{background:#dcfce7}
+.bg-amber50{background:#fffbeb}.bg-red50{background:#fef2f2}
+.bg-violet50{background:#f5f3ff}.bg-teal50{background:#f0fdfa}
+.bg-login{background:linear-gradient(135deg,#e0e7ff,#f8f9ff 50%,#ede9fe)}
+.bg-app{background:linear-gradient(135deg,#eef2ff,#fff 50%,#f5f3ff)}
+
+/* Border */
+.b1{border:1px solid}.b2{border:2px solid}.bb1{border-bottom:1px solid}
+.bc-gray100{border-color:#f3f4f6}.bc-gray200{border-color:#e5e7eb}.bc-indigo100{border-color:#e0e7ff}
+.bc-indigo200{border-color:#c7d2fe}.bc-green200{border-color:#bbf7d0}.bc-amber200{border-color:#fde68a}
+.bc-red200{border-color:#fecaca}.bc-teal200{border-color:#99f6e4}
+
+/* Radius / Shadow */
+.r8{border-radius:8px}.r10{border-radius:10px}.r12{border-radius:12px}.r14{border-radius:14px}.r16{border-radius:16px}.r20{border-radius:20px}.rfull{border-radius:9999px}
+.sh1{box-shadow:0 1px 3px rgba(0,0,0,.05)}.sh2{box-shadow:0 4px 10px rgba(0,0,0,.08)}.sh-xl{box-shadow:0 24px 48px rgba(0,0,0,.14)}
+
+/* Sizing */
+.w100{width:100%}.maxw-sm{max-width:380px}.maxw-md{max-width:440px}.maxw-lg{max-width:520px}.maxw-xl{max-width:580px}.maxw-2xl{max-width:700px}.mx-auto{margin-left:auto;margin-right:auto}
+.avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.av-sm{width:28px;height:28px;font-size:12px}.av-md{width:32px;height:32px;font-size:13px}.av-xl{width:44px;height:44px;font-size:16px}
+.av-indigo{background:#eef2ff;color:#4f46e5}.av-violet{background:#ede9fe;color:#6d28d9}.av-teal{background:#ccfbf1;color:#0f766e}
+
+/* Tag */
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500}
+
+/* Inputs */
+.inp{border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px;width:100%;outline:none;transition:border-color .15s;background:#fff}
+.inp:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.sel{border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px;width:100%;outline:none;background:#fff}
+.textarea{border:1px solid #e5e7eb;border-radius:10px;padding:12px;width:100%;outline:none;line-height:1.6;resize:vertical;background:#fff}
+.textarea:focus{border-color:#818cf8}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:10px 20px;font-weight:600;cursor:pointer;transition:all .15s;border:none}
+.btn-primary{background:#4f46e5;color:#fff}.btn-primary:hover{background:#4338ca;transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.btn-success{background:#16a34a;color:#fff}.btn-success:hover{background:#15803d}
+.btn-danger{background:#fef2f2;color:#dc2626}.btn-danger:hover{background:#fee2e2}
+.btn-ghost{background:transparent;color:#6b7280;border:1px solid #e5e7eb}.btn-ghost:hover{background:#f9fafb}
+.btn-outline{background:transparent;color:#4f46e5;border:1px solid #c7d2fe}.btn-outline:hover{background:#eef2ff}
+.btn-sm{padding:5px 12px;border-radius:8px;font-size:12px}
+.btn-xs{padding:3px 9px;border-radius:7px;font-size:11px;font-weight:600}
+.btn-full{width:100%}.btn:disabled{background:#f3f4f6;color:#9ca3af;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Header */
+.header{background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid #f3f4f6;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+
+/* Steps */
+.steps{display:flex;align-items:center;justify-content:center;padding:20px 16px;overflow-x:auto}
+.step-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:2px solid;transition:all .3s;flex-shrink:0}
+.step-dot.done{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.step-dot.active{background:#fff;border-color:#4f46e5;color:#4f46e5;box-shadow:0 0 0 4px rgba(99,102,241,.12)}
+.step-dot.locked{background:#f3f4f6;border-color:#d1d5db;color:#9ca3af}
+.step-label{font-size:11px;font-weight:600;margin-top:4px;white-space:nowrap}
+.step-conn{height:2px;width:40px;margin:0 4px;margin-bottom:16px;flex-shrink:0}
+.step-conn.done{background:linear-gradient(90deg,#4f46e5,#818cf8)}.step-conn.locked{background:#e5e7eb}
+
+/* Tabs */
+.tabbar{display:flex;gap:4px;padding:10px 24px;border-bottom:1px solid #e5e7eb;background:#fff;overflow-x:auto}
+.tab{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;border:none;background:transparent;color:#6b7280}
+.tab:hover{background:#f3f4f6}.tab.active{background:#4f46e5;color:#fff}
+
+/* Cards */
+.card{background:#fff;border-radius:14px;border:1px solid #f3f4f6;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:16px;min-height:400px}
+.kanban-col{flex-shrink:0;width:196px}
+.kanban-card{background:#fff;border-radius:12px;border:1px solid #f3f4f6;padding:12px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:all .15s}
+.kanban-card:hover{border-color:#c7d2fe;box-shadow:0 4px 10px rgba(79,70,229,.1);transform:translateY(-1px)}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:11px 16px;font-size:11px;font-weight:600;color:#6b7280;background:#f9fafb;border-bottom:1px solid #f3f4f6}
+.tbl td{padding:11px 16px;border-bottom:1px solid #f9fafb}.tbl tr:hover td{background:#fafbff}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:14px 24px 0}
+.stat-card{background:#fff;border-radius:14px;border:1px solid #f3f4f6;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-sm{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:400px;box-shadow:0 24px 50px rgba(0,0,0,.2)}
+.modal-lg{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 50px rgba(0,0,0,.2)}
+
+/* Login */
+.login-card{background:#fff;border-radius:22px;padding:32px;box-shadow:0 20px 40px rgba(0,0,0,.1);width:100%;max-width:420px}
+.login-btn{width:100%;display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;border:2px solid #e0e7ff;background:#fff;cursor:pointer;transition:all .2s;margin-bottom:10px;text-align:left}
+.login-btn:hover{border-color:#818cf8;background:#fafbff;transform:translateY(-1px)}
+.login-icon{width:44px;height:44px;background:#eef2ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+
+/* Slot btn */
+.slot-btn{padding:7px 14px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #e5e7eb;background:#f9fafb;color:#374151;transition:all .15s}
+.slot-btn:hover{border-color:#c7d2fe;background:#eef2ff}.slot-btn.active{background:#4f46e5;border-color:#4f46e5;color:#fff}
+
+/* Mat item */
+.mat-item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;cursor:pointer;border:1px solid #e5e7eb;background:#fff;transition:all .15s}
+.mat-item:hover{border-color:#c7d2fe}.mat-item.done{background:#f0fdf4;border-color:#bbf7d0}
+.mat-check{width:22px;height:22px;border-radius:50%;border:2px solid #d1d5db;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;transition:all .15s}
+.mat-check.done{background:#22c55e;border-color:#22c55e}
+
+/* Recommendation badge */
+.rec-badge{padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600}
+
+/* Timer */
+.timer-bar-outer{flex:1;height:7px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+.timer-bar-inner{height:100%;border-radius:999px;transition:width 1s linear}
+
+/* Radio */
+.radio-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;border:1px solid transparent;background:#f9fafb;transition:all .15s}
+.radio-opt:hover{background:#eef2ff;border-color:#c7d2fe}.radio-opt.checked{background:#eef2ff;border-color:#a5b4fc}
+.radio-opt input{accent-color:#4f46e5}
+
+/* Loading spinner */
+.spinner{width:32px;height:32px;border:3px solid #e0e7ff;border-top-color:#4f46e5;border-radius:50%;animation:spin .8s linear infinite;margin:40px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:#1f2937;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* Notif preview */
+.notif-preview{background:rgba(0,0,0,.03);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7;color:#374151;margin-top:8px;border-left:3px solid #c7d2fe;white-space:pre-line}
+
+/* Briefing */
+.section-title{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #f3f4f6}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f9fafb;font-size:13px}
+.info-row:last-child{border-bottom:none}
+
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.header,.tabbar,.px6{padding-left:14px;padding-right:14px}}
+</style>
+</head>
+<body>
+<div id="root"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONFIG — 你的 Supabase 凭据
+// ══════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://szjduusewnjxacrbbsdf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amR1dXNld25qeGFjcmJic2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjMxNjEsImV4cCI6MjA5MDQzOTE2MX0.7Cg_uOp2Q2wtKaZqVnYdMLvnZJEyh6GyE26xXb-UTBw';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ══════════════════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════════════════
+const STAGES = [
+  {id:'apply',     label:'报名',     icon:'📝'},
+  {id:'exam',      label:'笔试',     icon:'📖'},
+  {id:'interview', label:'面试',     icon:'💬'},
+  {id:'result',    label:'录取结果', icon:'🎓'},
+  {id:'materials', label:'提交材料', icon:'📄'},
+  {id:'complete',  label:'完成',     icon:'✅'},
+];
+const STAGE_IDX = Object.fromEntries(STAGES.map((s,i)=>[s.id,i]));
+
+const EXAM_Qs = [
+  {id:1,type:'single',q:'旧约中，摩西带领以色列人出埃及经过的海是？',opts:['红海','地中海','死海','加利利海'],ans:0},
+  {id:2,type:'single',q:'《约翰福音》中，"道成肉身"出自第几章？',opts:['第1章','第3章','第5章','第14章'],ans:0},
+  {id:3,type:'single',q:'保罗"爱是恒久忍耐，又有恩慈"出自哪卷书？',opts:['罗马书','加拉太书','哥林多前书','以弗所书'],ans:2},
+  {id:4,type:'single',q:'尼西亚信经确立于哪年？',opts:['325年','451年','590年','1054年'],ans:0},
+  {id:5,type:'essay',q:'请简述你对"呼召"（Calling）的理解，以及申请本项目的动机（100-200字）。'},
+];
+
+const MAT_ITEMS = [
+  {id:'acceptance_letter', label:'录取通知书（已签署）', req:true},
+  {id:'scholarship_form',  label:'奖学金申请表',         req:true},
+  {id:'survey',            label:'入学调查表',            req:true},
+  {id:'guarantee',         label:'牧师担保信',            req:true},
+  {id:'passport',          label:'护照扫描件',            req:true},
+  {id:'photo',             label:'红底证件照（4x6）',     req:true},
+  {id:'insurance',         label:'保险证明',              req:false},
+];
+
+const PROG_STYLE  = {'神学院':{bg:'#e0e7ff',color:'#4338ca'},'师范生':{bg:'#ccfbf1',color:'#0f766e'},'seminary':{bg:'#e0e7ff',color:'#4338ca'}};
+const STAGE_STYLE = {apply:{bg:'#f1f5f9',color:'#475569'},exam:{bg:'#dbeafe',color:'#1d4ed8'},interview:{bg:'#ede9fe',color:'#6d28d9'},result:{bg:'#fef3c7',color:'#92400e'},materials:{bg:'#ffedd5',color:'#9a3412'},complete:{bg:'#dcfce7',color:'#15803d'},rejected:{bg:'#fee2e2',color:'#dc2626'},waitlist:{bg:'#fef9c3',color:'#854d0e'}};
+const REC_STYLE   = {strongly_recommend:{bg:'#dcfce7',color:'#15803d',label:'强烈推荐'},recommend:{bg:'#dbeafe',color:'#1d4ed8',label:'推荐'},neutral:{bg:'#fef3c7',color:'#92400e',label:'中立'},not_recommend:{bg:'#fee2e2',color:'#dc2626',label:'不推荐'}};
+
+// ══════════════════════════════════════════════════════════════
+// APP STATE
+// ══════════════════════════════════════════════════════════════
+const A = {
+  // Session
+  role: null,        // 'applicant' | 'teacher' | 'admin'
+  user: null,        // Supabase user (teacher/admin)
+  profile: null,     // profiles row
+  applicant: null,   // current applicant row
+
+  // UI state
+  adminTab: 'pipeline',
+  teacherTab: 'interviews',
+  selectedApId: null,
+  briefingId: null,
+  showRecordForm: false,
+  loginMode: null,   // 'applicant' | 'staff'
+
+  // Applicant exam state
+  examStarted: false,
+  examSubmitted: false,
+  examAnswers: {},
+  essayText: '',
+  examTime: 5400,
+  ivSelected: null,
+  ivBooked: false,
+  uploads: {},
+
+  // Data cache
+  allApplicants: [],
+  allSlots: [],
+  mySlots: [],        // teacher's slots
+  allRecords: [],
+};
+let examTimer = null;
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const mkTag = (bg,color,text) => `<span class="tag" style="background:${bg};color:${color}">${esc(text)}</span>`;
+const mkAv  = (initials,size='md',cls='av-indigo') => `<div class="avatar av-${size} ${cls}">${esc(initials)}</div>`;
+const initials = ap => ap ? ((ap.first_name||'')[0]||(ap.full_name||'?')[0]) : '?';
+const fullName = ap => ap ? (ap.full_name || ap.first_name + ap.last_name || '未知') : '未知';
+const progTag  = prog => {const s=PROG_STYLE[prog]||{bg:'#f3f4f6',color:'#6b7280'};return mkTag(s.bg,s.color,prog||'神学院');}
+const stageTag = stage => {const s=STAGE_STYLE[stage]||{bg:'#f3f4f6',color:'#6b7280'};return mkTag(s.bg,s.color,(STAGES.find(x=>x.id===stage)||{}).label||stage);}
+
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=(ok?'✓ ':'✕ ')+msg;
+  t.style.background=ok?'#15803d':'#dc2626';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function stopTimer(){if(examTimer){clearInterval(examTimer);examTimer=null;}}
+function startTimer(){
+  stopTimer();
+  examTimer=setInterval(()=>{
+    A.examTime--;
+    const d=document.getElementById('timer-disp');
+    const b=document.getElementById('timer-bar');
+    const w=document.getElementById('timer-wrap');
+    const warn=A.examTime<600;
+    const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    if(d) d.textContent=fmt(A.examTime);
+    if(b){b.style.width=`${((5400-A.examTime)/5400)*100}%`;b.style.background=warn?'#ef4444':'linear-gradient(90deg,#4f46e5,#818cf8)';}
+    if(w){w.style.background=warn?'#fef2f2':'#eef2ff';w.style.borderColor=warn?'#fecaca':'#e0e7ff';}
+    if(A.examTime<=0)submitExam();
+  },1000);
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATA LAYER
+// ══════════════════════════════════════════════════════════════
+async function loadAdminData(){
+  const [{data:aps},{data:slots},{data:recs}] = await Promise.all([
+    sb.from('applicants').select('*').order('created_at',{ascending:false}),
+    sb.from('interview_slots').select('*').order('slot_date').order('slot_time'),
+    sb.from('interview_records').select('*').order('created_at',{ascending:false}),
+  ]);
+  A.allApplicants = aps||[];
+  A.allSlots      = slots||[];
+  A.allRecords    = recs||[];
+}
+
+async function loadTeacherData(){
+  const [{data:slots},{data:recs}] = await Promise.all([
+    sb.from('interview_slots').select('*,applicants(*)').eq('teacher_id',A.user.id).order('slot_date').order('slot_time'),
+    sb.from('interview_records').select('*,applicants(first_name,last_name,full_name)').eq('recorded_by_id',A.user.id).order('created_at',{ascending:false}),
+  ]);
+  A.mySlots   = slots||[];
+  A.allRecords = recs||[];
+  // Also load all applicants for briefing
+  const {data:aps} = await sb.from('applicants').select('*').order('created_at',{ascending:false});
+  A.allApplicants = aps||[];
+}
+
+async function loadPublicSlots(){
+  const {data} = await sb.from('interview_slots').select('*').eq('is_booked',false).order('slot_date').order('slot_time');
+  A.allSlots = data||[];
+}
+
+async function submitExam(){
+  stopTimer();
+  let score=0;
+  EXAM_Qs.filter(q=>q.type==='single').forEach(q=>{if(A.examAnswers[q.id]===q.ans)score+=20;});
+  score+=A.essayText.length>30?20:5;
+  const {error} = await sb.from('applicants').update({
+    exam_score:score,exam_essay:A.essayText,exam_answers:A.examAnswers,
+    exam_completed_at:new Date().toISOString(),stage:'interview'
+  }).eq('id',A.applicant.id);
+  if(!error){
+    A.applicant.exam_score=score;A.applicant.exam_essay=A.essayText;
+    A.applicant.stage='interview';A.examSubmitted=true;
+    toast('答卷已提交，成绩：'+score);
+  } else toast('提交失败',false);
+  render();
+}
+
+async function confirmInterview(){
+  if(!A.ivSelected) return;
+  const {error:e1} = await sb.from('interview_slots').update({is_booked:true,applicant_id:A.applicant.id}).eq('id',A.ivSelected.id);
+  const {error:e2} = await sb.from('applicants').update({interview_slot_id:A.ivSelected.id}).eq('id',A.applicant.id);
+  if(!e1&&!e2){
+    A.ivBooked=true;A.applicant.interview_slot_id=A.ivSelected.id;
+    toast('面试预约成功！');
+    // Log notification
+    await sb.from('notification_log').insert([
+      {applicant_id:A.applicant.id,type:'iv_scheduled',recipient:'applicant',content:`面试时间：${A.ivSelected.slot_date} ${A.ivSelected.slot_time}`},
+      {applicant_id:A.applicant.id,type:'teacher_notified',recipient:A.ivSelected.teacher_name,content:`申请人：${fullName(A.applicant)}`},
+    ]);
+  } else toast('预约失败',false);
+  render();
+}
+
+// ══════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════
+async function loginApplicant(name,last4){
+  const trimName=name.trim();
+  const {data,error}=await sb.from('applicants').select('*').eq('full_name',trimName).eq('phone_last4',last4.trim()).maybeSingle();
+  if(error||!data){toast('姓名或手机后四位不正确',false);return;}
+  A.role='applicant';A.applicant=data;
+  render();
+}
+
+async function loginStaff(email,password){
+  const {data,error}=await sb.auth.signInWithPassword({email,password});
+  if(error){toast('邮箱或密码错误',false);return;}
+  A.user=data.user;
+  const {data:prof}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
+  A.profile=prof;
+  A.role=prof?.role||'teacher';
+  if(A.role==='admin') await loadAdminData();
+  else await loadTeacherData();
+  render();
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  Object.assign(A,{role:null,user:null,profile:null,applicant:null,adminTab:'pipeline',teacherTab:'interviews',selectedApId:null,briefingId:null,allApplicants:[],allSlots:[],allRecords:[]});
+  render();
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER HELPERS
+// ══════════════════════════════════════════════════════════════
+function renderSteps(cur){
+  const idx=STAGE_IDX[cur]||0;
+  return `<div class="steps">${STAGES.map((s,i)=>{
+    const cls=i<idx?'done':i===idx?'active':'locked';
+    const lc=i<idx?'c-indigo4':i===idx?'c-indigo6':'c-gray4';
+    const conn=i<STAGES.length-1?`<div class="step-conn ${i<idx?'done':'locked'}"></div>`:'';
+    return `<div class="col" style="align-items:center"><div class="step-dot ${cls}">${i<idx?'✓':s.icon}</div><div class="step-label ${lc}">${s.label}</div></div>${conn}`;
+  }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOGIN VIEW
+// ══════════════════════════════════════════════════════════════
+function renderLogin(){
+  if(A.loginMode==='applicant') return renderApplicantLogin();
+  if(A.loginMode==='staff')     return renderStaffLogin();
+  return `<div class="app bg-login col center" style="min-height:100vh;padding:24px 16px">
+    <div class="tc mb8"><div class="t48 mb3">🏫</div><div class="t24 fw8 c-gray8">神学院招生系统</div><div class="t12 c-gray4 mt2">Seminary Admissions Portal</div></div>
+    <div class="login-card">
+      <div class="tc t12 c-gray4 mb4">请选择登录身份</div>
+      <button class="login-btn" id="btn-login-applicant">
+        <div class="login-icon">🙋</div>
+        <div><div class="fw7 c-gray8 t14">申请人</div><div class="t11 c-gray4 mt1">查看进度 · 参加考试 · 预约面试</div></div>
+        <div class="ml-auto c-indigo4 t18">→</div>
+      </button>
+      <button class="login-btn" id="btn-login-staff">
+        <div class="login-icon">👨‍🏫</div>
+        <div><div class="fw7 c-gray8 t14">老师 / 管理员</div><div class="t11 c-gray4 mt1">查看档案 · 填写记录 · 管理流程</div></div>
+        <div class="ml-auto c-indigo4 t18">→</div>
+      </button>
+    </div>
+  </div>`;
+}
+
+function renderApplicantLogin(){
+  return `<div class="app bg-login col center" style="min-height:100vh;padding:24px 16px">
+    <div class="login-card maxw-sm">
+      <div class="tc mb6"><div class="t48 mb2">🙋</div><div class="t20 fw8 c-gray8">申请人登录</div></div>
+      <div class="col g3">
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">真实姓名</div>
+          <input id="ap-name" class="inp" placeholder="例：魏耀恩">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">手机号后四位</div>
+          <input id="ap-phone4" class="inp" maxlength="4" placeholder="例：1234">
+        </div>
+        <button class="btn btn-primary btn-full mt2" id="btn-ap-login">登录</button>
+        <button class="btn btn-ghost btn-full btn-sm" id="btn-back-login">← 返回</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderStaffLogin(){
+  return `<div class="app bg-login col center" style="min-height:100vh;padding:24px 16px">
+    <div class="login-card maxw-sm">
+      <div class="tc mb6"><div class="t48 mb2">👨‍🏫</div><div class="t20 fw8 c-gray8">老师 / 管理员登录</div></div>
+      <div class="col g3">
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">邮箱</div>
+          <input id="staff-email" class="inp" type="email" placeholder="your@email.com">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">密码</div>
+          <input id="staff-pw" class="inp" type="password" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary btn-full mt2" id="btn-staff-login">登录</button>
+        <button class="btn btn-ghost btn-full btn-sm" id="btn-back-login">← 返回</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// APPLICANT VIEWS
+// ══════════════════════════════════════════════════════════════
+function renderApplicant(){
+  const ap=A.applicant;
+  const stage=ap.stage||'apply';
+  let content='';
+  if(stage==='apply') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
+    <div class="t48 mb3">👋</div>
+    <div class="t22 fw7 c-gray8 mb2">平安，${esc(fullName(ap))}！</div>
+    <div class="t13 c-gray5 mb6">感谢报名，你的申请已收到。笔试开放后系统会通知你，请留意。</div>
+    <div class="bg-indigo50 b1 bc-indigo100 r16 p4 t13 tl col g2">
+      <div class="row g2"><span class="c-indigo4">📌</span><span>报名项目：<strong>神学院 2026 秋季班</strong></span></div>
+      <div class="row g2"><span class="c-indigo4">📞</span><span>如有疑问请联系：张琦 Alex</span></div>
+    </div>
+  </div>`;
+  else if(stage==='exam'){
+    if(!A.examStarted) content=`<div class="col center py12 px4 tc maxw-md mx-auto">
+      <div class="t48 mb3">📖</div><div class="t22 fw7 c-gray8 mb2">笔试准备</div>
+      <div class="t13 c-gray5 mb6 lh16">共 <strong>5 道题</strong>（4道单选 + 1道简答）<br>考试时间 <strong>90 分钟</strong></div>
+      <div class="b1 bc-amber200 bg-amber50 r12 p4 t12 tl mb6" style="color:#92400e;max-width:420px">⚠️ 请准备两个设备，全程开启摄像头。</div>
+      <button class="btn btn-primary" id="btn-start-exam">开始考试</button>
+    </div>`;
+    else if(A.examSubmitted) content=`<div class="col center py12 px4 tc maxw-md mx-auto">
+      <div class="t48 mb3">🎉</div><div class="t22 fw7 c-gray8 mb2">答卷已提交！</div>
+      <div class="b1 bc-indigo200 bg-indigo50 r16 p5 mb6"><div style="font-size:48px;font-weight:800;color:#4f46e5">${ap.exam_score||'—'}</div><div class="t11 c-indigo4 mt1">满分 100 · 暂估分</div></div>
+      <button class="btn btn-primary" id="btn-go-interview">前往预约面试 →</button>
+    </div>`;
+    else content=renderExamDoing();
+  }
+  else if(stage==='interview'){
+    if(ap.interview_slot_id||A.ivBooked) content=renderIvConfirmed();
+    else content=renderIvBooking();
+  }
+  else if(stage==='result') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
+    <div class="t48 mb3">⏳</div><div class="t22 fw7 c-gray8 mb2">等待录取结果</div>
+    <div class="t13 c-gray5">感谢你参与面试，结果将在 3–5 个工作日内通知。</div>
+  </div>`;
+  else if(stage==='materials') content=renderMaterials();
+  else if(stage==='complete') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
+    <div style="font-size:56px" class="mb3">🎓</div><div class="t22 fw7 c-gray8 mb2">恭喜！入学流程已完成</div>
+    <div class="t13 c-gray5">所有材料已审核通过，请关注来印攻略文件。</div>
+  </div>`;
+
+  return `<div style="min-height:100vh;background:linear-gradient(135deg,#eef2ff,#fff 50%,#f5f3ff)">
+    <div class="header">
+      <div class="row g2"><span class="t20">🏫</span><span class="fw7 c-gray8 t14">神学院招生系统</span></div>
+      <div class="row g2">${mkAv(initials(ap),'sm')}<span class="t12 c-gray6">${esc(fullName(ap))}</span><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
+    </div>
+    ${renderSteps(stage)}
+    <main style="padding-bottom:48px">${content}</main>
+  </div>`;
+}
+
+function renderExamDoing(){
+  const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  return `<div class="maxw-2xl mx-auto px4" style="padding-bottom:64px">
+    <div id="timer-wrap" class="row g3 r12 p3 mb4" style="position:sticky;top:64px;z-index:10;background:#eef2ff;border:1px solid #e0e7ff">
+      <span>⏱</span>
+      <div class="timer-bar-outer"><div id="timer-bar" class="timer-bar-inner" style="width:0%;background:linear-gradient(90deg,#4f46e5,#818cf8)"></div></div>
+      <span id="timer-disp" class="mono fw7 t13 c-indigo6">${fmt(A.examTime)}</span>
+      <span class="t12 c-gray4">剩余</span>
+    </div>
+    <div class="col g4">
+    ${EXAM_Qs.map((q,qi)=>`<div class="card p5">
+      <div class="row g2 mb4">
+        <div class="shrink0" style="width:24px;height:24px;border-radius:50%;background:#4f46e5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:2px">${qi+1}</div>
+        <p class="c-gray8 fw5 t13 lh16 flex1">${esc(q.q)}</p>
+      </div>
+      ${q.type==='single'?`<div class="col g2" style="padding-left:32px">
+        ${q.opts.map((opt,oi)=>`<label class="radio-opt${A.examAnswers[q.id]===oi?' checked':''}" data-qid="${q.id}" data-oi="${oi}">
+          <input type="radio" name="q${q.id}" value="${oi}" ${A.examAnswers[q.id]===oi?'checked':''}><span class="t13 c-gray7">${String.fromCharCode(65+oi)}. ${esc(opt)}</span>
+        </label>`).join('')}
+      </div>`:`<div style="padding-left:32px">
+        <textarea id="essay-ta" class="textarea" rows="6" placeholder="请在此输入（100-200字）...">${esc(A.essayText)}</textarea>
+        <div id="essay-count" class="tr t11 mt1" style="color:${A.essayText.length<100?'#f59e0b':'#16a34a'}">${A.essayText.length} 字</div>
+      </div>`}
+    </div>`).join('')}
+    </div>
+    <div class="tc mt8"><button class="btn btn-primary" id="btn-submit-exam">提交答卷</button></div>
+  </div>`;
+}
+
+function renderIvBooking(){
+  const slots=A.allSlots;
+  const grouped={};
+  slots.forEach(s=>{if(!grouped[s.slot_date])grouped[s.slot_date]=[];grouped[s.slot_date].push(s);});
+  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
+    <div class="t20 fw7 c-gray8 mb1">预约面试时间</div>
+    <div class="t13 c-gray5 mb5">请选择你方便的时间，系统将自动通知面试老师。</div>
+    ${slots.length===0?`<div class="card p5 tc c-gray4 t13">暂无可用时间段，请等待管理员开放</div>`:''}
+    <div class="col g3">
+    ${Object.entries(grouped).map(([date,ss])=>`<div class="card p4">
+      <div class="fw6 c-gray7 t13 mb3">${esc(date)}</div>
+      <div class="row wrap g2">
+        ${ss.map(s=>`<button class="slot-btn${A.ivSelected?.id===s.id?' active':''}" data-action="pick-slot" data-slotid="${s.id}">${esc(s.slot_time.slice(0,5))}</button>`).join('')}
+      </div>
+    </div>`).join('')}
+    </div>
+    ${A.ivSelected?`<div class="b1 bc-indigo200 bg-indigo50 r10 p3 mt4 t13 fw6 c-indigo6">已选择：${esc(A.ivSelected.slot_date)} ${esc(A.ivSelected.slot_time?.slice(0,5)||'')}</div>`:''}
+    <button class="btn btn-full mt4 ${A.ivSelected?'btn-primary':'btn-ghost'}" id="btn-confirm-iv" ${A.ivSelected?'':'disabled'}>确认预约</button>
+  </div>`;
+}
+
+function renderIvConfirmed(){
+  const sl=A.ivSelected;
+  return `<div class="maxw-lg mx-auto px4" style="padding:20px 16px 64px">
+    <div class="tc mb6"><div class="t48 mb2">📅</div><div class="t22 fw7 c-gray8 mb1">面试预约成功！</div>
+    <div class="b1 bc-indigo200 bg-indigo50 r14 px6 py4 mt3" style="display:inline-block;text-align:left">
+      <div class="t11 c-indigo4 mb1">面试时间</div>
+      <div class="t20 fw8 c-indigo6 mb3">${sl?esc(sl.slot_date)+' '+esc(sl.slot_time?.slice(0,5)||''):'已预约'}</div>
+      <div class="t12 c-gray5">Zoom 会议号：${sl?.zoom_id||'847 5014 4631'}&nbsp;/&nbsp;密码：${sl?.zoom_password||'156903'}</div>
+    </div></div>
+    <div class="fw7 c-gray7 t13 mb3">✅ 已自动发出以下通知</div>
+    <div class="card p4 mb3"><div class="row g2 mb2"><span>🙋</span><span class="fw6 t13 c-indigo6">通知申请人</span><span class="ml-auto tag bg-green100 c-green6">✓ 已发送</span></div>
+    <div class="notif-preview">面试时间已确认。请提前进入会议室，确保网络和摄像头正常。\nZoom：${sl?.zoom_id||'847 5014 4631'} / 密码：${sl?.zoom_password||'156903'}</div></div>
+    <div class="card p4 mb3"><div class="row g2 mb2"><span>👨‍🏫</span><span class="fw6 t13 c-violet7">通知面试老师</span><span class="ml-auto tag bg-green100 c-green6">✓ 已发送</span></div>
+    <div class="notif-preview">申请人 ${esc(fullName(A.applicant))} 已预约 ${sl?esc(sl.slot_date)+' '+esc(sl.slot_time?.slice(0,5)||''):''}面试。申请人资料包请在管理后台查看。</div></div>
+    <div class="card p4"><div class="fw6 c-gray7 t13 mb2">⏰ 自动提醒计划</div>
+    <div class="t12 c-gray5">• 面试前 24 小时自动提醒申请人和老师<br>• 面试前 30 分钟再次提醒</div></div>
+  </div>`;
+}
+
+function renderMaterials(){
+  const miss=MAT_ITEMS.filter(i=>i.req&&!A.uploads[i.id]).length;
+  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
+    <div class="t20 fw7 c-gray8 mb1">提交入学材料</div>
+    <div class="t13 c-gray5 mb5">请在 <strong style="color:#dc2626">3天内</strong> 提交以下全部必填材料。</div>
+    <div class="col g2">
+    ${MAT_ITEMS.map(item=>`<div class="mat-item${A.uploads[item.id]?' done':''}" data-action="toggle-mat" data-mid="${item.id}">
+      <div class="mat-check${A.uploads[item.id]?' done':''}">${A.uploads[item.id]?'✓':''}</div>
+      <span class="flex1 t13 fw5 c-gray7">${esc(item.label)}</span>
+      ${!item.req?'<span class="t11 c-gray4">（选填）</span>':''}
+      ${!A.uploads[item.id]?'<span class="tag" style="background:#4f46e5;color:#fff">上传</span>':''}
+    </div>`).join('')}
+    </div>
+    <div class="b1 r12 p3 mt5 t13 ${miss===0?'bg-green50 bc-green200':'bg-amber50 bc-amber200'}" style="color:${miss===0?'#15803d':'#92400e'}">
+      ${miss===0?'✅ 所有必填材料已提交，等待管理员审核。':`⚠️ 还有 ${miss} 项必填材料未提交。`}
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// TEACHER VIEW
+// ══════════════════════════════════════════════════════════════
+function renderTeacher(){
+  const prof=A.profile;
+  const tabs=[{id:'interviews',label:'我的面试',icon:'📅'},{id:'records',label:'面试记录',icon:'📝'},{id:'briefings',label:'申请人档案',icon:'📋'}];
+  let content='';
+  if(A.teacherTab==='interviews') content=renderTeacherInterviews();
+  else if(A.teacherTab==='records') content=renderTeacherRecords();
+  else if(A.teacherTab==='briefings') content=renderTeacherBriefings();
+
+  const selAp=A.briefingId?A.allApplicants.find(a=>a.id===A.briefingId):null;
+
+  return `<div style="min-height:100vh;background:#f4f5ff;display:flex;flex-direction:column">
+    <div class="header">
+      <div class="row g3"><span class="t20">🏫</span><span class="fw7 c-gray8">教师端</span>${mkTag('#ede9fe','#6d28d9',prof?.display_name||'老师')}</div>
+      <div class="row g2">${mkAv((prof?.display_name||'T')[0],'sm','av-violet')}<button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
+    </div>
+    <div class="tabbar">${tabs.map(t=>`<button class="tab${A.teacherTab===t.id?' active':''}" data-teacher-tab="${t.id}">${t.icon} ${t.label}</button>`).join('')}</div>
+    <div class="flex1 ovy px6 py4" style="padding-bottom:40px">${content}</div>
+    ${selAp?renderBriefingModal(selAp):''}
+  </div>`;
+}
+
+function renderTeacherInterviews(){
+  const booked=A.mySlots.filter(s=>s.is_booked&&s.applicants);
+  const available=A.mySlots.filter(s=>!s.is_booked);
+  return `<div class="col g4 maxw-2xl">
+    <div>
+      <div class="fw7 c-gray8 t14 mb3">已预约面试（${booked.length}）</div>
+      ${booked.length===0?`<div class="card p5 tc c-gray4 t13">暂无已预约的面试</div>`:''}
+      ${booked.map(s=>{const ap=s.applicants;return `<div class="card p4 mb3">
+        <div class="row g3 mb3">
+          <div class="bg-indigo50 r10 px4 py2 tc shrink0"><div class="t11 c-indigo4 fw6">${esc(s.slot_date)}</div><div class="t18 fw8 c-indigo6">${esc(s.slot_time?.slice(0,5)||'')}</div></div>
+          <div class="flex1">${mkAv(initials(ap),'md')}<span class="fw6 c-gray8 t14 ml2">${esc(fullName(ap))}</span>${ap?stageTag(ap.stage):''}</div>
+          <button class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${s.applicant_id}">📋 查看档案</button>
+          <button class="btn btn-primary btn-sm" data-action="write-record" data-apid="${s.applicant_id}">✍️ 写记录</button>
+        </div>
+        <div class="t12 c-gray5">Zoom：${esc(s.zoom_id)} / 密码：${esc(s.zoom_password)}</div>
+      </div>`;}).join('')}
+    </div>
+    <div class="card p5">
+      <div class="fw7 c-gray8 mb3 t14">我的可用时间段（${available.length}个）</div>
+      ${available.length===0?`<div class="tc c-gray4 t13 py3">暂无开放时间段</div>`:''}
+      <div class="row wrap g2 mb4">
+        ${available.map(s=>`<div class="row g2 bg-indigo50 b1 bc-indigo200 r8 px3 py2">
+          <span class="t13 c-indigo6 fw5">${esc(s.slot_date)} ${esc(s.slot_time?.slice(0,5)||'')}</span>
+          <button class="t11 c-indigo4" style="padding:0 2px" data-action="del-teacher-slot" data-slotid="${s.id}">✕</button>
+        </div>`).join('')}
+      </div>
+      <div class="fw6 c-gray7 t13 mb3">添加可用时间</div>
+      <div class="row wrap g3">
+        <input id="t-slot-date" class="inp" style="flex:1;min-width:140px" type="date" placeholder="日期">
+        <input id="t-slot-time" class="inp" style="width:100px" type="time" placeholder="时间">
+        <button class="btn btn-primary" id="btn-add-teacher-slot">添加</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTeacherRecords(){
+  return `<div class="maxw-2xl">
+    <div class="fw7 c-gray8 t14 mb3">我的面试记录（${A.allRecords.length}）</div>
+    ${A.allRecords.length===0?`<div class="card p5 tc c-gray4 t13">暂无记录</div>`:''}
+    ${A.allRecords.map(r=>{const ap=r.applicants;const rec=REC_STYLE[r.recommendation]||{bg:'#f3f4f6',color:'#6b7280',label:'未填写'};return `<div class="card p4 mb3">
+      <div class="row g3 mb3">${mkAv(initials(ap),'md')}<div><div class="fw6 c-gray8">${esc(fullName(ap))}</div><div class="t11 c-gray4 mt1">${esc(r.interview_date?.slice(0,10)||'')}</div></div>
+      <span class="ml-auto rec-badge" style="background:${rec.bg};color:${rec.color}">${rec.label}</span></div>
+      ${r.content?`<div class="t13 c-gray6 lh16 bg-gray50 r8 p3">${esc(r.content)}</div>`:''}
+    </div>`;}).join('')}
+  </div>`;
+}
+
+function renderTeacherBriefings(){
+  const interviewed=A.allApplicants.filter(a=>['interview','result','materials','complete'].includes(a.stage));
+  return `<div class="maxw-2xl">
+    <div class="fw7 c-gray8 t14 mb3">进入面试阶段的申请人（${interviewed.length}）</div>
+    ${interviewed.map(ap=>`<div class="card p4 mb3 row g3">
+      ${mkAv(initials(ap),'md')}
+      <div class="flex1"><div class="fw6 c-gray8">${esc(fullName(ap))}</div>
+      <div class="row g2 mt1">${stageTag(ap.stage)}${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
+      <button class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${ap.id}">📋 查看档案</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ADMIN VIEW
+// ══════════════════════════════════════════════════════════════
+function renderAdmin(){
+  const tabs=[{id:'pipeline',label:'申请人看板',icon:'📊'},{id:'exams',label:'笔试成绩',icon:'📝'},{id:'schedule',label:'面试排班',icon:'📅'},{id:'docs',label:'材料审核',icon:'📄'}];
+  const stats=[
+    {label:'总申请人',value:A.allApplicants.length,color:'#4f46e5'},
+    {label:'待笔试',value:A.allApplicants.filter(a=>a.stage==='exam').length,color:'#2563eb'},
+    {label:'待面试',value:A.allApplicants.filter(a=>a.stage==='interview').length,color:'#7c3aed'},
+    {label:'已录取',value:A.allApplicants.filter(a=>['materials','complete'].includes(a.stage)).length,color:'#16a34a'},
+  ];
+  let content='';
+  if(A.adminTab==='pipeline') content=renderPipeline();
+  else if(A.adminTab==='exams') content=renderExams();
+  else if(A.adminTab==='schedule') content=renderSchedule();
+  else if(A.adminTab==='docs') content=renderDocs();
+
+  const selAp=A.selectedApId?A.allApplicants.find(a=>a.id===A.selectedApId):null;
+  const briefAp=A.briefingId?A.allApplicants.find(a=>a.id===A.briefingId):null;
+
+  return `<div style="min-height:100vh;background:#f4f5ff;display:flex;flex-direction:column">
+    <div class="header">
+      <div class="row g3"><span class="t20">🏫</span><span class="fw7 c-gray8">招生管理后台</span>${mkTag('#eef2ff','#4f46e5','Admin')}</div>
+      <div class="row g2">${mkAv('张','sm')}<span class="t12 c-gray6">张琦 Alex</span><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
+    </div>
+    <div class="stats">${stats.map(s=>`<div class="stat-card"><div class="t28 fw8" style="color:${s.color}">${s.value}</div><div class="t11 c-gray4 mt1">${s.label}</div></div>`).join('')}</div>
+    <div class="tabbar">${tabs.map(t=>`<button class="tab${A.adminTab===t.id?' active':''}" data-admin-tab="${t.id}">${t.icon} ${t.label}</button>`).join('')}</div>
+    <div class="flex1 ovy px6 py4" style="padding-bottom:40px">${content}</div>
+    ${selAp?renderApDetailModal(selAp):''}
+    ${briefAp?renderBriefingModal(briefAp):''}
+    ${A.showRecordForm?renderRecordForm():''}
+  </div>`;
+}
+
+function renderPipeline(){
+  return `<div class="kanban">
+    ${STAGES.map(sg=>{
+      const aps=A.allApplicants.filter(a=>a.stage===sg.id);
+      return `<div class="kanban-col">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+          <span>${sg.icon}</span><span class="fw6 c-gray7 t13">${sg.label}</span>
+          <span class="ml-auto tag" style="background:#f3f4f6;color:#6b7280">${aps.length}</span>
+        </div>
+        <div class="col g2">
+          ${aps.map(ap=>`<div class="kanban-card" data-action="select-ap" data-apid="${ap.id}">
+            <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13">${esc(fullName(ap))}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
+            ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
+          </div>`).join('')}
+          ${aps.length===0?`<div style="font-size:11px;color:#d1d5db;text-align:center;padding:24px 0;border:2px dashed #f3f4f6;border-radius:12px">暂无</div>`:''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderExams(){
+  return `<div class="maxw-2xl card" style="overflow:hidden">
+    <table class="tbl"><thead><tr><th>姓名</th><th>联系方式</th><th>状态</th><th>成绩</th><th>操作</th></tr></thead><tbody>
+    ${A.allApplicants.map(ap=>{
+      const done=ap.exam_score!=null,waiting=!done&&STAGE_IDX[ap.stage]>=STAGE_IDX['exam'];
+      const ss=done?{bg:'#dcfce7',c:'#15803d',t:'已完成'}:waiting?{bg:'#fef3c7',c:'#92400e',t:'待考试'}:{bg:'#f3f4f6',c:'#6b7280',t:'未开始'};
+      return `<tr>
+        <td><div class="row g2">${mkAv(initials(ap),'sm')}<span class="fw5 c-gray8">${esc(fullName(ap))}</span></div></td>
+        <td class="t12 c-gray5">${esc(ap.phone||ap.email||'—')}</td>
+        <td>${mkTag(ss.bg,ss.c,ss.t)}</td>
+        <td>${done?`<span style="font-size:18px;font-weight:700;color:${ap.exam_score>=80?'#16a34a':ap.exam_score>=60?'#d97706':'#dc2626'}">${ap.exam_score}</span>`:'<span style="color:#d1d5db">—</span>'}</td>
+        <td class="row g1">
+          ${done&&ap.stage==='exam'?`<button class="btn btn-primary btn-xs" data-action="advance-ap" data-apid="${ap.id}">推进至面试</button>`:''}
+          <button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">档案</button>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>
+  </div>`;
+}
+
+function renderSchedule(){
+  const booked=A.allApplicants.filter(a=>a.interview_slot_id);
+  const freeSlots=A.allSlots.filter(s=>!s.is_booked);
+  return `<div class="col g4 maxw-2xl">
+    <div>
+      <div class="fw7 c-gray8 t14 mb3">已预约面试（${booked.length}人）</div>
+      ${booked.map(ap=>`<div class="card p4 mb3">
+        <div class="row g3">
+          <div class="bg-indigo50 r10 px3 py2 tc shrink0"><div class="t11 c-indigo4 fw6">已预约</div></div>
+          <div class="flex1 row g2">${mkAv(initials(ap),'sm')}<span class="fw6 c-gray8">${esc(fullName(ap))}</span>${stageTag(ap.stage)}</div>
+          <div class="row g1">
+            <button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">📋 档案</button>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div class="card p5">
+      <div class="fw7 c-gray8 mb3 t14">📅 开放时间段（${freeSlots.length}个可预约）</div>
+      <div class="row wrap g2 mb4">
+        ${freeSlots.map(s=>`<div class="row g2 bg-indigo50 b1 bc-indigo200 r8 px3 py2">
+          <span class="t13 c-indigo6 fw5">${esc(s.slot_date)} ${esc(s.slot_time?.slice(0,5)||'')} ${s.teacher_name?'· '+esc(s.teacher_name):''}</span>
+          <button class="t11 c-indigo4" style="padding:0 2px" data-action="del-slot" data-slotid="${s.id}">✕</button>
+        </div>`).join('')}
+        ${freeSlots.length===0?`<span class="t13 c-gray4">暂无开放时间段</span>`:''}
+      </div>
+      <div class="fw6 c-gray7 t13 mb3">添加新时间段</div>
+      <div class="row wrap g3">
+        <input id="a-slot-date" class="inp" style="flex:1;min-width:140px" type="date">
+        <input id="a-slot-time" class="inp" style="width:100px" type="time">
+        <input id="a-slot-teacher" class="inp" style="flex:1;min-width:120px" placeholder="老师姓名">
+        <button class="btn btn-primary" id="btn-add-admin-slot">添加</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderDocs(){
+  const filtered=A.allApplicants.filter(a=>['materials','complete'].includes(a.stage));
+  return `<div class="col g3 maxw-2xl">
+    ${filtered.length===0?`<div class="card p6 tc c-gray4 t13">暂无需要审核的材料</div>`:''}
+    ${filtered.map(ap=>`<div class="card p4">
+      <div class="row g3 mb2">${mkAv(initials(ap),'md')}<span class="fw6 c-gray8 t14">${esc(fullName(ap))}</span>${stageTag(ap.stage)}
+      <button class="btn btn-outline btn-xs ml-auto" data-action="view-briefing" data-apid="${ap.id}">查看档案</button></div>
+      <div class="t12 c-gray5">已提交材料审核中</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── Applicant Detail Modal ────────────────────────────────────
+function renderApDetailModal(ap){
+  const rec=A.allRecords.find(r=>r.applicant_id===ap.id);
+  return `<div class="modal-overlay" id="ap-modal" data-action="close-modal">
+    <div class="modal-sm" onclick="event.stopPropagation()">
+      <div class="row g3 mb4">${mkAv(initials(ap),'xl')}<div><div class="fw7 c-gray8 t16">${esc(fullName(ap))}</div>${stageTag(ap.stage)}</div>
+      <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-modal">✕</button></div>
+      <div class="col g2 t13 c-gray5 mb4">
+        <div class="info-row"><span>电话</span><span class="fw5">${esc(ap.phone||'—')}</span></div>
+        <div class="info-row"><span>邮箱</span><span class="fw5">${esc(ap.email||'—')}</span></div>
+        <div class="info-row"><span>笔试成绩</span><strong class="c-indigo6">${ap.exam_score??'—'}</strong></div>
+        ${rec?`<div class="info-row"><span>面试评价</span>${mkTag(REC_STYLE[rec.recommendation]?.bg||'#f3f4f6',REC_STYLE[rec.recommendation]?.color||'#6b7280',REC_STYLE[rec.recommendation]?.label||'已填写')}</div>`:''}
+      </div>
+      <div class="col g2">
+        <button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>
+        <button class="btn btn-outline btn-full" data-action="view-briefing" data-apid="${ap.id}">📋 查看完整档案</button>
+        <button class="btn btn-danger btn-full" data-action="reject-ap" data-apid="${ap.id}">标记拒绝</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Briefing Modal (teacher + admin) ─────────────────────────
+function renderBriefingModal(ap){
+  const rec=A.allRecords.find(r=>r.applicant_id===ap.id);
+  const sc=ap.exam_score;
+  const scoreColor=sc==null?'#9ca3af':sc>=85?'#16a34a':sc>=70?'#d97706':'#dc2626';
+  return `<div class="modal-overlay" data-action="close-briefing">
+    <div class="modal-lg" onclick="event.stopPropagation()">
+      <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18">${esc(fullName(ap))}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
+      <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-briefing">✕</button></div>
+
+      <div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">基本信息</div>
+      <div class="card p4 mb4">
+        <div class="info-row"><span class="c-gray5">姓名</span><span class="fw6">${esc(fullName(ap))}</span></div>
+        <div class="info-row"><span class="c-gray5">电话</span><span>${esc(ap.phone||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">邮箱</span><span>${esc(ap.email||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">性别</span><span>${esc(ap.gender||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">籍贯</span><span>${esc(ap.hometown||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">学历</span><span>${esc(ap.education||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">教会</span><span>${esc(ap.church_name||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">宗派</span><span>${esc(ap.denomination||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">语言能力</span><span>${esc(ap.language_proficiency||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">婚姻状况</span><span>${esc(ap.marital_status||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">归主时间</span><span>${esc(ap.conversion_time||'—')}</span></div>
+      </div>
+
+      <div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">笔试成绩</div>
+      <div class="card p4 mb4">
+        ${sc!=null?`<div class="row g4"><div class="tc"><div style="font-size:40px;font-weight:800;color:${scoreColor}">${sc}</div><div class="t11 c-gray4">满分 100</div></div>
+        <div class="flex1 t12 c-gray5 mt2">${sc>=85?'✓ 成绩优秀，推荐面试':sc>=70?'△ 成绩一般，重点考察':'！成绩偏低，需综合评估'}</div></div>`:'<div class="t13 c-gray4">尚未完成笔试</div>'}
+      </div>
+
+      ${ap.exam_essay?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">简答题答案</div>
+      <div class="card p4 mb4"><div class="t13 c-gray7 lh16">${esc(ap.exam_essay)}</div></div>`:''}
+
+      ${ap.conversion_testimony?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">得救见证</div>
+      <div class="card p4 mb4"><div class="t13 c-gray7 lh16">${esc(ap.conversion_testimony)}</div></div>`:''}
+
+      ${ap.ministry_experience?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">事工经历</div>
+      <div class="card p4 mb4"><div class="t13 c-gray7 lh16">${esc(ap.ministry_experience)}</div></div>`:''}
+
+      ${ap.admin_notes||ap.wechat_notes?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">管理备注</div>
+      <div class="card p4 mb4 bg-amber50 b1 bc-amber200">
+        ${ap.admin_notes?`<div class="t13 c-gray7 lh16 mb2">${esc(ap.admin_notes)}</div>`:''}
+        ${ap.wechat_notes?`<div class="t12 c-gray5">📱 微信备注：${esc(ap.wechat_notes)}</div>`:''}
+      </div>`:''}
+
+      ${rec?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">面试记录</div>
+      <div class="card p4 mb4">
+        <div class="row g2 mb2"><span class="fw6 c-gray7">${esc(rec.recorded_by_name)}</span><span class="t11 c-gray4">${esc(rec.interview_date?.slice(0,10)||'')}</span>
+        ${rec.recommendation?`<span class="ml-auto rec-badge" style="background:${REC_STYLE[rec.recommendation]?.bg||'#f3f4f6'};color:${REC_STYLE[rec.recommendation]?.color||'#6b7280'}">${REC_STYLE[rec.recommendation]?.label||''}</span>`:''}
+        </div>
+        ${rec.content?`<div class="t13 c-gray7 lh16 bg-gray50 r8 p3">${esc(rec.content)}</div>`:''}
+      </div>`:''}
+
+      <div class="b1 bc-indigo200 bg-indigo50 r12 p4">
+        <div class="fw6 c-indigo6 t13 mb1">💻 Zoom 面试信息</div>
+        <div class="t12 c-gray6">会议号：847 5014 4631 &nbsp;/&nbsp; 密码：156903</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Record Form ───────────────────────────────────────────────
+function renderRecordForm(){
+  const ap=A.allApplicants.find(a=>a.id===A.selectedApId)||A.allApplicants[0];
+  return `<div class="modal-overlay" data-action="close-record-form">
+    <div class="modal-lg" onclick="event.stopPropagation()">
+      <div class="row g3 mb4">${mkAv(initials(ap),'xl')}<div><div class="fw7 c-gray8 t16">填写面试记录</div><div class="t13 c-gray5">${esc(fullName(ap))}</div></div>
+      <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-record-form">✕</button></div>
+      <div class="col g4">
+        <div><div class="t12 fw6 c-gray6 mb1">面试日期</div><input id="rec-date" class="inp" type="datetime-local"></div>
+        <div><div class="t12 fw6 c-gray6 mb1">面试记录</div><textarea id="rec-content" class="textarea" rows="5" placeholder="记录面试过程、申请人回答要点..."></textarea></div>
+        <div><div class="t12 fw6 c-gray6 mb1">属灵评估</div><textarea id="rec-spiritual" class="textarea" rows="3" placeholder="信仰状态、属灵成熟度..."></textarea></div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb2">综合评价</div>
+          <div class="row wrap g2">
+            ${Object.entries(REC_STYLE).map(([k,v])=>`<label class="row g2 r10 b1 bc-gray200 px3 py2" style="cursor:pointer"><input type="radio" name="rec-recommendation" value="${k}" style="accent-color:#4f46e5"><span class="t12 fw6" style="color:${v.color}">${v.label}</span></label>`).join('')}
+          </div>
+        </div>
+        <div><div class="t12 fw6 c-gray6 mb1">评价说明</div><textarea id="rec-note" class="textarea" rows="2" placeholder="补充说明..."></textarea></div>
+        <button class="btn btn-primary btn-full" id="btn-save-record">保存面试记录</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// MAIN RENDER + EVENTS
+// ══════════════════════════════════════════════════════════════
+function render(){
+  stopTimer();
+  const root=document.getElementById('root');
+  if(!A.role) root.innerHTML=renderLogin();
+  else if(A.role==='applicant') root.innerHTML=renderApplicant();
+  else if(A.role==='teacher')   root.innerHTML=renderTeacher();
+  else if(A.role==='admin')     root.innerHTML=renderAdmin();
+  bind();
+  if(A.role==='applicant'&&A.applicant?.stage==='exam'&&A.examStarted&&!A.examSubmitted) startTimer();
+}
+
+function bind(){
+  const root=document.getElementById('root');
+
+  // ── Login ──
+  document.getElementById('btn-login-applicant')?.addEventListener('click',()=>{A.loginMode='applicant';render();});
+  document.getElementById('btn-login-staff')?.addEventListener('click',()=>{A.loginMode='staff';render();});
+  document.getElementById('btn-back-login')?.addEventListener('click',()=>{A.loginMode=null;render();});
+  document.getElementById('btn-ap-login')?.addEventListener('click',async()=>{
+    const name=document.getElementById('ap-name')?.value;
+    const last4=document.getElementById('ap-phone4')?.value;
+    if(!name||!last4){toast('请填写姓名和手机后四位',false);return;}
+    await loginApplicant(name,last4);
+  });
+  document.getElementById('btn-staff-login')?.addEventListener('click',async()=>{
+    const email=document.getElementById('staff-email')?.value;
+    const pw=document.getElementById('staff-pw')?.value;
+    if(!email||!pw){toast('请填写邮箱和密码',false);return;}
+    await loginStaff(email,pw);
+  });
+  document.getElementById('btn-logout')?.addEventListener('click',logout);
+
+  // ── Exam ──
+  document.getElementById('btn-start-exam')?.addEventListener('click',()=>{A.examStarted=true;render();});
+  document.getElementById('btn-submit-exam')?.addEventListener('click',()=>submitExam());
+  document.getElementById('btn-go-interview')?.addEventListener('click',async()=>{await loadPublicSlots();render();});
+  root.querySelectorAll('input[type=radio][name^=q]').forEach(r=>{
+    r.addEventListener('change',e=>{
+      const qid=+e.target.name.replace('q',''),oi=+e.target.value;
+      A.examAnswers[qid]=oi;
+      root.querySelectorAll(`[data-qid="${qid}"]`).forEach(l=>l.classList.toggle('checked',+l.dataset.oi===oi));
+    });
+  });
+  const ta=document.getElementById('essay-ta');
+  if(ta) ta.addEventListener('input',e=>{
+    A.essayText=e.target.value;
+    const cnt=document.getElementById('essay-count');
+    if(cnt){const len=e.target.value.length;cnt.textContent=`${len} 字`;cnt.style.color=len<100?'#f59e0b':'#16a34a';}
+  });
+
+  // ── Interview booking ──
+  document.getElementById('btn-confirm-iv')?.addEventListener('click',()=>confirmInterview());
+
+  // ── Materials ──
+  root.querySelectorAll('[data-action=toggle-mat]').forEach(el=>{
+    el.addEventListener('click',()=>{const mid=el.dataset.mid;A.uploads[mid]=!A.uploads[mid];render();});
+  });
+
+  // ── Slot pick (applicant) ──
+  root.querySelectorAll('[data-action=pick-slot]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const slotid=el.dataset.slotid;
+      A.ivSelected=A.allSlots.find(s=>s.id===slotid)||null;
+      render();
+    });
+  });
+
+  // ── Admin tab ──
+  root.querySelectorAll('[data-admin-tab]').forEach(el=>{
+    el.addEventListener('click',()=>{A.adminTab=el.dataset.adminTab;A.selectedApId=null;render();});
+  });
+
+  // ── Teacher tab ──
+  root.querySelectorAll('[data-teacher-tab]').forEach(el=>{
+    el.addEventListener('click',()=>{A.teacherTab=el.dataset.teacherTab;render();});
+  });
+
+  // ── Select / close applicant ──
+  root.querySelectorAll('[data-action=select-ap]').forEach(el=>{
+    el.addEventListener('click',()=>{A.selectedApId=el.dataset.apid;render();});
+  });
+  root.querySelectorAll('[data-action=close-modal]').forEach(el=>{
+    el.addEventListener('click',()=>{A.selectedApId=null;render();});
+  });
+
+  // ── Briefing ──
+  root.querySelectorAll('[data-action=view-briefing]').forEach(el=>{
+    el.addEventListener('click',()=>{A.briefingId=el.dataset.apid;A.selectedApId=null;render();});
+  });
+  root.querySelectorAll('[data-action=close-briefing]').forEach(el=>{
+    el.addEventListener('click',()=>{A.briefingId=null;render();});
+  });
+
+  // ── Record form ──
+  root.querySelectorAll('[data-action=write-record]').forEach(el=>{
+    el.addEventListener('click',()=>{A.selectedApId=el.dataset.apid;A.showRecordForm=true;A.briefingId=null;render();});
+  });
+  root.querySelectorAll('[data-action=close-record-form]').forEach(el=>{
+    el.addEventListener('click',()=>{A.showRecordForm=false;render();});
+  });
+  document.getElementById('btn-save-record')?.addEventListener('click',async()=>{
+    const content=document.getElementById('rec-content')?.value;
+    const spiritual=document.getElementById('rec-spiritual')?.value;
+    const rec=document.querySelector('input[name=rec-recommendation]:checked')?.value;
+    const note=document.getElementById('rec-note')?.value;
+    const dateVal=document.getElementById('rec-date')?.value;
+    const name=A.profile?.display_name||'管理员';
+    const {error}=await sb.from('interview_records').insert([{
+      applicant_id:A.selectedApId,recorded_by_id:A.user?.id,recorded_by_name:name,
+      content,spiritual_assessment:spiritual,recommendation:rec,recommendation_note:note,
+      interview_date:dateVal?new Date(dateVal).toISOString():new Date().toISOString()
+    }]);
+    if(!error){toast('面试记录已保存');A.showRecordForm=false;await loadAdminData();render();}
+    else toast('保存失败',false);
+  });
+
+  // ── Advance / Reject ──
+  root.querySelectorAll('[data-action=advance-ap]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      const ap=A.allApplicants.find(a=>a.id===el.dataset.apid);
+      if(!ap)return;
+      const idx=STAGE_IDX[ap.stage]||0;
+      if(idx>=STAGES.length-1)return;
+      const nextStage=STAGES[idx+1].id;
+      const {error}=await sb.from('applicants').update({stage:nextStage}).eq('id',ap.id);
+      if(!error){ap.stage=nextStage;A.selectedApId=null;toast('已推进至：'+STAGES[idx+1].label);render();}
+      else toast('操作失败',false);
+    });
+  });
+  root.querySelectorAll('[data-action=reject-ap]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      if(!confirm('确认拒绝此申请人？'))return;
+      const {error}=await sb.from('applicants').update({stage:'rejected'}).eq('id',el.dataset.apid);
+      if(!error){A.allApplicants=A.allApplicants.map(a=>a.id===el.dataset.apid?{...a,stage:'rejected'}:a);A.selectedApId=null;toast('已标记拒绝');render();}
+    });
+  });
+
+  // ── Admin: add slot ──
+  document.getElementById('btn-add-admin-slot')?.addEventListener('click',async()=>{
+    const date=document.getElementById('a-slot-date')?.value;
+    const time=document.getElementById('a-slot-time')?.value;
+    const teacher=document.getElementById('a-slot-teacher')?.value?.trim();
+    if(!date||!time){toast('请填写日期和时间',false);return;}
+    const {data,error}=await sb.from('interview_slots').insert([{slot_date:date,slot_time:time,teacher_name:teacher||null}]).select().single();
+    if(!error&&data){A.allSlots.push(data);toast('时间段已添加');render();}
+    else toast('添加失败',false);
+  });
+  root.querySelectorAll('[data-action=del-slot]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      const {error}=await sb.from('interview_slots').delete().eq('id',el.dataset.slotid);
+      if(!error){A.allSlots=A.allSlots.filter(s=>s.id!==el.dataset.slotid);toast('已删除');render();}
+    });
+  });
+
+  // ── Teacher: add slot ──
+  document.getElementById('btn-add-teacher-slot')?.addEventListener('click',async()=>{
+    const date=document.getElementById('t-slot-date')?.value;
+    const time=document.getElementById('t-slot-time')?.value;
+    if(!date||!time){toast('请填写日期和时间',false);return;}
+    const {data,error}=await sb.from('interview_slots').insert([{slot_date:date,slot_time:time,teacher_id:A.user.id,teacher_name:A.profile?.display_name}]).select().single();
+    if(!error&&data){A.mySlots.push(data);toast('时间段已添加');render();}
+    else toast('添加失败',false);
+  });
+  root.querySelectorAll('[data-action=del-teacher-slot]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      const {error}=await sb.from('interview_slots').delete().eq('id',el.dataset.slotid);
+      if(!error){A.mySlots=A.mySlots.filter(s=>s.id!==el.dataset.slotid);toast('已删除');render();}
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+async function init(){
+  // Check existing session
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    A.user=session.user;
+    const {data:prof}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
+    if(prof){
+      A.profile=prof;A.role=prof.role;
+      if(A.role==='admin') await loadAdminData();
+      else await loadTeacherData();
+    }
+  }
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
