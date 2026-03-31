@@ -228,6 +228,7 @@ const A = {
   selectedApId: null,
   briefingId: null,
   showRecordForm: false,
+  showAddApModal: false,
   loginMode: null,   // 'applicant' | 'staff'
 
   // Applicant exam state
@@ -373,7 +374,7 @@ async function loginStaff(email,password){
 
 async function logout(){
   await sb.auth.signOut();
-  Object.assign(A,{role:null,user:null,profile:null,applicant:null,adminTab:'pipeline',teacherTab:'interviews',selectedApId:null,briefingId:null,allApplicants:[],allSlots:[],allRecords:[]});
+  Object.assign(A,{role:null,user:null,profile:null,applicant:null,adminTab:'pipeline',teacherTab:'interviews',selectedApId:null,briefingId:null,showAddApModal:false,allApplicants:[],allSlots:[],allRecords:[]});
   render();
 }
 
@@ -712,11 +713,16 @@ function renderAdmin(){
     ${selAp?renderApDetailModal(selAp):''}
     ${briefAp?renderBriefingModal(briefAp):''}
     ${A.showRecordForm?renderRecordForm():''}
+    ${A.showAddApModal?renderAddApModal():''}
   </div>`;
 }
 
 function renderPipeline(){
-  return `<div class="kanban">
+  return `<div>
+    <div class="row g2 mb4">
+      <button class="btn btn-primary btn-sm" data-action="show-add-ap-modal">➕ 手动添加面试者</button>
+    </div>
+    <div class="kanban">
     ${STAGES.map(sg=>{
       const aps=A.allApplicants.filter(a=>a.stage===sg.id);
       return `<div class="kanban-col">
@@ -725,7 +731,8 @@ function renderPipeline(){
           <span class="ml-auto tag" style="background:#f3f4f6;color:#6b7280">${aps.length}</span>
         </div>
         <div class="col g2">
-          ${aps.map(ap=>`<div class="kanban-card" data-action="select-ap" data-apid="${ap.id}">
+          ${aps.map(ap=>`<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
+            <button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>
             <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13">${esc(fullName(ap))}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
             ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
           </div>`).join('')}
@@ -733,6 +740,45 @@ function renderPipeline(){
         </div>
       </div>`;
     }).join('')}
+    </div>
+  </div>`;
+}
+
+function renderAddApModal(){
+  return `<div class="modal-overlay" id="add-ap-modal" data-action="close-add-ap-modal">
+    <div class="modal-sm" onclick="event.stopPropagation()">
+      <div class="row g3 mb4"><span class="fw7 c-gray8 t16">➕ 手动添加面试者</span>
+      <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-add-ap-modal">✕</button></div>
+      <div class="col g3">
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">姓名 *</div>
+          <input id="add-ap-name" class="inp" placeholder="例：张三">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">手机号</div>
+          <input id="add-ap-phone" class="inp" placeholder="例：13812345678">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">邮笱</div>
+          <input id="add-ap-email" class="inp" type="email" placeholder="例：zhang@example.com">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">报名项目</div>
+          <select id="add-ap-program" class="sel">
+            <option value="神学院">神学院</option>
+            <option value="圣经学院">圣经学院</option>
+            <option value="宣道学院">宣道学院</option>
+          </select>
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">当前阶段</div>
+          <select id="add-ap-stage" class="sel">
+            ${STAGES.map(s=>`<option value="${s.id}">${s.label}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn btn-primary btn-full mt2" id="btn-save-add-ap">保存</button>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -1007,6 +1053,39 @@ function bind(){
   });
   root.querySelectorAll('[data-action=close-briefing]').forEach(el=>{
     el.addEventListener('click',()=>{A.briefingId=null;render();});
+  });
+
+  // ── Add applicant modal ──
+  root.querySelectorAll('[data-action=show-add-ap-modal]').forEach(el=>{
+    el.addEventListener('click',e=>{e.stopPropagation();A.showAddApModal=true;render();});
+  });
+  root.querySelectorAll('[data-action=close-add-ap-modal]').forEach(el=>{
+    el.addEventListener('click',()=>{A.showAddApModal=false;render();});
+  });
+  document.getElementById('btn-save-add-ap')?.addEventListener('click',async()=>{
+    const name=(document.getElementById('add-ap-name')?.value||'').trim();
+    const phone=(document.getElementById('add-ap-phone')?.value||'').trim();
+    const email=(document.getElementById('add-ap-email')?.value||'').trim();
+    const program=document.getElementById('add-ap-program')?.value||'神学院';
+    const stage=document.getElementById('add-ap-stage')?.value||'apply';
+    if(!name){toast('请输入姓名',false);return;}
+    const last4=phone.length>=4?phone.slice(-4):phone;
+    const {data,error}=await sb.from('applicants').insert([{full_name:name,phone,phone_last4:last4,email:email||null,program,stage}]).select().single();
+    if(!error&&data){A.allApplicants.unshift(data);A.showAddApModal=false;toast('已添加：'+name);render();}
+    else toast('添加失败：'+(error?.message||'未知错误'),false);
+  });
+
+  // ── Delete applicant ──
+  root.querySelectorAll('[data-action=delete-ap]').forEach(el=>{
+    el.addEventListener('click',async e=>{
+      e.stopPropagation();
+      const apid=el.dataset.apid;
+      const ap=A.allApplicants.find(a=>a.id===apid);
+      if(!confirm('确认删除「'+(ap?fullName(ap):'该申请人')+'」？此操作不可撤销。'))return;
+      const {error}=await sb.from('applicants').delete().eq('id',apid);
+      if(!error){A.allApplicants=A.allApplicants.filter(a=>a.id!==apid);if(A.selectedApId===apid)A.selectedApId=null;toast('已删除');render();}
+      else toast('删除失败',false);
+    });
   });
 
   // ── Record form ──
