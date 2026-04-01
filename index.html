@@ -1087,7 +1087,7 @@ function bind(){
     const stage=document.getElementById('add-ap-stage')?.value||'apply';
     if(!name){toast('请输入姓名',false);return;}
     const last4=phone.length>=4?phone.slice(-4):phone;
-    const {data,error}=await sb.from('applicants').insert([{first_name:name,phone,email:email||null,stage}]).select().single();
+    const {data,error}=await sb.from('applicants').insert([{first_name:name,last_name:'',phone,email:email||null,stage}]).select().single();
     if(!error&&data){A.allApplicants.unshift(data);A.showAddApModal=false;toast('已添加：'+name);render();}
     else toast('添加失败：'+(error?.message||'未知错误'),false);
   });
