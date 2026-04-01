@@ -794,7 +794,7 @@ function renderExams(){
         <td>${mkTag(ss.bg,ss.c,ss.t)}</td>
         <td>${done?`<span style="font-size:18px;font-weight:700;color:${ap.exam_score>=80?'#16a34a':ap.exam_score>=60?'#d97706':'#dc2626'}">${ap.exam_score}</span>`:'<span style="color:#d1d5db">—</span>'}</td>
         <td class="row g1" style="flex-wrap:wrap;gap:4px">
-          ${waiting?`<input id="manual-score-${ap.id}" type="number" min="0" max="100" class="inp" style="width:64px;padding:3px 6px" placeholder="0–100"><button class="btn btn-primary btn-xs" data-action="save-manual-score" data-apid="${ap.id}">录入</button>`:''}
+          ${STAGE_IDX[ap.stage]>=STAGE_IDX['exam']?`<input id="manual-score-${ap.id}" type="number" min="0" max="100" class="inp" style="width:64px;padding:3px 6px" placeholder="0–100" value="${ap.exam_score??''}"><button class="btn btn-primary btn-xs" data-action="save-manual-score" data-apid="${ap.id}">${done?'修改':'录入'}</button>`:''}
           ${done&&ap.stage==='exam'?`<button class="btn btn-primary btn-xs" data-action="advance-ap" data-apid="${ap.id}">推进至面试</button>`:''}
           <button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">档案</button>
         </td>
@@ -1087,7 +1087,7 @@ function bind(){
     const stage=document.getElementById('add-ap-stage')?.value||'apply';
     if(!name){toast('请输入姓名',false);return;}
     const last4=phone.length>=4?phone.slice(-4):phone;
-    const {data,error}=await sb.from('applicants').insert([{full_name:name,phone,phone_last4:last4,email:email||null,stage}]).select().single();
+    const {data,error}=await sb.from('applicants').insert([{first_name:name,phone,email:email||null,stage}]).select().single();
     if(!error&&data){A.allApplicants.unshift(data);A.showAddApModal=false;toast('已添加：'+name);render();}
     else toast('添加失败：'+(error?.message||'未知错误'),false);
   });
