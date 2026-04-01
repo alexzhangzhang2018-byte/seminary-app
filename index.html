@@ -1056,6 +1056,22 @@ function bind(){
     el.addEventListener('click',()=>{A.briefingId=null;render();});
   });
 
+  // ── Manual score entry ──
+  root.querySelectorAll('[data-action=save-manual-score]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      const apid=el.dataset.apid;
+      const scoreVal=document.getElementById('manual-score-'+apid)?.value;
+      const score=parseInt(scoreVal);
+      if(isNaN(score)||score<0||score>100){toast('请输入0-100之间的成绩',false);return;}
+      const {error}=await sb.from('applicants').update({exam_score:score}).eq('id',apid);
+      if(!error){
+        const ap=A.allApplicants.find(a=>a.id===apid);
+        if(ap)ap.exam_score=score;
+        toast('成绩已录入：'+score+' 分');render();
+      } else toast('录入失败：'+(error?.message||''),false);
+    });
+  });
+
   // ── Add applicant modal ──
   root.querySelectorAll('[data-action=show-add-ap-modal]').forEach(el=>{
     el.addEventListener('click',e=>{e.stopPropagation();A.showAddApModal=true;render();});
