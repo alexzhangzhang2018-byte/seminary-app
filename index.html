@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>神学院招生系统 · Seminary Admissions</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="vendor/supabase.js"></script>
 <script src="exam-locale.js"></script>
 <script src="exam-plain-bundled.js"></script>
 <style>
@@ -3242,18 +3242,41 @@ function bind(){
 // ══════════════════════════════════════════════════════════════
 async function init(){
   if(!sb){
-    document.getElementById('root').innerHTML='<div class="p6" style="max-width:520px;margin:48px auto;line-height:1.65;font-family:system-ui,sans-serif"><h1 class="t18 fw7 c-gray8 mb3">无法加载 Supabase 客户端</h1><p class="t13 c-gray6 mb2">浏览器未能从 CDN 加载 <code>@supabase/supabase-js</code>（常见于网络限制或广告拦截）。</p><p class="t13 c-gray6 mb2"><strong>可尝试：</strong>换网络、关闭广告拦截、用手机热点；或在项目文件夹运行 <code>npx serve .</code> 后用 <code>http://localhost:3000</code> 打开（不要用错误的子路径）。</p></div>';
+    document.getElementById('root').innerHTML='<div class="p6" style="max-width:520px;margin:48px auto;line-height:1.65;font-family:system-ui,sans-serif"><h1 class="t18 fw7 c-gray8 mb3">无法加载 Supabase 客户端</h1><p class="t13 c-gray6 mb2">未找到全局 <code>supabase</code>。请确认已部署 <code>vendor/supabase.js</code>，且与 <code>index.html</code> 中引用路径一致。</p><p class="t13 c-gray6 mb2">若曾用外网 CDN，请重新部署当前仓库（含 <code>vendor/</code> 目录）。</p></div>';
     return;
   }
   await ensureExamQuestionsLoaded();
-  // Check existing session
-  const {data:{session}}=await sb.auth.getSession();
+  // Check existing session（避免 API 长时间无响应导致整页一直转圈）
+  let session=null;
+  try{
+    const out=await Promise.race([
+      sb.auth.getSession(),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('getSession 超时')),15000)),
+    ]);
+    session=out?.data?.session??null;
+  }catch(e){
+    console.warn(e);
+  }
   if(session){
     A.user=session.user;
-    const {data:prof}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
+    let prof=null;
+    try{
+      const pr=await Promise.race([
+        sb.from('profiles').select('*').eq('id',session.user.id).single(),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('profiles 超时')),15000)),
+      ]);
+      if(pr&&!pr.error) prof=pr.data;
+    }catch(e){ console.warn(e); }
     if(prof){
       A.profile=prof;A.role=prof.role;
-      if(A.role==='admin'||A.role==='teacher'){ await loadAdminData(); await loadExamQuestions(); }
+      if(A.role==='admin'||A.role==='teacher'){
+        try{
+          await Promise.race([
+            (async()=>{ await loadAdminData(); await loadExamQuestions(); })(),
+            new Promise((_,rej)=>setTimeout(()=>rej(new Error('loadAdminData 超时')),20000)),
+          ]);
+        }catch(e){ console.warn(e); }
+      }
     }
   }
   render();
