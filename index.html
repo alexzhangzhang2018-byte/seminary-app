@@ -102,6 +102,35 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 .card{background:#fff;border-radius:14px;border:1px solid #f3f4f6;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:16px;min-height:400px}
 .kanban-col{flex-shrink:0;width:196px}
+.kanban-col-wide{flex-shrink:0;width:min(380px,92vw)}
+.lang-subgroup{padding-top:10px;margin-top:10px;border-top:1px solid #eef2ff}
+.lang-subgroup:first-child{padding-top:0;margin-top:0;border-top:none}
+.lang-subgroup-h{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;letter-spacing:.04em}
+.exam-lang-section{margin-bottom:28px}
+.exam-lang-section-h{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e5e7eb}
+.exam-lang-section-h span{font-size:14px;font-weight:700;color:#374151}
+.exam-lang-section-h .tag{font-size:11px}
+.week-cal-wrap{overflow-x:visible;border:1px solid #cbd5e1;border-radius:14px;background:#f1f5f9;max-width:100%}
+.week-cal-columns{width:100%;min-width:0;user-select:none;background:#fff;border-radius:12px;overflow:hidden}
+.week-cal-columns-hdr{display:grid;grid-template-columns:28px repeat(6,minmax(0,1fr));border-bottom:2px solid #e2e8f0;background:#f8fafc}
+.week-cal-hdr-corner{border-right:1px solid #e2e8f0}
+.week-cal-columns-hdr-cell{font-size:10px;font-weight:700;color:#475569;text-align:center;padding:6px 2px 5px;line-height:1.2;border-right:1px solid #e2e8f0}
+.week-cal-columns-hdr-cell:last-child{border-right:none}
+.week-cal-columns-body{display:grid;grid-template-columns:28px repeat(6,minmax(0,1fr))}
+.week-cal-gutter{position:relative;height:min(52vh,520px);min-height:380px;border-right:1px solid #e2e8f0;background:#f8fafc}
+.week-cal-day-col{position:relative;height:min(52vh,520px);min-height:380px;border-right:1px solid #e5e7eb;background:#fafafa;min-width:0}
+.week-cal-day-col:last-child{border-right:none}
+.week-cal-gutter-tick{position:absolute;right:1px;transform:translateY(-50%);font-size:8px;font-weight:700;color:#64748b;line-height:1;white-space:nowrap}
+.week-cal-gutter-tick--end{transform:translateY(-100%);padding-bottom:2px}
+.week-cal-col-pref{position:absolute;left:2px;right:2px;box-sizing:border-box;background:rgba(187,247,208,.6);border-left:3px solid #16a34a;border-radius:8px;z-index:1;display:flex;align-items:flex-start;justify-content:center;padding:5px 3px;overflow:hidden;pointer-events:none}
+.week-cal-col-pref-txt{font-size:9px;font-weight:800;color:#14532d;line-height:1.2;text-align:center;word-break:break-word}
+.week-cal-col-busy{position:absolute;left:3px;right:3px;box-sizing:border-box;background:linear-gradient(180deg,#94a3b8,#64748b);border-radius:8px;z-index:2;display:flex;align-items:flex-start;justify-content:center;padding:6px 4px;overflow:hidden;box-shadow:0 2px 8px rgba(30,41,59,.2);pointer-events:none}
+.week-cal-col-busy-txt{font-size:10px;font-weight:800;color:#fff;line-height:1.25;text-align:center;word-break:break-word;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.week-cal-col-free{position:absolute;left:3px;right:3px;box-sizing:border-box;background:repeating-linear-gradient(-45deg,rgba(14,165,233,.14),rgba(14,165,233,.14) 5px,rgba(255,255,255,.5) 5px,rgba(255,255,255,.5) 10px);border:2px dashed #0ea5e9;border-radius:8px;z-index:3;display:flex;align-items:center;justify-content:center;padding:3px;font-size:8px;font-weight:800;color:#0369a1;text-align:center;line-height:1.15;pointer-events:none;box-shadow:0 1px 4px rgba(14,165,233,.15)}
+.week-cal-col-iv{position:absolute;left:3px;right:3px;box-sizing:border-box;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:9px;font-weight:800;padding:4px 5px;z-index:4;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.15;overflow:hidden;word-break:break-word;box-shadow:0 2px 12px rgba(79,70,229,.4);border:1px solid rgba(255,255,255,.2);pointer-events:none}
+.week-cal-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:#475569;font-weight:500}
+.week-cal-legend i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:6px;vertical-align:-3px;border:1px solid rgba(0,0,0,.06)}
+.week-cal-keyline{font-size:11px;color:#64748b;line-height:1.55;margin-top:8px;padding:10px 12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
 .kanban-card{background:#fff;border-radius:12px;border:1px solid #f3f4f6;padding:12px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:all .15s}
 .kanban-card:hover{border-color:#c7d2fe;box-shadow:0 4px 10px rgba(79,70,229,.1);transform:translateY(-1px)}
 
@@ -193,11 +222,153 @@ const STAGES = [
   {id:'apply',     label:'报名 · Apply',           icon:'📝'},
   {id:'exam',      label:'笔试 · Exam',            icon:'📖'},
   {id:'interview', label:'面试 · Interview',      icon:'💬'},
-  {id:'result',    label:'录取结果 · Result',     icon:'🎓'},
-  {id:'materials', label:'提交材料 · Materials',  icon:'📄'},
+  {id:'result',    label:'预录取 · Pre-admission', icon:'🎓'},
+  {id:'materials', label:'上传资料 · Documents',   icon:'📄'},
+  {id:'visa',      label:'签证 · Visa',            icon:'🛂'},
   {id:'complete',  label:'完成 · Complete',       icon:'✅'},
 ];
 const STAGE_IDX = Object.fromEntries(STAGES.map((s,i)=>[s.id,i]));
+
+/** 申请人笔试/面试语言归一 */
+function getApplicantExamLang(ap){
+  const x=String(ap?.exam_lang||'zh').toLowerCase();
+  if(x==='en'||x==='id') return x;
+  return 'zh';
+}
+function examLangLabelShort(lang){
+  return ({zh:'中文',en:'English',id:'Indonesia'})[lang]||'中文';
+}
+function examLangPipelineGroupTitle(lang){
+  return ({zh:'中文笔试 · 面试',en:'English exam · Interview',id:'Bahasa Indonesia · Wawancara'})[lang]||'中文笔试 · 面试';
+}
+/** 根据姓名字符推测笔试/面试分组（不用 \\p 属性类，避免旧版浏览器整段脚本解析失败导致首页永久转圈） */
+function guessExamLangFromNameString(raw){
+  const t=String(raw||'').trim();
+  if(!t) return null;
+  if(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/.test(t)) return 'zh';
+  if(/\b(bin|binti|putra|putri|wijaya|santoso|kurnia|dewi|sari|rahman|hidayat)\b/i.test(t)) return 'id';
+  const latinLetter=/[A-Za-z\u00c0-\u024f\u1e00-\u1eff]/;
+  if(latinLetter.test(t)&&/^[\s.'’\u2019\u00b7A-Za-z\u00c0-\u024f\u1e00-\u1eff-]+$/.test(t)) return 'en';
+  return null;
+}
+function guessExamLangFromApplicantName(ap){
+  const f=String(ap?.first_name||'').trim();
+  const l=String(ap?.last_name||'').trim();
+  const combined=[f,l].filter(Boolean).join(' ').trim();
+  const fromParts=combined?guessExamLangFromNameString(combined):null;
+  if(fromParts) return fromParts;
+  return guessExamLangFromNameString(String(ap?.full_name||'').trim());
+}
+/** 笔试页排序：①已笔试且面试流程未完结（分高优先）②笔试+面试流程已完结（分高优先）③无成绩/未考 ④已拒绝 */
+function interviewPathCompleteForExamSort(ap){
+  if(ap.stage==='waitlist') return true;
+  if((A.allRecords||[]).some(r=>String(r.applicant_id)===String(ap.id))) return true;
+  const idx=STAGE_IDX[ap.stage];
+  return typeof idx==='number' && idx>STAGE_IDX['interview'];
+}
+function examPageSortTier(ap){
+  if(ap.stage==='rejected') return 4;
+  const hasScore=ap.exam_score!=null && ap.exam_score!=='' && !isNaN(Number(ap.exam_score));
+  if(!hasScore) return 3;
+  if(interviewPathCompleteForExamSort(ap)) return 2;
+  return 1;
+}
+function compareExamPageApplicants(a,b){
+  const ta=examPageSortTier(a), tb=examPageSortTier(b);
+  if(ta!==tb) return ta-tb;
+  const sa=a.exam_score!=null&&!isNaN(+a.exam_score)?+a.exam_score:-1;
+  const sb=b.exam_score!=null&&!isNaN(+b.exam_score)?+b.exam_score:-1;
+  if(sa!==sb) return sb-sa;
+  return String(fullName(a)).localeCompare(String(fullName(b)),'zh');
+}
+/** 课表：不可面试/上课时段（与教务表一致）。dow 0=周日 … 6=周六；日历仅显示周一至周六列 */
+const STAFF_CURRICULUM_BUSY = [
+  {dow:0,s:0,e:1440,tag:'主日聚会'},
+  {dow:1,s:10*60,e:12*60,tag:'班会'},
+  {dow:1,s:14*60,e:17*60,tag:'圣经课程'},
+  {dow:1,s:19*60,e:21*60,tag:'祷告会'},
+  {dow:2,s:7*60,e:8*60,tag:'早灵修'},
+  {dow:2,s:8*60+30,e:12*60,tag:'圣经课程'},
+  {dow:2,s:14*60,e:17*60,tag:'圣经课程'},
+  {dow:3,s:7*60,e:8*60,tag:'早灵修'},
+  {dow:3,s:8*60+30,e:12*60,tag:'体育课'},
+  {dow:3,s:14*60,e:17*60,tag:'圣经课程'},
+  {dow:4,s:7*60,e:8*60,tag:'早灵修'},
+  {dow:4,s:8*60+30,e:11*60,tag:'圣经课程'},
+  {dow:4,s:11*60,e:13*60,tag:'周间敬拜'},
+  {dow:4,s:14*60,e:17*60,tag:'开拓（传福音）'},
+  {dow:5,s:7*60,e:7*60+30,tag:'祷告'},
+  {dow:5,s:8*60,e:11*60,tag:'圣经课程/牧养课程'},
+  {dow:5,s:14*60,e:17*60,tag:'开拓（传福音）'},
+];
+/** 暂定的「优先可排面试」时段（浅绿底）；周六无固定课表，可优先开放面试 */
+const STAFF_INTERVIEW_PREF_WINDOWS = [
+  {dow:1,segs:[[7*60,10*60],[12*60,14*60]]},
+  {dow:3,segs:[[7*60,8*60+30],[12*60,14*60]]},
+  {dow:6,segs:[[8*60,18*60]]},
+];
+const WEEK_CAL_START_MIN = 7*60;
+const WEEK_CAL_END_MIN = 21*60;
+function weekContainingDate(base=new Date()){
+  const d=new Date(base);
+  d.setHours(0,0,0,0);
+  const dow=d.getDay();
+  const sun=new Date(d);
+  sun.setDate(d.getDate()-dow);
+  const days=[];
+  for(let i=0;i<7;i++){
+    const x=new Date(sun);
+    x.setDate(sun.getDate()+i);
+    days.push(x);
+  }
+  return days;
+}
+/** 本周「周一～周六」共 6 天（不含周日），用于教师周历一屏展示 */
+function weekMonToSatFromDate(base=new Date()){
+  const d=new Date(base);
+  d.setHours(0,0,0,0);
+  const dow=d.getDay();
+  const delta=dow===0 ? -6 : 1-dow;
+  const mon=new Date(d);
+  mon.setDate(d.getDate()+delta);
+  const days=[];
+  for(let i=0;i<6;i++){
+    const x=new Date(mon);
+    x.setDate(mon.getDate()+i);
+    days.push(x);
+  }
+  return days;
+}
+function ymdFromDate(dt){
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
+function parseSlotLocalMs(dateStr, timeStr){
+  const m=String(dateStr||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const t=String(timeStr||'').match(/^(\d{2}):(\d{2})/);
+  if(!m||!t) return null;
+  return new Date(+m[1],+m[2]-1,+m[3],+t[1],+t[2],0).getTime();
+}
+/** 排班列表排序：按本地日期时间升序（最近在前）；无法解析的排在该组末尾 */
+function interviewSlotSortMs(row){
+  const ms=parseSlotLocalMs(row&&row.slot_date, row&&row.slot_time);
+  return ms==null?Number.MAX_SAFE_INTEGER:ms;
+}
+function calClipSeg(s,e){
+  const cs=Math.max(s,WEEK_CAL_START_MIN), ce=Math.min(e,WEEK_CAL_END_MIN);
+  if(ce<=cs) return null;
+  return [cs,ce];
+}
+/** 周历列内绝对定位 style（相对 7:00–21:00） */
+function calSegStyle(s,e){
+  const c=calClipSeg(s,e);
+  if(!c) return null;
+  const [cs,ce]=c;
+  const win=WEEK_CAL_END_MIN-WEEK_CAL_START_MIN;
+  const top=((cs-WEEK_CAL_START_MIN)/win)*100;
+  let h=((ce-cs)/win)*100;
+  if(h<1.2) h=1.2;
+  return `top:${top}%;height:${h}%;`;
+}
 
 // 内嵌题目来源：由你提供的“答案版”转换得到的纯文本（本地解析后自动批卷）
 const EXAM_TEXT_SRC = `旧约部分（50分）
@@ -864,18 +1035,8 @@ async function ensureExamQuestionsLoaded(){
   return __examEnsurePromise;
 }
 
-const MAT_ITEMS = [
-  {id:'acceptance_letter', label:'录取通知书（已签署） · Signed admission letter', req:true},
-  {id:'scholarship_form',  label:'奖学金申请表 · Scholarship form',              req:true},
-  {id:'survey',            label:'入学调查表 · Enrollment survey',               req:true},
-  {id:'guarantee',         label:'牧师担保信 · Pastor guarantee letter',         req:true},
-  {id:'passport',          label:'护照扫描件 · Passport scan',                   req:true},
-  {id:'photo',             label:'红底证件照（4x6） · Red-background photo (4×6)', req:true},
-  {id:'insurance',         label:'保险证明 · Insurance proof',                   req:false},
-];
-
 const PROG_STYLE  = {'神学院':{bg:'#e0e7ff',color:'#4338ca'},'师范生':{bg:'#ccfbf1',color:'#0f766e'},'seminary':{bg:'#e0e7ff',color:'#4338ca'}};
-const STAGE_STYLE = {apply:{bg:'#f1f5f9',color:'#475569'},exam:{bg:'#dbeafe',color:'#1d4ed8'},interview:{bg:'#ede9fe',color:'#6d28d9'},result:{bg:'#fef3c7',color:'#92400e'},materials:{bg:'#ffedd5',color:'#9a3412'},complete:{bg:'#dcfce7',color:'#15803d'},rejected:{bg:'#fee2e2',color:'#dc2626'},waitlist:{bg:'#fef9c3',color:'#854d0e'}};
+const STAGE_STYLE = {apply:{bg:'#f1f5f9',color:'#475569'},exam:{bg:'#dbeafe',color:'#1d4ed8'},interview:{bg:'#ede9fe',color:'#6d28d9'},result:{bg:'#fef3c7',color:'#92400e'},materials:{bg:'#ffedd5',color:'#9a3412'},visa:{bg:'#e0f2fe',color:'#0369a1'},complete:{bg:'#dcfce7',color:'#15803d'},rejected:{bg:'#fee2e2',color:'#dc2626'},waitlist:{bg:'#fef9c3',color:'#854d0e'}};
 const REC_STYLE   = {strongly_recommend:{bg:'#dcfce7',color:'#15803d',label:'强烈推荐'},recommend:{bg:'#dbeafe',color:'#1d4ed8',label:'推荐'},neutral:{bg:'#fef3c7',color:'#92400e',label:'中立'},not_recommend:{bg:'#fee2e2',color:'#dc2626',label:'不推荐'}};
 
 // ══════════════════════════════════════════════════════════════
@@ -903,19 +1064,21 @@ const A = {
   examSubmitted: false,
   examAnswers: {},
   essayText: '',
-  examLang: 'zh', // zh | en | id
+  appLang: 'zh', // zh | en | id — 登录所选界面语言（提示、步骤条等）
+  examLang: 'zh', // zh | en | id — 答卷语言 + 面试匹配教师；笔试页单独选择
   examTotalTime: 9000, // 150 minutes
   examTime: 9000,
   proctorFlags: 0,
   ivSelected: null,
   ivBooked: false,
   applicantBookedInterviewSlot: null,
-  uploads: {},
 
   // Data cache
   allApplicants: [],
   allSlots: [],
   applicantFreeSlots: [], // 申请人可预约的空闲时段（勿与 allSlots 混用，避免覆盖管理员缓存）
+  ivSlotsRelaxed: false, // 无严格语言匹配时段时是否已放宽为全部空闲时段
+  ivTopPickIds: [], // 当前展示列表中「最推荐」的两个时段 id（按老师优先级+时间）
   allRecords: [],
   examQuestions: [],  // admin-managed exam questions
   teacherProfiles: [], // role=teacher，排班下拉与语言匹配用
@@ -928,10 +1091,28 @@ let interviewSlotsPoller = null;
 // HELPERS
 // ══════════════════════════════════════════════════════════════
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-/** 申请人界面文案（老师/管理员仍为中英双语，不调用此函数） */
+/** 申请人界面文案（依登录所选 appLang；老师/管理员不调用） */
 function apLine(zh, en, id){
-  const L = A.examLang || 'zh';
+  const L = A.appLang || 'zh';
   return L === 'en' ? en : L === 'id' ? id : zh;
+}
+
+/** 持久化界面语言 */
+function persistApplicantAppLang(lang){
+  if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+  const L = lang || A.appLang || 'zh';
+  sb.from('applicants').update({ui_lang:L}).eq('id',A.applicant.id).then(({error})=>{
+    if(!error) A.applicant.ui_lang = L;
+  });
+}
+
+/** 持久化答卷语言（面试时段按此匹配教师） */
+function persistApplicantExamLang(lang){
+  if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+  const L = lang || A.examLang || 'zh';
+  sb.from('applicants').update({exam_lang:L}).eq('id',A.applicant.id).then(({error})=>{
+    if(!error) A.applicant.exam_lang = L;
+  });
 }
 
 /** 管理端展示笔试备注：新格式仅三项；旧版冗长备注从正则提取同样三项，避免泄露默写原文 */
@@ -1000,25 +1181,30 @@ function slotSupportsApplicantExamLang(slot, needLang, profileById, allProfiles)
   return f.zh;
 }
 
-/** 同语言下教师展示优先级（数字越小越靠前） */
+/** 按笔试语言匹配教师姓名中的优先顺序（下标越小越靠前；未匹配=99） */
+function teacherNameRank(name, patterns){
+  const n = String(name||'');
+  for(let i=0;i<patterns.length;i++){
+    if(patterns[i].test(n)) return i;
+  }
+  return 99;
+}
 function teacherPriorityRank(slot, needLang, profileById, allProfiles){
   const p = resolveTeacherProfileForSlot(slot, profileById, allProfiles);
   const name = p ? String(p.display_name||'') : String(slot.teacher_name||'');
-  if(needLang==='zh'){
-    if(/利未/i.test(name) || /levi/i.test(name)) return 0;
-    if(/文博/i.test(name) || /will/i.test(name)) return 1;
-    return 50;
-  }
+  // 英文面试：元勋 → 海文 → 文博 → 利未 → 邢永
   if(needLang==='en'){
-    if(/nathan|nathen|元勋/i.test(name)) return 0;
-    if(/heaven/i.test(name)) return 1;
-    return 50;
+    return teacherNameRank(name, [/元勋|nathan|nathen/i, /海文|heaven/i, /文博|will/i, /利未|levi/i, /邢永|yohanes/i]);
   }
+  // 中文面试：利未 → 文博 → 海文 → 元勋 → 邢永
+  if(needLang==='zh'){
+    return teacherNameRank(name, [/利未|levi/i, /文博|will/i, /海文|heaven/i, /元勋|nathan|nathen/i, /邢永|yohanes/i]);
+  }
+  // 印尼语面试：邢永 → 利未（其余老师可配翻译，统一靠后）
   if(needLang==='id'){
-    if(/yohanes/i.test(name)) return 0;
-    return 50;
+    return teacherNameRank(name, [/邢永|yohanes/i, /利未|levi/i]);
   }
-  return 50;
+  return 99;
 }
 
 function sortSlotsForApplicantBooking(slots, needLang, profileById, allProfiles){
@@ -1039,6 +1225,99 @@ const mkAv  = (initials,size='md',cls='av-indigo') => `<div class="avatar av-${s
 const initials = ap => ap ? ((ap.first_name||'')[0]||(ap.full_name||'?')[0]) : '?';
 const fullName = ap => ap ? (ap.full_name || ap.first_name + ap.last_name || '未知') : '未知';
 
+/** 单日列：课表/可约底/空档/已约 各为整条绝对定位块 */
+function buildTeacherDayColHtml(dt, openSlots, booked){
+  const dow=dt.getDay();
+  const ymd=ymdFromDate(dt);
+  const parts=[];
+  for(const w of STAFF_INTERVIEW_PREF_WINDOWS){
+    if(w.dow!==dow) continue;
+    for(const [a,b] of w.segs||[]){
+      const st=calSegStyle(a,b);
+      if(st) parts.push(`<div class="week-cal-col-pref" style="${st}"><span class="week-cal-col-pref-txt">可约面试</span></div>`);
+    }
+  }
+  for(const b of STAFF_CURRICULUM_BUSY){
+    if(b.dow!==dow) continue;
+    const st=calSegStyle(b.s,b.e);
+    if(st) parts.push(`<div class="week-cal-col-busy" style="${st}"><span class="week-cal-col-busy-txt">${esc(b.tag)}</span></div>`);
+  }
+  for(const s of openSlots){
+    if(String(s.slot_date)!==ymd) continue;
+    const sm=parseSlotLocalMs(s.slot_date,s.slot_time);
+    if(sm==null) continue;
+    const d=new Date(sm);
+    const stMin=d.getHours()*60+d.getMinutes();
+    const enMin=stMin+28;
+    const st=calSegStyle(stMin,enMin);
+    if(st) parts.push(`<div class="week-cal-col-free" style="${st}" title="已开放 · 申请人可预约"><span>空档·开放预约</span></div>`);
+  }
+  for(const s of booked){
+    if(String(s.slot_date)!==ymd) continue;
+    const sm=parseSlotLocalMs(s.slot_date,s.slot_time);
+    if(sm==null) continue;
+    const d=new Date(sm);
+    const stMin=d.getHours()*60+d.getMinutes();
+    const enMin=stMin+32;
+    const st=calSegStyle(stMin,enMin);
+    if(st){
+      const ap=A.allApplicants.find(a=>String(a.id)===String(s.applicant_id));
+      const nm=ap?fullName(ap):'预约';
+      const short=nm.length>12?nm.slice(0,12)+'…':nm;
+      parts.push(`<div class="week-cal-col-iv" style="${st}" title="${esc(nm)} ${esc((s.slot_time||'').slice(0,5))}">${esc((s.slot_time||'').slice(0,5))} ${esc(short)}</div>`);
+    }
+  }
+  return `<div class="week-cal-day-col">${parts.join('')}</div>`;
+}
+/** 单周 HTML（days = 周一至周六 共 6 天）：每列一条连续课表块 + 块内全文标签 */
+function buildTeacherWeekCalInnerHtml(days, uid){
+  const weekYmds=new Set(days.map(ymdFromDate));
+  const mine=(A.allSlots||[]).filter(s=>uid!=null && String(s.teacher_id)===String(uid));
+  const booked=mine.filter(s=>!isInterviewSlotRowVacant(s) && weekYmds.has(String(s.slot_date||'')));
+  const openSlots=mine.filter(s=>isInterviewSlotRowVacant(s) && weekYmds.has(String(s.slot_date||'')));
+  const DOW_HDR=['周一','周二','周三','周四','周五','周六'];
+  const win=WEEK_CAL_END_MIN-WEEK_CAL_START_MIN;
+  let gticks='';
+  for(let h=7;h<=20;h++){
+    const pct=((h*60-WEEK_CAL_START_MIN)/win)*100;
+    gticks+=`<div class="week-cal-gutter-tick" style="top:${pct}%">${h}</div>`;
+  }
+  gticks+=`<div class="week-cal-gutter-tick week-cal-gutter-tick--end" style="top:100%">21</div>`;
+  const gutter=`<div class="week-cal-gutter">${gticks}</div>`;
+  const hdrCells=`<div class="week-cal-hdr-corner"></div>`+days.map((dt,i)=>`<div class="week-cal-columns-hdr-cell"><div>${esc(DOW_HDR[i])}</div><div class="t11 c-gray4" style="font-weight:600;margin-top:1px;font-size:10px">${esc(String(dt.getMonth()+1)+'/'+dt.getDate())}</div></div>`).join('');
+  const hdr=`<div class="week-cal-columns-hdr">${hdrCells}</div>`;
+  const cols=days.map(dt=>buildTeacherDayColHtml(dt,openSlots,booked)).join('');
+  const body=`<div class="week-cal-columns-body">${gutter}${cols}</div>`;
+  return `<div class="week-cal-wrap"><div class="week-cal week-cal-columns">${hdr}${body}</div></div>`;
+}
+/** 教师「我的」：本周 + 下周面试周历 */
+function renderTeacherWeekCalendar(uid){
+  const t=new Date();
+  const daysThis=weekMonToSatFromDate(t);
+  const tNext=new Date(t);
+  tNext.setDate(tNext.getDate()+7);
+  const daysNext=weekMonToSatFromDate(tNext);
+  return `<div class="col g5">
+    <div>
+      <div class="fw6 c-gray7 t13 mb2">本周</div>
+      ${buildTeacherWeekCalInnerHtml(daysThis,uid)}
+    </div>
+    <div>
+      <div class="fw6 c-gray7 t13 mb2">下周</div>
+      ${buildTeacherWeekCalInnerHtml(daysNext,uid)}
+    </div>
+    <div class="week-cal-legend">
+      <span><i style="background:linear-gradient(180deg,#94a3b8,#64748b)"></i><strong>深灰块</strong>＝课表/固定活动（不可排面试）</span>
+      <span><i style="background:linear-gradient(90deg,#6ee7b7,#34d399);border:1px solid #059669"></i><strong>绿区</strong>＝优先可开放给申请人预约的时段</span>
+      <span><i style="background:repeating-linear-gradient(-45deg,#bae6fd,#bae6fd 3px,#fff 3px,#fff 6px);border:2px dashed #0ea5e9"></i><strong>蓝斜线「空档」</strong>＝您已上传、尚未被约走的面试空位</span>
+      <span><i style="background:linear-gradient(135deg,#4f46e5,#7c3aed)"></i><strong>紫条</strong>＝已确认的面试预约</span>
+    </div>
+    <div class="week-cal-keyline">
+      <strong>课表整块标注（无需悬停）：</strong>灰色块为固定安排，同一时段显示为<strong>一整条</strong>，块内直接写事项名——含<strong>周一 10:00–12:00 班会</strong>、圣经课程、早灵修、体育课、祷告会、周间敬拜、开拓（传福音）等。<strong>绿区</strong>为建议优先开放给申请人预约的时段：<strong>周一 7:00–10:00、12:00–14:00</strong>；<strong>周三 7:00–8:30、12:00–14:00</strong>；<strong>周六 8:00–18:00</strong>（周六无课表占用）。日历为<strong>周一至周六</strong>（本周/下周），宽度自适应无需横向滑动。
+    </div>
+  </div>`;
+}
+
 /** 从缓存的 slots 中解析申请人已预约的时段（管理员 allSlots + 教师端亦会加载全表便于解析） */
 function resolveSlotForApplicant(ap){
   if(!ap?.interview_slot_id) return null;
@@ -1052,6 +1331,13 @@ function resolveSlotForApplicant(ap){
     if(s && s.id != null) map.set(String(s.id), s);
   }
   return map.get(id) || null;
+}
+/** 看板「面试」列排序：有预约的按 slot 时间升序（最近在前）；未预约排在该语言组末尾 */
+function applicantInterviewSlotTs(ap){
+  const sl = resolveSlotForApplicant(ap);
+  if(!sl) return Number.MAX_SAFE_INTEGER;
+  const ms = parseSlotLocalMs(sl.slot_date, sl.slot_time);
+  return ms == null ? Number.MAX_SAFE_INTEGER : ms;
 }
 function formatInterviewSlotLine(ap){
   const sl = resolveSlotForApplicant(ap);
@@ -1215,17 +1501,43 @@ function startTimer(){
 // ══════════════════════════════════════════════════════════════
 // DATA LAYER
 // ══════════════════════════════════════════════════════════════
+function mergeTeacherProfilesFromSlots(slots, baseList){
+  const map=new Map();
+  (baseList||[]).forEach(p=>{
+    if(p&&p.id!=null) map.set(String(p.id),{id:p.id,display_name:p.display_name,interview_langs:p.interview_langs});
+  });
+  (slots||[]).forEach(s=>{
+    if(!s||s.teacher_id==null) return;
+    const id=String(s.teacher_id);
+    if(map.has(id)) return;
+    map.set(id,{id:s.teacher_id,display_name:s.teacher_name||'老师（来自排班记录）',interview_langs:null});
+  });
+  return [...map.values()].sort((a,b)=>String(a.display_name||'').localeCompare(String(b.display_name||''),'zh'));
+}
 async function loadAdminData(){
-  const [{data:aps},{data:slots},{data:recs},{data:tprof}] = await Promise.all([
+  const [{data:aps},{data:slots},{data:recs}] = await Promise.all([
     sb.from('applicants').select('*').order('created_at',{ascending:false}),
     sb.from('interview_slots').select('*').order('slot_date').order('slot_time'),
     sb.from('interview_records').select('*').order('created_at',{ascending:false}),
-    sb.from('profiles').select('id,display_name,interview_langs').eq('role','teacher').order('display_name'),
   ]);
   A.allApplicants = aps||[];
   A.allSlots      = slots||[];
   A.allRecords    = recs||[];
-  A.teacherProfiles = tprof||[];
+
+  let tprof=[];
+  if(A.role==='admin'){
+    try{
+      const r=await sb.rpc('list_teachers_for_admin');
+      if(!r.error && Array.isArray(r.data) && r.data.length){
+        tprof=r.data.map(row=>({id:row.id,display_name:row.display_name,interview_langs:row.interview_langs}));
+      }
+    }catch(e){ console.warn('list_teachers_for_admin', e); }
+  }
+  if(!tprof.length){
+    const {data:q}=await sb.from('profiles').select('id,display_name,interview_langs,role').in('role',['teacher','admin']).order('display_name');
+    tprof=(q||[]).filter(p=>p.role==='teacher').map(p=>({id:p.id,display_name:p.display_name,interview_langs:p.interview_langs}));
+  }
+  A.teacherProfiles = mergeTeacherProfilesFromSlots(A.allSlots, tprof);
 }
 
 async function loadExamQuestions(){
@@ -1234,6 +1546,7 @@ async function loadExamQuestions(){
 }
 
 async function loadPublicSlots(){
+  if(A.role!=='applicant') A.ivSlotsRelaxed=false;
   const now = Date.now();
   const needLang = (A.applicant?.exam_lang || A.examLang || 'zh');
   const [{data: slotRows}, {data: bookedAps}, {data: tprof}] = await Promise.all([
@@ -1258,17 +1571,28 @@ async function loadPublicSlots(){
     const hh=+t[1], mm=+t[2];
     return new Date(y,mo,d,hh,mm,0).getTime();
   };
-  let free = (slotRows || []).filter(s=>{
+  const freeAll = (slotRows || []).filter(s=>{
     const ms = toMs(s);
     if(!ms || ms <= now) return false;
     if(!isInterviewSlotRowVacant(s)) return false;
     if(takenByApplicant.has(String(s.id))) return false;
-    if(!slotSupportsApplicantExamLang(s, needLang, profileById, teacherList)) return false;
     return true;
   });
+  const strict = freeAll.filter(s=>slotSupportsApplicantExamLang(s, needLang, profileById, teacherList));
+  const relaxed = strict.length===0 && freeAll.length>0;
+  let free = relaxed ? freeAll : strict;
   free = sortSlotsForApplicantBooking(free, needLang, profileById, teacherList);
-  if(A.role==='applicant') A.teacherProfiles = teacherList;
-  A.applicantFreeSlots = free;
+  if(A.role==='applicant'){
+    A.teacherProfiles = teacherList;
+    A.ivSlotsRelaxed = relaxed;
+    const cap = 6;
+    const shown = free.slice(0, Math.min(cap, free.length));
+    A.applicantFreeSlots = shown;
+    A.ivTopPickIds = shown.slice(0, 2).map(s => s.id).filter(id => id != null);
+  } else {
+    A.applicantFreeSlots = free;
+    A.ivTopPickIds = [];
+  }
 }
 
 /** 预约面试页定时刷新空闲时段，避免他人预约后本页仍显示旧列表 */
@@ -1285,7 +1609,7 @@ function syncInterviewSlotPoll(){
         await loadPublicSlots();
         if(A.ivSelected && !A.applicantFreeSlots.some(s=>String(s.id)===String(A.ivSelected.id))){
           A.ivSelected = null;
-          toast('此前选择的时段已不可用，请重新选择', false);
+          toast(apLine('此前选择的时段已不可用，请重新选择','That slot is no longer available.','Slot tidak tersedia lagi.'), false);
         }
         render();
       }, 12000);
@@ -1296,8 +1620,9 @@ function syncInterviewSlotPoll(){
   }
 }
 
-/** 教师端：按日期区间批量添加 interview_slots */
-async function teacherAddSlotRange(dateInputId, startInputId, endInputId, intervalSelectId){
+/** 按日期区间为指定老师批量添加 interview_slots（教师本人或管理员代录） */
+async function addInterviewSlotRange({teacherId, teacherDisplayName, dateInputId, startInputId, endInputId, intervalSelectId}){
+  if(!teacherId){toast('请选择负责老师',false);return;}
   const date=document.getElementById(dateInputId)?.value;
   const start=document.getElementById(startInputId)?.value;
   const end=document.getElementById(endInputId)?.value;
@@ -1339,8 +1664,8 @@ async function teacherAddSlotRange(dateInputId, startInputId, endInputId, interv
     slot_date:date,
     slot_time:t,
     is_booked:false,
-    teacher_id:A.user.id,
-    teacher_name:A.profile?.display_name || null
+    teacher_id:teacherId,
+    teacher_name:teacherDisplayName||null
   }));
   if(payload.length===0){toast('这些时间点已存在，无需重复添加',true);return;}
   const {error}=await sb.from('interview_slots').insert(payload);
@@ -1348,7 +1673,14 @@ async function teacherAddSlotRange(dateInputId, startInputId, endInputId, interv
     toast(`已添加 ${payload.length} 个时间点`,true);
     await loadAdminData();
     render();
-  } else toast('添加失败',false);
+  } else toast('添加失败：'+(error.message||''),false);
+}
+async function teacherAddSlotRange(dateInputId, startInputId, endInputId, intervalSelectId){
+  return addInterviewSlotRange({
+    teacherId:A.user?.id,
+    teacherDisplayName:A.profile?.display_name,
+    dateInputId, startInputId, endInputId, intervalSelectId,
+  });
 }
 
 function longestCommonSubsequenceLen(a, b){
@@ -1515,20 +1847,20 @@ async function submitExam(){
     A.applicant.exam_lang = EL;
     A.applicant.stage='interview';
     A.examSubmitted=true;
-    toast('答卷已提交，成绩：'+scoreScaled+' 分');
+    toast(apLine('答卷已提交，成绩：'+scoreScaled+' 分','Submitted. Score: '+scoreScaled,'Terkirim. Nilai: '+scoreScaled));
     await loadPublicSlots();
-  } else toast('提交失败',false);
+  } else toast(apLine('提交失败','Submit failed','Gagal mengirim'),false);
   render();
 }
 
 async function confirmInterview(){
   if(!A.ivSelected) return;
   if(!A.applicant?.id){
-    toast('登录状态异常，请重新登录后再预约', false);
+    toast(apLine('登录状态异常，请重新登录后再预约','Session error — please log in again to book.','Sesi tidak valid — masuk lagi untuk memesan.'), false);
     return;
   }
   if(!A.ivSelected.id){
-    toast('请重新选择时段', false);
+    toast(apLine('请重新选择时段','Please pick a time slot again.','Pilih slot waktu lagi.'), false);
     return;
   }
   // 防止用户在时间已经过去后仍然能点到“确认预约”
@@ -1543,7 +1875,7 @@ async function confirmInterview(){
   };
   const ms = toMs(A.ivSelected);
   if(ms && ms <= Date.now()){
-    toast('该面试时间已过期，请刷新选择新的时间段',false);
+    toast(apLine('该面试时间已过期，请刷新选择新的时间段','This slot has passed — refresh and pick another.','Slot sudah lewat — muat ulang dan pilih lain.'),false);
     return;
   }
   const aid = String(A.applicant.id);
@@ -1553,11 +1885,11 @@ async function confirmInterview(){
     .not('id', 'eq', aid)
     .limit(1);
   if(dupErr){
-    toast('无法校验是否与他人冲突：'+(dupErr.message||'')+'（请检查 applicants 表的 SELECT 策略）', false);
+    toast(apLine('无法校验时段冲突：','Could not verify conflicts: ','Tidak bisa memverifikasi bentrok: ')+(dupErr.message||''), false);
     return;
   }
   if(dupHold && dupHold.length > 0){
-    toast('该时段已被其他同学预约，请刷新后另选', false);
+    toast(apLine('该时段已被其他同学预约，请刷新后另选','This slot was taken — refresh and choose another.','Slot sudah dipakai — muat ulang dan pilih lain.'), false);
     await loadPublicSlots();
     A.ivSelected = null;
     render();
@@ -1568,53 +1900,76 @@ async function confirmInterview(){
     .eq('id', A.ivSelected.id)
     .maybeSingle();
   if(snapErr){
-    toast('无法校验时段：'+(snapErr.message||'请稍后再试'), false);
+    toast(apLine('无法校验时段：','Could not verify slot: ','Tidak bisa memverifikasi slot: ')+(snapErr.message||apLine('请稍后再试','try again.','coba lagi.')), false);
     return;
   }
   if(!rowFresh || !isInterviewSlotRowVacant(rowFresh)){
-    toast('该时段已被其他同学预约，请刷新后另选', false);
+    toast(apLine('该时段已被其他同学预约，请刷新后另选','This slot was taken — refresh and choose another.','Slot sudah dipakai — muat ulang dan pilih lain.'), false);
     await loadPublicSlots();
     A.ivSelected = null;
     render();
     return;
   }
-  // 仅当该时段仍空闲时写入，防止两人同时点确认抢同一槽位（需 Supabase RLS 允许 anon 对空闲行 UPDATE）
-  const {data: bookedRows, error: e1} = await sb.from('interview_slots')
-    .update({is_booked:true, applicant_id:A.applicant.id})
-    .eq('id', A.ivSelected.id)
-    .is('applicant_id', null)
-    .select('id');
-  if(e1){
-    toast('预约失败：'+(e1.message||'')+'（若含 policy / RLS，请管理员在 Supabase 执行仓库内 migrations 中的面试预约策略）', false);
+  // 库内原子预约：SECURITY DEFINER RPC，绕过 anon 对 interview_slots/applicants 的 UPDATE 策略未部署或被拦截的问题
+  const { data: bookResult, error: rpcErr } = await sb.rpc('book_interview_slot_for_applicant', {
+    p_slot_id: A.ivSelected.id,
+    p_applicant_id: A.applicant.id,
+  });
+  if(rpcErr){
+    const hint = (rpcErr.message||'').includes('function')||(rpcErr.code||'')==='42883'
+      ? apLine('（请在 Supabase SQL Editor 执行仓库内迁移 20260411180000_book_interview_slot_rpc.sql）','(Run migration 20260411180000_book_interview_slot_rpc.sql in Supabase SQL Editor.)','(Jalankan migrasi 20260411180000_book_interview_slot_rpc.sql di Supabase.)')
+      : '';
+    toast(apLine('预约失败：','Booking failed: ','Gagal memesan: ')+(rpcErr.message||'')+hint, false);
     await loadPublicSlots();
     A.ivSelected = null;
     render();
     return;
   }
-  if(!bookedRows || bookedRows.length===0){
-    toast('未能锁定该时段（可能刚被他人预约，或数据库未允许匿名用户写入 interview_slots）。请刷新重试；管理员请检查 RLS。', false);
+  const br = bookResult;
+  if(!br || br.ok !== true){
+    if(br && br.reason === 'applicant_not_found'){
+      toast(apLine('找不到申请人记录，请重新登录后再试','Applicant record not found — log in again.','Data pelamar tidak ditemukan — masuk lagi.'), false);
+    } else {
+      toast(apLine('未能锁定该时段（可能刚被他人预约）。请刷新后另选。','Could not lock this slot — it may have been taken. Refresh and pick another.','Slot tidak terkunci — mungkin sudah diambil. Muat ulang.'), false);
+    }
     await loadPublicSlots();
     A.ivSelected = null;
-    render();
-    return;
-  }
-  const {error:e2} = await sb.from('applicants').update({interview_slot_id:A.ivSelected.id}).eq('id',A.applicant.id);
-  if(e2){
-    await sb.from('interview_slots').update({is_booked:false, applicant_id:null}).eq('id', A.ivSelected.id);
-    toast('预约失败，请重试', false);
     render();
     return;
   }
   A.ivBooked=true;
   A.applicant.interview_slot_id=A.ivSelected.id;
   A.applicantBookedInterviewSlot = A.ivSelected;
-  toast('面试预约成功！');
+  toast(apLine('面试预约成功！','Interview booked!','Wawancara berhasil dipesan!'));
   try{
     await sb.from('notification_log').insert([
       {applicant_id:A.applicant.id,type:'iv_scheduled',recipient:'applicant',content:`面试时间：${A.ivSelected.slot_date} ${A.ivSelected.slot_time}`},
       {applicant_id:A.applicant.id,type:'teacher_notified',recipient:A.ivSelected.teacher_name,content:`申请人：${fullName(A.applicant)}`},
     ]);
   }catch(_){}
+  try{
+    const { error: fnErr } = await sb.functions.invoke('interview-notify', {
+      body: { applicant_id: A.applicant.id, interview_slot_id: A.ivSelected.id },
+    });
+    if (fnErr) console.warn('interview-notify:', fnErr.message || fnErr);
+  }catch(e){
+    console.warn('interview-notify invoke failed:', e);
+  }
+  render();
+}
+
+/** 报名已完成（非本站）：申请人从 apply 进入笔试阶段 */
+async function applicantPromoteToExam(){
+  if(!sb||!A.applicant?.id){toast(apLine('无法操作，请重新登录','Please log in again.','Harap masuk lagi.'),false);return;}
+  if((A.applicant.stage||'')!=='apply'){render();return;}
+  const {error}=await sb.from('applicants').update({stage:'exam'}).eq('id',A.applicant.id).eq('stage','apply');
+  if(error){
+    toast(apLine('暂时无法进入笔试，请联系教务。','Unable to open exam — contact the office.','Tidak bisa membuka ujian — hubungi kantor.'),false);
+    return;
+  }
+  A.applicant={...A.applicant,stage:'exam'};
+  A.examLang=A.examLang||A.applicant.exam_lang||A.appLang||'zh';
+  if(A.applicant.id) persistApplicantExamLang(A.examLang);
   render();
 }
 
@@ -1623,11 +1978,20 @@ async function confirmInterview(){
 // ══════════════════════════════════════════════════════════════
 async function loginApplicant(name,last4){
   if(!sb){toast('未连接数据库，请检查网络后刷新',false);return;}
+  // 必须先清掉教师/管理员的 JWT，否则请求走 authenticated，RLS 无对应 UPDATE 策略会导致保存/推进阶段等全部失败
+  try{ await sb.auth.signOut(); }catch(_){}
   const trimName=name.trim();
   const {data,error}=await sb.from('applicants').select('*').eq('full_name',trimName).eq('phone_last4',last4.trim()).maybeSingle();
-  if(error||!data){toast('姓名或手机后四位不正确',false);return;}
+  if(error||!data){toast(apLine('姓名或手机后四位不正确','Name or last 4 phone digits incorrect.','Nama atau 4 digit HP salah.'),false);return;}
   A.role='applicant';A.applicant=data;
-  A.examLang = data.exam_lang || 'zh';
+  const postExamStages=['interview','result','materials','visa','complete','rejected','waitlist'];
+  const postExam=postExamStages.includes(data.stage||'');
+  A.appLang=(A.appLang||data.ui_lang||'zh');
+  A.examLang=postExam?(data.exam_lang||A.examLang||'zh'):(data.exam_lang||A.examLang||A.appLang||'zh');
+  if(data.id){
+    if(!data.ui_lang||data.ui_lang!==A.appLang) persistApplicantAppLang(A.appLang);
+    if(!postExam&&(!data.exam_lang||data.exam_lang!==A.examLang)) persistApplicantExamLang(A.examLang);
+  }
   A.applicantBookedInterviewSlot=null;
   if(data.interview_slot_id){
     const {data: bsl} = await sb.from('interview_slots').select('*').eq('id', data.interview_slot_id).maybeSingle();
@@ -1656,6 +2020,7 @@ async function loginApplicant(name,last4){
         A.examSubmitted=false;
         A.examAnswers={};
         A.essayText='';
+        A.appLang = latest.ui_lang || A.appLang || 'zh';
         A.examLang = latest.exam_lang || A.examLang || 'zh';
         if(latest.stage==='interview' && !latest.interview_slot_id){
           await loadPublicSlots();
@@ -1691,8 +2056,8 @@ async function logout(){
     showAddApModal:false,
     showEditApInfoModal:false,editApInfoId:null,
     examStarted:false,examSubmitted:false,examAnswers:{},essayText:'',
-    examLang:'zh',examTotalTime:9000,examTime:9000,proctorFlags:0,
-    ivSelected:null,ivBooked:false,applicantBookedInterviewSlot:null,
+    appLang:'zh',examLang:'zh',examTotalTime:9000,examTime:9000,proctorFlags:0,
+    ivSelected:null,ivBooked:false,applicantBookedInterviewSlot:null,ivSlotsRelaxed:false,ivTopPickIds:[],
     allApplicants:[],allSlots:[],applicantFreeSlots:[],allRecords:[],teacherProfiles:[]
   });
   render();
@@ -1703,15 +2068,14 @@ async function logout(){
 // ══════════════════════════════════════════════════════════════
 function renderSteps(cur){
   const idx=STAGE_IDX[cur]||0;
-  const applicantMono = A.role==='applicant' && (A.examLang==='en' || A.examLang==='id');
   const stepLabel = (s)=>{
-    if(!applicantMono) return s.label;
-    if(A.examLang==='en'){
-      const parts = String(s.label||'').split(' · ');
-      return parts.length > 1 ? parts[parts.length - 1].trim() : s.label;
-    }
-    const idMap = {apply:'Lamaran', exam:'Ujian', interview:'Wawancara', result:'Hasil', materials:'Berkas', complete:'Selesai'};
-    return idMap[s.id] || s.label;
+    if(A.role!=='applicant') return s.label;
+    const enShort = {apply:'Apply', exam:'Exam', interview:'Interview', result:'Pre-admit', materials:'Documents', visa:'Visa', complete:'Done'};
+    const idShort = {apply:'Lamaran', exam:'Ujian', interview:'Wawancara', result:'Pra-diterima', materials:'Unggah berkas', visa:'Visa', complete:'Selesai'};
+    const zhShort = {apply:'报名', exam:'笔试', interview:'面试', result:'预录取', materials:'上传资料', visa:'签证', complete:'完成'};
+    if(A.appLang==='en') return enShort[s.id] || (String(s.label||'').split(' · ').pop()||'').trim() || s.label;
+    if(A.appLang==='id') return idShort[s.id] || s.label;
+    return zhShort[s.id] || (String(s.label||'').split(' · ')[0] || s.label);
   };
   return `<div class="steps">${STAGES.map((s,i)=>{
     const cls=i<idx?'done':i===idx?'active':'locked';
@@ -1750,13 +2114,12 @@ function renderApplicantLogin(){
     <div class="login-card maxw-sm">
       <div class="tc mb6"><div class="t48 mb2">🙋</div><div class="t20 fw8 c-gray8">${esc(apLine('申请人登录','Applicant login','Login pelamar'))}</div></div>
       <div class="b1 bc-indigo100 bg-indigo50 r12 p3 mb4">
-        <div class="t12 fw6 c-gray6 mb2">${esc(apLine('界面语言（笔试与进度页）','Interface language','Bahasa antarmuka'))}</div>
+        <div class="t12 fw6 c-gray6 mb2">${esc(apLine('界面语言','Interface language','Bahasa antarmuka'))}</div>
         <div class="row wrap g2">
-          <button type="button" class="btn ${A.examLang==='zh'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="zh">中文</button>
-          <button type="button" class="btn ${A.examLang==='en'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="en">English</button>
-          <button type="button" class="btn ${A.examLang==='id'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="id">Bahasa Indonesia</button>
+          <button type="button" class="btn ${A.appLang==='zh'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="zh">中文</button>
+          <button type="button" class="btn ${A.appLang==='en'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="en">English</button>
+          <button type="button" class="btn ${A.appLang==='id'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="id">Bahasa Indonesia</button>
         </div>
-        <div class="t11 c-gray5 mt2">${esc(apLine('老师端仍为中英双语。','Staff portal stays Chinese + English.','Portal staf tetap dwibahasa Tionghoa–Inggris.'))}</div>
       </div>
       <div class="col g3">
         <div>
@@ -1799,14 +2162,22 @@ function renderStaffLogin(){
 // ══════════════════════════════════════════════════════════════
 function renderApplicant(){
   const ap=A.applicant;
+  if(!ap){
+    return `<div class="col center py12 px4 tc maxw-md mx-auto" style="min-height:70vh">
+      <div class="t18 fw7 c-gray8 mb2">无法加载申请人资料</div>
+      <p class="t13 c-gray6 mb4 lh16">当前账号未关联报名记录，或会话已失效。请退出后使用「姓名 + 手机后四位」重新登录。</p>
+      <button class="btn btn-primary" id="btn-logout">返回登录</button>
+    </div>`;
+  }
   const stage=ap.stage||'apply';
   let content='';
   if(stage==='apply') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
     <div class="t48 mb3">👋</div>
     <div class="t22 fw7 c-gray8 mb2">${esc(apLine(`平安，${fullName(ap)}！`,`Peace, ${fullName(ap)}!`,`Shalom, ${fullName(ap)}!`))}</div>
-    <div class="t13 c-gray5 mb6">${esc(apLine('感谢报名，你的申请已收到。笔试开放后系统会通知你，请留意。','Thank you. Your application is received. You will be notified when the written exam opens.','Terima kasih. Lamaran Anda telah kami terima. Anda akan diberitahu saat ujian tertulis dibuka.'))}</div>
+    <div class="t13 c-gray5 mb5">${esc(apLine('报名已在其他渠道完成。你可在此查看进度、参加笔试与预约面试。','Registration was completed elsewhere. Use this portal for progress, the written exam, and interview booking.','Pendaftaran sudah selesai di tempat lain. Gunakan portal ini untuk progres, ujian tertulis, dan jadwal wawancara.'))}</div>
+    <button class="btn btn-primary btn-full mb5" style="max-width:360px" id="btn-enter-exam-from-apply">${esc(apLine('进入笔试环节 →','Go to exam →','Lanjut ke ujian →'))}</button>
     <div class="bg-indigo50 b1 bc-indigo100 r16 p4 t13 tl col g2">
-      <div class="row g2"><span class="c-indigo4">📌</span><span>${esc(apLine('报名项目：','Program:','Program:'))} <strong>${esc(apLine('神学院 2026 秋季班','Seminary Fall 2026','Seminari Angkatan Gugur 2026'))}</strong></span></div>
+      <div class="row g2"><span class="c-indigo4">📌</span><span>${esc(apLine('项目：','Program:','Program:'))} <strong>${esc(apLine('神学院 2026 秋季班','Seminary Fall 2026','Seminari Angkatan Gugur 2026'))}</strong></span></div>
       <div class="row g2"><span class="c-indigo4">📞</span><span>${esc(apLine('如有疑问请联系：张琦 Alex','Questions? Contact: Zhang Qi (Alex)','Pertanyaan? Hubungi: Zhang Qi (Alex)'))}</span></div>
     </div>
   </div>`;
@@ -1817,53 +2188,59 @@ function renderApplicant(){
       const beijing = win ? fmtRangeInTZ(win.startUtc, win.endUtc, 'Asia/Shanghai') : null;
       const allowedNow = isExamAllowedNow(ap);
 
-      const proctorNotice = `【中文】双机位线上考试：请考生准备两个设备（手机或电脑均可）：一个设备正对本人，需全程开启摄像头并打开麦克风；另一个设备放在本人斜后方约45度，对准屏幕、答题区域及周围环境。\n\n进入会议室时，请将两个设备的显示名称分别设置为“姓名-1”和“姓名-2”，以便监考识别。\n\n考试时间为北京时间 10:00-12:30（印尼时间9:00-11:30），请至少提前15分钟进入会议室完成设备调试。\n\nZoom会议号：${EXAM_ZOOM_ID}，密码：${EXAM_ZOOM_PW}。\n\n请提前充满电、保证网络稳定，并将环境保持安静，考试过程中不随意移动设备或离开镜头范围，不使用其他电子设备，如遇设备或网络问题请第一时间在会议室中说明。\n\n感谢您的配合与理解。\n\n【English】Dual-device online exam: use two devices (phone or computer). One faces you with camera and microphone on; the other is about 45° behind you, showing your screen and workspace. Rename devices to “Name-1” and “Name-2”. Exam time: Beijing 10:00–12:30 / Jakarta 9:00–11:30. Join Zoom at least 15 minutes early. Zoom ID: ${EXAM_ZOOM_ID}, passcode: ${EXAM_ZOOM_PW}. Stay charged, stable network, quiet room; do not leave view or use other devices. Report tech issues in the meeting room immediately. Thank you.\n\n【Bahasa Indonesia】Ujian daring dua perangkat: sediakan dua perangkat (ponsel atau komputer). Satu menghadap Anda dengan kamera dan mikrofon menyala sepanjang ujian; yang lain di belakang samping sekitar 45°, memperlihatkan layar, area menjawab, dan lingkungan sekitar.\n\nSaat bergabung ke Zoom, ubah nama tampilan menjadi “Nama-1” dan “Nama-2” agar proktor dapat mengenali Anda.\n\nWaktu ujian: WIB 09:00–11:30; Waktu Beijing 10:00–12:30. Harap masuk ruang rapat minimal 15 menit lebih awal untuk uji coba perangkat.\n\nZoom ID: ${EXAM_ZOOM_ID}, kode sandi: ${EXAM_ZOOM_PW}.\n\nPastikan baterai terisi, jaringan stabil, dan ruangan tenang; jangan meninggalkan bidang kamera atau memakai perangkat lain. Jika ada masalah perangkat atau jaringan, segera laporkan di ruang Zoom.\n\nTerima kasih atas kerja sama Anda.`;
+      const proctorZh = `双机位线上考试：请考生准备两个设备（手机或电脑均可）：一个设备正对本人，需全程开启摄像头并打开麦克风；另一个设备放在本人斜后方约45度，对准屏幕、答题区域及周围环境。\n\n进入会议室时，请将两个设备的显示名称分别设置为「姓名-1」和「姓名-2」，以便监考识别。\n\n考试时间为北京时间 10:00-12:30（印尼时间9:00-11:30），请至少提前15分钟进入会议室完成设备调试。\n\nZoom会议号：${EXAM_ZOOM_ID}，密码：${EXAM_ZOOM_PW}。\n\n请提前充满电、保证网络稳定，并将环境保持安静，考试过程中不随意移动设备或离开镜头范围，不使用其他电子设备，如遇设备或网络问题请第一时间在会议室中说明。\n\n感谢您的配合与理解。`;
+      const proctorEn = `Dual-device online exam: use two devices (phone or computer). One faces you with camera and microphone on; the other is about 45° behind you, showing your screen and workspace. Rename devices to “Name-1” and “Name-2”. Exam time: Beijing 10:00–12:30 / Jakarta 9:00–11:30. Join Zoom at least 15 minutes early. Zoom ID: ${EXAM_ZOOM_ID}, passcode: ${EXAM_ZOOM_PW}. Stay charged, stable network, quiet room; do not leave view or use other devices. Report tech issues in the meeting room immediately. Thank you.`;
+      const proctorId = `Ujian daring dua perangkat: sediakan dua perangkat (ponsel atau komputer). Satu menghadap Anda dengan kamera dan mikrofon menyala sepanjang ujian; yang lain di belakang samping sekitar 45°, memperlihatkan layar, area menjawab, dan lingkungan sekitar.\n\nSaat bergabung ke Zoom, ubah nama tampilan menjadi “Nama-1” dan “Nama-2” agar proktor dapat mengenali Anda.\n\nWaktu ujian: WIB 09:00–11:30; Waktu Beijing 10:00–12:30. Harap masuk ruang rapat minimal 15 menit lebih awal untuk uji coba perangkat.\n\nZoom ID: ${EXAM_ZOOM_ID}, kode sandi: ${EXAM_ZOOM_PW}.\n\nPastikan baterai terisi, jaringan stabil, dan ruangan tenang; jangan meninggalkan bidang kamera atau memakai perangkat lain. Jika ada masalah perangkat atau jaringan, segera laporkan di ruang Zoom.\n\nTerima kasih atas kerja sama Anda.`;
+      const proctorNotice = A.appLang==='en' ? proctorEn : A.appLang==='id' ? proctorId : proctorZh;
 
       const isExempt = isExamExemptApplicant(ap);
       const blockReason = isExempt
-        ? `测试账号：可随时进入答题。 · Test account: you may start anytime.`
+        ? apLine('测试账号：可随时进入答题。','Test account: you may start anytime.','Akun uji: boleh mulai kapan saja.')
         : (allowedNow
-          ? `当前在开放时间内，可以进入答题。 · You may start the exam now.`
-          : (win && !win.inWindow ? `当前非开放时间。下次开放时间：${jakarta||''}（印尼时间 WIB），${beijing||''}（北京时间 CST）。 · Outside the window. Next: ${jakarta||''} (WIB), ${beijing||''} (CST).` : '当前暂无法获取开放时间，请稍后再试。 · Cannot load schedule; please try again later.'));
+          ? apLine('当前在开放时间内，可以进入答题。','You may start the exam now.','Anda boleh mulai ujian sekarang.')
+          : (win && !win.inWindow
+            ? apLine(`当前非开放时间。下次：${jakarta||''}（WIB），${beijing||''}（北京时间）。`,`Outside the window. Next: ${jakarta||''} (WIB), ${beijing||''} (Beijing).`,`Di luar jadwal. Berikutnya: ${jakarta||''} (WIB), ${beijing||''} (Beijing).`)
+            : apLine('当前暂无法获取开放时间，请稍后再试。','Cannot load schedule; please try again later.','Jadwal belum tersedia; coba lagi.')));
 
+      const nQ=(A.examQuestions&&A.examQuestions.length)||EXAM_Qs.length;
       content=`<div class="col center py12 px4 tc maxw-md mx-auto">
-        <div class="t48 mb3">📖</div><div class="t22 fw7 c-gray8 mb2">笔试准备 · Exam briefing</div>
+        <div class="t48 mb3">📖</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('笔试准备','Exam briefing','Persiapan ujian'))}</div>
         <div class="t13 c-gray5 mb4 lh16">
-          共 <strong>${(A.examQuestions&&A.examQuestions.length)||EXAM_Qs.length}</strong> 道题 · <span class="t12 c-gray4">Total questions</span><br>
-          考试时长 <strong>150 分钟</strong> · <span class="t12 c-gray4">150 minutes</span><br>
-          开放时间：<strong>周一 / 周三 / 周六</strong> · <span class="t12 c-gray4">Mon / Wed / Sat</span><br>
-          印尼时间（WIB） <strong>${EXAM_WIB_START}–${EXAM_WIB_END}</strong> · 北京时间 <strong>10:00–12:30</strong>
+          ${esc(apLine(`共 ${nQ} 道题`,`${nQ} questions`,`${nQ} soal`))}<br>
+          ${esc(apLine('考试时长 150 分钟','150 minutes total','Durasi 150 menit'))}<br>
+          ${esc(apLine('开放时间：周一 / 周三 / 周六','Open: Mon / Wed / Sat','Buka: Sen / Rab / Sab'))}<br>
+          ${esc(apLine(`印尼时间（WIB） ${EXAM_WIB_START}–${EXAM_WIB_END}；北京时间 10:00–12:30`,`WIB ${EXAM_WIB_START}–${EXAM_WIB_END}; Beijing 10:00–12:30`,`WIB ${EXAM_WIB_START}–${EXAM_WIB_END}; Beijing 10:00–12:30`))}
         </div>
 
         <div class="card p4 tl mb4" style="max-width:520px">
-          <div class="fw7 c-gray8 t13 mb2">⏰ 下一次（或当前）开放时间 · Next / current window</div>
+          <div class="fw7 c-gray8 t13 mb2">${esc(apLine('⏰ 下一次（或当前）开放时间','⏰ Next / current window','⏰ Jendela berikutnya'))}</div>
           <div class="t13 c-gray7 lh16">
-            ${jakarta?`印尼时间 WIB：<strong>${esc(jakarta)}</strong><br>`:''}
-            ${beijing?`北京时间 CST：<strong>${esc(beijing)}</strong><br>`:''}
+            ${jakarta?`${esc(apLine('印尼时间 WIB：','WIB:','WIB:'))} <strong>${esc(jakarta)}</strong><br>`:''}
+            ${beijing?`${esc(apLine('北京时间：','Beijing time:','Waktu Beijing:'))} <strong>${esc(beijing)}</strong><br>`:''}
           </div>
         </div>
 
         <div class="card p4 tl mb4" style="max-width:520px">
-          <div class="fw7 c-gray8 t13 mb2">🌐 试卷语言 · Exam language</div>
+          <div class="fw7 c-gray8 t13 mb2">${esc(apLine('🌐 答卷语言（可与界面语言不同）','🌐 Exam paper language (can differ from interface)','🌐 Bahasa lembar ujian (boleh beda dari antarmuka)'))}</div>
           <div class="row wrap g2">
-            <button class="btn ${A.examLang==='zh'?'btn-primary':'btn-outline'} btn-sm" data-action="set-exam-lang" data-lang="zh">中文 Chinese</button>
+            <button class="btn ${A.examLang==='zh'?'btn-primary':'btn-outline'} btn-sm" data-action="set-exam-lang" data-lang="zh">中文</button>
             <button class="btn ${A.examLang==='en'?'btn-primary':'btn-outline'} btn-sm" data-action="set-exam-lang" data-lang="en">English</button>
             <button class="btn ${A.examLang==='id'?'btn-primary':'btn-outline'} btn-sm" data-action="set-exam-lang" data-lang="id">Bahasa Indonesia</button>
           </div>
-          <div class="t12 c-gray5 mt2">题目与阅卷标准将随所选语言切换（中 / 英 / 印尼）。 · Questions and grading follow the language you choose.</div>
+          <div class="t12 c-gray5 mt2">${esc(apLine('例如：界面选中文仍可在此选英文试卷；面试排班将按此处所选语言匹配老师。','e.g. Chinese UI with an English paper is allowed; interview slots follow the paper language here.','Mis. antarmuka bahasa Tionghoa tetap bisa pilih ujian bahasa Inggris; jadwal wawancara mengikuti bahasa lembar di sini.'))}</div>
         </div>
 
         <div class="b1 bc-amber200 bg-amber50 r12 p4 t12 tl mb4" style="color:#92400e;max-width:520px">
           ⚠️ ${esc(blockReason)}
-          <br><span class="t12">考试过程中切换窗口/切屏会被记录，并在最后成绩备注中显示。 · Window/tab switches are logged and noted on your result.</span>
+          <br><span class="t12">${esc(apLine('考试过程中切换窗口/切屏会被记录，并在成绩备注中显示。','Window/tab switches are logged on your result.','Pindah jendela/tab dicatat di catatan hasil.'))}</span>
         </div>
 
         <details class="card p4 tl mb5" style="max-width:520px">
-          <summary class="fw7 c-gray8 t13" style="cursor:pointer">📌 考前提醒 · Pre-exam notes · Catatan pra-ujian（点击展开 · tap to expand）</summary>
+          <summary class="fw7 c-gray8 t13" style="cursor:pointer">${esc(apLine('📌 考前提醒（点击展开）','📌 Pre-exam notes (tap to expand)','📌 Catatan pra-ujian (ketuk untuk buka)'))}</summary>
           <pre class="t12 c-gray7 lh16" style="white-space:pre-wrap;margin-top:10px">${esc(proctorNotice)}</pre>
         </details>
 
-        ${allowedNow?`<button class="btn btn-primary" id="btn-start-exam">开始考试 · Start exam</button>`:`<button class="btn btn-ghost" disabled style="opacity:.6">当前不可答题 · Not available now</button>`}
+        ${allowedNow?`<button class="btn btn-primary" id="btn-start-exam">${esc(apLine('开始考试','Start exam','Mulai ujian'))}</button>`:`<button class="btn btn-ghost" disabled style="opacity:.6">${esc(apLine('当前不可答题','Not available now','Belum tersedia'))}</button>`}
       </div>`;
     }
     else if(A.examSubmitted) content=`<div class="col center py12 px4 tc maxw-md mx-auto">
@@ -1878,21 +2255,22 @@ function renderApplicant(){
     else content=renderIvBooking();
   }
   else if(stage==='result') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
-    <div class="t48 mb3">⏳</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('等待录取结果','Awaiting decision','Menunggu keputusan'))}</div>
-    <div class="t13 c-gray5">${esc(apLine('感谢你参与面试，结果将在 3–5 个工作日内通知。','Thank you for your interview. Results are usually shared within 3–5 business days.','Terima kasih atas wawancaranya. Hasil biasanya dikirim dalam 3–5 hari kerja.'))}</div>
+    <div class="t48 mb3">⏳</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('预录取审核中','Pre-admission in progress','Pra-penerimaan sedang diproses'))}</div>
+    <div class="t13 c-gray5">${esc(apLine('感谢你参与面试。教务将综合笔试、面试结果发出预录取意向，请留意后续通知。','Thank you for your interview. The office will review your exam and interview for pre-admission.','Terima kasih atas wawancara. Kantor akan meninjau ujian dan wawancara untuk pra-penerimaan.'))}</div>
   </div>`;
   else if(stage==='materials') content=renderMaterials();
+  else if(stage==='visa') content=renderVisaStage(ap);
   else if(stage==='complete') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
     <div style="font-size:56px" class="mb3">🎓</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('恭喜！入学流程已完成','All steps complete','Selamat! Semua langkah selesai'))}</div>
-    <div class="t13 c-gray5">${esc(apLine('所有材料已审核通过，请关注来印攻略文件。','All materials are approved. Please watch for arrival guidance.','Semua berkas disetujui. Perhatikan panduan kedatangan.'))}</div>
+    <div class="t13 c-gray5">${esc(apLine('签证与入学材料已办妥后，请关注教务通知与来印攻略。','After visa and paperwork, watch for office guidance to Indonesia.','Setelah visa dan berkas, ikuti panduan kantor.'))}</div>
   </div>`;
 
-  const examOnlyEn = A.role==='applicant' && A.examLang==='en';
-  const examOnlyId = A.role==='applicant' && A.examLang==='id';
+  const examOnlyEn = A.role==='applicant' && A.appLang==='en';
+  const examOnlyId = A.role==='applicant' && A.appLang==='id';
   const brandLine = examOnlyEn ? 'Seminary Admissions'
     : examOnlyId ? 'Penerimaan Seminari'
-    : '神学院招生系统 · Seminary Admissions';
-  const logoutLine = examOnlyEn ? 'Logout' : examOnlyId ? 'Keluar' : '退出 · Logout';
+    : '神学院招生系统';
+  const logoutLine = examOnlyEn ? 'Logout' : examOnlyId ? 'Keluar' : '退出';
 
   return `<div style="min-height:100vh;background:linear-gradient(135deg,#eef2ff,#fff 50%,#f5f3ff)">
     <div class="header">
@@ -1912,16 +2290,16 @@ function renderExamDoing(){
     const beijing = win ? fmtRangeInTZ(win.startUtc, win.endUtc, 'Asia/Shanghai') : null;
     return `<div class="maxw-lg mx-auto px4" style="padding:28px 16px 64px">
       <div class="t48 mb3">⛔</div>
-      <div class="t22 fw7 c-gray8 mb2">当前不可答题 · Exam closed</div>
-      <div class="t13 c-gray5 mb4 lh16">只有在印尼时间周一/周三/周六上午 <strong>${EXAM_WIB_START}–${EXAM_WIB_END}</strong> 才可以进入答题。<br><span class="t12 c-gray4">Available Mon/Wed/Sat mornings WIB ${EXAM_WIB_START}–${EXAM_WIB_END} only.</span></div>
+      <div class="t22 fw7 c-gray8 mb2">${esc(apLine('当前不可答题','Exam closed','Ujian tertutup'))}</div>
+      <div class="t13 c-gray5 mb4 lh16">${esc(apLine(`仅在印尼时间周一/三/六上午 ${EXAM_WIB_START}–${EXAM_WIB_END} 可答题。`,`Available Mon/Wed/Sat mornings WIB ${EXAM_WIB_START}–${EXAM_WIB_END} only.`,`Hanya Sen/Rab/Sab pagi WIB ${EXAM_WIB_START}–${EXAM_WIB_END}.`))}</div>
       <div class="card p4 tl mb4">
-        <div class="fw7 c-gray8 t13 mb2">下一次开放 · Next window</div>
+        <div class="fw7 c-gray8 t13 mb2">${esc(apLine('下一次开放时间','Next window','Jendela berikutnya'))}</div>
         <div class="t12 c-gray7 lh16">
-          ${jakarta?`印尼时间 WIB：<strong>${esc(jakarta)}</strong><br>`:''}
-          ${beijing?`北京时间 CST：<strong>${esc(beijing)}</strong><br>`:''}
+          ${jakarta?`${esc(apLine('印尼时间 WIB：','WIB:','WIB:'))} <strong>${esc(jakarta)}</strong><br>`:''}
+          ${beijing?`${esc(apLine('北京时间：','Beijing:','Beijing:'))} <strong>${esc(beijing)}</strong><br>`:''}
         </div>
       </div>
-      <div class="t12 c-gray5">请返回“笔试准备”页查看提醒。 · Return to the exam briefing page.</div>
+      <div class="t12 c-gray5">${esc(apLine('请返回「笔试准备」页查看说明。','Return to the exam briefing page.','Kembali ke halaman persiapan ujian.'))}</div>
     </div>`;
   }
   const qs=(A.examQuestions&&A.examQuestions.length)?A.examQuestions:(EXAM_Qs&&EXAM_Qs.length?EXAM_Qs:[]);
@@ -2179,100 +2557,32 @@ function renderIvBooking(){
   const slots=A.applicantFreeSlots||[];
   const grouped={};
   slots.forEach(s=>{if(!grouped[s.slot_date])grouped[s.slot_date]=[];grouped[s.slot_date].push(s);});
-  const el = A.applicant?.exam_lang || A.examLang || 'zh';
-  const langHint = el==='en'
-    ? apLine('当前为英文笔试，仅显示具备英文面试能力的老师时段（优先 Nathan / Heaven）。','English exam: only slots from English-capable teachers (Nathan / Heaven first).','Ujian EN: hanya slot guru EN.')
-    : el==='id'
-      ? apLine('当前为印尼语笔试，仅显示具备印尼语面试能力的老师时段（优先 Yohanes）。','Indonesian exam: Indonesian-capable teachers only (Yohanes first).','Ujian ID: hanya slot guru bahasa Indonesia.')
-      : apLine('当前为中文笔试，仅显示具备中文面试能力的老师时段（优先 Levi / Will）。','Chinese exam: Chinese-capable teachers only (Levi / Will first).','Ujian ZH: hanya slot guru bahasa Tionghoa.');
-
-  const toMin = t=>{
-    const m=String(t||'').match(/^(\d{2}):(\d{2})/);
-    if(!m) return null;
-    return (+m[1])*60+(+m[2]);
-  };
-  const inferInterval = (ss)=>{
-    const times = ss
-      .map(x=>toMin(x.slot_time))
-      .filter(v=>v!=null)
-      .sort((a,b)=>a-b);
-    if(times.length<2) return 30;
-    const diffs=[];
-    for(let i=1;i<times.length;i++){
-      const d=times[i]-times[i-1];
-      if(d>0 && d<=60) diffs.push(d);
-    }
-    const freq = {};
-    diffs.forEach(d=>freq[d]=(freq[d]||0)+1);
-    // 优先选择 20/30，如果存在
-    if(freq[20]||freq[30]){
-      return (freq[20]>=freq[30])?20:30;
-    }
-    // 否则取最接近 20/30 的
-    const all = Object.keys(freq).map(Number);
-    if(!all.length) return 30;
-    const target = all.reduce((best,d)=>Math.abs(d-30)<Math.abs(best-30)?d:best,all[0]);
-    // 再校正到 20/30
-    return (Math.abs(target-20)<=Math.abs(target-30))?20:30;
-  };
-  const buildClusters = (ss, interval)=>{
-    const sorted = ss
-      .slice()
-      .sort((a,b)=>(a.slot_time||'').localeCompare(b.slot_time||''));
-    const clusters=[];
-    let cur=[];
-    for(let i=0;i<sorted.length;i++){
-      if(cur.length===0){
-        cur=[sorted[i]];
-        continue;
-      }
-      const prevMin = toMin(cur[cur.length-1].slot_time);
-      const curMin = toMin(sorted[i].slot_time);
-      if(prevMin!=null && curMin!=null && (curMin-prevMin)===interval){
-        cur.push(sorted[i]);
-      }else{
-        clusters.push(cur);
-        cur=[sorted[i]];
-      }
-    }
-    if(cur.length) clusters.push(cur);
-    // 按“尽量连续 + 尽量靠前”：先按长度降序，再按起始时间升序
-    clusters.sort((a,b)=>{
-      if(b.length!==a.length) return b.length-a.length;
-      const am=toMin(a[0].slot_time), bm=toMin(b[0].slot_time);
-      return (am||0)-(bm||0);
-    });
-    return clusters;
-  };
+  const relaxHint = A.ivSlotsRelaxed ? apLine('提示：与笔试语言严格匹配的时段较少，下列为系统筛选后的可选时段（已按面试老师优先级排序）。','Fewer strict-language matches; below is a short list sorted by interviewer priority.','Sedikit slot bahasa ketat; berikut daftar singkat diurutkan prioritas pewawancara.') : '';
+  const introLine = apLine('下方为系统根据笔试语言与老师档期筛选的时段；橙色与紫色标记为最推荐的两项。','Below are slots matched to your exam language and staff availability; orange and purple are the top two picks.','Berikut slot yang disaring menyesuaikan bahasa ujian dan jadwal staf; oranye dan ungu adalah dua rekomendasi utama.');
+  const contactLine = apLine('若以上时间均不合适，请联系张琦 Alex 单独协调。','If none work, contact Zhang Qi (Alex) to arrange another time.','Jika tidak ada yang cocok, hubungi Zhang Qi (Alex) untuk penjadwalan.');
+  const sid0 = String((A.ivTopPickIds||[])[0]??'');
+  const sid1 = String((A.ivTopPickIds||[])[1]??'');
 
   return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
     <div class="t20 fw7 c-gray8 mb1">${esc(apLine('预约面试时间','Book interview','Jadwal wawancara'))}</div>
-    <div class="b1 bc-indigo100 bg-indigo50 r10 p3 mb4 t12 c-indigo6 lh16">${esc(langHint)}</div>
-    <div class="row g2 mb5" style="align-items:center">
-      <div class="t13 c-gray5">${esc(apLine('为避免空档，系统会优先推荐连续可预约的时间点；不方便再选备选。','We highlight continuous slots first; pick another if needed.','Kami menonjolkan slot berurutan; pilih lain jika perlu.'))}</div>
-      <button class="btn btn-ghost btn-sm ml-auto" id="btn-refresh-slots">${esc(apLine('刷新','Refresh','Muat ulang'))}</button>
+    ${relaxHint?`<div class="b1 bc-amber200 bg-amber50 r10 p3 mb3 t12 lh16" style="color:#92400e">${esc(relaxHint)}</div>`:''}
+    <div class="row g2 mb4" style="align-items:flex-start">
+      <div class="t13 c-gray5" style="flex:1;min-width:0">${esc(introLine)}</div>
+      <button class="btn btn-ghost btn-sm flex-none" id="btn-refresh-slots">${esc(apLine('刷新','Refresh','Muat ulang'))}</button>
     </div>
     ${slots.length===0?`<div class="card p5 tc c-gray4 t13">${esc(apLine('暂无可用时间段，请等待管理员开放。','No open slots yet — please wait for the admin.','Belum ada slot — tunggu admin membuka jadwal.'))}</div>`:''}
     <div class="col g3">
     ${Object.entries(grouped).sort(([da],[db])=>String(da).localeCompare(String(db))).map(([date,ss])=>{
-      const interval=inferInterval(ss);
-      const clusters=buildClusters(ss, interval);
-      const primary=clusters[0]?.[0] || null;
-      const secondary=clusters[1]?.[0] || null;
       return `<div class="card p4">
         <div class="fw6 c-gray7 t13 mb3">${esc(date)}</div>
         <div class="row wrap g2">
           ${ss
             .slice()
-            .sort((a,b)=>{
-              const aKey = (primary && a.id===primary.id)?0:(secondary && a.id===secondary.id)?1:2;
-              const bKey = (primary && b.id===primary.id)?0:(secondary && b.id===secondary.id)?1:2;
-              if(aKey!==bKey) return aKey-bKey;
-              return (a.slot_time||'').localeCompare(b.slot_time||'');
-            })
+            .sort((a,b)=>(a.slot_time||'').localeCompare(b.slot_time||''))
             .map(s=>{
-              const isP = primary && s.id===primary.id;
-              const isS = secondary && s.id===secondary.id;
+              const idStr = String(s.id);
+              const isP = sid0 && idStr === sid0;
+              const isS = sid1 && idStr === sid1;
               const label = isP ? apLine(' 推荐1',' P1',' P1') : isS ? apLine(' 推荐2',' P2',' P2') : '';
               const style = isP ? 'border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.25);' :
                              isS ? 'border-color:#4f46e5;box-shadow:0 0 0 2px rgba(79,70,229,.2);' : '';
@@ -2282,11 +2592,71 @@ function renderIvBooking(){
       </div>`;
     }).join('')}
     </div>
+    ${slots.length?`<div class="t12 c-gray5 tc mt4 mb2 lh16">${esc(contactLine)}</div>`:''}
     ${A.ivSelected?`<div class="b1 bc-indigo200 bg-indigo50 r10 p3 mt4 t13 fw6 c-indigo6">${esc(apLine('已选择：','Selected:','Dipilih:'))} ${esc(A.ivSelected.slot_date)} ${esc(A.ivSelected.slot_time?.slice(0,5)||'')}</div>`:''}
     <button class="btn btn-full mt4 ${A.ivSelected?'btn-primary':'btn-ghost'}" id="btn-confirm-iv" ${A.ivSelected?'':'disabled'}>${esc(apLine('确认预约','Confirm','Konfirmasi'))}</button>
   </div>`;
 }
 
+function parseApplicantJsonCol(v,def){
+  if(v==null||v==='') return def;
+  if(typeof v==='object'&&v!==null&&!Array.isArray(v)) return v;
+  try{const o=JSON.parse(v);return typeof o==='object'&&o!==null?o:def;}catch(_){return def;}
+}
+function readFileAsBase64(file){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>res(String(fr.result||''));
+    fr.onerror=()=>rej(new Error('read'));
+    fr.readAsDataURL(file);
+  });
+}
+function financialProofBytesOk(sch,ap){
+  const d=sch&&(sch.financial_proof_data||sch.income_proof_data);
+  if(d&&String(d).length>32) return true;
+  if(ap&&ap.mat_financial_proof_data&&String(ap.mat_financial_proof_data).length>32) return true;
+  return false;
+}
+function applicantSignatureBytesOk(sch){
+  return sch&&sch.applicant_signature_data&&String(sch.applicant_signature_data).length>32;
+}
+function pastorLetterUploadOk(sch){
+  if(!sch||(sch.guarantee_type||'deposit')!=='pastor_letter') return true;
+  return !!(sch.pastor_letter_upload_data&&String(sch.pastor_letter_upload_data).length>32);
+}
+function computeSurveyAlertFromSurveyJson(sur){
+  const drug=String(sur.drug_history||sur.drug_hist||sur.substance_history||'').toLowerCase()==='yes';
+  const drugDet=String(sur.drug_detail||sur.drug_detail_line||sur.substance_detail||'').trim();
+  const risky=/毒|吸毒|毒品|罂粟|大麻|冰|海洛因|heroin|cocaine|meth|opioid|注射|滥用/i.test(drugDet);
+  if(drug||risky) return {alert:true,reason:drugDet?('物质/成瘾相关：'+drugDet.slice(0,120)):'入学调查披露吸毒/物质史，请留意'};
+  const mh=String(sur.mental_illness_history||sur.mental_hist||sur.mental_health||'').toLowerCase()==='yes';
+  const md=String(sur.mental_illness_name||sur.mental_name||sur.mental_detail||'').trim();
+  if(mh&&md.length>1) return {alert:true,reason:'精神疾病史：'+md.slice(0,120)};
+  const netA=String(sur.internet_addiction||sur.net_addict||'').toLowerCase()==='yes';
+  const netL=String(sur.internet_affects_life||sur.net_affect||'').toLowerCase()==='yes';
+  if(netA||netL) return {alert:true,reason:'网络使用/成瘾相关披露需留意'};
+  if(String(sur.phy_major_illness||'').toLowerCase()==='yes') return {alert:true,reason:'入学调查披露重大身体疾病史，请留意'};
+  if(String(sur.gamble_hist||'').toLowerCase()==='yes') return {alert:true,reason:'入学调查披露赌博相关情况，请留意'};
+  if(['yes'].includes(String(sur.premarital_sex||'').toLowerCase())||['yes'].includes(String(sur.extramarital_sex||'').toLowerCase())||['yes'].includes(String(sur.homo_tendency||'').toLowerCase())||['yes'].includes(String(sur.homo_act||'').toLowerCase())){
+    const d=String(sur.sex_explain_four||'').trim();
+    return {alert:true,reason:d?('婚姻与性状况披露：'+d.slice(0,120)):'入学调查「五、婚姻与性关系」有肯定项，请留意'};
+  }
+  return {alert:false,reason:''};
+}
+function materialsMissingCount(ap){
+  const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
+  const sur=parseApplicantJsonCol(ap.enrollment_survey_json,{});
+  let miss=0;
+  if(!sch._saved_at) miss++;
+  else{
+    if(!financialProofBytesOk(sch,ap)) miss++;
+    if(!applicantSignatureBytesOk(sch)) miss++;
+    if(!pastorLetterUploadOk(sch)) miss++;
+    if(sch.agree_terms!=='yes') miss++;
+  }
+  if(!sur._saved_at) miss++;
+  return miss;
+}
 function renderIvConfirmed(){
   const sl=A.ivSelected || resolveSlotForApplicant(A.applicant);
   const waNumber = '6285283251074'; // +62 85283251074
@@ -2298,27 +2668,255 @@ function renderIvConfirmed(){
       <div class="t20 fw8 c-indigo6 mb3">${sl?esc(sl.slot_date)+' '+esc(sl.slot_time?.slice(0,5)||''):esc(apLine('已预约','Booked','Terjadwal'))}</div>
       <div class="t12 c-gray5">${esc(apLine('Zoom ID','Zoom ID','Zoom ID'))}：${sl?.zoom_id||'847 5014 4631'}&nbsp;/&nbsp;${esc(apLine('密码','Passcode','Kode'))}：${sl?.zoom_password||'156903'}</div>
     </div></div>
-    <div class="t12 c-gray5 mb4 lh16">请按上述时间准时参加面试；如有变动，教务会通过您预留的联系方式与您沟通。<br><span class="t11 c-gray4">Please join on time. The office will contact you if anything changes.</span></div>
-    <a class="btn btn-primary btn-full mb2" href="https://wa.me/${waNumber}?text=${waText}" target="_blank" rel="noreferrer">通过 WhatsApp 提醒管理员 · Notify via WhatsApp</a>
-    <div class="t11 c-gray4 tc lh16">（管理员可部署 WhatsApp Cloud API 自动通知 · Optional server-side WhatsApp automation.）</div>
+    <div class="t12 c-gray5 mb4 lh16">${esc(apLine('请按上述时间准时参加面试；如有变动，教务会通过您预留的联系方式与您沟通。','Please join on time. The office will contact you if anything changes.','Harap tepat waktu. Kantor akan menghubungi jika ada perubahan.'))}</div>
+    <a class="btn btn-primary btn-full mb2" href="https://wa.me/${waNumber}?text=${waText}" target="_blank" rel="noreferrer">${esc(apLine('通过 WhatsApp 提醒管理员','Notify admin via WhatsApp','Ingatkan admin lewat WhatsApp'))}</a>
+    <div class="t11 c-gray4 tc lh16">${esc(apLine('预约成功后会尝试服务端推送（需部署 Edge Function「interview-notify」并配置 NOTIFY_WEBHOOK_URL，可用 Make 转发 WhatsApp）；也可点上方按钮手动提醒。','Server push after booking needs interview-notify + NOTIFY_WEBHOOK_URL (e.g. Make → WhatsApp); or use the button above.','Notifikasi server perlu interview-notify + NOTIFY_WEBHOOK_URL; atau gunakan tombol di atas.'))}</div>
   </div>`;
 }
 
-function renderMaterials(){
-  const miss=MAT_ITEMS.filter(i=>i.req&&!A.uploads[i.id]).length;
-  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
-    <div class="t20 fw7 c-gray8 mb1">${esc(apLine('提交入学材料','Submit materials','Kirim berkas'))}</div>
-    <div class="t13 c-gray5 mb5">${esc(apLine('请在 3 天内提交以下全部必填材料。','Submit all required items within 3 days.','Kirim semua berkas wajib dalam 3 hari.'))}</div>
+function mkSvRad(key,val,cur){
+  return `<input type="radio" name="sv-${key}" data-sv="${key}" value="${val}" ${String(cur||'')===val?'checked':''} style="accent-color:#4f46e5">`;
+}
+function svYNrow(label,key,sur){
+  const v=sur[key]!=null?String(sur[key]):'';
+  const cur=v==='yes'?'yes':'no';
+  return `<div class="mb3"><span class="fw6 c-gray6">${esc(label)}</span>
+    <span class="row g2 ml2" style="display:inline-flex;flex-wrap:wrap;align-items:center">${mkSvRad(key,'yes',cur)}${esc(apLine('是','Yes','Ya'))} ${mkSvRad(key,'no',cur)}${esc(apLine('否','No','Tidak'))}</span></div>`;
+}
+function collectEnrollmentSurveyFromDom(prev){
+  const sur={...prev};
+  document.querySelectorAll('input[type=radio][data-sv]').forEach(el=>{
+    if(el.checked) sur[el.dataset.sv]=el.value;
+  });
+  document.querySelectorAll('[data-sv-inp]').forEach(el=>{const k=el.dataset.svInp;if(k) sur[k]=(el.value||'').trim();});
+  document.querySelectorAll('[data-sv-ta]').forEach(el=>{const k=el.dataset.svTa;if(k) sur[k]=(el.value||'').trim();});
+  document.querySelectorAll('input[type=checkbox][data-sv-chk]').forEach(el=>{const k=el.dataset.svChk;if(k) sur[k]=el.checked?'yes':'no';});
+  if(sur.mental_hist!=null){ sur.mental_illness_history=sur.mental_hist; sur.mental_health=sur.mental_hist; }
+  if((sur.mental_name||'').trim()) sur.mental_illness_name=sur.mental_name;
+  if(sur.drug_hist!=null){ sur.drug_history=sur.drug_hist; sur.substance_history=sur.drug_hist; }
+  if((sur.habit_substance_explain||'').trim()){ sur.drug_detail=sur.habit_substance_explain; sur.drug_detail_line=sur.habit_substance_explain; }
+  else if((sur.drug_detail_line||'').trim()) sur.drug_detail=sur.drug_detail_line;
+  if(sur.drug_history==null&&sur.substance_history!=null) sur.drug_history=sur.substance_history;
+  if(sur.drug_detail==null&&sur.substance_detail) sur.drug_detail=sur.substance_detail;
+  sur.substance_history=sur.drug_history||sur.substance_history||'no';
+  sur.substance_detail=sur.drug_detail||sur.substance_detail||'';
+  sur.mental_health=sur.mental_illness_history||sur.mental_health||'no';
+  sur.mental_detail=sur.mental_illness_name||sur.mental_detail||'';
+  if(sur.net_addict!=null) sur.internet_addiction=sur.net_addict;
+  if(sur.net_affect!=null) sur.internet_affects_life=sur.net_affect;
+  sur._saved_at=new Date().toISOString();
+  return sur;
+}
+function mkSvRadMulti(key,val,cur){
+  return `<input type="radio" name="sv-${key}" data-sv="${key}" value="${val}" ${String(cur||'')===val?'checked':''} style="accent-color:#4f46e5">`;
+}
+function renderVisaMatFilesCard(ap){
+  const files=parseApplicantJsonCol(ap.mat_files_json,{passport:false,photo:false,insurance:false});
+  const L=apLine;
+  return `<div class="card p4 mb4">
+    <div class="fw7 c-gray8 t14 mb3">${esc(L('证件扫描与照片（勾选表示已备妥并同意提交）','ID scans & photo (check when ready)','Pindaian & foto'))}</div>
     <div class="col g2">
-    ${MAT_ITEMS.map(item=>`<div class="mat-item${A.uploads[item.id]?' done':''}" data-action="toggle-mat" data-mid="${item.id}">
-      <div class="mat-check${A.uploads[item.id]?' done':''}">${A.uploads[item.id]?'✓':''}</div>
-      <span class="flex1 t13 fw5 c-gray7">${esc(item.label)}</span>
-      ${!item.req?'<span class="t11 c-gray4">（选填 · optional）</span>':''}
-      ${!A.uploads[item.id]?'<span class="tag" style="background:#4f46e5;color:#fff">上传 · Upload</span>':''}
-    </div>`).join('')}
+      <label class="row g2 mat-item${files.passport?' done':''}" style="cursor:pointer;padding:10px;border-radius:10px;border:1px solid #e5e7eb">
+        <input type="checkbox" id="mat-file-passport" ${files.passport?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px">
+        <span>${esc(L('护照扫描件 · Passport scan','Passport scan','Scan paspor'))}</span>
+      </label>
+      <label class="row g2 mat-item${files.photo?' done':''}" style="cursor:pointer;padding:10px;border-radius:10px;border:1px solid #e5e7eb">
+        <input type="checkbox" id="mat-file-photo" ${files.photo?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px">
+        <span>${esc(L('红底证件照（4×6）· Photo','Red-bg photo (4×6)','Foto latar merah'))}</span>
+      </label>
+      <label class="row g2 mat-item${files.insurance?' done':''}" style="cursor:pointer;padding:10px;border-radius:10px;border:1px solid #e5e7eb">
+        <input type="checkbox" id="mat-file-insurance" ${files.insurance?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px">
+        <span>${esc(L('保险证明（选填）· Insurance','Insurance (optional)','Asuransi (opsional)'))}</span>
+      </label>
+      <button type="button" class="btn btn-outline btn-sm" id="btn-save-mat-files" style="align-self:flex-start">${esc(L('保存勾选状态','Save checks','Simpan centang'))}</button>
     </div>
-    <div class="b1 r12 p3 mt5 t13 ${miss===0?'bg-green50 bc-green200':'bg-amber50 bc-amber200'}" style="color:${miss===0?'#15803d':'#92400e'}">
-      ${miss===0?esc(apLine('✅ 所有必填材料已提交，等待管理员审核。','✅ All required files submitted; pending review.','✅ Semua berkas wajib terkirim; menunggu tinjauan.')):esc(apLine(`⚠️ 还有 ${miss} 项必填材料未提交。`,`⚠️ ${miss} required item(s) missing.`,`⚠️ Masih ada ${miss} berkas wajib belum dikirim.`))}
+  </div>`;
+}
+function renderVisaStage(ap){
+  const L=apLine;
+  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
+    <div class="t20 fw7 c-gray8 mb1">${esc(L('签证手续办理','Visa process','Proses visa'))}</div>
+    <div class="t13 c-gray5 mb4 lh16">${esc(L('教务将联系您办理赴印尼学习签证及相关材料，请保持手机与邮箱畅通。请在此勾选护照扫描件、证件照等是否已备妥。','The office will guide your study visa. Check below when passport scan and photos are ready.','Kantor akan membantu visa belajar. Centang jika dokumen siap.'))}</div>
+    ${renderVisaMatFilesCard(ap)}
+    <div class="b1 bc-indigo200 bg-indigo50 r12 p4 t13 c-indigo6 lh16">${esc(L('如有疑问请通过预留联系方式联系教务。','Contact the office if you have questions.','Hubungi kantor jika ada pertanyaan.'))}</div>
+  </div>`;
+}
+function renderEnrollmentSurveyMMS(sur,T){
+  const sec=(title,body)=>`<div class="mb4 mms-survey-sec"><div class="fw7 t13 c-gray8 mb2" style="line-height:1.5">${esc(title)}</div>${body}</div>`;
+  const inpN=(k,w='3.5rem')=>`<input class="inp" style="width:${w};min-height:36px;display:inline-block;vertical-align:middle;box-sizing:border-box;padding:6px 8px" data-sv-inp="${k}" value="${esc(sur[k]||'')}" placeholder="">`;
+  const inp=(k)=>`<input class="inp" style="width:100%;max-width:100%;box-sizing:border-box" data-sv-inp="${k}" value="${esc(sur[k]||'')}" placeholder="">`;
+  const ta=(k,rows)=>`<textarea class="textarea" style="width:100%;max-width:100%;box-sizing:border-box" rows="${rows}" data-sv-ta="${k}" placeholder="">${esc(sur[k]||'')}</textarea>`;
+  const yn=(k,yLab,nLab)=>{const v=sur[k]!=null?String(sur[k]):'';const cur=v==='yes'?'yes':'no';return`<span class="row g2 wrap" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px">${mkSvRad(k,'yes',cur)}${esc(yLab)} ${mkSvRad(k,'no',cur)}${esc(nLab)}</span>`;};
+  const ynYN=(k)=>yn(k,T('是','Yes','Ya'),T('否','No','Tidak'));
+  const ynHave=(k)=>yn(k,T('有','Yes','Ada'),T('无','No','Tidak'));
+  const curMar=sur.marital_stat||'';
+  const curRel=sur.rel_status||'';
+  const curNet=sur.net_hrs||'';
+  const habitVal=String(sur.habit_substance_explain||sur.drug_detail_line||'');
+  const conf=T('本调查表仅供教牧团队用于入学评估，所有信息将严格保密。','This survey is for pastoral evaluation only. All information will be kept confidential.','Formulir ini hanya digunakan untuk evaluasi penerimaan. Semua informasi dijaga kerahasiaannya.');
+  return `
+  <div class="t12 c-gray6 lh16 mb4" style="border-left:3px solid #6366f1;padding-left:12px">${esc(conf)}</div>
+  ${sec(`一、 ${T('灵性背景','Spiritual Background','Latar Belakang Rohani')}`,`
+    <div class="mb2">${T('圣经整体读过','Bible read through','Sudah membaca seluruh Alkitab')}： ${inpN('bible_read_times')} ${T('遍','times','kali')}</div>
+    <div class="mb2">${T('是否每日读经','Daily Bible reading','Membaca Alkitab setiap hari')}： ${ynYN('daily_bible_yn')}</div>
+    <div class="mb2">${T('若是，每天','If yes, per day','Jika ya per hari')}： ${inpN('daily_bible_chapters')} ${T('章','chapters','pasal')}</div>
+    <div class="mb2">${T('是否每周参加主日','Weekly Sunday worship','Ibadah Minggu rutin')}：${ynYN('weekly_sunday_yn')}</div>
+    <div class="mb2">${T('是否有灵异经验（方言、医治等）','Spiritual experiences (tongues, healing, etc.)','Pengalaman rohani')}：${ynYN('spiritual_exp_yn')}</div>
+  `)}
+  ${sec(`二、 ${T('健康状况','Health Condition','Kondisi Kesehatan')}`,`
+    <div class="fw6 mb2">1. ${T('身体健康状况','Physical Health','Kesehatan Fisik')}</div>
+    <div class="mb2">${T('重大疾病史','Major illness history','Riwayat penyakit serius')}： ${ynYN('phy_major_illness')}</div>
+    <div class="mb2">${T('若有，疾病名称','If yes, name of illness','Jika ya, nama penyakit')}：${inp('phy_illness_name')}${T('病史：','Duration: ','Riwayat: ')}${inpN('phy_illness_years')}${T('年。',' years.',' tahun.')}</div>
+    <div class="mb2">${T('是否正在接受治疗','Are you currently receiving treatment?','Apakah sedang menjalani pengobatan?')}：${ynYN('phy_receiving_treatment')}</div>
+    <div class="mb2">${T('具体方案','Type of treatment','Jenis')}： <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="phy_treat_med" ${sur.phy_treat_med==='yes'?'checked':''} style="accent-color:#4f46e5">${T('药物治疗','Medication','Obat-obatan')}</label> <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="phy_treat_phys" ${sur.phy_treat_phys==='yes'?'checked':''} style="accent-color:#4f46e5">${T('物理疗法','Physical therapy','Terapi fisik')}</label></div>
+    <div class="mb2">${T('手术史','Surgical history','Riwayat operasi')}：${ynYN('phy_surgery_yn')}</div>
+    <div class="mb3">${T('若有手术史，手术时间','If yes, date of surgery','Jika ya, waktu operasi')}：${inp('phy_surgery_date')}${T('手术名称：','Type: ','Jenis: ')}${inp('phy_surgery_name')}</div>
+    <div class="fw6 mb2">2. ${T('精神健康状况','Mental Health','Kesehatan Mental')}</div>
+    <div class="mb2">${T('精神类疾病史','Mental illness history','Riwayat gangguan mental')}：${ynYN('mental_hist')}</div>
+    <div class="mb2">${T('若有，疾病名称','If yes, illness name','Jika ya, nama')}：${inp('mental_name')}${T('病史：','Duration: ','Riwayat: ')}${inpN('mental_years')}${T('年。',' years.',' tahun.')}</div>
+    <div class="mb2">${T('是否正在接受治疗','Currently receiving treatment?','Sedang pengobatan?')}： ${ynYN('mental_receiving')}</div>
+    <div class="mb2">${T('具体方案','Treatment type','Jenis')}： <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="mental_plan_med" ${sur.mental_plan_med==='yes'?'checked':''} style="accent-color:#4f46e5">${T('药物治疗','Medication','Obat')}</label> <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="mental_plan_phys" ${sur.mental_plan_phys==='yes'?'checked':''} style="accent-color:#4f46e5">${T('物理疗法','Physical therapy','Terapi fisik')}</label></div>
+  `)}
+  ${sec(`三、 ${T('生活习惯（一般状况）','Lifestyle (general)','Kebiasaan')}`,`
+    <div class="mb2">${T('吸烟史','Smoking history','Riwayat merokok')}： ${ynHave('smoke_hist')}</div>
+    <div class="mb2">${T('若有，烟龄','If yes, years smoking','Jika ya, lama')} ${inpN('smoke_years')}${T('年，每天',' yrs, per day',' thn/hari')} ${inpN('smoke_per_day','3rem')} ${T('根。现在是否已戒断：','/day. Quit now?',' batang. Berhenti?')} ${ynYN('smoke_quit')}</div>
+    <div class="mb2">${T('饮酒史','Alcohol history','Riwayat alkohol')}： ${ynHave('alcohol_hist')}</div>
+    <div class="mb2">${T('若有，酒龄','If yes, years drinking','Jika ya, lama')} ${inpN('alcohol_years')}${T('年，每天饮酒',' yrs, daily',' thn, minum')} ${inpN('alcohol_ml','3.5rem')} ml。${T('现在是否已戒断：','Quit now?','Berhenti?')} ${ynYN('alcohol_quit')}</div>
+    <div class="mb2">${T('吸毒史','Drug use history','Narkoba')}： ${ynHave('drug_hist')}</div>
+    <div class="mb2">${T('若有，吸毒时间','If yes, years of use','Jika ya, lama')} ${inpN('drug_years')}${T('年。现在是否已戒断：',' yrs. Quit now?',' thn. Berhenti?')} ${ynYN('drug_quit')}</div>
+    <div class="mb2"><span class="fw6">${T('简要说明（吸烟/饮酒/吸毒任一项为「有」时必填）','Brief note (required if smoking/alcohol/drugs is Yes)','Catatan (wajib jika Ya)')}</span><textarea class="textarea" id="mat-sv-habit-explain" style="width:100%;max-width:100%;box-sizing:border-box" rows="3" data-sv-ta="habit_substance_explain" placeholder="">${esc(habitVal)}</textarea></div>
+    <div class="mb2">${T('赌博情况','Gambling','Judi')}： ${ynHave('gamble_hist')}</div>
+    <div class="mb2">${T('若有，参与时间','If yes, years involved','Jika ya, lama')} ${inpN('gamble_years')}${T('年。目前是否已停止：',' yrs. Stopped?',' thn. Berhenti?')} ${ynYN('gamble_stopped')}</div>
+    <div class="mb2">${T('平均每日网络使用时长（不含学习或工作需要）','Average daily internet use (excluding study/work)','Rata-rata internet/hari')}：<span class="row g2 wrap" style="display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center">${mkSvRadMulti('net_hrs','u2',curNet)}${T('2小时以内','Within 2 hours','Di bawah 2 jam')} ${mkSvRadMulti('net_hrs','h25',curNet)}${T('2–5小时','2–5 hours','2–5 jam')} ${mkSvRadMulti('net_hrs','h58',curNet)}${T('5–8小时','5–8 hours','5–8 jam')} ${mkSvRadMulti('net_hrs','o8',curNet)}${T('8小时以上','Over 8 hours','Lebih dari 8 jam')}</span></div>
+    <div class="mb2">${T('是否存在网络成瘾情况（如沉迷游戏、短视频等）','Internet addiction (games, short video, etc.)','Kecanduan internet')}： ${ynYN('net_addict')}</div>
+    <div class="mb2">${T('是否长期因网络使用影响作息、学习或生活','Internet affecting routine, study or life','Gangguan kehidupan karena internet')}： ${ynYN('net_affect')}</div>
+    <div class="mb2">${T('若以上两项任一项为「是」，请简要说明（时间及情况）','If either above is Yes, explain (time & situation)','Jika ya, jelaskan')}：${ta('net_explain',2)}</div>
+  `)}
+  ${sec(`四、 ${T('婚姻与性关系状况','Marriage & sexuality','Pernikahan & seksualitas')}`,`
+    <div class="mb2">${T('婚姻状况','Marital status','Status perkawinan')}：${mkSvRadMulti('marital_stat','single',curMar)}${T('未婚','Single','Belum nikah')} ${mkSvRadMulti('marital_stat','married',curMar)}${T('已婚','Married','Menikah')} ${mkSvRadMulti('marital_stat','divorced',curMar)}${T('离异','Divorced','Cerai')} ${mkSvRadMulti('marital_stat','widowed',curMar)}${T('丧偶','Widowed','Janda/duda')}</div>
+    <div class="mb2">${T('配偶信仰状况（如已婚）','Spouse’s faith (if married)','Iman pasangan')}：${inp('spouse_faith')}</div>
+    <div class="mb2">${T('是否有过婚前性行为','Premarital sex','Seks pranikah')}： ${ynYN('premarital_sex')}</div>
+    <div class="mb2">${T('是否有过婚外性关系','Extramarital sex','Seks luar nikah')}： ${ynYN('extramarital_sex')}</div>
+    <div class="mb2">${T('是否存在同性恋倾向','Homosexual tendency','Cenderung homoseksual')}： ${ynYN('homo_tendency')}</div>
+    <div class="mb2">${T('是否存在同性性行为','Same-sex sexual behavior','Perilaku seks sesama jenis')}： ${ynYN('homo_act')}</div>
+    <div class="mb2">${T('若以上四项任一项为「是」，请简要说明（时间及情况）','If any of four above is Yes, explain','Jika ya, jelaskan')}：${ta('sex_explain_four',2)}</div>
+    <div class="mb2">${T('目前情感关系状况','Current relationship status','Status hubungan')}： ${mkSvRadMulti('rel_status','single2',curRel)}${T('单身','Single','Sendiri')} ${mkSvRadMulti('rel_status','dating',curRel)}${T('正在交往','Dating','Pacaran')} ${mkSvRadMulti('rel_status','engaged',curRel)}${T('已订婚','Engaged','Bertunangan')} ${mkSvRadMulti('rel_status','married2',curRel)}${T('已婚','Married','Menikah')}</div>
+    <div class="mb2">${T('是否愿意在入学后遵守圣经教导，持守圣洁的婚姻与性关系','Willing to uphold biblical marriage & purity after enrollment','Bersedia menjaga kemurnian')}： ${ynYN('willing_holiness')}</div>
+  `)}
+  ${sec(`五、 ${T('财务状况','Financial situation','Keuangan')}`,`
+    <div class="mb2">${T('是否存在较大债务压力','Significant debt pressure','Tekanan utang')}： ${ynYN('debt_pressure')}</div>
+    <div class="mb2">${T('是否曾因经济问题影响学习或服侍','Economy affecting study/ministry','Ekonomi mempengaruhi studi')}： ${ynYN('eco_affect')}</div>
+    <div class="mb2">${T('若以上两项任一项为「是」，请简要说明（时间及情况）','If either is Yes, explain','Jika ya, jelaskan')}：${ta('finance_explain',2)}</div>
+  `)}
+  ${sec(`六、 ${T('信仰经历补充','Faith experience supplement','Pengalaman iman')}`,`
+    <div class="mb2">${T('是否曾因信仰遭遇逼迫','Persecution for faith','Penganiayaan karena iman')}： ${ynYN('faith_persecute')}</div>
+    <div class="mb2">${T('目前是否仍处于相关压力或限制中','Still under related pressure','Masih tekanan')}： ${ynYN('faith_still_pressure')}</div>
+    <div class="mb2">${T('是否有因信仰带来的家庭或社会关系张力','Family/social tension from faith','Ketegangan sosial')}： ${ynYN('faith_family_tension')}</div>
+    <div class="mb2">${T('若有，请简要说明','If yes, briefly explain','Jika ya, jelaskan')}：${ta('faith_explain',3)}</div>
+  `)}
+  `;
+}
+
+function renderMaterials(){
+  const ap=A.applicant;
+  const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
+  const sur=parseApplicantJsonCol(ap.enrollment_survey_json,{});
+  const surDisp={...sur,sv_full_name_cn:sur.sv_full_name_cn||fullName(ap)};
+  const miss=materialsMissingCount(ap);
+  const submitted=!!ap.materials_submitted_at;
+  const appr=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved));
+  const finName=sch.financial_proof_filename||sch.income_proof_filename||ap.mat_financial_proof_filename||'';
+  const sigName=sch.applicant_signature_filename||'';
+  const pasUpName=sch.pastor_letter_upload_filename||'';
+  const sponName=sch.sponsor_proof_filename||'';
+  const gType=sch.guarantee_type||'deposit';
+  const mmsT=(zh,en,id)=>{const L=getApplicantExamLang(ap);return L==='en'?en:L==='id'?id:zh;};
+  const L=apLine;
+  const schSaved=!!sch._saved_at;
+  const surSaved=!!sur._saved_at;
+  let statusBanner='';
+  if(submitted&&!appr) statusBanner=`<div class="b1 bc-indigo200 bg-indigo50 r12 p4 mb4 t13 c-indigo6">${esc(L('材料已提交，教务正在审核并批复奖学金额度，请耐心等待。','Submitted; the office is reviewing your scholarship. Please wait.','Berkas terkirim; kantor sedang meninjau beasiswa.'))}</div>`;
+  if(appr) statusBanner=`<div class="b1 bc-green200 bg-green50 r12 p4 mb4 t13" style="color:#15803d">
+    <div class="fw7 mb1">${esc(L('批复奖学金额度（最终）','Approved scholarship amount','Jumlah beasiswa yang disetujui'))}</div>
+    <div class="t20 fw8">${esc(String(ap.scholarship_amount_approved))}</div>
+    <div class="t12 mt2 lh16">${esc(L('请确认您与家人可承担其余学费及在印生活费用。若经济确有困难无法承担，请直接联系教务（勿按下方按钮）。','Please confirm you can cover remaining tuition and living costs. If it is not feasible, contact the office directly (do not press the button below).','Pastikan Anda sanggup menanggung sisa biaya. Jika tidak, hubungi kantor secara langsing.'))}</div>
+    <button type="button" class="btn btn-primary mt3" id="btn-applicant-confirm-visa">${esc(L('我已确认可承担，进入签证环节 →','I confirm and proceed to visa →','Saya konfirmasi & lanjut ke visa →'))}</button>
+  </div>`;
+  const mkRad=(name,val,cur)=>`<input type="radio" name="${name}" value="${val}" ${String(cur)===val?'checked':''} style="accent-color:#4f46e5">`;
+  const mmsSchTitle=mmsT('美村宣教学院奖助学金申请表\nMeicun Mission Seminary (MMS)','Scholarships and Financial Aid Application Form\nMeicun Mission Seminary (MMS)','Formulir Permohonan Bantuan Keuangan\nMeicun Mission Seminary (MMS)');
+  const incomeHelp=mmsT('收入/资产证明一般包括：\n一、现金及银行类：银行存款证明；近 3–6 个月银行流水。\n二、收入证明：工资证明/雇主开具的收入证明；自由职业者：收入说明+转账记录；教会/差会支持：奉献或资助说明信。\n三、固定资产：房产证明（房产证/购房合同）；车辆证明。\n若由他人资助，请另上传一份相对正式的资助/承诺证明文件（选填项，有则必传）。','Proof of income/assets typically includes:\n(1) Cash/bank: deposit certificate; 3–6 month statements.\n(2) Income: salary letter; self-employed: statement + transfers; church support letters.\n(3) Assets: property/vehicle.\nIf funded by others, upload a formal sponsor document (optional; upload if applicable).','Bukti pendapatan/aset meliputi: deposit & rekening koran 3–6 bulan; surat penghasilan; aset properti/kendaraan. Jika disponsori, unggah dokumen resmi sponsor.');
+  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
+    <div class="t20 fw7 c-gray8 mb3">${esc(L('上传入学资料','Upload admission documents','Unggah dokumen penerimaan'))}</div>
+    <div class="card p4 mb4" style="border:1px solid #c7d2fe;background:#fafbff">
+      <div class="t13 fw7 c-indigo6 mb1">${esc(mmsT('请确认申请人姓名（与报名信息一致）','Confirm applicant name (as registered)','Konfirmasi nama'))}</div>
+      <div class="t16 fw8 c-gray8">${esc(fullName(ap))}</div>
+    </div>
+    ${statusBanner}
+    <div class="card p4 mb4 mms-form-card" style="font-size:13px;line-height:1.65;color:#374151">
+      <div class="t14 fw7 c-gray8 mb3" style="white-space:pre-line">${esc(mmsSchTitle)}</div>
+      <div class="fw7 mb2">1. ${mmsT('费用明细（年度）','Annual expenses','Rincian biaya (tahunan)')}</div>
+      <div class="b1 bc-gray200 r8 p3 mb3" style="background:#fff">
+        <div>${mmsT('学费：','Tuition:','Biaya kuliah:')} <strong>$3,000</strong></div>
+        <div>${mmsT('餐费：','Meals:','Biaya makan:')} <strong>$1,200</strong></div>
+        <div>${mmsT('住宿费：$1,200（不包含在奖学金范围内）','Accommodation: $1,200 (not covered by the scholarship)','Biaya asrama: $1,200 (tidak termasuk beasiswa)')}</div>
+        <div>${mmsT('注册费：$80（不退还）','Registration fee: $80 (non-refundable)','Biaya pendaftaran: $80 (tidak dapat dikembalikan)')}</div>
+        <div>${mmsT('最高资助限额：','Max aid limit:','Batas maksimum bantuan:')} <strong>$4,200</strong></div>
+      </div>
+      <div class="fw7 mb2">2. ${mmsT('财务申报','Financial declaration','Deklarasi keuangan')}</div>
+      <div class="mb2">A. ${mmsT('自筹资金来源','Self-funding sources','Sumber dana mandiri')}</div>
+      <div class="col g2 mb2">
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('家庭支持：','Family support:','Dukungan keluarga:')}</span><span>$</span><input id="mat-sch-fund-family" class="inp" style="width:120px" value="${esc(sch.family_support||sch.funding_family||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('教会资助：','Church support:','Dukungan gereja:')}</span><span>$</span><input id="mat-sch-fund-church" class="inp" style="width:120px" value="${esc(sch.church_support||sch.funding_church||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('其他来源：','Other sources:','Sumber lain:')}</span><span>$</span><input id="mat-sch-fund-other" class="inp" style="width:120px" value="${esc(sch.other_sources||sch.funding_other||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('自筹总额：','Total self-funded:','Total mandiri:')}</span><span>$</span><input id="mat-sch-fund-total" class="inp" style="width:120px" value="${esc(sch.total_self_funded||sch.funding_total||'')}"></div>
+      </div>
+      <div class="t12 mb3" style="color:#b45309">${esc(mmsT('请附收入或资助证明（见下方上传，必填）。','Attach income/support proof below (required).','Lampirkan bukti (wajib di bawah).'))}</div>
+      <div class="mb2">B. ${mmsT('申请资助金额','Financial aid requested','Jumlah bantuan yang dimohon')}</div>
+      <div class="row g2 mb2" style="align-items:center;flex-wrap:wrap">${mmsT('申请金额：','Requested amount:','Jumlah:')} <span>$</span><input id="mat-sch-amount-req" class="inp" style="width:120px" value="${esc(sch.requested_amount||sch.amount_requested||'')}"> ${mmsT('（最高 $4,200）','(Max $4,200)','(Maks $4,200)')}</div>
+      <div class="t12 c-gray6 mb3 lh16" style="border-left:3px solid #e5e7eb;padding-left:10px">${esc(mmsT('*注意：所申请奖助学金若获批准，将直接核减相应费用，不发放到个人。','*Note: If approved, aid is deducted from fees and not paid to individuals.','*Catatan: Jika disetujui, biaya dikurangkan langsung, tidak dibayarkan ke pribadi.'))}</div>
+      <div class="fw7 mb2">3. ${mmsT('履约保障（二选一）','Guarantee (choose one)','Jaminan (pilih satu)')}</div>
+      <div class="col g2 mb2">
+        <label class="row g2" style="align-items:flex-start;cursor:pointer">${mkRad('mat-sch-guarantee','deposit',gType)}<span>${mmsT('押金 $300（毕业后退还）','Security deposit $300 (refundable upon graduation)','Deposit $300 (dikembalikan setelah lulus)')}</span></label>
+        <label class="row g2" style="align-items:flex-start;cursor:pointer">${mkRad('mat-sch-guarantee','pastor_letter',gType)}<span>${mmsT('牧师担保信（需主任牧师亲笔签名）','Pastor’s guarantee letter (signed by senior pastor)','Surat jaminan pendeta (ditandatangani pendeta senior)')}</span></label>
+      </div>
+      <div id="mat-pastor-upload-wrap" class="b1 bc-indigo100 bg-indigo50 r8 p3 mb3" style="display:${gType==='pastor_letter'?'block':'none'}">
+        <div class="t12 fw6 c-indigo6 mb2">${esc(mmsT('无法缴纳 $300 押金时：请下载模板，由主任牧师填写签字盖章后扫描上传。','If you cannot pay the $300 deposit: download the template, have the senior pastor sign/stamp, then upload.','Jika tidak bisa deposit $300: unduh template, tanda tangan pendeta, unggah.'))}</div>
+        <a class="btn btn-outline btn-sm mb2" href="assets/forms/MMS_牧师担保信.docx" download="MMS_牧师担保信.docx">${esc(mmsT('⬇ 下载牧师担保信模板（Word）','⬇ Download pastor guarantee template (Word)','⬇ Unduh template'))}</a>
+        <div class="t11 fw6 c-gray6 mb1">${esc(mmsT('已签字的牧师担保信扫描件（选此项时必填）','Signed scan required if you choose this option','Scan wajib jika pilih ini'))}</div>
+        <input type="file" id="mat-pastor-letter-file" accept="image/*,.pdf,application/pdf" class="t12">
+        ${pasUpName?`<div class="t11 c-gray4 mt1">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(pasUpName)}</div>`:''}
+      </div>
+      <div class="fw7 mb2">4. ${mmsT('条款与承诺','Terms & conditions','Syarat & ketentuan')}</div>
+      <div class="b1 bc-gray100 r8 p3 mb3 lh16">
+        <div class="mb2">A. ${mmsT('完成学业：我承诺将在 MMS 完成全部学业。','Completion: I commit to completing my studies at MMS.','Penyelesaian: Saya berkomitmen menyelesaikan studi di MMS.')}</div>
+        <div class="mb2">B. ${mmsT('退款政策：若我中途退学或被开除必须全额退还所获资助。','Repayment: If I withdraw or am expelled I must repay 100% of aid received.','Pengembalian: Jika mengundurkan diri atau dikeluarkan wajib mengembalikan 100% bantuan yang diterima.')}</div>
+      </div>
+      <div class="row g2 mb3" style="align-items:center"><input type="checkbox" id="mat-sch-agree-terms" ${sch.agree_terms==='yes'?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px"><label for="mat-sch-agree-terms" class="t12">${esc(mmsT('本人已阅读并同意上述条款与承诺','I have read and agree to the terms above','Saya setuju syarat di atas'))}</label></div>
+      <div class="fw7 mb2">5. ${mmsT('签署','Signature','Tanda tangan')}</div>
+      <div class="t12 c-gray6 mb2">${esc(mmsT('申请人电子签（请上传签名图片或 PDF，必填）','Applicant e-signature image or PDF (required)','Tanda tangan elektronik (wajib)'))}</div>
+      <input type="file" id="mat-sig-file" accept="image/*,.pdf,application/pdf" class="t12 mb2">
+      ${sigName?`<div class="t11 c-gray4 mb2">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(sigName)}</div>`:''}
+      <div class="row g2" style="align-items:center;flex-wrap:wrap"><span>${mmsT('日期：','Date:','Tanggal:')}</span><input id="mat-sch-sign-date" class="inp" type="date" style="width:auto" value="${esc((sch.applicant_sign_date||'').slice(0,10))}"></div>
+      <div class="mt4 pt3" style="border-top:1px solid #e5e7eb">
+        <div class="fw7 mb2">${esc(mmsT('收入/资产证明（必填上传）','Income / asset proof (required)','Bukti pendapatan/aset (wajib)'))}</div>
+        <div class="t12 c-gray6 mb3 lh16" style="white-space:pre-line">${esc(incomeHelp)}</div>
+        <div class="t11 fw6 mb1" style="color:#b91c1c">${esc(mmsT('主证明文件（必填）','Main proof file (required)','Berkas utama (wajib)'))}</div>
+        <input type="file" id="mat-fin-file" accept="image/*,.pdf,application/pdf" class="t12">
+        ${finName?`<div class="t11 c-gray4 mt1">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(finName)}</div>`:''}
+        <div class="t11 fw6 c-gray6 mt3 mb1">${esc(mmsT('他人资助/赞助证明（选填）','Sponsor proof (optional)','Bukti sponsor (opsional)'))}</div>
+        <input type="file" id="mat-sponsor-file" accept="image/*,.pdf,application/pdf" class="t12">
+        ${sponName?`<div class="t11 c-gray4 mt1">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(sponName)}</div>`:''}
+      </div>
+      <button type="button" class="btn btn-outline btn-sm mt3" id="btn-save-mat-sch">${schSaved?esc(mmsT('保存本表','Save','Simpan')):esc(mmsT('保存本表','Save','Simpan'))}</button>
+    </div>
+    <div class="card p4 mb4 mms-form-card" style="font-size:13px;line-height:1.65">
+      <div class="fw7 c-gray8 t14 mb3">${esc(mmsT('① 入学调查表','① Admission survey','① Survei penerimaan'))}</div>
+      ${renderEnrollmentSurveyMMS(surDisp,mmsT)}
+      <button type="button" class="btn btn-outline btn-sm mt3" id="btn-save-mat-sv">${esc(mmsT('保存本表','Save','Simpan'))}</button>
+    </div>
+    <button type="button" class="btn btn-primary btn-full mb3" id="btn-materials-submit-review" ${miss>0||submitted?'disabled':''}>${esc(L('提交全部资料待教务审核','Submit all for office review','Kirim semua untuk ditinjau'))}</button>
+    <div class="b1 r12 p3 t13 ${miss===0?'bg-green50 bc-green200':'bg-amber50 bc-amber200'}" style="color:${miss===0?'#15803d':'#92400e'}">
+      ${submitted?esc(L('✅ 已向教务提交，请等待批复。','✅ Submitted; pending review.','✅ Terkirim; menunggu.')):miss===0?esc(L('✅ 必填项已齐，可按上方按钮提交审核。','✅ Required items complete.','✅ Lengkap.')):esc(L(`⚠️ 尚有 ${miss} 项未完成：两表均需保存；奖助表须同意条款、上传收入/资产证明与电子签；若选牧师担保信须上传签字扫描件。`,`⚠️ ${miss} item(s) left.`,`⚠️ ${miss} wajib.`))}
     </div>
   </div>`;
 }
@@ -2327,23 +2925,72 @@ function renderMaterials(){
 // STAFF VIEW（管理员与教师共用同一套页面）
 // ══════════════════════════════════════════════════════════════
 function renderStaffMe(){
+  const isAd=A.role==='admin';
   const prof=A.profile;
   const uid=A.user?.id;
   const mine=(A.allSlots||[]).filter(s=>uid!=null && String(s.teacher_id)===String(uid));
-  const available=mine.filter(s=>isInterviewSlotRowVacant(s));
-  const bookedMine=mine.filter(s=>!isInterviewSlotRowVacant(s));
+  const available=mine.filter(s=>isInterviewSlotRowVacant(s)).sort((a,b)=>{
+    const d=interviewSlotSortMs(a)-interviewSlotSortMs(b);
+    return d!==0?d:String(a.id||'').localeCompare(String(b.id||''));
+  });
+  const bookedMine=mine.filter(s=>!isInterviewSlotRowVacant(s)).sort((a,b)=>{
+    const d=interviewSlotSortMs(a)-interviewSlotSortMs(b);
+    return d!==0?d:String(a.id||'').localeCompare(String(b.id||''));
+  });
   const langs=prof?.interview_langs!=null && String(prof.interview_langs).trim()!=='' ? String(prof.interview_langs) : '—';
+  const pwCard=`<div class="card p5">
+      <div class="fw7 c-gray8 t14 mb3">修改登录密码</div>
+      <div class="col g3">
+        <input id="me-pw-new" class="inp" type="password" autocomplete="new-password" placeholder="新密码（至少 6 位）">
+        <input id="me-pw-new2" class="inp" type="password" autocomplete="new-password" placeholder="再次输入新密码">
+        <button class="btn btn-primary" id="btn-me-change-pw">保存新密码</button>
+      </div>
+    </div>`;
+  if(isAd){
+    const teachers=A.teacherProfiles||[];
+    return `<div class="col g4 maxw-2xl">
+    <div class="card p5">
+      <div class="fw7 c-gray8 t14 mb1">账号（管理员）</div>
+      <div class="t12 c-gray5 mb4">${esc(prof?.display_name||'用户')} · ${esc(A.user?.email||'')}</div>
+      <div class="b1 bc-indigo100 bg-indigo50 r10 p3 mb4 t12 c-indigo6 lh16">您以跟面、协调为主，无需维护本人空闲时段。以下可为<strong>指定老师</strong>批量开放可预约面试时间点（与「面试排班」一致）。</div>
+      <div class="fw7 c-gray8 t14 mb2">代老师添加可面试时段</div>
+      <div class="t12 c-gray5 mb3">选择老师后填写日期与时间段，系统按间隔拆成多条 <code>interview_slots</code>。</div>
+      <div class="row wrap g3 mb3">
+        <select id="admin-proxy-teacher" class="sel" style="flex:1;min-width:220px">
+          <option value="">请选择老师（必选）</option>
+          ${teachers.map(t=>`<option value="${esc(t.id)}">${esc(t.display_name||t.id)}</option>`).join('')}
+        </select>
+      </div>
+      ${teachers.length===0?`<div class="b1 bc-amber100 bg-amber50 r10 p3 t12 lh16" style="color:#92400e;margin-bottom:12px">若此处无选项：① 在 Supabase Authentication 中创建教师邮箱账号；② 执行仓库内 <code>supabase/TEACHERS_SEED.sql</code>（五位：Nathan 元勋、Will 文博、Levi 利未、Heaven 海文、Yohanes 邢永）；③ 执行迁移 <code>20260412100000_list_teachers_for_admin.sql</code> 以启用管理员下拉所需的 RPC。若库里已有带 <code>teacher_id</code> 的排班，也会自动合并进列表。</div>`:''}
+      <div class="row wrap g3">
+        <input id="admin-proxy-date" class="inp" style="flex:1;min-width:140px" type="date">
+        <input id="admin-proxy-start" class="inp" style="width:120px" type="time">
+        <input id="admin-proxy-end" class="inp" style="width:120px" type="time">
+        <select id="admin-proxy-interval" class="sel" style="width:140px">
+          <option value="30">30 分钟一场</option>
+          <option value="20">20 分钟一场</option>
+        </select>
+        <button class="btn btn-primary" id="btn-admin-proxy-add-slots">添加到该老师名下</button>
+      </div>
+    </div>
+    ${pwCard}
+  </div>`;
+  }
   return `<div class="col g4 maxw-2xl">
     <div class="card p5">
       <div class="fw7 c-gray8 t14 mb1">账号</div>
       <div class="t12 c-gray5 mb2">${esc(prof?.display_name||'用户')} · ${esc(A.user?.email||'')}</div>
       <div class="t12 c-gray6 mb4">可参与面试语言：${esc(langs)}</div>
-      <div class="fw7 c-gray8 t14 mb2">我负责的已预约面试（${bookedMine.length}）</div>
-      ${bookedMine.length===0?`<div class="t13 c-gray4 mb4">暂无（时段需将 teacher_id 设为您本人）</div>`:bookedMine.map(s=>{
+      <div class="fw7 c-gray8 t14 mb2">本周面试一览（日历）</div>
+      ${renderTeacherWeekCalendar(uid)}
+    </div>
+    <div class="card p5">
+      <div class="fw7 c-gray8 t14 mb2">已预约列表（${bookedMine.length}）· 按时间近→远</div>
+      ${bookedMine.length===0?`<div class="t13 c-gray4 mb4">暂无</div>`:bookedMine.map(s=>{
         const ap=A.allApplicants.find(a=>String(a.id)===String(s.applicant_id));
         return `<div class="row g3 mb3 p3 bg-indigo50 r10">
           <div class="t13 fw6 c-indigo6">${esc(s.slot_date)} ${esc(s.slot_time?.slice(0,5)||'')}</div>
-          <div class="flex1 t13">${ap?esc(fullName(ap)):'申请人'}</div>
+          <div class="flex1 t13">${ap?esc(fullName(ap)):'申请人'} · ${esc(examLangLabelShort(getApplicantExamLang(ap||{})))}</div>
           ${ap?`<button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">档案</button>`:''}
         </div>`;
       }).join('')}
@@ -2355,7 +3002,7 @@ function renderStaffMe(){
           <button type="button" class="t11 c-indigo4" style="padding:0 2px;border:none;background:none;cursor:pointer" data-action="del-my-slot" data-slotid="${s.id}">✕</button>
         </div>`).join('')}
       </div>
-      <div class="fw6 c-gray7 t13 mb3">按日期区间添加（自动拆分时间点，并关联到当前登录账号）</div>
+      <div class="fw6 c-gray7 t13 mb3">按日期区间添加（关联到当前登录账号）</div>
       <div class="row wrap g3">
         <input id="me-slot-date" class="inp" style="flex:1;min-width:140px" type="date">
         <input id="me-slot-start" class="inp" style="width:120px" type="time">
@@ -2367,19 +3014,38 @@ function renderStaffMe(){
         <button class="btn btn-primary" id="btn-me-add-slots">添加空闲时段</button>
       </div>
     </div>
-    <div class="card p5">
-      <div class="fw7 c-gray8 t14 mb3">修改登录密码</div>
-      <div class="col g3">
-        <input id="me-pw-new" class="inp" type="password" autocomplete="new-password" placeholder="新密码（至少 6 位）">
-        <input id="me-pw-new2" class="inp" type="password" autocomplete="new-password" placeholder="再次输入新密码">
-        <button class="btn btn-primary" id="btn-me-change-pw">保存新密码</button>
-      </div>
+    ${pwCard}
+  </div>`;
+}
+
+function renderScholarshipReview(){
+  const list=(A.allApplicants||[]).filter(a=>a.materials_submitted_at).sort((a,b)=>String(a.materials_submitted_at||'').localeCompare(String(b.materials_submitted_at||'')));
+  const row=ap=>{
+    const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
+    const v=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''?String(ap.scholarship_amount_approved):'';
+    return `<tr>
+      <td><div class="row g1 wrap" style="align-items:center"><span class="fw6">${esc(fullName(ap))}</span>${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>
+        <div class="t11 c-gray4">${esc(ap.phone||'')}</div></td>
+      <td>${ap.exam_score!=null?esc(String(ap.exam_score)):'—'}</td>
+      <td class="t11 c-gray6" style="max-width:220px;word-break:break-word">${esc(String(sch.requested_amount||sch.amount_requested||sch.family_support||sch.total_self_funded||'—').slice(0,120))}</td>
+      <td><input type="number" class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px" step="1" placeholder="额度" value="${esc(v)}"></td>
+      <td><input type="text" class="inp sch-note-inp" data-apid="${ap.id}" style="width:140px" placeholder="批复备注" value="${esc(ap.scholarship_review_note||'')}"></td>
+      <td class="row g1 wrap"><button type="button" class="btn btn-primary btn-sm btn-save-sch-amt" data-apid="${ap.id}">保存</button>
+        <button type="button" class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${ap.id}">档案</button></td>
+    </tr>`;
+  };
+  return `<div class="maxw-3xl col g4">
+    <div class="fw7 c-gray8 t16">奖学金批复</div>
+    <div class="t12 c-gray5 lh16">以下为已点击「提交全部资料待审核」的申请人。请结合笔试、面试与家庭经济情况填写<strong>批复额度</strong>（数字）后保存；申请人端将显示该金额。若入学调查表中披露物质使用/成瘾史等，姓名旁会标「需留意」。</div>
+    <div class="card" style="overflow:auto">
+      <table class="tbl"><thead><tr><th>申请人</th><th>笔试</th><th>经济概况</th><th>批复额度</th><th>备注</th><th>操作</th></tr></thead>
+      <tbody>${list.length?list.map(row).join(''):`<tr><td colspan="6" class="t13 c-gray4 tc" style="padding:24px">暂无已提交资料待批复的记录</td></tr>`}</tbody></table>
     </div>
   </div>`;
 }
 
 function renderAdmin(){
-  const validStaffTabs=new Set(['pipeline','exams','schedule','docs','me']);
+  const validStaffTabs=new Set(['pipeline','exams','schedule','docs','scholarship','me']);
   if(!validStaffTabs.has(A.adminTab)) A.adminTab='pipeline';
   const isAd=A.role==='admin';
   const roleLabel=isAd?'管理员':'教师';
@@ -2390,19 +3056,21 @@ function renderAdmin(){
     {id:'exams',label:'笔试成绩',icon:'📝'},
     {id:'schedule',label:'面试排班',icon:'📅'},
     {id:'docs',label:'材料审核',icon:'📄'},
+    {id:'scholarship',label:'奖学金批复',icon:'💰'},
     {id:'me',label:'我的',icon:'👤'},
   ];
   const stats=[
     {label:'总申请人',value:A.allApplicants.length,color:'#4f46e5'},
     {label:'待笔试',value:A.allApplicants.filter(a=>a.stage==='exam').length,color:'#2563eb'},
     {label:'待面试',value:A.allApplicants.filter(a=>a.stage==='interview').length,color:'#7c3aed'},
-    {label:'已录取',value:A.allApplicants.filter(a=>['materials','complete'].includes(a.stage)).length,color:'#16a34a'},
+    {label:'资料/签证',value:A.allApplicants.filter(a=>['materials','visa','complete'].includes(a.stage)).length,color:'#16a34a'},
   ];
   let content='';
   if(A.adminTab==='pipeline') content=renderPipeline();
   else if(A.adminTab==='exams') content=renderExams();
   else if(A.adminTab==='schedule') content=renderSchedule();
   else if(A.adminTab==='docs') content=renderDocs();
+  else if(A.adminTab==='scholarship') content=renderScholarshipReview();
   else if(A.adminTab==='me') content=renderStaffMe();
 
   const selAp=A.selectedApId?A.allApplicants.find(a=>a.id===A.selectedApId):null;
@@ -2427,27 +3095,49 @@ function renderAdmin(){
 
 function renderPipeline(){
   const isAd=A.role==='admin';
+  const canAddAp=isAd||A.role==='teacher';
+  const cardHtml=(ap)=>`<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
+            ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
+            <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
+            <div class="t11 c-gray5 mb1">${esc(examLangLabelShort(getApplicantExamLang(ap)))}</div>
+            ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
+            ${ap.interview_slot_id?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
+          </div>`;
+  const emptyHtml=`<div style="font-size:11px;color:#d1d5db;text-align:center;padding:16px 0;border:2px dashed #f3f4f6;border-radius:12px">暂无</div>`;
   return `<div>
-    ${isAd?`<div class="row g2 mb4">
-      <button class="btn btn-primary btn-sm" data-action="show-add-ap-modal">➕ 手动添加面试者</button>
+    ${canAddAp?`<div class="row g2 mb4">
+      <button class="btn btn-primary btn-sm" data-action="show-add-ap-modal">➕ 手动添加申请人</button>
     </div>`:''}
     <div class="kanban">
     ${STAGES.map(sg=>{
       const aps=A.allApplicants.filter(a=>a.stage===sg.id);
-      return `<div class="kanban-col">
+      const wide=sg.id==='interview';
+      let inner='';
+      if(sg.id==='interview'){
+        const by={zh:[],en:[],id:[]};
+        aps.forEach(ap=>{const L=getApplicantExamLang(ap);(by[L]||by.zh).push(ap);});
+        ['zh','en','id'].forEach(L=>{
+          (by[L]||[]).sort((a,b)=>{
+            const d = applicantInterviewSlotTs(a) - applicantInterviewSlotTs(b);
+            return d !== 0 ? d : String(fullName(a)).localeCompare(String(fullName(b)), 'zh');
+          });
+        });
+        inner=['zh','en','id'].map(L=>{
+          const list=by[L]||[];
+          return `<div class="lang-subgroup">
+            <div class="lang-subgroup-h">${esc(examLangPipelineGroupTitle(L))}</div>
+            <div class="col g2">${list.map(cardHtml).join('')}${list.length===0?emptyHtml:''}</div>
+          </div>`;
+        }).join('');
+      } else {
+        inner=`<div class="col g2">${aps.map(cardHtml).join('')}${aps.length===0?emptyHtml:''}</div>`;
+      }
+      return `<div class="kanban-col${wide?' kanban-col-wide':''}">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
           <span>${sg.icon}</span><span class="fw6 c-gray7 t13">${sg.label}</span>
           <span class="ml-auto tag" style="background:#f3f4f6;color:#6b7280">${aps.length}</span>
         </div>
-        <div class="col g2">
-          ${aps.map(ap=>`<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
-            ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
-            <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13">${esc(fullName(ap))}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
-            ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
-            ${ap.interview_slot_id?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
-          </div>`).join('')}
-          ${aps.length===0?`<div style="font-size:11px;color:#d1d5db;text-align:center;padding:24px 0;border:2px dashed #f3f4f6;border-radius:12px">暂无</div>`:''}
-        </div>
+        ${inner}
       </div>`;
     }).join('')}
     </div>
@@ -2457,7 +3147,7 @@ function renderPipeline(){
 function renderAddApModal(){
   return `<div class="modal-overlay" id="add-ap-modal" data-action="close-add-ap-modal">
     <div class="modal-sm" onclick="event.stopPropagation()">
-      <div class="row g3 mb4"><span class="fw7 c-gray8 t16">➕ 手动添加面试者</span>
+      <div class="row g3 mb4"><span class="fw7 c-gray8 t16">➕ 手动添加申请人</span>
       <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-add-ap-modal">✕</button></div>
       <div class="col g3">
         <div>
@@ -2473,6 +3163,16 @@ function renderAddApModal(){
           <input id="add-ap-email" class="inp" type="email" placeholder="例：zhang@example.com">
         </div>
         <div>
+          <div class="t12 fw6 c-gray6 mb1">笔试/面试语言（看板分组）</div>
+          <select id="add-ap-exam-lang" class="sel">
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+            <option value="id">Bahasa Indonesia</option>
+          </select>
+          <div id="add-ap-lang-hint" class="t11 c-gray4 mt1" style="min-height:1.2em"></div>
+          <button type="button" class="btn btn-outline btn-sm mt2" id="btn-add-ap-guess-lang">按姓名自动填入语言</button>
+        </div>
+        <div>
           <div class="t12 fw6 c-gray6 mb1">当前阶段</div>
           <select id="add-ap-stage" class="sel">
             ${STAGES.map(s=>`<option value="${s.id}">${s.label}</option>`).join('')}
@@ -2485,25 +3185,40 @@ function renderAddApModal(){
 }
 
 function renderExams(){
-  const isAd=A.role==='admin';
-  return `<div class="maxw-2xl card" style="overflow:hidden">
-    <table class="tbl"><thead><tr><th>姓名</th><th>联系方式</th><th>状态</th><th>成绩</th><th>操作</th></tr></thead><tbody>
-    ${A.allApplicants.map(ap=>{
-      const done=ap.exam_score!=null,waiting=!done&&STAGE_IDX[ap.stage]>=STAGE_IDX['exam'];
-      const ss=done?{bg:'#dcfce7',c:'#15803d',t:'已完成'}:waiting?{bg:'#fef3c7',c:'#92400e',t:'待考试'}:{bg:'#f3f4f6',c:'#6b7280',t:'未开始'};
-      return `<tr>
+  const canAdvance=A.role==='admin';
+  const rowHtml=(ap)=>{
+    const done=ap.exam_score!=null,waiting=!done&&STAGE_IDX[ap.stage]>=STAGE_IDX['exam'];
+    const ss=done?{bg:'#dcfce7',c:'#15803d',t:'已完成'}:waiting?{bg:'#fef3c7',c:'#92400e',t:'待笔试'}:{bg:'#f3f4f6',c:'#6b7280',t:'未开始'};
+    const lang=getApplicantExamLang(ap);
+    const langTag=lang==='zh'?{bg:'#e0e7ff',c:'#4338ca'}:lang==='id'?{bg:'#ccfbf1',c:'#0f766e'}:{bg:'#fef3c7',c:'#92400e'};
+    return `<tr>
         <td><div class="row g2">${mkAv(initials(ap),'sm')}<span class="fw5 c-gray8">${esc(fullName(ap))}</span></div></td>
-        <td class="t12 c-gray5">${esc(ap.phone||ap.email||'—')}</td>
+        <td>${mkTag(langTag.bg,langTag.c,examLangLabelShort(lang))}</td>
         <td>${mkTag(ss.bg,ss.c,ss.t)}</td>
-        <td>${done?`<span style="font-size:18px;font-weight:700;color:${ap.exam_score>=80?'#16a34a':ap.exam_score>=60?'#d97706':'#dc2626'}">${ap.exam_score}</span>`:'<span style="color:#d1d5db">—</span>'}</td>
-        <td class="row g1" style="flex-wrap:wrap;gap:4px">
-          ${isAd&&STAGE_IDX[ap.stage]>=STAGE_IDX['exam']?`<input id="manual-score-${ap.id}" type="number" min="0" max="100" class="inp" style="width:64px;padding:3px 6px" placeholder="0–100" value="${ap.exam_score??''}"><button class="btn btn-primary btn-xs" data-action="save-manual-score" data-apid="${ap.id}">${done?'修改':'录入'}</button>`:''}
-          ${isAd&&done&&ap.stage==='exam'?`<button class="btn btn-primary btn-xs" data-action="advance-ap" data-apid="${ap.id}">推进至面试</button>`:''}
-          <button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">档案</button>
+        <td>${done?`<span style="font-size:17px;font-weight:800;color:${ap.exam_score>=80?'#16a34a':ap.exam_score>=60?'#d97706':'#dc2626'}">${ap.exam_score}</span>`:'<span class="c-gray4">—</span>'}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${ap.id}">档案</button>
+          ${canAdvance&&done&&ap.stage==='exam'?`<button class="btn btn-primary btn-sm" style="margin-left:6px" data-action="advance-ap" data-apid="${ap.id}">推进面试</button>`:''}
         </td>
       </tr>`;
-    }).join('')}
-    </tbody></table>
+  };
+  const langOrder=[{k:'zh',title:'中文笔试',tag:'#4f46e5'},{k:'en',title:'English',tag:'#d97706'},{k:'id',title:'Bahasa Indonesia',tag:'#0d9488'}];
+  const sections=langOrder.map(({k,title,tag})=>{
+    const list=A.allApplicants.filter(a=>getApplicantExamLang(a)===k).sort(compareExamPageApplicants);
+    return `<div class="exam-lang-section card" style="overflow:hidden;padding:0;border:none;box-shadow:none;background:transparent">
+      <div class="exam-lang-section-h">
+        <span>${esc(title)}</span>
+        <span class="tag" style="background:${tag};color:#fff">${list.length} 人</span>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <table class="tbl"><thead><tr><th>姓名</th><th>笔试语言</th><th>状态</th><th>成绩</th><th>档案</th></tr></thead><tbody>
+        ${list.length?list.map(rowHtml).join(''):`<tr><td colspan="5" class="t13 c-gray4 tc" style="padding:28px">暂无</td></tr>`}
+        </tbody></table>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="maxw-2xl col g4">${sections}
+    <div class="t12 c-gray5 lh16">排序：每语言组内优先显示<strong>已笔试、面试尚未完结</strong>（成绩由高到低），其次<strong>笔试与面试流程已走完</strong>（成绩由高到低），再次无成绩/未考，最后<strong>已拒绝</strong>。成绩请在「档案」中录入或修改。</div>
   </div>`;
 }
 
@@ -2512,15 +3227,23 @@ function renderSchedule(){
   const claimedIds = new Set(
     A.allApplicants.filter(a=>a.interview_slot_id).map(a=>String(a.interview_slot_id)),
   );
-  const booked=A.allApplicants.filter(a=>a.interview_slot_id);
+  const booked=A.allApplicants.filter(a=>a.interview_slot_id).sort((a,b)=>{
+    const ma=interviewSlotSortMs(resolveSlotForApplicant(a));
+    const mb=interviewSlotSortMs(resolveSlotForApplicant(b));
+    if(ma!==mb) return ma-mb;
+    return String(fullName(a)).localeCompare(String(fullName(b)),'zh');
+  });
   const freeSlots=A.allSlots.filter(s=>{
     if(!isInterviewSlotRowVacant(s)) return false;
     if(claimedIds.has(String(s.id))) return false;
     return true;
+  }).sort((a,b)=>{
+    const d=interviewSlotSortMs(a)-interviewSlotSortMs(b);
+    return d!==0?d:String(a.id||'').localeCompare(String(b.id||''));
   });
   return `<div class="col g4 maxw-2xl">
     <div>
-      <div class="fw7 c-gray8 t14 mb3">已预约面试（${booked.length}人）</div>
+      <div class="fw7 c-gray8 t14 mb3">已预约面试（${booked.length}人）· 按时间近→远</div>
       ${booked.map(ap=>{
         const sl = resolveSlotForApplicant(ap);
         return `<div class="card p4 mb3">
@@ -2539,7 +3262,7 @@ function renderSchedule(){
       }).join('')}
     </div>
     ${isAd?`<div class="card p5">
-      <div class="fw7 c-gray8 mb3 t14">📅 开放时间段（${freeSlots.length}个可预约）</div>
+      <div class="fw7 c-gray8 mb3 t14">📅 开放时间段（${freeSlots.length}个可预约）· 按时间近→远</div>
       <div class="row wrap g2 mb4">
         ${freeSlots.map(s=>`<div class="row g2 bg-indigo50 b1 bc-indigo200 r8 px3 py2">
           <span class="t13 c-indigo6 fw5">${esc(s.slot_date)} ${esc(s.slot_time?.slice(0,5)||'')} ${s.teacher_name?'· '+esc(s.teacher_name):''}</span>
@@ -2567,7 +3290,7 @@ function renderSchedule(){
 }
 
 function renderDocs(){
-  const filtered=A.allApplicants.filter(a=>['materials','complete'].includes(a.stage));
+  const filtered=A.allApplicants.filter(a=>['materials','visa','complete'].includes(a.stage));
   return `<div class="col g3 maxw-2xl">
     ${filtered.length===0?`<div class="card p6 tc c-gray4 t13">暂无需要审核的材料</div>`:''}
     ${filtered.map(ap=>`<div class="card p4">
@@ -2611,9 +3334,15 @@ function renderBriefingModal(ap){
   const ivSl=resolveSlotForApplicant(ap);
   const sc=ap.exam_score;
   const scoreColor=sc==null?'#9ca3af':sc>=85?'#16a34a':sc>=70?'#d97706':'#dc2626';
+  const guessBrief=guessExamLangFromApplicantName(ap);
+  const schB=parseApplicantJsonCol(ap.scholarship_form_json,{});
+  const surB=parseApplicantJsonCol(ap.enrollment_survey_json,{});
+  const showMatStaff=(A.role==='admin'||A.role==='teacher')&&(schB._saved_at||surB._saved_at||ap.materials_submitted_at);
+  const jBrief=j=>{try{return esc(JSON.stringify(j,null,2));}catch(_){return '{}';}
+  };
   return `<div class="modal-overlay" data-action="close-briefing">
     <div class="modal-lg" onclick="event.stopPropagation()">
-      <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18">${esc(fullName(ap))}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
+      <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18 row g2 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','调查表·需留意'):''}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
       <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-briefing">✕</button></div>
 
       <div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">基本信息</div>
@@ -2621,6 +3350,15 @@ function renderBriefingModal(ap){
         <div class="info-row"><span class="c-gray5">姓名</span><span class="fw6">${esc(fullName(ap))}</span></div>
         <div class="info-row"><span class="c-gray5">电话</span><span>${esc(ap.phone||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">邮箱</span><span>${esc(ap.email||'—')}</span></div>
+        ${(A.role==='admin'||A.role==='teacher')?`<div class="info-row" style="align-items:center;flex-wrap:wrap;gap:8px"><span class="c-gray5">笔试/面试语言</span><span class="row g2" style="flex-wrap:wrap;align-items:center">
+          <select id="brief-ap-exam-lang" class="sel" style="min-width:140px">
+            <option value="zh" ${getApplicantExamLang(ap)==='zh'?'selected':''}>中文</option>
+            <option value="en" ${getApplicantExamLang(ap)==='en'?'selected':''}>English</option>
+            <option value="id" ${getApplicantExamLang(ap)==='id'?'selected':''}>Bahasa Indonesia</option>
+          </select>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-save-brief-exam-lang" data-apid="${ap.id}">保存语言</button>
+        </span></div>
+        <div class="t11 c-gray4 mb2" style="margin-top:-6px">系统推测：${guessBrief?examLangLabelShort(guessBrief):'—'}（拉丁字母名多为 English，可手动改正）</div>`:''}
         <div class="info-row"><span class="c-gray5">性别</span><span>${esc(ap.gender||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">籍贯</span><span>${esc(ap.hometown||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">学历</span><span>${esc(ap.education||'—')}</span></div>
@@ -2643,13 +3381,30 @@ function renderBriefingModal(ap){
         ${sc!=null?`<div class="row g4"><div class="tc"><div style="font-size:40px;font-weight:800;color:${scoreColor}">${sc}</div><div class="t11 c-gray4">满分 100</div></div>
         <div class="flex1 t12 c-gray5 mt2">${sc>=85?'✓ 成绩优秀，推荐面试':sc>=70?'△ 成绩一般，重点考察':'！成绩偏低，需综合评估'}</div></div>`:'<div class="t13 c-gray4">尚未完成笔试</div>'}
       </div>
-      ${A.role==='admin' && STAGE_IDX[ap.stage]>=STAGE_IDX['exam']?`<div class="card p4 mb4 bg-gray50 b1 bc-indigo200">
-        <div class="row g2 mb2" style="align-items:center">
-          <div class="t12 fw6 c-gray6">手动录入成绩</div>
+      ${(A.role==='admin'||A.role==='teacher') && STAGE_IDX[ap.stage]>=STAGE_IDX['exam']?`<div class="card p4 mb4 bg-gray50 b1 bc-indigo200">
+        <div class="row g2 mb2" style="align-items:center;flex-wrap:wrap">
+          <div class="t12 fw6 c-gray6">笔试成绩（档案内修改）</div>
           <input id="manual-score-${ap.id}" type="number" min="0" max="100" class="inp" style="width:120px" value="${ap.exam_score??''}" placeholder="0-100">
-          <button class="btn btn-primary btn-sm" data-action="save-manual-score" data-apid="${ap.id}">${sc!=null?'修改':'录入'}</button>
+          <button class="btn btn-primary btn-sm" data-action="save-manual-score" data-apid="${ap.id}">${sc!=null?'保存':'录入'}</button>
         </div>
-        <div class="t11 c-gray4">用于管理员/人工批卷结果展示（会同步到申请者端笔试成绩）。</div>
+        <div class="t11 c-gray4">同步至申请人端「笔试成绩」展示。</div>
+      </div>`:''}
+
+      ${showMatStaff?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">入学资料 · 电子表</div>
+      <div class="card p4 mb4">
+        ${ap.mat_survey_alert?`<div class="b1 bc-red200 bg-red50 r8 p3 mb3 t12" style="color:#991b1b"><strong>⚠ 调查表需教务留意</strong>：${esc(ap.mat_survey_alert_reason||'—')}</div>`:''}
+        <div class="t12 fw6 c-gray6 mb1">奖助学金表（摘要）</div>
+        <div class="t11 c-gray7 mb2 lh16">${esc([schB.requested_amount||schB.amount_requested,schB.family_support,schB.total_self_funded].filter(Boolean).join(' · ').slice(0,400)||'—')} · 履约：${esc(schB.guarantee_type==='pastor_letter'?'牧师担保信':'$300押金')}</div>
+        ${(()=>{const fd=schB.financial_proof_data||schB.income_proof_data||ap.mat_financial_proof_data;const fn=schB.financial_proof_filename||schB.income_proof_filename||ap.mat_financial_proof_filename;return fd&&fn?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(fd)}" download="${esc(fn)}">⬇ 收入/资产证明 · ${esc(fn)}</a></div>`:'';})()}
+        ${(()=>{const d=schB.applicant_signature_data,f=schB.applicant_signature_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 申请人电子签 · ${esc(f)}</a></div>`:'';})()}
+        ${(()=>{const d=schB.pastor_letter_upload_data,f=schB.pastor_letter_upload_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 牧师担保信扫描件 · ${esc(f)}</a></div>`:'';})()}
+        ${(()=>{const d=schB.sponsor_proof_data,f=schB.sponsor_proof_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 他人资助证明 · ${esc(f)}</a></div>`:'';})()}
+        <div class="t12 fw6 c-gray6 mb1">入学调查（关键项）</div>
+        <div class="t11 c-gray7 mb2 lh16">${esc(`吸毒史：${(surB.drug_history||surB.drug_hist)==='yes'?'是':'否'}；精神类疾病史：${(surB.mental_illness_history||surB.mental_hist)==='yes'?'是':'否'}；重大疾病：${surB.phy_major_illness==='yes'?'是':'否'}；赌博：${surB.gamble_hist==='yes'?'是':'否'}`)}</div>
+        <details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">完整 JSON · 奖学金表</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(schB)}</pre></details>
+        <details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">完整 JSON · 入学调查</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(surB)}</pre></details>
+        ${ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved))?`<div class="t13 fw6 c-green7">已批复奖学金额度：${esc(String(ap.scholarship_amount_approved))}</div>`:''}
+        ${ap.materials_submitted_at?`<div class="t11 c-gray4 mt2">资料提交时间：${esc(String(ap.materials_submitted_at).slice(0,19).replace('T',' '))}</div>`:''}
       </div>`:''}
 
       ${ap.exam_essay?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">笔试备注（旧约·新约·切换屏幕）· Exam note (OT / NT / screen switches)</div>
@@ -2699,6 +3454,13 @@ function renderBriefingModal(ap){
 
 function renderEditApInfoModal(ap){
   const val=s=>esc(s==null?'':String(s));
+  const curLang=getApplicantExamLang(ap);
+  const guessLang=guessExamLangFromApplicantName(ap);
+  const guessLine=guessLang
+    ? (guessLang!==curLang
+      ? `系统根据姓名推测为「${examLangLabelShort(guessLang)}」，与当前分组不同可改后保存。`
+      : `与系统推测一致（${examLangLabelShort(guessLang)}）。`)
+    : '无法从姓名自动判断时请手选语言。';
   // 只编辑 applicants 表里页面已展示过的“其他信息”字段
   return `<div class="modal-overlay" data-action="close-edit-ap-info">
     <div class="modal-lg" onclick="event.stopPropagation()">
@@ -2711,6 +3473,15 @@ function renderEditApInfoModal(ap){
       </div>
 
       <div class="col g2">
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">笔试/面试语言（看板 / 排班分组）· Pipeline language</div>
+          <select id="edit-ap-exam-lang" class="sel" style="width:100%">
+            <option value="zh" ${curLang==='zh'?'selected':''}>中文</option>
+            <option value="en" ${curLang==='en'?'selected':''}>English</option>
+            <option value="id" ${curLang==='id'?'selected':''}>Bahasa Indonesia</option>
+          </select>
+          <div class="t11 c-gray4 mt1">${esc(guessLine)}</div>
+        </div>
         <div>
           <div class="t12 fw6 c-gray6 mb1">性别 Gender</div>
           <select id="edit-ap-gender" class="sel" style="width:100%">
@@ -2835,31 +3606,34 @@ function bind(){
   root.querySelectorAll('[data-action=set-exam-lang]').forEach(el=>{
     el.addEventListener('click',()=>{
       A.examLang = el.dataset.lang || 'zh';
+      persistApplicantExamLang(A.examLang);
       render();
     });
   });
   root.querySelectorAll('[data-action=set-app-lang]').forEach(el=>{
     el.addEventListener('click',()=>{
-      A.examLang = el.dataset.lang || 'zh';
+      A.appLang = el.dataset.lang || 'zh';
+      persistApplicantAppLang(A.appLang);
       render();
     });
   });
+  document.getElementById('btn-enter-exam-from-apply')?.addEventListener('click',()=>{ applicantPromoteToExam(); });
   document.getElementById('btn-start-exam')?.addEventListener('click',()=>{
     const ap = A.applicant;
     const win = getExamWindowUtc();
     const allowedNow = isExamAllowedNow(ap);
     if(!allowedNow){
-      toast('当前非笔试开放时间，暂不可答题',false);
+      toast(apLine('当前非笔试开放时间，暂不可答题','The exam window is not open yet.','Jendela ujian belum dibuka.'),false);
       render();
       return;
     }
     if(!win || !win.endUtc){
-      toast('无法获取考试时间窗口',false);
+      toast(apLine('无法获取考试时间窗口','Cannot load exam schedule.','Tidak bisa memuat jadwal ujian.'),false);
       return;
     }
     const remainSec = isExamExemptApplicant(ap) ? (A.examTotalTime||9000) : Math.max(0, Math.floor((win.endUtc.getTime() - Date.now())/1000));
     if(remainSec<=0){
-      toast('该开放时间已结束，请刷新后选择下一次',false);
+      toast(apLine('该开放时间已结束，请刷新后选择下一次','This window has ended — refresh for the next one.','Jendela ini berakhir — muat ulang.'),false);
       render();
       return;
     }
@@ -2877,7 +3651,7 @@ function bind(){
         const flag = ()=>{
           if(A.role!=='applicant' || A.applicant?.stage!=='exam' || !A.examStarted || A.examSubmitted) return;
           A.proctorFlags=(A.proctorFlags||0)+1;
-          toast('检测到切屏/切换窗口（已记录 '+A.proctorFlags+' 次）',false);
+          toast(apLine('检测到切屏/切换窗口（已记录 '+A.proctorFlags+' 次）','Tab/window switch detected ('+A.proctorFlags+').','Pindah jendela/tab tercatat ('+A.proctorFlags+').'),false);
           render();
         };
         document.addEventListener('visibilitychange',()=>{
@@ -2938,9 +3712,142 @@ function bind(){
   // ── Interview booking ──
   document.getElementById('btn-confirm-iv')?.addEventListener('click',()=>confirmInterview());
 
-  // ── Materials ──
-  root.querySelectorAll('[data-action=toggle-mat]').forEach(el=>{
-    el.addEventListener('click',()=>{const mid=el.dataset.mid;A.uploads[mid]=!A.uploads[mid];render();});
+  // ── Materials（电子表 + 财务证明 + 勾选） ──
+  document.getElementById('btn-save-mat-sch')?.addEventListener('click',async()=>{
+    if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+    const prev=parseApplicantJsonCol(A.applicant.scholarship_form_json,{});
+    const readOpt=async(el,prevData,prevFn)=>{
+      const f=el?.files?.[0];
+      if(!f) return {data:prevData,fn:prevFn};
+      if(f.size>2.6*1024*1024){toast(apLine('单个文件请小于 2.5MB','Each file max 2.5MB','Maks 2.5MB'),false);throw new Error('size');}
+      const data=await readFileAsBase64(f);
+      return {data,fn:f.name};
+    };
+    let data=prev.financial_proof_data||prev.income_proof_data||A.applicant.mat_financial_proof_data;
+    let fn=String(prev.financial_proof_filename||prev.income_proof_filename||A.applicant.mat_financial_proof_filename||'');
+    let sigD=prev.applicant_signature_data,sigN=String(prev.applicant_signature_filename||'');
+    let pasD=prev.pastor_letter_upload_data,pasN=String(prev.pastor_letter_upload_filename||'');
+    let spD=prev.sponsor_proof_data,spN=String(prev.sponsor_proof_filename||'');
+    try{
+      const rFin=await readOpt(document.getElementById('mat-fin-file'),data,fn);
+      data=rFin.data;fn=rFin.fn;
+      const rSig=await readOpt(document.getElementById('mat-sig-file'),sigD,sigN);
+      sigD=rSig.data;sigN=rSig.fn;
+      const rPas=await readOpt(document.getElementById('mat-pastor-letter-file'),pasD,pasN);
+      pasD=rPas.data;pasN=rPas.fn;
+      const rSp=await readOpt(document.getElementById('mat-sponsor-file'),spD,spN);
+      spD=rSp.data;spN=rSp.fn;
+    }catch(e){if(e.message!=='size')toast(apLine('读取文件失败','Read failed','Gagal baca'),false);return;}
+    const g=document.querySelector('input[name="mat-sch-guarantee"]:checked')?.value||'deposit';
+    const sch={...prev,
+      family_support:(document.getElementById('mat-sch-fund-family')?.value||'').trim(),
+      church_support:(document.getElementById('mat-sch-fund-church')?.value||'').trim(),
+      other_sources:(document.getElementById('mat-sch-fund-other')?.value||'').trim(),
+      total_self_funded:(document.getElementById('mat-sch-fund-total')?.value||'').trim(),
+      funding_family:(document.getElementById('mat-sch-fund-family')?.value||'').trim(),
+      funding_church:(document.getElementById('mat-sch-fund-church')?.value||'').trim(),
+      funding_other:(document.getElementById('mat-sch-fund-other')?.value||'').trim(),
+      funding_total:(document.getElementById('mat-sch-fund-total')?.value||'').trim(),
+      requested_amount:(document.getElementById('mat-sch-amount-req')?.value||'').trim(),
+      amount_requested:(document.getElementById('mat-sch-amount-req')?.value||'').trim(),
+      guarantee_type:g,
+      agree_terms:document.getElementById('mat-sch-agree-terms')?.checked?'yes':'no',
+      applicant_sign_date:(document.getElementById('mat-sch-sign-date')?.value||'').trim(),
+      financial_proof_data:data,
+      income_proof_data:data,
+      financial_proof_filename:fn||null,
+      income_proof_filename:fn||null,
+      applicant_signature_data:sigD,
+      applicant_signature_filename:sigN||null,
+      pastor_letter_upload_data:pasD,
+      pastor_letter_upload_filename:pasN||null,
+      sponsor_proof_data:spD,
+      sponsor_proof_filename:spN||null,
+      _saved_at:new Date().toISOString()
+    };
+    const {error}=await sb.from('applicants').update({scholarship_form_json:sch}).eq('id',A.applicant.id);
+    if(!error){
+      Object.assign(A.applicant,{scholarship_form_json:sch});
+      toast(apLine('奖助学金申请表已保存','Scholarship form saved','Tersimpan'));
+      render();
+    }
+    else toast(apLine('保存失败','Save failed','Gagal simpan')+(error.message?': '+error.message:''),false);
+  });
+  document.getElementById('btn-save-mat-sv')?.addEventListener('click',async()=>{
+    if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+    const prev=parseApplicantJsonCol(A.applicant.enrollment_survey_json,{});
+    const sur=collectEnrollmentSurveyFromDom(prev);
+    const needHabit=String(sur.smoke_hist)==='yes'||String(sur.alcohol_hist)==='yes'||String(sur.drug_hist)==='yes';
+    if(needHabit&&!String(sur.habit_substance_explain||'').trim()){
+      const L=getApplicantExamLang(A.applicant);
+      const msg=L==='en'?'Brief explanation is required because you answered Yes to smoking, alcohol, or drug history.':L==='id'?'Wajib mengisi penjelasan singkat jika riwayat rokok/alkohol/narkoba = Ya.':'吸烟史、饮酒史或吸毒史任一项为「有」时，请填写简要说明。';
+      toast(msg,false);
+      return;
+    }
+    const al=computeSurveyAlertFromSurveyJson(sur);
+    const {error}=await sb.from('applicants').update({enrollment_survey_json:sur,mat_survey_alert:al.alert,mat_survey_alert_reason:al.reason||null}).eq('id',A.applicant.id);
+    if(!error){Object.assign(A.applicant,{enrollment_survey_json:sur,mat_survey_alert:al.alert,mat_survey_alert_reason:al.reason||null});toast(apLine('入学调查表已保存','Survey saved','Tersimpan'));render();}
+    else toast(apLine('保存失败','Save failed','Gagal')+(error.message?': '+error.message:''),false);
+  });
+  root.querySelectorAll('input[name="mat-sch-guarantee"]').forEach(r=>{
+    r.addEventListener('change',()=>{
+      const w=document.getElementById('mat-pastor-upload-wrap');
+      if(w) w.style.display=r.value==='pastor_letter'?'block':'none';
+    });
+  });
+  document.getElementById('btn-save-mat-files')?.addEventListener('click',async()=>{
+    if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+    const files={passport:!!document.getElementById('mat-file-passport')?.checked,photo:!!document.getElementById('mat-file-photo')?.checked,insurance:!!document.getElementById('mat-file-insurance')?.checked};
+    const {error}=await sb.from('applicants').update({mat_files_json:files}).eq('id',A.applicant.id);
+    if(!error){Object.assign(A.applicant,{mat_files_json:files});toast(apLine('已保存','Saved','Tersimpan'));render();}
+    else toast(apLine('保存失败','Save failed','Gagal'),false);
+  });
+  document.getElementById('btn-materials-submit-review')?.addEventListener('click',async()=>{
+    if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+    if(A.applicant.materials_submitted_at){toast(apLine('已提交过，请等待教务审核','Already submitted','Sudah dikirim'),false);return;}
+    const miss=materialsMissingCount(A.applicant);
+    if(miss>0){toast(apLine('尚有 '+miss+' 项必填未完成',''+miss+' item(s) missing',miss+' wajib'),false);return;}
+    const {error}=await sb.from('applicants').update({materials_submitted_at:new Date().toISOString()}).eq('id',A.applicant.id);
+    if(!error){A.applicant.materials_submitted_at=new Date().toISOString();toast(apLine('已提交审核，请等待奖学金批复','Submitted; pending scholarship review','Terkirim'));render();}
+    else toast(apLine('提交失败','Submit failed','Gagal'),false);
+  });
+  document.getElementById('btn-applicant-confirm-visa')?.addEventListener('click',async()=>{
+    if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+    const ap=A.applicant;
+    if(ap.stage!=='materials') return;
+    if(ap.scholarship_amount_approved==null||String(ap.scholarship_amount_approved)===''||isNaN(Number(ap.scholarship_amount_approved))){toast(apLine('请等待教务批复奖学金额度后再确认','Wait for approved scholarship amount','Tunggu jumlah beasiswa'),false);return;}
+    if(!confirm(apLine('确认已与家人沟通并可承担剩余费用？将进入「签证」环节。','Confirm you can cover remaining costs and proceed to Visa?','Konfirmasi lanjut ke visa?'))) return;
+    const {data:updRows,error}=await sb.from('applicants').update({stage:'visa'}).eq('id',ap.id).eq('stage','materials').select('id');
+    if(error){
+      toast(apLine('操作失败','Failed','Gagal')+(error.message?': '+error.message:''),false);
+      return;
+    }
+    if(!updRows||!updRows.length){
+      toast(apLine('未能推进阶段：数据库中当前不是「上传资料」环节，请刷新页面后再试。','Could not advance — your stage may have changed. Refresh and try again.','Gagal — muat ulang halaman.'),false);
+      try{
+        const {data:f}=await sb.from('applicants').select('stage').eq('id',ap.id).maybeSingle();
+        if(f&&f.stage) A.applicant.stage=f.stage;
+      }catch(_){}
+      render();
+      return;
+    }
+    A.applicant.stage='visa';
+    toast(apLine('已进入签证环节','Now in Visa stage','Masuk tahap visa'));
+    render();
+  });
+  root.querySelectorAll('.btn-save-sch-amt').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      if((A.role!=='admin'&&A.role!=='teacher')||!sb) return;
+      const id=btn.dataset.apid;
+      const inp=document.querySelector('.sch-amt-inp[data-apid="'+id+'"]');
+      const noteInp=document.querySelector('.sch-note-inp[data-apid="'+id+'"]');
+      const raw=(inp?.value||'').trim();
+      const amt=parseFloat(raw,10);
+      if(raw===''||isNaN(amt)){toast('请输入有效数字额度',false);return;}
+      const {error}=await sb.from('applicants').update({scholarship_amount_approved:amt,scholarship_approved_at:new Date().toISOString(),scholarship_review_note:(noteInp?.value||'').trim()||null}).eq('id',id);
+      if(!error){await loadAdminData();toast('批复已保存');render();}
+      else toast('保存失败：'+(error.message||''),false);
+    });
   });
 
   // ── Slot pick (applicant) ──
@@ -2972,10 +3879,25 @@ function bind(){
     el.addEventListener('click',()=>{A.briefingId=null;render();});
   });
 
+  document.getElementById('btn-save-brief-exam-lang')?.addEventListener('click',async()=>{
+    if(A.role!=='admin'&&A.role!=='teacher') return;
+    const apid=document.getElementById('btn-save-brief-exam-lang')?.dataset?.apid;
+    if(!apid) return;
+    let L=document.getElementById('brief-ap-exam-lang')?.value||'zh';
+    if(L!=='en'&&L!=='id') L='zh';
+    const {error}=await sb.from('applicants').update({exam_lang:L}).eq('id',apid);
+    if(!error){
+      const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+      if(ap) ap.exam_lang=L;
+      toast('笔试/面试语言已更新');
+      render();
+    } else toast('保存失败：'+(error?.message||''),false);
+  });
+
   // ── Manual score entry ──
   root.querySelectorAll('[data-action=save-manual-score]').forEach(el=>{
     el.addEventListener('click',async()=>{
-      if(A.role!=='admin'){toast('仅管理员可录入成绩',false);return;}
+      if(A.role!=='admin'&&A.role!=='teacher'){toast('仅管理员或教师可录入成绩',false);return;}
       const apid=el.dataset.apid;
       const scoreVal=document.getElementById('manual-score-'+apid)?.value;
       const score=parseInt(scoreVal);
@@ -2993,7 +3915,7 @@ function bind(){
   root.querySelectorAll('[data-action=show-add-ap-modal]').forEach(el=>{
     el.addEventListener('click',e=>{
       e.stopPropagation();
-      if(A.role!=='admin') return;
+      if(A.role!=='admin'&&A.role!=='teacher') return;
       A.showAddApModal=true;render();
     });
   });
@@ -3001,12 +3923,11 @@ function bind(){
     el.addEventListener('click',()=>{A.showAddApModal=false;render();});
   });
   document.getElementById('btn-save-add-ap')?.addEventListener('click',async()=>{
-    if(A.role!=='admin') return;
+    if(A.role!=='admin'&&A.role!=='teacher') return;
     const name=(document.getElementById('add-ap-name')?.value||'').trim();
     const phone=(document.getElementById('add-ap-phone')?.value||'').trim();
     const email=(document.getElementById('add-ap-email')?.value||'').trim();
-    // 注意：当前 Supabase 的 `applicants` 表可能没有 `program` 列
-    // 所以这里不把它写入数据库，避免插入失败
+    const examLang=document.getElementById('add-ap-exam-lang')?.value||'zh';
     const stage=document.getElementById('add-ap-stage')?.value||'apply';
     if(!name){toast('请输入姓名',false);return;}
     const phoneDigits=(phone||'').replace(/\D/g,'');
@@ -3015,21 +3936,56 @@ function bind(){
       toast('请填写手机号后四位（或完整手机号）',false);
       return;
     }
-    // 注意：登录与查询使用的是 full_name + phone_last4
-    // 但在你的数据库中，phone_last4 很可能也是 GENERATED（自动生成）列
-    // 因此这里只写入 phone，让后端自动生成 phone_last4
-    const {data,error}=await sb.from('applicants').insert([{
-      // `full_name` 在数据库里可能是 GENERATED（自动生成）列
-      // 因此这里不要手动写入 full_name，改为写 first_name/last_name
-      first_name:name,
-      last_name:'',
-      phone:phone||null,
-      email:email||null,
-      stage
-    }]).select().single();
-    if(!error&&data){A.allApplicants.unshift(data);A.showAddApModal=false;toast('已添加：'+name);render();}
-    else toast('添加失败：'+(error?.message||'未知错误'),false);
+    const rpcRes=await sb.rpc('create_applicant_by_staff',{
+      p_first_name:name,
+      p_last_name:'',
+      p_phone:phone||'',
+      p_email:email||'',
+      p_exam_lang:examLang,
+      p_stage:stage,
+    });
+    let row=null;
+    if(!rpcRes.error && rpcRes.data && rpcRes.data.ok===true && rpcRes.data.row){
+      row=rpcRes.data.row;
+    }else{
+      const {data:insData,error:insErr}=await sb.from('applicants').insert([{
+        first_name:name,
+        last_name:'',
+        phone:phone||null,
+        email:email||null,
+        exam_lang:examLang,
+        stage
+      }]).select().single();
+      if(!insErr&&insData) row=insData;
+      else{
+        const rpcErr=rpcRes.data?.error||rpcRes.error?.message||'';
+        const insMsg=insErr?.message||'';
+        toast(apLine(
+          '添加失败：'+(rpcErr||insMsg||'未知错误')+'。请在 Supabase → SQL Editor 执行项目内 supabase/manual_apply_staff_add_applicant.sql 全文（或依次执行 migrations 中 20260412120000 与 20260412140000）；执行后等待约 1 分钟再试。',
+          'Save failed: '+(rpcErr||insMsg||'unknown')+'. Run supabase/manual_apply_staff_add_applicant.sql in Supabase SQL Editor; wait ~1 min.',
+          'Gagal: '+(rpcErr||insMsg||'')+'. Jalankan manual_apply_staff_add_applicant.sql di Supabase.'
+        ),false);
+        return;
+      }
+    }
+    if(row){A.allApplicants.unshift(row);A.showAddApModal=false;toast(apLine('已添加：'+name,'Added: '+name,'Ditambah: '+name));render();}
   });
+
+  const syncAddApLangHint=()=>{
+    const name=(document.getElementById('add-ap-name')?.value||'').trim();
+    const g=guessExamLangFromNameString(name);
+    const el=document.getElementById('add-ap-lang-hint');
+    if(el) el.textContent=g?`根据姓名可推测为「${examLangLabelShort(g)}」，可点按钮填入或手选。`:'';
+  };
+  document.getElementById('add-ap-name')?.addEventListener('input',syncAddApLangHint);
+  document.getElementById('btn-add-ap-guess-lang')?.addEventListener('click',()=>{
+    const name=(document.getElementById('add-ap-name')?.value||'').trim();
+    const g=guessExamLangFromNameString(name);
+    const sel=document.getElementById('add-ap-exam-lang');
+    if(g&&sel){sel.value=g;toast('已填入：'+examLangLabelShort(g));}
+    else toast('无法从当前姓名推测，请手动选择语言',false);
+  });
+  syncAddApLangHint();
 
   // ── Edit applicant info modal ──
   root.querySelectorAll('[data-action=edit-ap-info]').forEach(el=>{
@@ -3061,8 +4017,11 @@ function bind(){
     const ministry_experience=document.getElementById('edit-ap-ministry')?.value || '';
     const admin_notes=document.getElementById('edit-ap-admin-notes')?.value || '';
     const wechat_notes=document.getElementById('edit-ap-wechat-notes')?.value || '';
+    let exam_lang=document.getElementById('edit-ap-exam-lang')?.value || 'zh';
+    if(exam_lang!=='en'&&exam_lang!=='id') exam_lang='zh';
 
     const payload={
+      exam_lang,
       gender: gender||null,
       hometown: hometown||null,
       education: education||null,
@@ -3082,6 +4041,8 @@ function bind(){
       toast('档案信息已保存');
       A.showEditApInfoModal=false;
       A.editApInfoId=null;
+      const apRow=A.allApplicants.find(a=>String(a.id)===String(apid));
+      if(apRow) apRow.exam_lang=exam_lang;
       await loadAdminData();
       render();
     } else {
@@ -3226,7 +4187,21 @@ function bind(){
     });
   });
 
-  // ── 我的：改密 + 本人面试时段 ──
+  // ── 我的：改密 + 本人面试时段 / 管理员代老师添加 ──
+  document.getElementById('btn-admin-proxy-add-slots')?.addEventListener('click',async()=>{
+    if(A.role!=='admin') return;
+    const tid=(document.getElementById('admin-proxy-teacher')?.value||'').trim();
+    if(!tid){toast('请选择老师',false);return;}
+    const tp=(A.teacherProfiles||[]).find(x=>String(x.id)===String(tid));
+    await addInterviewSlotRange({
+      teacherId:tid,
+      teacherDisplayName:tp?.display_name,
+      dateInputId:'admin-proxy-date',
+      startInputId:'admin-proxy-start',
+      endInputId:'admin-proxy-end',
+      intervalSelectId:'admin-proxy-interval',
+    });
+  });
   document.getElementById('btn-me-add-slots')?.addEventListener('click',async()=>{
     await teacherAddSlotRange('me-slot-date','me-slot-start','me-slot-end','me-slot-interval');
   });
@@ -3273,44 +4248,62 @@ async function init(){
     document.getElementById('root').innerHTML='<div class="p6" style="max-width:520px;margin:48px auto;line-height:1.65;font-family:system-ui,sans-serif"><h1 class="t18 fw7 c-gray8 mb3">无法加载 Supabase 客户端</h1><p class="t13 c-gray6 mb2">未找到全局 <code>supabase</code>。请确认已部署 <code>vendor/supabase.js</code>，且与 <code>index.html</code> 中引用路径一致。</p><p class="t13 c-gray6 mb2">若曾用外网 CDN，请重新部署当前仓库（含 <code>vendor/</code> 目录）。</p></div>';
     return;
   }
-  // 先用内嵌中文题库出首屏；ensureExamQuestionsLoaded 内含大量同步解析，若在 render 之前 await 会导致整页长时间停在初始转圈
+  // 先用内嵌中文题库；ensureExamQuestionsLoaded 会再合并多语言
   A.examQuestions = (EXAM_Qs && EXAM_Qs.length) ? EXAM_Qs : [];
-  // Check existing session（避免 API 长时间无响应导致整页一直转圈）
-  let session=null;
+  // 立刻替换初始转圈：先渲染登录壳，再在后台恢复 session（避免 getSession / profiles 挂起时整页一直转圈）
   try{
-    const out=await Promise.race([
-      sb.auth.getSession(),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('getSession 超时')),15000)),
-    ]);
-    session=out?.data?.session??null;
+    render();
   }catch(e){
-    console.warn(e);
+    console.error('首屏 render 失败', e);
+    document.getElementById('root').innerHTML='<div class="p6 tc c-gray6" style="margin-top:48px;font-family:system-ui">页面渲染出错，请刷新或按 F12 查看控制台。</div>';
   }
-  if(session){
-    A.user=session.user;
-    let prof=null;
+  try{
+    let session=null;
     try{
-      const pr=await Promise.race([
-        sb.from('profiles').select('*').eq('id',session.user.id).single(),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('profiles 超时')),15000)),
+      const out=await Promise.race([
+        sb.auth.getSession(),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('getSession 超时')),15000)),
       ]);
-      if(pr&&!pr.error) prof=pr.data;
-    }catch(e){ console.warn(e); }
-    if(prof){
-      A.profile=prof;A.role=prof.role;
-      if(A.role==='admin'||A.role==='teacher'){
-        try{
-          await Promise.race([
-            loadAdminData(),
-            new Promise((_,rej)=>setTimeout(()=>rej(new Error('loadAdminData 超时')),20000)),
-          ]);
-        }catch(e){ console.warn(e); }
+      session=out&&out.data&&out.data.session?out.data.session:null;
+    }catch(e){
+      console.warn(e);
+    }
+    if(session){
+      A.user=session.user;
+      let prof=null;
+      try{
+        const pr=await Promise.race([
+          sb.from('profiles').select('*').eq('id',session.user.id).single(),
+          new Promise((_,rej)=>setTimeout(()=>rej(new Error('profiles 超时')),15000)),
+        ]);
+        if(pr&&!pr.error) prof=pr.data;
+      }catch(e){ console.warn(e); }
+      if(prof){
+        A.profile=prof;A.role=prof.role;
+        if(A.role==='admin'||A.role==='teacher'){
+          try{
+            await Promise.race([
+              loadAdminData(),
+              new Promise((_,rej)=>setTimeout(()=>rej(new Error('loadAdminData 超时')),20000)),
+            ]);
+          }catch(e){ console.warn(e); }
+        }
       }
     }
+  }catch(e){
+    console.warn('init 数据恢复', e);
   }
-  render();
+  try{
+    render();
+  }catch(e){
+    console.error('会话恢复后 render 失败', e);
+    A.role=null;A.user=null;A.profile=null;A.applicant=null;
+    try{ render(); }catch(e2){
+      document.getElementById('root').innerHTML='<div class="p6 tc c-gray6" style="margin-top:48px;font-family:system-ui">页面渲染出错，请刷新或按 F12 查看控制台。</div>';
+    }
+  }
   ensureExamQuestionsLoaded()
-    .then(()=>{ render(); })
+    .then(()=>{ try{ render(); }catch(e){ console.warn('render after exam load', e); } })
     .catch(e=>console.warn('题库后台加载', e));
 }
 
@@ -3320,6 +4313,7 @@ init().catch(err=>{
     A.role=null;
     A.user=null;
     A.profile=null;
+    A.applicant=null;
     render();
   }catch(_){}
   const msg=err&&err.message?String(err.message):String(err);
