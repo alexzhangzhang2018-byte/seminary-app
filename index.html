@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" id="root-html">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>神学院招生系统 · Seminary Admissions</title>
 <script src="vendor/supabase.js"></script>
+<script src="vendor/jszip.min.js"></script>
 <script src="exam-locale.js"></script>
 <script src="exam-plain-bundled.js"></script>
 <style>
@@ -234,6 +235,11 @@ function getApplicantExamLang(ap){
   const x=String(ap?.exam_lang||'zh').toLowerCase();
   if(x==='en'||x==='id') return x;
   return 'zh';
+}
+/** 申请人看板步骤：印尼语班（笔试语言 id）不含「签证」一站 */
+function applicantPipelineStages(ap){
+  if(ap&&getApplicantExamLang(ap)==='id') return STAGES.filter(s=>s.id!=='visa');
+  return STAGES;
 }
 function examLangLabelShort(lang){
   return ({zh:'中文',en:'English',id:'Indonesia'})[lang]||'中文';
@@ -1058,6 +1064,7 @@ const A = {
   showEditApInfoModal: false,
   editApInfoId: null,
   loginMode: null,   // 'applicant' | 'staff'
+  adminDataLoading: false, // 职员登录/恢复会话：先出工作台壳，再异步拉 applicants/slots/records
 
   // Applicant exam state
   examStarted: false,
@@ -1514,13 +1521,39 @@ function mergeTeacherProfilesFromSlots(slots, baseList){
   });
   return [...map.values()].sort((a,b)=>String(a.display_name||'').localeCompare(String(b.display_name||''),'zh'));
 }
+
+/** 招生端列表不拉取 Base64 大字段，显著减轻首屏 JSON 体积；打开档案时再 mergeApplicantHeavyFields */
+const APPLICANTS_STAFF_LIST_COLS =
+  'id,created_at,first_name,last_name,full_name,phone,phone_last4,email,stage,exam_lang,ui_lang,exam_score,exam_essay,interview_slot_id,materials_submitted_at,'+
+  'scholarship_form_json,enrollment_survey_json,pastor_letter_json,mat_files_json,mat_financial_proof_filename,mat_survey_alert,mat_survey_alert_reason,'+
+  'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,conversion_testimony,ministry_experience,admin_notes,wechat_notes,'+
+  'gender,hometown,education,church_name,denomination,language_proficiency,marital_status,conversion_time';
+
+async function mergeApplicantHeavyFields(apid){
+  if(!sb||apid==null||apid==='') return;
+  const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+  if(!ap) return;
+  const {data,error}=await sb.from('applicants').select('visa_files_json,mat_financial_proof_data').eq('id',apid).maybeSingle();
+  if(error||!data) return;
+  if(data.visa_files_json!==undefined) ap.visa_files_json=data.visa_files_json;
+  if(data.mat_financial_proof_data!==undefined) ap.mat_financial_proof_data=data.mat_financial_proof_data;
+}
+
 async function loadAdminData(){
-  const [{data:aps},{data:slots},{data:recs}] = await Promise.all([
-    sb.from('applicants').select('*').order('created_at',{ascending:false}),
+  const [apRes,{data:slots},{data:recs}] = await Promise.all([
+    (async()=>{
+      const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
+      if(listQ.error){
+        console.warn('applicants 瘦身列查询失败，回退 select(*)', listQ.error);
+        const fb=await sb.from('applicants').select('*').order('created_at',{ascending:false});
+        return {data:fb.data||[]};
+      }
+      return {data:listQ.data||[]};
+    })(),
     sb.from('interview_slots').select('*').order('slot_date').order('slot_time'),
     sb.from('interview_records').select('*').order('created_at',{ascending:false}),
   ]);
-  A.allApplicants = aps||[];
+  A.allApplicants = apRes.data||[];
   A.allSlots      = slots||[];
   A.allRecords    = recs||[];
 
@@ -2002,6 +2035,8 @@ async function loginApplicant(name,last4){
     await loadPublicSlots();
   }
 
+  try{ await ensureExamQuestionsLoaded(); }catch(_){}
+
   // 轮询申请人状态变化：当后台把阶段推进到 exam 时自动进入笔试准备页面
   if(applicantStagePoller){clearInterval(applicantStagePoller);applicantStagePoller=null;}
   applicantStagePoller=setInterval(async()=>{
@@ -2032,6 +2067,40 @@ async function loginApplicant(name,last4){
   render();
 }
 
+/** 上传资料阶段：已提交且教务已批复奖助后，进入签证或（印尼语班）完成环节 */
+async function applicantAdvanceFromMaterialsToVisaOrComplete(){
+  if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+  const ap=A.applicant;
+  if(ap.stage!=='materials') return;
+  if(ap.scholarship_amount_approved==null||String(ap.scholarship_amount_approved)===''||isNaN(Number(ap.scholarship_amount_approved))){
+    toast(apLine('请等待教务批复奖学金额度后再进入下一阶段。','Wait for the office to approve your scholarship amount before continuing.','Tunggu kantor menyetujui jumlah beasiswa sebelum melanjutkan.'),false);
+    return;
+  }
+  const idPipe=getApplicantExamLang(ap)==='id';
+  const nextStage=idPipe?'complete':'visa';
+  const cmsg=idPipe
+    ? apLine('确认已与家人沟通并可承担剩余费用？将进入「完成」环节（印尼语班无需签证材料）。','Confirm and proceed to the final step (Indonesian track has no visa upload)?','Konfirmasi lanjut ke tahap selesai (jalur Indonesia tanpa unggah visa)?')
+    : apLine('确认已与家人沟通并可承担剩余费用？将进入「签证」环节。','Confirm you can cover remaining costs and proceed to Visa?','Konfirmasi lanjut ke visa?');
+  if(!confirm(cmsg)) return;
+  const {data:updRows,error}=await sb.from('applicants').update({stage:nextStage}).eq('id',ap.id).eq('stage','materials').select('id');
+  if(error){
+    toast(apLine('操作失败','Failed','Gagal')+(error.message?': '+error.message:''),false);
+    return;
+  }
+  if(!updRows||!updRows.length){
+    toast(apLine('未能推进阶段：数据库中当前不是「上传资料」环节，请刷新页面后再试。','Could not advance — your stage may have changed. Refresh and try again.','Gagal — muat ulang halaman.'),false);
+    try{
+      const {data:f}=await sb.from('applicants').select('stage').eq('id',ap.id).maybeSingle();
+      if(f&&f.stage) A.applicant.stage=f.stage;
+    }catch(_){}
+    render();
+    return;
+  }
+  A.applicant.stage=nextStage;
+  toast(idPipe?apLine('已进入完成环节','Now on the final step','Masuk tahap selesai'):apLine('已进入签证环节','Now in Visa stage','Masuk tahap visa'));
+  render();
+}
+
 async function loginStaff(email,password){
   if(!sb){toast('未连接数据库，请检查网络后刷新',false);return;}
   const {data,error}=await sb.auth.signInWithPassword({email,password});
@@ -2040,9 +2109,16 @@ async function loginStaff(email,password){
   const {data:prof}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
   A.profile=prof;
   A.role=prof?.role||'teacher';
-  await loadAdminData();
+  A.adminDataLoading=true;
   render();
-  ensureExamQuestionsLoaded().then(()=>render()).catch(()=>{});
+  try{
+    await loadAdminData();
+  }catch(e){
+    console.warn('loadAdminData', e);
+  }finally{
+    A.adminDataLoading=false;
+    render();
+  }
 }
 
 async function logout(){
@@ -2052,6 +2128,7 @@ async function logout(){
   Object.assign(A,{
     role:null,user:null,profile:null,applicant:null,
     adminTab:'pipeline',
+    adminDataLoading:false,
     selectedApId:null,briefingId:null,
     showAddApModal:false,
     showEditApInfoModal:false,editApInfoId:null,
@@ -2066,8 +2143,17 @@ async function logout(){
 // ══════════════════════════════════════════════════════════════
 // RENDER HELPERS
 // ══════════════════════════════════════════════════════════════
-function renderSteps(cur){
-  const idx=STAGE_IDX[cur]||0;
+function renderSteps(cur, ap){
+  const list=(A.role==='applicant'&&ap)?applicantPipelineStages(ap):STAGES;
+  let idx=list.findIndex(s=>s.id===cur);
+  if(idx<0){
+    if(cur==='visa'&&ap&&getApplicantExamLang(ap)==='id')
+      idx=list.findIndex(s=>s.id==='complete');
+    else if(typeof STAGE_IDX[cur]==='number')
+      idx=Math.min(STAGE_IDX[cur],list.length-1);
+    else
+      idx=0;
+  }
   const stepLabel = (s)=>{
     if(A.role!=='applicant') return s.label;
     const enShort = {apply:'Apply', exam:'Exam', interview:'Interview', result:'Pre-admit', materials:'Documents', visa:'Visa', complete:'Done'};
@@ -2077,10 +2163,10 @@ function renderSteps(cur){
     if(A.appLang==='id') return idShort[s.id] || s.label;
     return zhShort[s.id] || (String(s.label||'').split(' · ')[0] || s.label);
   };
-  return `<div class="steps">${STAGES.map((s,i)=>{
+  return `<div class="steps">${list.map((s,i)=>{
     const cls=i<idx?'done':i===idx?'active':'locked';
     const lc=i<idx?'c-indigo4':i===idx?'c-indigo6':'c-gray4';
-    const conn=i<STAGES.length-1?`<div class="step-conn ${i<idx?'done':'locked'}"></div>`:'';
+    const conn=i<list.length-1?`<div class="step-conn ${i<idx?'done':'locked'}"></div>`:'';
     return `<div class="col" style="align-items:center"><div class="step-dot ${cls}">${i<idx?'✓':s.icon}</div><div class="step-label ${lc}">${esc(stepLabel(s))}</div></div>${conn}`;
   }).join('')}</div>`;
 }
@@ -2259,11 +2345,8 @@ function renderApplicant(){
     <div class="t13 c-gray5">${esc(apLine('感谢你参与面试。教务将综合笔试、面试结果发出预录取意向，请留意后续通知。','Thank you for your interview. The office will review your exam and interview for pre-admission.','Terima kasih atas wawancara. Kantor akan meninjau ujian dan wawancara untuk pra-penerimaan.'))}</div>
   </div>`;
   else if(stage==='materials') content=renderMaterials();
-  else if(stage==='visa') content=renderVisaStage(ap);
-  else if(stage==='complete') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
-    <div style="font-size:56px" class="mb3">🎓</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('恭喜！入学流程已完成','All steps complete','Selamat! Semua langkah selesai'))}</div>
-    <div class="t13 c-gray5">${esc(apLine('签证与入学材料已办妥后，请关注教务通知与来印攻略。','After visa and paperwork, watch for office guidance to Indonesia.','Setelah visa dan berkas, ikuti panduan kantor.'))}</div>
-  </div>`;
+  else if(stage==='visa') content=getApplicantExamLang(ap)==='id'?renderCompleteStage(ap):renderVisaStage(ap);
+  else if(stage==='complete') content=renderCompleteStage(ap);
 
   const examOnlyEn = A.role==='applicant' && A.appLang==='en';
   const examOnlyId = A.role==='applicant' && A.appLang==='id';
@@ -2277,7 +2360,7 @@ function renderApplicant(){
       <div class="row g2"><span class="t20">🏫</span><span class="fw7 c-gray8 t14">${esc(brandLine)}</span></div>
       <div class="row g2">${mkAv(initials(ap),'sm')}<span class="t12 c-gray6">${esc(fullName(ap))}</span><button class="btn btn-ghost btn-sm" id="btn-logout">${esc(logoutLine)}</button></div>
     </div>
-    ${renderSteps(stage)}
+    ${renderSteps(stage, ap)}
     <main style="padding-bottom:48px">${content}</main>
   </div>`;
 }
@@ -2611,6 +2694,71 @@ function readFileAsBase64(file){
     fr.readAsDataURL(file);
   });
 }
+const VISA_FILE_MAX_BYTES=Math.floor(2.6*1024*1024);
+function parseVisaFiles(ap){
+  return parseApplicantJsonCol(ap&&ap.visa_files_json,{});
+}
+function visaFileDataOk(data){
+  return data&&String(data).length>80;
+}
+function visaMaterialsSpecOk(vf){
+  const issues=[];
+  if(!visaFileDataOk(vf.passport_data)) issues.push(apLine('护照扫描件','Passport scan','Scan paspor'));
+  if(!visaFileDataOk(vf.photo_data)) issues.push(apLine('红底证件照','Red-background photo','Foto latar merah'));
+  if(!visaFileDataOk(vf.cv_data)) issues.push(apLine('学生 CV','Student CV','CV mahasiswa'));
+  return {ok:!issues.length,issues};
+}
+function validateVisaPickFile(file,kind){
+  if(!file) return {ok:false,msg:apLine('未选择文件','No file selected','Belum pilih berkas')};
+  if(file.size>VISA_FILE_MAX_BYTES) return {ok:false,msg:apLine('单文件请勿超过约 2.5MB','Each file must be under ~2.5MB','Maks ~2.5MB per berkas')};
+  const t=file.type||'';
+  const name=(file.name||'').toLowerCase();
+  if(kind==='passport'){
+    if(t.startsWith('image/')||t==='application/pdf'||name.endsWith('.pdf')) return {ok:true};
+    return {ok:false,msg:apLine('护照请上传 PDF 或图片','Passport: PDF or image','Paspor: PDF atau gambar')};
+  }
+  if(kind==='photo'){
+    if(t.startsWith('image/')) return {ok:true};
+    return {ok:false,msg:apLine('证件照请上传图片（JPG/PNG 等）','Photo: image file only','Foto: berkas gambar')};
+  }
+  if(kind==='cv'){
+    if(t==='application/pdf'||t.startsWith('image/')||/\.(pdf|doc|docx)$/.test(name)) return {ok:true};
+    return {ok:false,msg:apLine('CV 请上传 PDF、Word 或图片','CV: PDF, Word, or image','CV: PDF/Word/gambar')};
+  }
+  return {ok:true};
+}
+function sanitizeZipNamePart(s){
+  return String(s||'').replace(/[/\\?%*:|"<>]/g,'_').replace(/\s+/g,' ').trim()||'未命名';
+}
+async function downloadVisaMaterialsZip(ap){
+  if(typeof JSZip==='undefined'){toast(apLine('打包组件未加载','ZIP library missing','ZIP tidak dimuat'),false);return;}
+  const vf=parseVisaFiles(ap);
+  const spec=visaMaterialsSpecOk(vf);
+  if(!spec.ok){toast(apLine('三份材料未齐，无法打包','Incomplete visa files','Berkas belum lengkap'),false);return;}
+  const zip=new JSZip();
+  const add=(innerName,data)=>{
+    const m=String(data).match(/^data:([^;]+);base64,(.+)$/);
+    if(!m) return false;
+    zip.file(innerName,m[2],{base64:true});
+    return true;
+  };
+  const base=sanitizeZipNamePart(fullName(ap));
+  const p1=vf.passport_filename||'passport';
+  const p2=vf.photo_filename||'photo';
+  const p3=vf.cv_filename||'cv';
+  add('01-护照扫描件-'+sanitizeZipNamePart(p1),vf.passport_data);
+  add('02-红底证件照-'+sanitizeZipNamePart(p2),vf.photo_data);
+  add('03-学生CV-'+sanitizeZipNamePart(p3),vf.cv_data);
+  const blob=await zip.generateAsync({type:'blob'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='【'+base+'-学生签材料】.zip';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast(apLine('已开始下载压缩包','ZIP download started','Unduh ZIP dimulai'));
+}
 function financialProofBytesOk(sch,ap){
   const d=sch&&(sch.financial_proof_data||sch.income_proof_data);
   if(d&&String(d).length>32) return true;
@@ -2642,6 +2790,156 @@ function computeSurveyAlertFromSurveyJson(sur){
     return {alert:true,reason:d?('婚姻与性状况披露：'+d.slice(0,120)):'入学调查「五、婚姻与性关系」有肯定项，请留意'};
   }
   return {alert:false,reason:''};
+}
+/** 档案弹窗：奖学金表 / 入学调查 → 中文可读摘要（供教务快速浏览） */
+function briefTrunc(s,max){
+  const t=String(s==null?'':s).replace(/\s+/g,' ').trim();
+  if(!t) return '';
+  return t.length<=max?t:t.slice(0,max)+'…';
+}
+function ynZh(v){
+  const s=String(v==null?'':v).toLowerCase().trim();
+  if(s==='yes') return '是';
+  if(s==='no') return '否';
+  if(!s) return '';
+  return String(v);
+}
+function haveZh(v){
+  const s=String(v==null?'':v).toLowerCase().trim();
+  if(s==='yes') return '有';
+  if(s==='no') return '无';
+  if(!s) return '';
+  return ynZh(v);
+}
+function netHrsZh(v){
+  return ({u2:'2小时以内',h25:'2–5小时',h58:'5–8小时',o8:'8小时以上'})[String(v)]||(String(v||'').trim()||'—');
+}
+function maritalStatZh(v){
+  return {single:'未婚',married:'已婚',divorced:'离异',widowed:'丧偶'}[String(v)]||(String(v||'').trim()||'—');
+}
+function relStatusZh(v){
+  return {single2:'单身',dating:'正在交往',engaged:'已订婚',married2:'已婚'}[String(v)]||(String(v||'').trim()||'—');
+}
+function formatScholarshipHumanZh(sch){
+  const rows=[];
+  const pick=(...ks)=>{for(const k of ks){const v=sch[k];if(v!=null&&String(v).trim()!=='') return String(v).trim();}return '';};
+  const fam=pick('family_support','funding_family');
+  if(fam) rows.push(['家庭支持','$'+fam]);
+  const ch=pick('church_support','funding_church');
+  if(ch) rows.push(['教会资助','$'+ch]);
+  const ot=pick('other_sources','funding_other');
+  if(ot) rows.push(['其他来源','$'+ot]);
+  const tot=pick('total_self_funded','funding_total');
+  if(tot) rows.push(['自筹总额','$'+tot]);
+  const req=pick('requested_amount','amount_requested');
+  if(req) rows.push(['申请奖助金额','$'+req]);
+  const gt=sch.guarantee_type||'deposit';
+  rows.push(['履约方式',gt==='pastor_letter'?'牧师担保信（主任牧师亲笔签名）':'押金 $300（毕业后退还）']);
+  rows.push(['同意条款',String(sch.agree_terms||'').toLowerCase()==='yes'?'已阅读并同意':'未同意或未勾选']);
+  const sd=pick('applicant_sign_date');
+  if(sd) rows.push(['签字日期',sd.length>=10?sd.slice(0,10):sd]);
+  if(sch._saved_at) rows.push(['本表保存时间',String(sch._saved_at).slice(0,19).replace('T',' ')]);
+  return rows;
+}
+function briefStaffRowHtml(a,b){
+  return `<div class="info-row" style="font-size:12px;align-items:flex-start"><span class="c-gray5" style="min-width:9em;flex-shrink:0">${esc(a)}</span><span class="c-gray8" style="white-space:pre-wrap;word-break:break-word">${esc(b)}</span></div>`;
+}
+function renderBriefStaffRows(rows){
+  return rows.map(([x,y])=>briefStaffRowHtml(x,y)).join('');
+}
+function surveyPick(sur,...keys){
+  for(const k of keys){if(sur[k]!=null&&String(sur[k]).trim()!=='') return sur[k];}
+  return undefined;
+}
+function formatSurveyHumanSectionsZh(sur){
+  const out=[];
+  const sec=(title,fill)=>{
+    const rows=[];
+    fill(rows);
+    if(rows.length) out.push({title,rows});
+  };
+  sec('1. 灵性背景',r=>{
+    if(sur.bible_read_times!=null&&String(sur.bible_read_times).trim()!=='') r.push(['圣经通读遍数',String(sur.bible_read_times).trim()]);
+    const db=surveyPick(sur,'daily_bible_yn');if(db!==undefined) r.push(['每日读经',ynZh(db)]);
+    if(sur.daily_bible_chapters!=null&&String(sur.daily_bible_chapters).trim()!=='') r.push(['每日读经章数',String(sur.daily_bible_chapters).trim()]);
+    const ws=surveyPick(sur,'weekly_sunday_yn');if(ws!==undefined) r.push(['每周参加主日',ynZh(ws)]);
+    const sp=surveyPick(sur,'spiritual_exp_yn');if(sp!==undefined) r.push(['灵异/神迹类经历（方言、医治等）',ynZh(sp)]);
+  });
+  sec('2. 健康状况',r=>{
+    const pm=surveyPick(sur,'phy_major_illness');if(pm!==undefined) r.push(['重大疾病史',ynZh(pm)]);
+    if(sur.phy_illness_name!=null&&String(sur.phy_illness_name).trim()!=='') r.push(['疾病名称',briefTrunc(sur.phy_illness_name,200)]);
+    if(sur.phy_illness_years!=null&&String(sur.phy_illness_years).trim()!=='') r.push(['病史（年）',String(sur.phy_illness_years).trim()]);
+    const pr=surveyPick(sur,'phy_receiving_treatment');if(pr!==undefined) r.push(['身体方面正接受治疗',ynZh(pr)]);
+    const meds=[];
+    if(String(sur.phy_treat_med||'').toLowerCase()==='yes') meds.push('药物治疗');
+    if(String(sur.phy_treat_phys||'').toLowerCase()==='yes') meds.push('物理治疗');
+    if(meds.length) r.push(['身体治疗方式',meds.join('、')]);
+    const ps=surveyPick(sur,'phy_surgery_yn');if(ps!==undefined) r.push(['手术史',ynZh(ps)]);
+    if(sur.phy_surgery_date!=null&&String(sur.phy_surgery_date).trim()!=='') r.push(['手术时间',String(sur.phy_surgery_date).trim()]);
+    if(sur.phy_surgery_name!=null&&String(sur.phy_surgery_name).trim()!=='') r.push(['手术名称',briefTrunc(sur.phy_surgery_name,120)]);
+    const mh=surveyPick(sur,'mental_hist','mental_illness_history');if(mh!==undefined) r.push(['精神类疾病史',ynZh(mh)]);
+    const mn=surveyPick(sur,'mental_name','mental_illness_name');if(mn!=null&&String(mn).trim()!=='') r.push(['精神疾病名称',briefTrunc(mn,200)]);
+    if(sur.mental_years!=null&&String(sur.mental_years).trim()!=='') r.push(['精神病史（年）',String(sur.mental_years).trim()]);
+    const mr=surveyPick(sur,'mental_receiving');if(mr!==undefined) r.push(['精神方面正接受治疗',ynZh(mr)]);
+    const mm=[];if(String(sur.mental_plan_med||'').toLowerCase()==='yes') mm.push('药物治疗');
+    if(String(sur.mental_plan_phys||'').toLowerCase()==='yes') mm.push('物理治疗');
+    if(mm.length) r.push(['精神治疗方式',mm.join('、')]);
+  });
+  sec('3. 生活习惯',r=>{
+    const sm=surveyPick(sur,'smoke_hist');if(sm!==undefined) r.push(['吸烟史',haveZh(sm)]);
+    if(sur.smoke_years!=null&&String(sur.smoke_years).trim()!=='') r.push(['烟龄（年）',String(sur.smoke_years).trim()]);
+    if(sur.smoke_per_day!=null&&String(sur.smoke_per_day).trim()!=='') r.push(['每天约（支）',String(sur.smoke_per_day).trim()]);
+    const sq=surveyPick(sur,'smoke_quit');if(sq!==undefined) r.push(['吸烟已戒断',ynZh(sq)]);
+    const ah=surveyPick(sur,'alcohol_hist');if(ah!==undefined) r.push(['饮酒史',haveZh(ah)]);
+    if(sur.alcohol_years!=null&&String(sur.alcohol_years).trim()!=='') r.push(['酒龄（年）',String(sur.alcohol_years).trim()]);
+    if(sur.alcohol_ml!=null&&String(sur.alcohol_ml).trim()!=='') r.push(['每天约（ml）',String(sur.alcohol_ml).trim()]);
+    const aq=surveyPick(sur,'alcohol_quit');if(aq!==undefined) r.push(['饮酒已戒断',ynZh(aq)]);
+    const dh=surveyPick(sur,'drug_hist','drug_history');if(dh!==undefined) r.push(['吸毒史',haveZh(dh)]);
+    if(sur.drug_years!=null&&String(sur.drug_years).trim()!=='') r.push(['吸毒时间（年）',String(sur.drug_years).trim()]);
+    const dq=surveyPick(sur,'drug_quit');if(dq!==undefined) r.push(['吸毒已戒断',ynZh(dq)]);
+    const hab=String(sur.habit_substance_explain||sur.drug_detail_line||'').trim();
+    if(hab) r.push(['吸烟/饮酒/吸毒说明',briefTrunc(hab,400)]);
+    const gh=surveyPick(sur,'gamble_hist');if(gh!==undefined) r.push(['赌博情况',haveZh(gh)]);
+    if(sur.gamble_years!=null&&String(sur.gamble_years).trim()!=='') r.push(['参与赌博时间（年）',String(sur.gamble_years).trim()]);
+    const gs=surveyPick(sur,'gamble_stopped');if(gs!==undefined) r.push(['赌博已停止',ynZh(gs)]);
+    if(sur.net_hrs!=null&&String(sur.net_hrs).trim()!=='') r.push(['日均上网时长（非学习工作）',netHrsZh(sur.net_hrs)]);
+    const na=surveyPick(sur,'net_addict','internet_addiction');if(na!==undefined) r.push(['网络成瘾倾向',ynZh(na)]);
+    const nf=surveyPick(sur,'net_affect','internet_affects_life');if(nf!==undefined) r.push(['网络影响作息/学习/生活',ynZh(nf)]);
+    const nx=String(sur.net_explain||'').trim();if(nx) r.push(['网络相关情况说明',briefTrunc(nx,400)]);
+  });
+  sec('4. 婚姻与性关系',r=>{
+    if(sur.marital_stat!=null&&String(sur.marital_stat).trim()!=='') r.push(['婚姻状况',maritalStatZh(sur.marital_stat)]);
+    if(sur.spouse_faith!=null&&String(sur.spouse_faith).trim()!=='') r.push(['配偶信仰状况',briefTrunc(sur.spouse_faith,200)]);
+    const pms=surveyPick(sur,'premarital_sex');if(pms!==undefined) r.push(['婚前性行为',ynZh(pms)]);
+    const ems=surveyPick(sur,'extramarital_sex');if(ems!==undefined) r.push(['婚外性关系',ynZh(ems)]);
+    const ht=surveyPick(sur,'homo_tendency');if(ht!==undefined) r.push(['同性恋倾向',ynZh(ht)]);
+    const ha=surveyPick(sur,'homo_act');if(ha!==undefined) r.push(['同性性行为',ynZh(ha)]);
+    const se=String(sur.sex_explain_four||'').trim();if(se) r.push(['上述相关说明',briefTrunc(se,400)]);
+    if(sur.rel_status!=null&&String(sur.rel_status).trim()!=='') r.push(['目前情感关系状况',relStatusZh(sur.rel_status)]);
+    const wh=surveyPick(sur,'willing_holiness');if(wh!==undefined) r.push(['愿持守圣经婚姻与圣洁',ynZh(wh)]);
+  });
+  sec('5. 财务状况',r=>{
+    const dp=surveyPick(sur,'debt_pressure');if(dp!==undefined) r.push(['较大债务压力',ynZh(dp)]);
+    const ea=surveyPick(sur,'eco_affect');if(ea!==undefined) r.push(['经济问题曾影响学习或服侍',ynZh(ea)]);
+    const fe=String(sur.finance_explain||'').trim();if(fe) r.push(['财务相关说明',briefTrunc(fe,400)]);
+  });
+  sec('6. 信仰经历补充',r=>{
+    const fp=surveyPick(sur,'faith_persecute');if(fp!==undefined) r.push(['曾因信仰遭逼迫',ynZh(fp)]);
+    const fs=surveyPick(sur,'faith_still_pressure');if(fs!==undefined) r.push(['仍处于相关压力或限制',ynZh(fs)]);
+    const ft=surveyPick(sur,'faith_family_tension');if(ft!==undefined) r.push(['信仰带来的家庭/社会关系张力',ynZh(ft)]);
+    const fx=String(sur.faith_explain||'').trim();if(fx) r.push(['补充说明',briefTrunc(fx,500)]);
+  });
+  if(sur.sv_full_name_cn!=null&&String(sur.sv_full_name_cn).trim()!=='')
+    out.unshift({title:'调查表姓名（表内填写）',rows:[['姓名',String(sur.sv_full_name_cn).trim()]]});
+  if(sur._saved_at){
+    const timeRow=['调查表保存时间',String(sur._saved_at).slice(0,19).replace('T',' ')];
+    if(out.length) out[out.length-1].rows.push(timeRow);
+    else out.push({title:'入学调查',rows:[timeRow]});
+  }
+  return out;
+}
+function renderBriefStaffSections(sections){
+  return sections.map(s=>`<div class="mb3"><div class="fw6 t11 c-gray6 mb1">${esc(s.title)}</div><div class="b1 bc-gray100 r8 p2">${renderBriefStaffRows(s.rows)}</div></div>`).join('');
 }
 function materialsMissingCount(ap){
   const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
@@ -2710,35 +3008,79 @@ function collectEnrollmentSurveyFromDom(prev){
 function mkSvRadMulti(key,val,cur){
   return `<input type="radio" name="sv-${key}" data-sv="${key}" value="${val}" ${String(cur||'')===val?'checked':''} style="accent-color:#4f46e5">`;
 }
-function renderVisaMatFilesCard(ap){
-  const files=parseApplicantJsonCol(ap.mat_files_json,{passport:false,photo:false,insurance:false});
+function renderCompleteStage(ap){
   const L=apLine;
-  return `<div class="card p4 mb4">
-    <div class="fw7 c-gray8 t14 mb3">${esc(L('证件扫描与照片（勾选表示已备妥并同意提交）','ID scans & photo (check when ready)','Pindaian & foto'))}</div>
-    <div class="col g2">
-      <label class="row g2 mat-item${files.passport?' done':''}" style="cursor:pointer;padding:10px;border-radius:10px;border:1px solid #e5e7eb">
-        <input type="checkbox" id="mat-file-passport" ${files.passport?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px">
-        <span>${esc(L('护照扫描件 · Passport scan','Passport scan','Scan paspor'))}</span>
-      </label>
-      <label class="row g2 mat-item${files.photo?' done':''}" style="cursor:pointer;padding:10px;border-radius:10px;border:1px solid #e5e7eb">
-        <input type="checkbox" id="mat-file-photo" ${files.photo?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px">
-        <span>${esc(L('红底证件照（4×6）· Photo','Red-bg photo (4×6)','Foto latar merah'))}</span>
-      </label>
-      <label class="row g2 mat-item${files.insurance?' done':''}" style="cursor:pointer;padding:10px;border-radius:10px;border:1px solid #e5e7eb">
-        <input type="checkbox" id="mat-file-insurance" ${files.insurance?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px">
-        <span>${esc(L('保险证明（选填）· Insurance','Insurance (optional)','Asuransi (opsional)'))}</span>
-      </label>
-      <button type="button" class="btn btn-outline btn-sm" id="btn-save-mat-files" style="align-self:flex-start">${esc(L('保存勾选状态','Save checks','Simpan centang'))}</button>
+  const idPipe=getApplicantExamLang(ap)==='id';
+  const waitVisa=!idPipe?`<div class="t13 c-gray5 mb4 lh16">${esc(L('请耐心等待赴印尼学习签证办妥；签证下来后，即可按教务指引购买机票、安排行程。教务会通过您预留的联系方式与您联络。','Please wait for your Indonesian study visa. Once it is issued, book flights and plan travel as the office guides you.','Tunggu visa studi Indonesia; setelah keluar, beli tiket sesuai arahan kantor.'))}</div>`:`<div class="t13 c-gray5 mb4 lh16">${esc(L('请留意教务后续通知，并提前安排行程、住宿与生活准备。','Watch for notices from the office and plan travel, housing, and arrival early.','Ikuti pemberitahuan kantor dan siapkan perjalanan serta tempat tinggal.'))}</div>`;
+  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
+    <div class="col center tc mb5">
+      <div style="font-size:56px" class="mb3">🎓</div>
+      <div class="t22 fw7 c-gray8 mb2">${esc(L('恭喜！入学流程已完成','Congratulations — your admission steps are complete','Selamat! Semua langkah penerimaan selesai'))}</div>
+      <div class="t15 fw6 c-indigo6 lh18" style="max-width:26em;margin:0 auto">${esc(L('愿主带领您的脚步，期待与您在印尼相见！','May the Lord guide your steps — we look forward to seeing you in Indonesia!','Semoga Tuhan menuntun langkah Anda — kami rindu bertemu di Indonesia!'))}</div>
     </div>
+    ${waitVisa}
+    <div class="card p4 mb4 col g3" style="border:1px solid #c7d2fe;background:#fafbff">
+      <div class="fw7 c-gray8 t14">${esc(L('行前与联络','Before you travel & contacts','Perjalanan & kontak'))}</div>
+      ${!idPipe?`<div class="b1 bc-gray200 r10 p3 col g2">
+        <div class="fw6 t12 c-gray7">${esc(L('🇮🇩 印尼出行全流程攻略（Word）','🇮🇩 Indonesia travel guide (Word)','🇮🇩 Panduan perjalanan ke Indonesia (Word)'))}</div>
+        <a class="btn btn-outline btn-sm" style="align-self:flex-start" href="assets/guides/indo-travel-guide-2026.docx" download="2026年印尼出行全流程攻略.docx">⬇ ${esc(L('下载攻略文档','Download the guide','Unduh panduan'))}</a>
+      </div>`:''}
+      <div class="b1 bc-gray200 r10 p3 col g2">
+        <div class="fw6 t12 c-gray7">${esc(L('学院官网','Seminary website','Situs seminari'))}</div>
+        <a class="btn btn-primary btn-sm" style="align-self:flex-start" href="https://www.mmseminary.org/en" target="_blank" rel="noopener noreferrer">mmseminary.org →</a>
+      </div>
+      <div class="b1 bc-indigo100 r10 p3 col g2">
+        <div class="fw6 t12 c-gray7">${esc(L('子女就读 Hora 学校','Children enrolling at Hora School','Anak bersekolah di Hora'))}</div>
+        <div class="t12 c-gray6 lh16">${esc(L('若孩子有与您一同前来、并准备就读我校 Hora 学校，请联系 Hora 学校招生办老师：','If your child will travel with you and enroll at our Hora School, please contact the Hora admissions office:','Jika anak ikut dan akan bersekolah di Hora, hubungi admin penerimaan Hora:'))}</div>
+        <a class="t13 fw6" style="word-break:break-all" href="mailto:dorcaschenyx@gmail.com">dorcaschenyx@gmail.com</a>
+      </div>
+    </div>
+  </div>`;
+}
+function renderVisaMatFilesCard(ap){
+  const vf=parseVisaFiles(ap);
+  const spec=visaMaterialsSpecOk(vf);
+  const L=apLine;
+  const st=spec.ok
+    ? `<div class="b1 bc-green200 bg-green50 r10 p3 mb3 t12" style="color:#166534">${esc(L('三项材料已齐，可点击下方保存提交。','All three files are ready. Save below.','Tiga berkas lengkap. Simpan.'))}</div>`
+    : `<div class="b1 bc-amber200 bg-amber50 r10 p3 mb3 t12" style="color:#92400e">${esc(L('尚缺：','Missing: ','Belum: '))}${esc(spec.issues.join('、'))}</div>`;
+  const cur=(label,data,fn)=>data?`<div class="t11 c-gray5 mt1">${esc(L('已保存：','Saved: ','Tersimpan: '))}${esc(fn||label)}</div>`:'';
+  return `<div class="card p4 mb4">
+    <div class="fw7 c-gray8 t14 mb2">${esc(L('学生签证材料（三项必传）','Student visa materials (3 required)','Materi visa (3 wajib)'))}</div>
+    <div class="t12 c-gray5 mb3 lh16">${esc(L('请上传护照扫描件、红底证件照（4×6），以及填写完毕的学生 CV。单文件请勿超过约 2.5MB。','Upload passport scan, red-background photo (4×6), and completed student CV. Max ~2.5MB each.','Unggah paspor, foto merah 4×6, dan CV. Maks ~2.5MB.'))}</div>
+    ${st}
+    <div class="col g4 mb3">
+      <div class="b1 bc-gray200 r10 p3">
+        <div class="fw6 c-gray7 t12 mb2">1 · ${esc(L('护照扫描件','Passport scan','Scan paspor'))}</div>
+        <input type="file" id="visa-file-passport" accept="image/*,.pdf,application/pdf" class="t12" style="max-width:100%">
+        ${cur('passport',vf.passport_data,vf.passport_filename)}
+      </div>
+      <div class="b1 bc-gray200 r10 p3">
+        <div class="fw6 c-gray7 t12 mb2">2 · ${esc(L('红底证件照（4×6）','Red-bg photo (4×6)','Foto latar merah'))}</div>
+        <input type="file" id="visa-file-photo" accept="image/*" class="t12" style="max-width:100%">
+        ${cur('photo',vf.photo_data,vf.photo_filename)}
+      </div>
+      <div class="b1 bc-gray200 r10 p3">
+        <div class="fw6 c-gray7 t12 mb2">3 · ${esc(L('学生 CV（先下载模板填写后再上传）','Student CV (download template, fill, upload)','CV (unduh template, isi, unggah)'))}</div>
+        <div class="mb2"><a class="btn btn-outline btn-sm" href="assets/forms/student-CV-template.pdf" download="student-CV-template.pdf">⬇ ${esc(L('下载 CV 空白模板','Download CV template','Unduh template CV'))}</a></div>
+        <input type="file" id="visa-file-cv" accept=".pdf,.doc,.docx,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="t12" style="max-width:100%">
+        ${cur('cv',vf.cv_data,vf.cv_filename)}
+      </div>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" id="btn-save-visa-files" style="align-self:flex-start">${esc(L('保存签证材料','Save visa materials','Simpan berkas visa'))}</button>
   </div>`;
 }
 function renderVisaStage(ap){
   const L=apLine;
+  const vf=parseVisaFiles(ap);
+  const canComplete=visaMaterialsSpecOk(vf).ok;
   return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
     <div class="t20 fw7 c-gray8 mb1">${esc(L('签证手续办理','Visa process','Proses visa'))}</div>
-    <div class="t13 c-gray5 mb4 lh16">${esc(L('教务将联系您办理赴印尼学习签证及相关材料，请保持手机与邮箱畅通。请在此勾选护照扫描件、证件照等是否已备妥。','The office will guide your study visa. Check below when passport scan and photos are ready.','Kantor akan membantu visa belajar. Centang jika dokumen siap.'))}</div>
+    <div class="t13 c-gray5 mb4 lh16">${esc(L('教务将联系您办理赴印尼学习签证。请在此上传护照扫描件、红底证件照与学生 CV；保存后系统会校验是否交齐、格式是否合规。三项齐全并保存后，可进入「完成」环节查看行前攻略与联络方式。','The office will guide your study visa. Upload and save all three files; when complete, proceed to the final step for travel info and contacts.','Kantor membantu visa. Unggah tiga berkas; jika lengkap, lanjut ke langkah terakhir untuk panduan perjalanan.'))}</div>
     ${renderVisaMatFilesCard(ap)}
     <div class="b1 bc-indigo200 bg-indigo50 r12 p4 t13 c-indigo6 lh16">${esc(L('如有疑问请通过预留联系方式联系教务。','Contact the office if you have questions.','Hubungi kantor jika ada pertanyaan.'))}</div>
+    ${canComplete?`<div class="mt4"><button type="button" class="btn btn-primary" id="btn-applicant-complete-after-visa">${esc(L('签证材料已齐，进入完成环节 →','Visa files complete — go to final step →','Berkas visa lengkap — lanjut ke selesai →'))}</button>
+    <div class="t11 c-gray5 mt2">${esc(L('进入后可见来印尼攻略、学院官网与 Hora 学校招生联系方式。','Next page: travel guide, website, and Hora School contact.','Halaman berikut: panduan, situs, kontak Hora.'))}</div></div>`:''}
   </div>`;
 }
 function renderEnrollmentSurveyMMS(sur,T){
@@ -2756,14 +3098,14 @@ function renderEnrollmentSurveyMMS(sur,T){
   const conf=T('本调查表仅供教牧团队用于入学评估，所有信息将严格保密。','This survey is for pastoral evaluation only. All information will be kept confidential.','Formulir ini hanya digunakan untuk evaluasi penerimaan. Semua informasi dijaga kerahasiaannya.');
   return `
   <div class="t12 c-gray6 lh16 mb4" style="border-left:3px solid #6366f1;padding-left:12px">${esc(conf)}</div>
-  ${sec(`一、 ${T('灵性背景','Spiritual Background','Latar Belakang Rohani')}`,`
+  ${sec(`1. ${T('灵性背景','Spiritual Background','Latar Belakang Rohani')}`,`
     <div class="mb2">${T('圣经整体读过','Bible read through','Sudah membaca seluruh Alkitab')}： ${inpN('bible_read_times')} ${T('遍','times','kali')}</div>
     <div class="mb2">${T('是否每日读经','Daily Bible reading','Membaca Alkitab setiap hari')}： ${ynYN('daily_bible_yn')}</div>
     <div class="mb2">${T('若是，每天','If yes, per day','Jika ya per hari')}： ${inpN('daily_bible_chapters')} ${T('章','chapters','pasal')}</div>
     <div class="mb2">${T('是否每周参加主日','Weekly Sunday worship','Ibadah Minggu rutin')}：${ynYN('weekly_sunday_yn')}</div>
     <div class="mb2">${T('是否有灵异经验（方言、医治等）','Spiritual experiences (tongues, healing, etc.)','Pengalaman rohani')}：${ynYN('spiritual_exp_yn')}</div>
   `)}
-  ${sec(`二、 ${T('健康状况','Health Condition','Kondisi Kesehatan')}`,`
+  ${sec(`2. ${T('健康状况','Health Condition','Kondisi Kesehatan')}`,`
     <div class="fw6 mb2">1. ${T('身体健康状况','Physical Health','Kesehatan Fisik')}</div>
     <div class="mb2">${T('重大疾病史','Major illness history','Riwayat penyakit serius')}： ${ynYN('phy_major_illness')}</div>
     <div class="mb2">${T('若有，疾病名称','If yes, name of illness','Jika ya, nama penyakit')}：${inp('phy_illness_name')}${T('病史：','Duration: ','Riwayat: ')}${inpN('phy_illness_years')}${T('年。',' years.',' tahun.')}</div>
@@ -2777,7 +3119,7 @@ function renderEnrollmentSurveyMMS(sur,T){
     <div class="mb2">${T('是否正在接受治疗','Currently receiving treatment?','Sedang pengobatan?')}： ${ynYN('mental_receiving')}</div>
     <div class="mb2">${T('具体方案','Treatment type','Jenis')}： <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="mental_plan_med" ${sur.mental_plan_med==='yes'?'checked':''} style="accent-color:#4f46e5">${T('药物治疗','Medication','Obat')}</label> <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="mental_plan_phys" ${sur.mental_plan_phys==='yes'?'checked':''} style="accent-color:#4f46e5">${T('物理疗法','Physical therapy','Terapi fisik')}</label></div>
   `)}
-  ${sec(`三、 ${T('生活习惯（一般状况）','Lifestyle (general)','Kebiasaan')}`,`
+  ${sec(`3. ${T('生活习惯（一般状况）','Lifestyle (general)','Kebiasaan')}`,`
     <div class="mb2">${T('吸烟史','Smoking history','Riwayat merokok')}： ${ynHave('smoke_hist')}</div>
     <div class="mb2">${T('若有，烟龄','If yes, years smoking','Jika ya, lama')} ${inpN('smoke_years')}${T('年，每天',' yrs, per day',' thn/hari')} ${inpN('smoke_per_day','3rem')} ${T('根。现在是否已戒断：','/day. Quit now?',' batang. Berhenti?')} ${ynYN('smoke_quit')}</div>
     <div class="mb2">${T('饮酒史','Alcohol history','Riwayat alkohol')}： ${ynHave('alcohol_hist')}</div>
@@ -2792,7 +3134,7 @@ function renderEnrollmentSurveyMMS(sur,T){
     <div class="mb2">${T('是否长期因网络使用影响作息、学习或生活','Internet affecting routine, study or life','Gangguan kehidupan karena internet')}： ${ynYN('net_affect')}</div>
     <div class="mb2">${T('若以上两项任一项为「是」，请简要说明（时间及情况）','If either above is Yes, explain (time & situation)','Jika ya, jelaskan')}：${ta('net_explain',2)}</div>
   `)}
-  ${sec(`四、 ${T('婚姻与性关系状况','Marriage & sexuality','Pernikahan & seksualitas')}`,`
+  ${sec(`4. ${T('婚姻与性关系状况','Marriage & sexuality','Pernikahan & seksualitas')}`,`
     <div class="mb2">${T('婚姻状况','Marital status','Status perkawinan')}：${mkSvRadMulti('marital_stat','single',curMar)}${T('未婚','Single','Belum nikah')} ${mkSvRadMulti('marital_stat','married',curMar)}${T('已婚','Married','Menikah')} ${mkSvRadMulti('marital_stat','divorced',curMar)}${T('离异','Divorced','Cerai')} ${mkSvRadMulti('marital_stat','widowed',curMar)}${T('丧偶','Widowed','Janda/duda')}</div>
     <div class="mb2">${T('配偶信仰状况（如已婚）','Spouse’s faith (if married)','Iman pasangan')}：${inp('spouse_faith')}</div>
     <div class="mb2">${T('是否有过婚前性行为','Premarital sex','Seks pranikah')}： ${ynYN('premarital_sex')}</div>
@@ -2803,12 +3145,12 @@ function renderEnrollmentSurveyMMS(sur,T){
     <div class="mb2">${T('目前情感关系状况','Current relationship status','Status hubungan')}： ${mkSvRadMulti('rel_status','single2',curRel)}${T('单身','Single','Sendiri')} ${mkSvRadMulti('rel_status','dating',curRel)}${T('正在交往','Dating','Pacaran')} ${mkSvRadMulti('rel_status','engaged',curRel)}${T('已订婚','Engaged','Bertunangan')} ${mkSvRadMulti('rel_status','married2',curRel)}${T('已婚','Married','Menikah')}</div>
     <div class="mb2">${T('是否愿意在入学后遵守圣经教导，持守圣洁的婚姻与性关系','Willing to uphold biblical marriage & purity after enrollment','Bersedia menjaga kemurnian')}： ${ynYN('willing_holiness')}</div>
   `)}
-  ${sec(`五、 ${T('财务状况','Financial situation','Keuangan')}`,`
+  ${sec(`5. ${T('财务状况','Financial situation','Keuangan')}`,`
     <div class="mb2">${T('是否存在较大债务压力','Significant debt pressure','Tekanan utang')}： ${ynYN('debt_pressure')}</div>
     <div class="mb2">${T('是否曾因经济问题影响学习或服侍','Economy affecting study/ministry','Ekonomi mempengaruhi studi')}： ${ynYN('eco_affect')}</div>
     <div class="mb2">${T('若以上两项任一项为「是」，请简要说明（时间及情况）','If either is Yes, explain','Jika ya, jelaskan')}：${ta('finance_explain',2)}</div>
   `)}
-  ${sec(`六、 ${T('信仰经历补充','Faith experience supplement','Pengalaman iman')}`,`
+  ${sec(`6. ${T('信仰经历补充','Faith experience supplement','Pengalaman iman')}`,`
     <div class="mb2">${T('是否曾因信仰遭遇逼迫','Persecution for faith','Penganiayaan karena iman')}： ${ynYN('faith_persecute')}</div>
     <div class="mb2">${T('目前是否仍处于相关压力或限制中','Still under related pressure','Masih tekanan')}： ${ynYN('faith_still_pressure')}</div>
     <div class="mb2">${T('是否有因信仰带来的家庭或社会关系张力','Family/social tension from faith','Ketegangan sosial')}： ${ynYN('faith_family_tension')}</div>
@@ -2839,12 +3181,11 @@ function renderMaterials(){
   if(appr) statusBanner=`<div class="b1 bc-green200 bg-green50 r12 p4 mb4 t13" style="color:#15803d">
     <div class="fw7 mb1">${esc(L('批复奖学金额度（最终）','Approved scholarship amount','Jumlah beasiswa yang disetujui'))}</div>
     <div class="t20 fw8">${esc(String(ap.scholarship_amount_approved))}</div>
-    <div class="t12 mt2 lh16">${esc(L('请确认您与家人可承担其余学费及在印生活费用。若经济确有困难无法承担，请直接联系教务（勿按下方按钮）。','Please confirm you can cover remaining tuition and living costs. If it is not feasible, contact the office directly (do not press the button below).','Pastikan Anda sanggup menanggung sisa biaya. Jika tidak, hubungi kantor secara langsing.'))}</div>
-    <button type="button" class="btn btn-primary mt3" id="btn-applicant-confirm-visa">${esc(L('我已确认可承担，进入签证环节 →','I confirm and proceed to visa →','Saya konfirmasi & lanjut ke visa →'))}</button>
+    <div class="t12 mt2 lh16">${esc(L('请确认您与家人可承担其余学费及在印生活费用。若经济确有困难无法承担，请直接联系教务。批复后请点页面下方「进入下一阶段」继续。','Please confirm you can cover remaining tuition and living costs. If not feasible, contact the office. Then use “Continue to next step” below.','Pastikan Anda sanggup menanggung sisa biaya. Jika tidak, hubungi kantor. Lanjutkan dengan tombol di bawah.'))}</div>
   </div>`;
   const mkRad=(name,val,cur)=>`<input type="radio" name="${name}" value="${val}" ${String(cur)===val?'checked':''} style="accent-color:#4f46e5">`;
   const mmsSchTitle=mmsT('美村宣教学院奖助学金申请表\nMeicun Mission Seminary (MMS)','Scholarships and Financial Aid Application Form\nMeicun Mission Seminary (MMS)','Formulir Permohonan Bantuan Keuangan\nMeicun Mission Seminary (MMS)');
-  const incomeHelp=mmsT('收入/资产证明一般包括：\n一、现金及银行类：银行存款证明；近 3–6 个月银行流水。\n二、收入证明：工资证明/雇主开具的收入证明；自由职业者：收入说明+转账记录；教会/差会支持：奉献或资助说明信。\n三、固定资产：房产证明（房产证/购房合同）；车辆证明。\n若由他人资助，请另上传一份相对正式的资助/承诺证明文件（选填项，有则必传）。','Proof of income/assets typically includes:\n(1) Cash/bank: deposit certificate; 3–6 month statements.\n(2) Income: salary letter; self-employed: statement + transfers; church support letters.\n(3) Assets: property/vehicle.\nIf funded by others, upload a formal sponsor document (optional; upload if applicable).','Bukti pendapatan/aset meliputi: deposit & rekening koran 3–6 bulan; surat penghasilan; aset properti/kendaraan. Jika disponsori, unggah dokumen resmi sponsor.');
+  const incomeHelp=mmsT('收入/资产证明一般包括：\n1. 现金及银行类：银行存款证明；近 3–6 个月银行流水。\n2. 收入证明：工资证明/雇主开具的收入证明；自由职业者：收入说明+转账记录；教会/差会支持：奉献或资助说明信。\n3. 固定资产：房产证明（房产证/购房合同）；车辆证明。\n若由他人资助，请另上传一份相对正式的资助/承诺证明文件（选填项，有则必传）。','Proof of income/assets typically includes:\n(1) Cash/bank: deposit certificate; 3–6 month statements.\n(2) Income: salary letter; self-employed: statement + transfers; church support letters.\n(3) Assets: property/vehicle.\nIf funded by others, upload a formal sponsor document (optional; upload if applicable).','Bukti pendapatan/aset meliputi:\n1. Tunai/bank: deposit & rekening koran 3–6 bulan.\n2. Penghasilan: surat gaji; wiraswasta: keterangan+mutasi; gereja: surat dukungan.\n3. Aset: properti/kendaraan.\nJika disponsori, unggah dokumen resmi sponsor.');
   return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
     <div class="t20 fw7 c-gray8 mb3">${esc(L('上传入学资料','Upload admission documents','Unggah dokumen penerimaan'))}</div>
     <div class="card p4 mb4" style="border:1px solid #c7d2fe;background:#fafbff">
@@ -2862,7 +3203,7 @@ function renderMaterials(){
         <div>${mmsT('注册费：$80（不退还）','Registration fee: $80 (non-refundable)','Biaya pendaftaran: $80 (tidak dapat dikembalikan)')}</div>
         <div>${mmsT('最高资助限额：','Max aid limit:','Batas maksimum bantuan:')} <strong>$4,200</strong></div>
       </div>
-      <div class="fw7 mb2">2. ${mmsT('财务申报','Financial declaration','Deklarasi keuangan')}</div>
+      <div class="fw7 mb2">2. ${mmsT('申请额度与自筹说明','Requested amount & self-funding','Jumlah permohonan & sumber dana')}</div>
       <div class="mb2">A. ${mmsT('自筹资金来源','Self-funding sources','Sumber dana mandiri')}</div>
       <div class="col g2 mb2">
         <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('家庭支持：','Family support:','Dukungan keluarga:')}</span><span>$</span><input id="mat-sch-fund-family" class="inp" style="width:120px" value="${esc(sch.family_support||sch.funding_family||'')}"></div>
@@ -2910,11 +3251,13 @@ function renderMaterials(){
       <button type="button" class="btn btn-outline btn-sm mt3" id="btn-save-mat-sch">${schSaved?esc(mmsT('保存本表','Save','Simpan')):esc(mmsT('保存本表','Save','Simpan'))}</button>
     </div>
     <div class="card p4 mb4 mms-form-card" style="font-size:13px;line-height:1.65">
-      <div class="fw7 c-gray8 t14 mb3">${esc(mmsT('① 入学调查表','① Admission survey','① Survei penerimaan'))}</div>
+      <div class="fw7 c-gray8 t14 mb3">${esc(mmsT('1. 入学调查表','1. Admission survey','1. Survei penerimaan'))}</div>
       ${renderEnrollmentSurveyMMS(surDisp,mmsT)}
       <button type="button" class="btn btn-outline btn-sm mt3" id="btn-save-mat-sv">${esc(mmsT('保存本表','Save','Simpan'))}</button>
     </div>
-    <button type="button" class="btn btn-primary btn-full mb3" id="btn-materials-submit-review" ${miss>0||submitted?'disabled':''}>${esc(L('提交全部资料待教务审核','Submit all for office review','Kirim semua untuk ditinjau'))}</button>
+    ${submitted
+      ? `<button type="button" class="btn btn-primary btn-full mb3" id="btn-materials-next-stage">${esc(L('进入下一阶段 →','Continue to next step →','Lanjut ke tahap berikutnya →'))}</button>`
+      : `<button type="button" class="btn btn-primary btn-full mb3" id="btn-materials-submit-review" ${miss>0?'disabled':''}>${esc(L('提交全部资料待教务审核','Submit all for office review','Kirim semua untuk ditinjau'))}</button>`}
     <div class="b1 r12 p3 t13 ${miss===0?'bg-green50 bc-green200':'bg-amber50 bc-amber200'}" style="color:${miss===0?'#15803d':'#92400e'}">
       ${submitted?esc(L('✅ 已向教务提交，请等待批复。','✅ Submitted; pending review.','✅ Terkirim; menunggu.')):miss===0?esc(L('✅ 必填项已齐，可按上方按钮提交审核。','✅ Required items complete.','✅ Lengkap.')):esc(L(`⚠️ 尚有 ${miss} 项未完成：两表均需保存；奖助表须同意条款、上传收入/资产证明与电子签；若选牧师担保信须上传签字扫描件。`,`⚠️ ${miss} item(s) left.`,`⚠️ ${miss} wajib.`))}
     </div>
@@ -3038,7 +3381,7 @@ function renderScholarshipReview(){
     <div class="fw7 c-gray8 t16">奖学金批复</div>
     <div class="t12 c-gray5 lh16">以下为已点击「提交全部资料待审核」的申请人。请结合笔试、面试与家庭经济情况填写<strong>批复额度</strong>（数字）后保存；申请人端将显示该金额。若入学调查表中披露物质使用/成瘾史等，姓名旁会标「需留意」。</div>
     <div class="card" style="overflow:auto">
-      <table class="tbl"><thead><tr><th>申请人</th><th>笔试</th><th>经济概况</th><th>批复额度</th><th>备注</th><th>操作</th></tr></thead>
+      <table class="tbl"><thead><tr><th>申请人</th><th>笔试</th><th>申请额度</th><th>批复额度</th><th>备注</th><th>操作</th></tr></thead>
       <tbody>${list.length?list.map(row).join(''):`<tr><td colspan="6" class="t13 c-gray4 tc" style="padding:24px">暂无已提交资料待批复的记录</td></tr>`}</tbody></table>
     </div>
   </div>`;
@@ -3059,14 +3402,20 @@ function renderAdmin(){
     {id:'scholarship',label:'奖学金批复',icon:'💰'},
     {id:'me',label:'我的',icon:'👤'},
   ];
+  const boot=A.adminDataLoading;
   const stats=[
-    {label:'总申请人',value:A.allApplicants.length,color:'#4f46e5'},
-    {label:'待笔试',value:A.allApplicants.filter(a=>a.stage==='exam').length,color:'#2563eb'},
-    {label:'待面试',value:A.allApplicants.filter(a=>a.stage==='interview').length,color:'#7c3aed'},
-    {label:'资料/签证',value:A.allApplicants.filter(a=>['materials','visa','complete'].includes(a.stage)).length,color:'#16a34a'},
+    {label:'总申请人',value:boot?'—':A.allApplicants.length,color:'#4f46e5'},
+    {label:'待笔试',value:boot?'—':A.allApplicants.filter(a=>a.stage==='exam').length,color:'#2563eb'},
+    {label:'待面试',value:boot?'—':A.allApplicants.filter(a=>a.stage==='interview').length,color:'#7c3aed'},
+    {label:'资料/签证',value:boot?'—':A.allApplicants.filter(a=>['materials','visa','complete'].includes(a.stage)).length,color:'#16a34a'},
   ];
   let content='';
-  if(A.adminTab==='pipeline') content=renderPipeline();
+  if(boot){
+    content=`<div class="card p8 tc" style="max-width:420px;margin:32px auto">
+      <div class="t15 fw6 c-gray7 mb2">正在同步招生数据…</div>
+      <div class="t12 c-gray5 lh16">网络较慢时可能要几秒，数据就绪后看板会自动出现。</div>
+    </div>`;
+  }else if(A.adminTab==='pipeline') content=renderPipeline();
   else if(A.adminTab==='exams') content=renderExams();
   else if(A.adminTab==='schedule') content=renderSchedule();
   else if(A.adminTab==='docs') content=renderDocs();
@@ -3083,7 +3432,7 @@ function renderAdmin(){
       <div class="row g2">${mkAv(avLetter,'sm',isAd?'av-indigo':'av-violet')}<span class="t12 c-gray6">${esc(A.profile?.display_name||A.user?.email||'')}</span><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
     </div>
     <div class="stats">${stats.map(s=>`<div class="stat-card"><div class="t28 fw8" style="color:${s.color}">${s.value}</div><div class="t11 c-gray4 mt1">${s.label}</div></div>`).join('')}</div>
-    <div class="tabbar">${tabs.map(t=>`<button class="tab${A.adminTab===t.id?' active':''}" data-admin-tab="${t.id}">${t.icon} ${t.label}</button>`).join('')}</div>
+    <div class="tabbar"${boot?' style="opacity:.55;pointer-events:none"':''}>${tabs.map(t=>`<button class="tab${A.adminTab===t.id?' active':''}" data-admin-tab="${t.id}">${t.icon} ${t.label}</button>`).join('')}</div>
     <div class="flex1 ovy px6 py4" style="padding-bottom:40px">${content}</div>
     ${selAp?renderApDetailModal(selAp):''}
     ${briefAp?renderBriefingModal(briefAp):''}
@@ -3101,7 +3450,7 @@ function renderPipeline(){
             <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
             <div class="t11 c-gray5 mb1">${esc(examLangLabelShort(getApplicantExamLang(ap)))}</div>
             ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
-            ${ap.interview_slot_id?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
+            ${ap.interview_slot_id&&ap.stage!=='complete'?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
           </div>`;
   const emptyHtml=`<div style="font-size:11px;color:#d1d5db;text-align:center;padding:16px 0;border:2px dashed #f3f4f6;border-radius:12px">暂无</div>`;
   return `<div>
@@ -3313,7 +3662,7 @@ function renderApDetailModal(ap){
         <div class="info-row"><span>电话</span><span class="fw5">${esc(ap.phone||'—')}</span></div>
         <div class="info-row"><span>邮箱</span><span class="fw5">${esc(ap.email||'—')}</span></div>
         <div class="info-row"><span>笔试成绩</span><strong class="c-indigo6">${ap.exam_score??'—'}</strong></div>
-        ${ap.interview_slot_id?`<div class="info-row"><span>面试预约</span><span class="fw6 c-indigo6">${esc(formatInterviewSlotLine(ap))}</span></div>`:''}
+        ${ap.interview_slot_id&&ap.stage!=='complete'?`<div class="info-row"><span>面试预约</span><span class="fw6 c-indigo6">${esc(formatInterviewSlotLine(ap))}</span></div>`:''}
         ${rec?`<div class="info-row"><span>面试评价</span>${mkTag(REC_STYLE[rec.recommendation]?.bg||'#f3f4f6',REC_STYLE[rec.recommendation]?.color||'#6b7280',REC_STYLE[rec.recommendation]?.label||'已填写')}</div>`:''}
       </div>
       <div class="col g2">
@@ -3340,6 +3689,8 @@ function renderBriefingModal(ap){
   const showMatStaff=(A.role==='admin'||A.role==='teacher')&&(schB._saved_at||surB._saved_at||ap.materials_submitted_at);
   const jBrief=j=>{try{return esc(JSON.stringify(j,null,2));}catch(_){return '{}';}
   };
+  const schHumanRows=formatScholarshipHumanZh(schB);
+  const surHumanSecs=formatSurveyHumanSectionsZh(surB);
   return `<div class="modal-overlay" data-action="close-briefing">
     <div class="modal-lg" onclick="event.stopPropagation()">
       <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18 row g2 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','调查表·需留意'):''}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
@@ -3369,7 +3720,7 @@ function renderBriefingModal(ap){
         <div class="info-row"><span class="c-gray5">归主时间</span><span>${esc(ap.conversion_time||'—')}</span></div>
       </div>
 
-      ${ap.interview_slot_id ? `<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">面试预约 · Interview appointment</div>
+      ${ap.interview_slot_id && ap.stage!=='complete' ? `<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">面试预约 · Interview appointment</div>
       <div class="card p4 mb4" style="border:1px solid #c7d2fe;background:#f8faff">
         <div class="info-row"><span class="c-gray5">预约时间 · Scheduled time</span><span class="fw6 c-indigo6">${esc(formatInterviewSlotLine(ap))}</span></div>
         ${ivSl?`<div class="info-row"><span class="c-gray5">负责老师 · Teacher</span><span>${esc(ivSl.teacher_name||'—')}</span></div>
@@ -3393,19 +3744,36 @@ function renderBriefingModal(ap){
       ${showMatStaff?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">入学资料 · 电子表</div>
       <div class="card p4 mb4">
         ${ap.mat_survey_alert?`<div class="b1 bc-red200 bg-red50 r8 p3 mb3 t12" style="color:#991b1b"><strong>⚠ 调查表需教务留意</strong>：${esc(ap.mat_survey_alert_reason||'—')}</div>`:''}
-        <div class="t12 fw6 c-gray6 mb1">奖助学金表（摘要）</div>
-        <div class="t11 c-gray7 mb2 lh16">${esc([schB.requested_amount||schB.amount_requested,schB.family_support,schB.total_self_funded].filter(Boolean).join(' · ').slice(0,400)||'—')} · 履约：${esc(schB.guarantee_type==='pastor_letter'?'牧师担保信':'$300押金')}</div>
+        <div class="t12 fw6 c-gray6 mb1">奖助学金表（可读摘要）</div>
+        <div class="b1 bc-gray100 r8 p2 mb3">${renderBriefStaffRows(schHumanRows)}</div>
         ${(()=>{const fd=schB.financial_proof_data||schB.income_proof_data||ap.mat_financial_proof_data;const fn=schB.financial_proof_filename||schB.income_proof_filename||ap.mat_financial_proof_filename;return fd&&fn?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(fd)}" download="${esc(fn)}">⬇ 收入/资产证明 · ${esc(fn)}</a></div>`:'';})()}
         ${(()=>{const d=schB.applicant_signature_data,f=schB.applicant_signature_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 申请人电子签 · ${esc(f)}</a></div>`:'';})()}
         ${(()=>{const d=schB.pastor_letter_upload_data,f=schB.pastor_letter_upload_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 牧师担保信扫描件 · ${esc(f)}</a></div>`:'';})()}
         ${(()=>{const d=schB.sponsor_proof_data,f=schB.sponsor_proof_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 他人资助证明 · ${esc(f)}</a></div>`:'';})()}
-        <div class="t12 fw6 c-gray6 mb1">入学调查（关键项）</div>
-        <div class="t11 c-gray7 mb2 lh16">${esc(`吸毒史：${(surB.drug_history||surB.drug_hist)==='yes'?'是':'否'}；精神类疾病史：${(surB.mental_illness_history||surB.mental_hist)==='yes'?'是':'否'}；重大疾病：${surB.phy_major_illness==='yes'?'是':'否'}；赌博：${surB.gamble_hist==='yes'?'是':'否'}`)}</div>
-        <details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">完整 JSON · 奖学金表</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(schB)}</pre></details>
-        <details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">完整 JSON · 入学调查</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(surB)}</pre></details>
+        <div class="t12 fw6 c-gray6 mb1">入学调查（可读摘要）</div>
+        ${surHumanSecs.length?renderBriefStaffSections(surHumanSecs):'<div class="t11 c-gray5 mb3">尚无已保存的调查表内容。</div>'}
+        <details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">原始 JSON · 奖学金表（调试用）</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(schB)}</pre></details>
+        <details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">原始 JSON · 入学调查（调试用）</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(surB)}</pre></details>
         ${ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved))?`<div class="t13 fw6 c-green7">已批复奖学金额度：${esc(String(ap.scholarship_amount_approved))}</div>`:''}
         ${ap.materials_submitted_at?`<div class="t11 c-gray4 mt2">资料提交时间：${esc(String(ap.materials_submitted_at).slice(0,19).replace('T',' '))}</div>`:''}
       </div>`:''}
+
+      ${(()=>{
+        const visaF=parseVisaFiles(ap);
+        const visaSpec=visaMaterialsSpecOk(visaF);
+        const showVisaStaff=(A.role==='admin'||A.role==='teacher')&&(STAGE_IDX[ap.stage]>=STAGE_IDX['visa']||visaF._saved_at);
+        if(!showVisaStaff) return '';
+        const vlnk=(d,fn,lab)=>d&&fn?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(fn)}">⬇ ${esc(lab)} · ${esc(fn)}</a></div>`:'';
+        return `<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">学生签材料 · Visa pack</div>
+      <div class="card p4 mb4" style="border:1px solid #a5b4fc;background:#fafbff">
+        ${visaSpec.ok?`<div class="t12 fw6 c-green7 mb2">✓ ${esc(apLine('三份材料已齐','All three files received','Tiga berkas lengkap'))}</div>`:`<div class="t12 fw6 c-amber7 mb2">△ ${esc(apLine('尚未交齐：','Still missing: ','Belum: '))}${esc(visaSpec.issues.join('、'))}</div>`}
+        ${visaF._saved_at?`<div class="t11 c-gray5 mb2">${esc(apLine('最后保存：','Last saved: ','Terakhir: '))}${esc(String(visaF._saved_at).slice(0,19).replace('T',' '))}</div>`:''}
+        ${vlnk(visaF.passport_data,visaF.passport_filename,apLine('护照扫描','Passport','Paspor'))}
+        ${vlnk(visaF.photo_data,visaF.photo_filename,apLine('红底证件照','Photo','Foto'))}
+        ${vlnk(visaF.cv_data,visaF.cv_filename,apLine('学生 CV','Student CV','CV'))}
+        ${isAd&&visaSpec.ok?`<button type="button" class="btn btn-primary btn-sm mt2" data-action="dl-visa-zip" data-apid="${ap.id}">⬇ ${esc(apLine('一键打包 ZIP（文件名：【姓名-学生签材料】）','Download ZIP (【Name-student visa】)','Unduh ZIP'))}</button>`:(isAd?`<div class="t11 c-gray4 mt2">${esc(apLine('三份齐全后管理员可一键打包','ZIP when all three are saved','ZIP setelah lengkap'))}</div>`:'')}
+      </div>`;
+      })()}
 
       ${ap.exam_essay?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">笔试备注（旧约·新约·切换屏幕）· Exam note (OT / NT / screen switches)</div>
       <div class="card p4 mb4"><div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(formatExamEssayForDisplay(ap.exam_essay))}</div></div>`:''}
@@ -3577,6 +3945,11 @@ function render(){
   else if(A.role==='applicant') root.innerHTML=renderApplicant();
   else if(A.role==='teacher'||A.role==='admin') root.innerHTML=renderAdmin();
   bind();
+  const rh=document.getElementById('root-html');
+  if(rh){
+    if(A.role==='applicant') rh.setAttribute('lang',A.appLang==='id'?'id':A.appLang==='en'?'en':'zh-CN');
+    else rh.setAttribute('lang','zh-CN');
+  }
   if(A.role==='applicant'&&A.applicant?.stage==='exam'&&A.examStarted&&!A.examSubmitted) startTimer();
   syncInterviewSlotPoll();
 }
@@ -3795,12 +4168,44 @@ function bind(){
       if(w) w.style.display=r.value==='pastor_letter'?'block':'none';
     });
   });
-  document.getElementById('btn-save-mat-files')?.addEventListener('click',async()=>{
+  document.getElementById('btn-save-visa-files')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
-    const files={passport:!!document.getElementById('mat-file-passport')?.checked,photo:!!document.getElementById('mat-file-photo')?.checked,insurance:!!document.getElementById('mat-file-insurance')?.checked};
-    const {error}=await sb.from('applicants').update({mat_files_json:files}).eq('id',A.applicant.id);
-    if(!error){Object.assign(A.applicant,{mat_files_json:files});toast(apLine('已保存','Saved','Tersimpan'));render();}
-    else toast(apLine('保存失败','Save failed','Gagal'),false);
+    if(A.applicant.stage!=='visa'){toast(apLine('当前不在签证环节','Not in visa stage','Bukan tahap visa'),false);return;}
+    const prev=parseVisaFiles(A.applicant);
+    const readMerge=async(el,kind,prevData,prevFn)=>{
+      const f=el?.files?.[0];
+      if(!f) return {data:prevData,fn:prevFn};
+      const v=validateVisaPickFile(f,kind);
+      if(!v.ok){toast(v.msg,false);throw new Error('bad');}
+      const data=await readFileAsBase64(f);
+      return {data,fn:f.name};
+    };
+    let pD=prev.passport_data,pN=String(prev.passport_filename||'');
+    let phD=prev.photo_data,phN=String(prev.photo_filename||'');
+    let cD=prev.cv_data,cN=String(prev.cv_filename||'');
+    try{
+      const r1=await readMerge(document.getElementById('visa-file-passport'),'passport',pD,pN);
+      pD=r1.data;pN=r1.fn;
+      const r2=await readMerge(document.getElementById('visa-file-photo'),'photo',phD,phN);
+      phD=r2.data;phN=r2.fn;
+      const r3=await readMerge(document.getElementById('visa-file-cv'),'cv',cD,cN);
+      cD=r3.data;cN=r3.fn;
+    }catch(e){if(e.message!=='bad')toast(apLine('读取文件失败','Read failed','Gagal baca'),false);return;}
+    const vf={
+      passport_data:pD,passport_filename:pN||null,
+      photo_data:phD,photo_filename:phN||null,
+      cv_data:cD,cv_filename:cN||null,
+      _saved_at:new Date().toISOString()
+    };
+    const spec=visaMaterialsSpecOk(vf);
+    const {error}=await sb.from('applicants').update({visa_files_json:vf}).eq('id',A.applicant.id);
+    if(!error){
+      Object.assign(A.applicant,{visa_files_json:vf});
+      if(spec.ok) toast(apLine('签证材料已保存，三份已齐','Visa files saved (all 3)','Berkas visa lengkap'));
+      else toast(apLine('已保存。尚未交齐：','Saved. Still missing: ','Tersimpan. Kurang: ')+spec.issues.join('、'));
+      render();
+    }
+    else toast(apLine('保存失败','Save failed','Gagal')+(error.message?': '+error.message:''),false);
   });
   document.getElementById('btn-materials-submit-review')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
@@ -3811,19 +4216,22 @@ function bind(){
     if(!error){A.applicant.materials_submitted_at=new Date().toISOString();toast(apLine('已提交审核，请等待奖学金批复','Submitted; pending scholarship review','Terkirim'));render();}
     else toast(apLine('提交失败','Submit failed','Gagal'),false);
   });
-  document.getElementById('btn-applicant-confirm-visa')?.addEventListener('click',async()=>{
+  document.getElementById('btn-materials-next-stage')?.addEventListener('click',()=>applicantAdvanceFromMaterialsToVisaOrComplete());
+  document.getElementById('btn-applicant-complete-after-visa')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
     const ap=A.applicant;
-    if(ap.stage!=='materials') return;
-    if(ap.scholarship_amount_approved==null||String(ap.scholarship_amount_approved)===''||isNaN(Number(ap.scholarship_amount_approved))){toast(apLine('请等待教务批复奖学金额度后再确认','Wait for approved scholarship amount','Tunggu jumlah beasiswa'),false);return;}
-    if(!confirm(apLine('确认已与家人沟通并可承担剩余费用？将进入「签证」环节。','Confirm you can cover remaining costs and proceed to Visa?','Konfirmasi lanjut ke visa?'))) return;
-    const {data:updRows,error}=await sb.from('applicants').update({stage:'visa'}).eq('id',ap.id).eq('stage','materials').select('id');
+    if(ap.stage!=='visa') return;
+    if(getApplicantExamLang(ap)==='id') return;
+    const vf=parseVisaFiles(ap);
+    if(!visaMaterialsSpecOk(vf).ok){toast(apLine('请先保存并确保三份签证材料齐全','Save all three visa files first','Lengkapi tiga berkas visa'),false);return;}
+    if(!confirm(apLine('确认进入「完成」环节？之后可查看来印尼攻略与联络方式。','Proceed to the final step for travel info and contacts?','Lanjut ke tahap terakhir untuk panduan perjalanan?'))) return;
+    const {data:updRows,error}=await sb.from('applicants').update({stage:'complete'}).eq('id',ap.id).eq('stage','visa').select('id');
     if(error){
       toast(apLine('操作失败','Failed','Gagal')+(error.message?': '+error.message:''),false);
       return;
     }
     if(!updRows||!updRows.length){
-      toast(apLine('未能推进阶段：数据库中当前不是「上传资料」环节，请刷新页面后再试。','Could not advance — your stage may have changed. Refresh and try again.','Gagal — muat ulang halaman.'),false);
+      toast(apLine('未能推进阶段，请刷新后重试。','Could not advance. Refresh and try again.','Gagal — muat ulang.'),false);
       try{
         const {data:f}=await sb.from('applicants').select('stage').eq('id',ap.id).maybeSingle();
         if(f&&f.stage) A.applicant.stage=f.stage;
@@ -3831,8 +4239,8 @@ function bind(){
       render();
       return;
     }
-    A.applicant.stage='visa';
-    toast(apLine('已进入签证环节','Now in Visa stage','Masuk tahap visa'));
+    A.applicant.stage='complete';
+    toast(apLine('已进入完成环节','Now on the final step','Masuk tahap selesai'));
     render();
   });
   root.querySelectorAll('.btn-save-sch-amt').forEach(btn=>{
@@ -3873,7 +4281,11 @@ function bind(){
 
   // ── Briefing ──
   root.querySelectorAll('[data-action=view-briefing]').forEach(el=>{
-    el.addEventListener('click',()=>{A.briefingId=el.dataset.apid;A.selectedApId=null;render();});
+    el.addEventListener('click',async()=>{
+      const apid=el.dataset.apid;
+      if((A.role==='admin'||A.role==='teacher')&&apid) await mergeApplicantHeavyFields(apid);
+      A.briefingId=apid;A.selectedApId=null;render();
+    });
   });
   root.querySelectorAll('[data-action=close-briefing]').forEach(el=>{
     el.addEventListener('click',()=>{A.briefingId=null;render();});
@@ -3895,6 +4307,16 @@ function bind(){
   });
 
   // ── Manual score entry ──
+  root.querySelectorAll('[data-action=dl-visa-zip]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      if(A.role!=='admin'){toast(apLine('仅管理员可打包下载','Admin only','Hanya admin'),false);return;}
+      const apid=el.dataset.apid;
+      const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+      if(!ap) return;
+      try{await downloadVisaMaterialsZip(ap);}catch(_){toast(apLine('打包失败','ZIP failed','ZIP gagal'),false);}
+    });
+  });
+
   root.querySelectorAll('[data-action=save-manual-score]').forEach(el=>{
     el.addEventListener('click',async()=>{
       if(A.role!=='admin'&&A.role!=='teacher'){toast('仅管理员或教师可录入成绩',false);return;}
@@ -4100,9 +4522,11 @@ function bind(){
       if(!ap)return;
       const idx=STAGE_IDX[ap.stage]||0;
       if(idx>=STAGES.length-1)return;
-      const nextStage=STAGES[idx+1].id;
+      let nextStage=STAGES[idx+1].id;
+      if(nextStage==='visa'&&getApplicantExamLang(ap)==='id') nextStage='complete';
+      const nextLabel=(STAGES.find(s=>s.id===nextStage)||{}).label||nextStage;
       const {error}=await sb.from('applicants').update({stage:nextStage}).eq('id',ap.id);
-      if(!error){ap.stage=nextStage;A.selectedApId=null;toast('已推进至：'+STAGES[idx+1].label);render();}
+      if(!error){ap.stage=nextStage;A.selectedApId=null;toast('已推进至：'+nextLabel);render();}
       else toast('操作失败',false);
     });
   });
@@ -4268,7 +4692,13 @@ async function init(){
     }catch(e){
       console.warn(e);
     }
-    if(session){
+    try{
+      const snap=await sb.auth.getSession();
+      session=snap?.data?.session??null;
+    }catch(_){}
+    if(A.role==='applicant'&&A.applicant){
+      /* 用户已在等待 getSession 期间完成申请人登录，勿用职员会话覆盖 */
+    }else if(session){
       A.user=session.user;
       let prof=null;
       try{
@@ -4281,12 +4711,15 @@ async function init(){
       if(prof){
         A.profile=prof;A.role=prof.role;
         if(A.role==='admin'||A.role==='teacher'){
+          A.adminDataLoading=true;
+          try{ render(); }catch(e){ console.warn(e); }
           try{
             await Promise.race([
               loadAdminData(),
               new Promise((_,rej)=>setTimeout(()=>rej(new Error('loadAdminData 超时')),20000)),
             ]);
           }catch(e){ console.warn(e); }
+          A.adminDataLoading=false;
         }
       }
     }
@@ -4302,9 +4735,12 @@ async function init(){
       document.getElementById('root').innerHTML='<div class="p6 tc c-gray6" style="margin-top:48px;font-family:system-ui">页面渲染出错，请刷新或按 F12 查看控制台。</div>';
     }
   }
-  ensureExamQuestionsLoaded()
-    .then(()=>{ try{ render(); }catch(e){ console.warn('render after exam load', e); } })
-    .catch(e=>console.warn('题库后台加载', e));
+  const staffSession=A.role==='admin'||A.role==='teacher';
+  if(!staffSession){
+    ensureExamQuestionsLoaded()
+      .then(()=>{ try{ render(); }catch(e){ console.warn('render after exam load', e); } })
+      .catch(e=>console.warn('题库后台加载', e));
+  }
 }
 
 init().catch(err=>{
