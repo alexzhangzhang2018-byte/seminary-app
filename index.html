@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>神学院招生系统</title>
+<title>神学院招生系统 · Seminary Admissions</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="exam-locale.js"></script>
+<script src="exam-plain-bundled.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f4f5ff;color:#1e1e2e;font-size:14px}
@@ -175,37 +177,672 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 const SUPABASE_URL = 'https://szjduusewnjxacrbbsdf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amR1dXNld25qeGFjcmJic2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjMxNjEsImV4cCI6MjA5MDQzOTE2MX0.7Cg_uOp2Q2wtKaZqVnYdMLvnZJEyh6GyE26xXb-UTBw';
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let sb = null;
+try{
+  if(typeof supabase !== 'undefined'){
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+}catch(e){
+  console.error('Supabase createClient failed:', e);
+}
 
 // ══════════════════════════════════════════════════════════════
 // CONSTANTS
 // ══════════════════════════════════════════════════════════════
 const STAGES = [
-  {id:'apply',     label:'报名',     icon:'📝'},
-  {id:'exam',      label:'笔试',     icon:'📖'},
-  {id:'interview', label:'面试',     icon:'💬'},
-  {id:'result',    label:'录取结果', icon:'🎓'},
-  {id:'materials', label:'提交材料', icon:'📄'},
-  {id:'complete',  label:'完成',     icon:'✅'},
+  {id:'apply',     label:'报名 · Apply',           icon:'📝'},
+  {id:'exam',      label:'笔试 · Exam',            icon:'📖'},
+  {id:'interview', label:'面试 · Interview',      icon:'💬'},
+  {id:'result',    label:'录取结果 · Result',     icon:'🎓'},
+  {id:'materials', label:'提交材料 · Materials',  icon:'📄'},
+  {id:'complete',  label:'完成 · Complete',       icon:'✅'},
 ];
 const STAGE_IDX = Object.fromEntries(STAGES.map((s,i)=>[s.id,i]));
 
-const EXAM_Qs = [
-  {id:1,type:'single',q:'旧约中，摩西带领以色列人出埃及经过的海是？',opts:['红海','地中海','死海','加利利海'],ans:0},
-  {id:2,type:'single',q:'《约翰福音》中，"道成肉身"出自第几章？',opts:['第1章','第3章','第5章','第14章'],ans:0},
-  {id:3,type:'single',q:'保罗"爱是恒久忍耐，又有恩慈"出自哪卷书？',opts:['罗马书','加拉太书','哥林多前书','以弗所书'],ans:2},
-  {id:4,type:'single',q:'尼西亚信经确立于哪年？',opts:['325年','451年','590年','1054年'],ans:0},
-  {id:5,type:'essay',q:'请简述你对"呼召"（Calling）的理解，以及申请本项目的动机（100-200字）。'},
-];
+// 内嵌题目来源：由你提供的“答案版”转换得到的纯文本（本地解析后自动批卷）
+const EXAM_TEXT_SRC = `旧约部分（50分）
+一、填空题（每空0.5分，共20分）
+创世记1-11章共记录了四件大事，分别是：（每空1分）
+创造 、 堕落 、 挪亚洪水 、 巴别塔事件
+2.神说：“我们要照着我们的{形象}、按着我们的{样式}造人，使他们管理{海里的鱼}、{空中的鸟}、地上的牲畜，和全地，并地上所爬的一切昆虫。”（创1:26）
+3.我又要叫你和女人彼此为仇；你的后裔和女人的后裔也彼此为仇。女人的后裔要伤你的{头}，你要伤他的{脚跟}。”（创世记3:15）
+{雅各}的记略如下：约瑟十七岁与他哥哥们一同牧羊。他是个童子，与他父亲的妾辟拉、悉帕的儿子们常在一处。约瑟将他哥哥们的恶行报给他们的父亲。（创世记37:2）
+5.约瑟对他弟兄们说：“我要死了，但神必定看顾你们，领你们从这地上去，到他起誓所应许给{亚伯拉罕}、{以撒}、{雅各}之地。”约瑟叫以色列的子孙起誓说：“神必定看顾你们，你们要把我的骸骨从这里搬上去。”约瑟死了，正一百一十岁。人用香料将他薰了，把他收殓在棺材里，停在{埃及}。（创世记50:24-26）
+6.有一个{利未}家的人，娶了一个{利未}女子为妻。那女人怀孕，生一个儿子，见他俊美，就藏了他三个月。（出埃及记2:1-2）
+7.神对摩西说：“{我是自有永有的}；”又说：“你要对以色列人这样说：‘那自有的打发我到你们这里来。’”（出埃及记3:14）
+8.每逢七月初十日，你们要{刻苦己心}，无论是本地人，是寄居在你们中间的外人，什么工都不可作；这要作你们永远的定例。因在这日要为你们{赎罪}，使你们洁净，你们要在耶和华面前得以洁净，脱尽一切的罪愆。这日你们要守为圣安息日，要{刻苦己心}；这为永远的定例。（利未记16:29-31）
+9.凡以色列家中的人，或是寄居在他们中间的外人，若吃什么血，我必向那吃血的人变脸，把他从民中剪除。因为活物的{生命}是在血中，我把这血赐给你们，可以在坛上为你们的生命{赎罪}。因血里有{生命}，所以能{赎罪}。（利未记17:10-11）
+10在申命记中，摩西嘱咐百姓过了约旦河后，西缅、利未、犹大、以萨迦、约瑟、便雅悯六个支派的人都要站在{基利心山}上为百姓祝福。流便、迦得、亚设、西布伦、但、拿弗他利六个支派的人都要站在{以巴路山}上宣布咒诅。
+11.摩西打发去窥看迦南地的十二个探子中，有信心的两个分别是：{约书亚}和{迦勒}。
+12.我要作他的{父}，他要作我的{子}；他若犯了罪，我必用人的杖责打他，用人的鞭责罚他。但我的慈爱仍不离开他，像离开在你面前所废弃的{扫罗}一样。你的{家}和你的{国}，必在我面前永远坚立。你的国位也必坚定，直到永远。’”（撒母耳下7:14-16）
+13.路得记的前面一卷书是：{士师记}，后面一卷书是{撒母耳记}。
+二、单选题（每题0.5分，共5分）
+1. 亚伯拉罕之约的内容有误的是 D
+A. 亚伯拉罕之约的内容记录在创世记12、15、17、22章中。
+B. 神与亚伯拉罕立约的仪式中，耶和华以冒烟的炉与火把的形象独自走过立约的血路。
+C. 亚伯拉罕之约的外在记号是割礼。
+D. 神应许亚伯拉罕他的子孙中必出事奉上帝的祭司。
+2. 根据出埃及记第1章，以下关于希伯来收生婆的陈述哪一项最准确？ C
+A. 她们因害怕埃及王，便将所有男孩杀死。 B. 她们名叫施弗拉和米利暗。C. 她们敬畏神，没有遵行埃及王的命令。 D. 她们只帮助埃及妇人接生，不管希伯来人。
+3. 在十灾中，从哪一灾“开始”记录耶和华区分了他的百姓以色列人和埃及人。 C
+A. 蛙灾 B. 虱灾 C. 蝇灾 D. 畜疫之灾
+4.民数记中记录了两次数点以色列的人数，两次数点分别是多少人？（A）
+A. 第一次603550；第二次601730 B. 第一次1203550；第二次601730
+C. 第一次603550；第二次1201730 D. 第一次1203550；第二次1201730
+5. 出埃及记和申命记都记录了“十诫”，请问两卷书中所记录的最大的不同是哪一诫命？（D）
+A. 第一诫命 B. 第二诫命 C. 第三诫命 D. 第四诫命
+6. 关于拿细耳人的条例，记录在哪一卷书中？（C）
+A. 出埃及记 B. 利未记 C. 民数记 D. 申命记
+7. 以下诗篇哪一章不是大卫的诗（D）
+A. 诗篇3 B. 诗篇18 C. 诗篇22 D. 诗篇90
+8.以下那句话不是出自箴言？（A）
+A. 智慧从何处来呢？聪明之处在哪里呢？是向一切有生命的眼目隐藏，向空中的飞鸟掩蔽。灭没和死亡说：“我们风闻其名。”
+B. 智慧建造房屋，凿成七根柱子，宰杀牲畜，调和旨酒，设摆筵席。
+C. 得智慧胜似得金子；选聪明强如选银子。
+D. 爱慕智慧的，使父亲喜乐，与妓女结交的，却浪费钱财。
+9. 以下哪一项不是耶利米书中的异象（A）
+A.一个飞行的书卷 B.两筐无花果在殿中 C.一个向北而倾、烧开的锅 D.一根杏树枝
+10. 以下哪卷先知书的对象和其他书卷不同？（B）
+A.弥迦书 B.俄巴底亚书 C.哈巴谷书 D.西番雅书
+三、连线题（每题0.5分，共5分）
+请根据创世记49章雅各的嘱咐，把雅各儿子的名字和对应的预言连在一起：
+（F）1. 流便
+A. 必做路上的蛇，咬伤马蹄，使骑马的坠落
+（H）2. 西缅与利未
+B. 出肥美的食物，出君王的美味
+（K）3. 犹大
+C. 是撕掠的狼，早晨吃所抓的，晚上分所夺的
+（E）4. 西布伦
+D. 是强壮的驴，卧在羊圈之中，成为服苦的仆人
+（D）5. 以萨迦
+E. 必住在海口，成为停船之处，境界必延到西顿
+（A）6. 但
+F. 虽是长子，但放纵情欲，不可居首位
+（I）7. 迦得
+G. 是被释放的母鹿，出嘉美的言语
+（B）8. 亚设
+H. 他们的刀剑是残忍的器具，要分散在以色列中
+（G）9. 拿弗他利
+I. 必被敌军追逼，他却要追逼他们的脚跟
+（J）10. 约瑟
+J. 与弟兄迥别之人，是多结果子的树枝
+（C）11. 便雅悯
+K. 圭、杖必不离开他，万民都必归顺他
+四、判断题（每题0.5分，共5分，对的打√，错的打×）
+1. ___ ×____上帝在第五天创造了月亮和星星。
+2.____√___约书亚是摩西的继承人，继续带领以色列人进入迦南地，得到土地并分土地。
+3. ___√____约旦河东两个半支派是：流便、迦得、玛拿西。
+4. ____×____故意杀人的进入逃城也可以免于死亡，直到大祭司卸任。
+5. ____×____耶和华允许用羊奶煮山羊羔。
+6. ____×____出埃及记详细记录了会幕中所使用的香和圣膏油的做法，是为了让百姓照着这个方式来做香和膏油，好用在他们自己身上，随时闻耶和华的馨香之气。
+7. ____×____在以赛亚时就已经发生了以色列被掳。
+8. ____√____在但以理书中用圣殿中的器具饮酒的是伯沙撒王。
+9. ____×____约伯的朋友们认为约伯的遭遇和罪有关，并要他好好认罪是正确的。
+10. ___√____历代志中也同样提及了大卫数点人数的罪。
+五、排序题（每题1分，共5分，顺序错误不得分）
+1.请按在创世记中出现的顺序为经文排序 CABD
+A.日落天黑，不料有冒烟的炉，并烧着的火把，从那些肉块中经过。
+B.我必使你的后裔极其繁多，国度从你而立，君王从你而出。
+C.为你祝福的，我必赐福与他；那咒诅你的，我必咒诅他。地上的万族都要因你得福。”
+D.地上万国都必因你的后裔得福，因为你听从了我的话。
+2.按时间先后给约书亚记中的以下事件排序 BADC
+A.攻取耶利哥城 B.在吉甲第二次给以色列人行割礼
+C.基遍人欺瞒约书亚 D.亚干犯罪使以色列受连累
+3.为以下大卫所经历的事件排序 DBAC
+A.约押杀害押尼珥 B.大卫与亚玛力人争战
+C.大卫运送约柜到耶路撒冷 D.拿八被神击打而死，大卫娶亚比该为妻
+4.请按在以赛亚书中出现的顺序，为以下经文排序 BACD
+A.以马内利啊，他展开翅膀，遍满你的地。
+B.主自己要给你们一个兆头，必有童女怀孕生子，给他起名叫以马内利。
+C.因有一婴孩为我们而生，有一子赐给我们，政权必担在他的肩头上。他名称为奇妙、策士、全能的神、永在的父、和平的君。
+D.从耶西的本必发一条，从他根生的枝子必结果实。
+5.请按以西结书中出现的顺序，为以下经文排序 ACDB
+A.迦巴鲁河边见到四活物的异象 B.神让以西结看到耶路撒冷城的偶像
+C.让以西结吃书卷 D.让以西结对着耶路撒冷城躺卧
+六、默写题（每题2分，共10分）
+1.创世记12:1-3 耶和华对亚伯兰说：“你要离开本地、本族、父家，往我所要指示你的地去。 2 我必叫你成为大国。我必赐福给你，叫你的名为大；你也要叫别人得福。 3 为你祝福的，我必赐福与他；那咒诅你的，我必咒诅他。地上的万族都要因你得福。”
+2出埃及记34: 6-7耶和华在他面前宣告说：“耶和华，耶和华，是有怜悯有恩典的神，不轻易发怒，并有丰盛的慈爱和诚实， 7 为千万人存留慈爱，赦免罪孽、过犯，和罪恶，万不以有罪的为无罪，必追讨他的罪，自父及子，直到三、四代。”
+3.箴言1:7 敬畏耶和华是知识的开端；愚妄人藐视智慧和训诲。
+4.以赛亚书53:4-5他诚然担当我们的忧患，背负我们的痛苦；我们却以为他受责罚，被　神击打苦待了。
+哪知他为我们的过犯受害，为我们的罪孽压伤。因他受的刑罚，我们得平安；因他受的鞭伤，我们得医治。
+5.玛拉基书4:5-6 “看哪，耶和华大而可畏之日未到以前，我必差遣先知以利亚到你们那里去。他必使父亲的心转向儿女，儿女的心转向父亲，免得我来咒诅遍地。”
+新约部分（50分）
+一、填空题（每空0.5分，共20分）
+1.耶稣说：“天国近了，你们应当{悔改}。（太4:17）
+2.你们要{完全}，像你们的天父{完全}一样。（太5:48）
+3.因为人子来，并不是要受人的服侍，乃是要服侍人，并且要{舍命}作多人的{赎价}。（可10:45）
+4.耶稣说：“今天救恩到了这家，因为他也是{亚伯拉罕}的子孙。 人子来，为要寻找、拯救{失丧}的人。（路19:9-10）
+5.凡{父所赐给我}的人必到我这里来；到我这里来的，我总不{丢弃}他。因为我从天上降下来，不是要按自己的意思行，乃是要按那差我来者的意思行。（约6:37-38）
+6.但圣灵降临在你们身上，你们就必得着能力，并要在{耶路撒冷}、{犹太全地}和{撒玛利亚}，直到{地极}，作我的见证。（徒1:8）
+7.我们既因信称义，就藉着我们的主耶稣基督得与神{相和}。我们又藉着他，因信得进入现在所站的这恩典中，并且欢欢喜喜盼望{神的荣耀}。（罗5:1-2）
+8.这样，怎么说呢？我们可以仍在罪中叫恩典显多吗？断乎不可！我们在{罪上死了}的人岂可仍在罪中活着呢？（罗6:1-2）
+9.因为{十字架的道理}，在那灭亡的人为愚拙；在我们得救的人，却为神的大能。（林前1:18）
+10.论到祭偶像之物，我们晓得我们都有{知识}。但{知识}是叫人自高自大，惟有{爱心}能造就人。（林前8:1）
+11.我们在一切{患难}中，他就{安慰}我们，叫我们能用神所赐的{安慰}去{安慰}那遭各样{患难}的人。（林后1：4）
+12.此等不信之人被这{世界的神}弄瞎了心眼，不叫基督荣耀福音的光照着他们。基督本是神的像。（林后4:4）
+13.圣灵所结的果子，就是仁爱、喜乐、和平、忍耐、恩慈、良善、{信实}、温柔、节制。”（加5:22）
+14.我因{律法}，就向{律法}死了，叫我可以向神活着。（加2:19）
+15.并且照明你们心中的眼睛，使你们知道他的{恩召}有何等指望，他在圣徒中得的{基业}有何等丰盛的荣耀；并知道他向我们这信的人所显的{能力}是何等浩大。（弗1：18-19）
+16.爱子是那不能看见之神的{像}，是{首生}的，在一切被造的以先。（西1:15）
+17.在神我们的父面前，不住地记念你们因{信心}所做的工夫，因{爱心}所受的劳苦，因{盼望}我们主耶稣基督所存的忍耐。（帖前1:3）
+18.人不拘用什么法子，你们总不要被他诱惑；因为那日子以前，必有{离道反教}的事，并有那大罪人，就是沉沦之子，显露出来。（帖后2:3）
+19.耶稣基督的{启示}，就是神赐给他，叫他将{必要快成}的事指示他的众仆人。他就差遣使者晓谕他的仆人约翰。（启1:1）
+二、选择题（每题0.5分，共10分）
+1.哪一项不是马太福音登山宝训中的内容（D）
+A.关于婚姻的教导 B.耶稣来不是要废掉律法和先知，乃是都要成全
+C.关于禁食的教训 D.新酒不能装在旧皮袋里
+2.马可福音中说“我要差遣我的使者在你前面，预备道路。”这句话引用自哪一先知书？（C） A. 以赛亚书 B. 哈该书 C. 玛拉基书 D. 耶利米书
+3.“他必有以利亚的心志能力，行在主的前面，叫为父的心转向儿女，叫悖逆的人转从义人的智慧，又为主预备合用的百姓。”（路1:17）这段经文和旧约哪卷先知书的预言有关？（D）
+A.以赛亚书 B.以西结书 C.但以理书 D.玛拉基书
+4.以下哪一事件只有路加福音记载？（B） A. 耶稣在水面行走 B. 撒该悔改 C. 五饼二鱼 D. 洗脚礼
+5.约翰福音记录的五饼二鱼的神迹对应的节期是？ （A） A. 逾越节 B. 五旬节 C. 住棚节 D. 经文未明言
+6.保罗传福音到希腊世界所到的第一座城市是（B） A.以哥念 B.腓立比 C.雅典 D.以弗所
+7.罗马书中说：“亚伯拉罕所信的，是那叫死人复活、使无变为有的　神，他在主面前作我们世人的父。”（罗4:17）与这段经文对应的事件是（B） A.亚伯拉罕献以撒 B.亚伯拉罕生以撒 C.神为亚伯拉罕预备羔羊 D.神与亚伯拉罕立约
+8.“所以，你们要知道：那以信为本的人，就是亚伯拉罕的子孙……可见那以信为本的人和有信心的亚伯拉罕一同得福。”本段经文的出处是（C） A.罗马书 B.哥林多前书 C.加拉太书 D.以弗所书
+9.以下哪一项不是哥林多前书提到的教会问题？（B） A.淫乱问题 B.关于吃血的问题 C.关于婚姻问题 D.关于属灵恩赐问题
+10.“所应许的原是向亚伯拉罕和他子孙说的。神并不是说‘众子孙’，指着许多人，乃是说‘你那一个子孙’，指着一个人，就是基督。”这段经文出自哪卷书（A） A.加拉太书 B.以弗所书 C.腓利比书 D.歌罗西书
+11.“我们若信耶稣死而复活了，那已经在耶稣里睡了的人，神也必将他们与耶稣一同带来。”这段经文出自哪卷书（A） A.帖撒罗尼迦前书 B.帖撒罗尼迦后书 C.犹大书 D.启示录
+12.以下经文出自哪一卷书？（敬虔加上知足的心便是大利了）（D） A.马可福音 B.箴言 C.罗马书 D.提摩太前书
+13.“这奥秘在以前的世代没有叫人知道，像如今藉着圣灵启示他的圣使徒和先知一样。这奥秘就是外邦人在基督耶稣里，藉着福音，得以同为后嗣，同为一体，同蒙应许”。这段经文出自哪卷书？（D） A.提摩太前书 B.约翰一书 C.使徒行传 D.以弗所书
+14.以下书信中，哪两卷书主题和内容比较接近？（D） A.加拉太书、以弗所书 B.以弗所书、腓立比书 C.彼得前书、彼得后书 D.彼得后书、犹大书
+15.以下哪卷书讲到敌基督？（B） A.以弗所书 B.帖撒罗尼迦后书 C.提摩太后书 D.希伯来书
+16.哪封书信没有提及教会中的具体问题？（B） A.加拉太书 B.以弗所书 C.约翰一书 D.雅各书
+17.腓利门书是保罗是为哪个人写信给腓利门？（B） A.提多 B.阿尼西母 C.亚居拉 D.革利免
+18.“我们从前将我们主耶稣基督的大能和他降临的事告诉你们，并不是随从乖巧捏造的虚言，乃是亲眼见过他的威荣。”这段经文出自哪卷书（C） A.使徒行传 B.彼得前书 C.彼得后书 D.约翰一书
+19.以下哪项不是希伯来书的经文（B） A.既有必进安息的人，那先前听见福音的，因为不信从，不得进去。 B.弟兄们哪，你们要忍耐，直到主来。看哪，农夫忍耐等候地里宝贵的出产，直到得了秋雨春雨。 C.但基督为儿子，治理　神的家；我们若将可夸的盼望和胆量坚持到底，便是他的家了。 D.这些人都是因信得了美好的证据，却仍未得着所应许的。
+20.以下哪个异象不是约翰在启示录中所见的（A） A.飞行的书卷 B.七印 C.七号 D.小书卷
+三、判断题（每题0.5分，共5分）
+1.前三卷福音书都有耶稣医治西门岳母的记录。 （ √ ）
+2.约翰福音中宣告耶稣是神所差来的，是在说耶稣是神。 （ √ ）
+3.福音书中魔鬼的三次试探都是为了引诱耶稣背叛神。 （ × ）
+4.在罗马书中保罗说他想去罗马，是因为罗马是保罗建立和牧养的教会。 （ × ）
+5.哥林多前书中提及的教会问题包括敌基督和假教师的问题。 （ × ）
+6.歌罗西书要处理的问题是教会受理学和虚空的妄言影响。 （ √ ）
+7.提摩太前书、提摩太后书、提多书都内容主题相似。 （ × ）
+8.彼得前书和雅各书提到的试炼都和教会面对的逼迫有关。 （ × ）
+9.希伯来书引用以色列在旷野倒毙的例子是为了警戒今天的我们。 （ √ ）
+10.启示录没有被责备的教会是推亚推喇教会。 （ × ）
+四、排序题（每题1分，共5分，顺序错误不得分）
+1.请按在马可福音中出现的先后顺序为以下事件排序 BADC
+A.耶稣使四千人吃饱 B.耶稣在水面行走
+C.登山变像 D.彼得认信
+2.请按在路加福音中复活叙事的顺序为以下事件排序 BACD
+A.耶稣向以马忤斯路上的两个门徒显现 B.天使向妇女显现
+C.耶稣向使徒显现 D.耶稣向使徒讲解圣经并颁布使命
+3.请按在使徒行传中出现的先后顺序为以下宣告排序 BCDEA
+A.雅各受难 B.亚拿尼亚与撒非喇被击打
+C.司提反殉道 D.撒玛利亚人接受福音
+E.保罗归主
+4.请按在使徒行传中出现的先后顺序为以下事件排序 BDAEC
+A.保罗到达腓利比 B.保罗到了彼西底的安提阿 C.保罗到达雅典D.保罗到达路司得 E.保罗到达帖撒罗尼迦
+5.请按在启示录中出现的先后顺序为以下经文排序 BCADE
+A.龙与妇人争战 B.天上的敬拜 C.七印展开
+D.海中的兽和陆地上的兽 E.巴比伦大城倒塌
+五、默写题（每题2分，共10分）
+1.马可福音1:14-15 约翰下监以后，耶稣来到加利利，宣传神的福音，说：“日期满了，神的国近了。你们当悔改，信福音！”
+2.约翰福音14:6 耶稣说：“我就是道路、真理、生命；若不藉着我，没有人能到父那里去。
+3.罗马书5:7-8为义人死，是少有的；为仁人死，或者有敢做的。惟有基督在我们还作罪人的时候为我们死，神的爱就在此向我们显明了。
+4.加拉太书2:20我已经与基督同钉十字架，现在活着的不再是我，乃是基督在我里面活着；并且我如今在肉身活着，是因信　神的儿子而活；他是爱我，为我舍己。
+5.希伯来书8:1-2我们所讲的事，其中第一要紧的，就是我们有这样的大祭司，已经坐在天上至大者宝座的右边，在圣所，就是真帐幕里，作执事；这帐幕是主所支的，不是人所支的。
+`;
+
+function parseLetterItems(str){
+  const cleaned = String(str||'').replace(/\s+/g,' ').trim();
+  if(!cleaned) return {};
+  const re = /([A-Z])\.\s*/g;
+  let m;
+  const parts = [];
+  while((m=re.exec(cleaned))){
+    // 用下一选项「A./B. 起始下标」作为切片终点，不能用 lastIndex（已在 “B.” 之后），否则会带上 “ B.” 等尾巴
+    parts.push({letter:m[1], valueStart:re.lastIndex, keyIndex:m.index});
+  }
+  if(parts.length===0) return {};
+  const map = {};
+  for(let i=0;i<parts.length;i++){
+    const letter = parts[i].letter;
+    const start = parts[i].valueStart;
+    const end = (i+1<parts.length)?parts[i+1].keyIndex:cleaned.length;
+    map[letter] = cleaned.slice(start, end).trim();
+  }
+  return map;
+}
+
+/** 中文默写：从整行截取「书卷+章:节」作题干，全文作 expected（剥离 Word 隐形格式符，避免「希伯来书‬8」类断节） */
+function extractZhDictationRef(rawLine){
+  let t = String(rawLine||'')
+    .replace(/^\d+\.?\s*/, '')
+    .replace(/[\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff\ufe00-\ufe0f]/g, '')
+    .trim();
+  let m = t.match(/^([\u4e00-\u9fff]+?)(\d+)\s*[:：]\s*(\d+)(?:[-–](\d+))?/);
+  if(!m) m = t.match(/^([\u4e00-\u9fff]+)\D*(\d+)\s*[:：]\s*(\d+)(?:[-–](\d+))?/);
+  if(!m){
+    const cut = t.match(/^([\u4e00-\u9fff]+\d+:\d+(?:[-–]\d+)?)/);
+    return { ref: cut ? cut[1] : t.split(/[，。；\s“"「]/)[0].slice(0, 28), expected: t };
+  }
+  const ref = m[1].trim() + m[2] + ':' + m[3] + (m[4] ? '-' + m[4] : '');
+  return { ref, expected: t };
+}
+
+/** 英/印默写题干：从标准答案行首截取书卷与章节，与 exam-locale.js 逻辑一致 */
+function extractLatinDictRefFromExpected(block){
+  const s = String(block||'').replace(/^\d+\.\s*/, '').trim();
+  const m = s.match(/^((?:[A-Z][a-z]+)(?:\s+[A-Z][a-z]+)*\s+\d+:\d+(?:-\d+)?)\b/);
+  return m ? m[1] : '';
+}
+
+function buildExamQuestionsFromText(text){
+  // docx 转纯文本时可能会残留一部分 Word XML 标签（如 <w:t> / <w:tab>），
+  // 这些会干扰解析；这里先统一剥离标签，保留中间的可见文本。
+  const cleanedText = String(text||'').replace(/<[^>]+>/g,'');
+  const lines = cleanedText.split(/\r\n|\n|\r/).map(l=>l.trim()).filter(Boolean);
+  const questions = [];
+  let section = null; // 'ot' | 'nt' | null
+  const pushQ = q => questions.push({...q, section});
+  let qid = 1;
+  const idxMapSingle = {A:0,B:1,C:2,D:3};
+  let i = 0;
+  while(i < lines.length){
+    const line = lines[i];
+
+    if(line.startsWith('旧约部分')){ section = 'ot'; i++; continue; }
+    if(line.startsWith('新约部分')){ section = 'nt'; i++; continue; }
+
+    // Fill in blanks
+    if(line.startsWith('一、填空题')){
+      const m = line.match(/每空([0-9.]+)分/);
+      const perBlank = m?parseFloat(m[1]):0.5;
+      i++;
+      while(i < lines.length && !lines[i].startsWith('二、')){
+        const l = lines[i];
+        if(l.includes('<w:')){ i++; continue; }
+        const braceMatches = [...l.matchAll(/\{([^}]+)\}/g)];
+        if(braceMatches.length){
+          const answers = braceMatches.map(x=>x[1]);
+          const prompt = l.replace(/\{[^}]+\}/g,'____');
+          const per = (l.match(/每空\s*([0-9.]+)分/)||[])[1]?parseFloat((l.match(/每空\s*([0-9.]+)分/)||[])[1]):perBlank;
+          pushQ({id:qid++, type:'fill', prompt, answers, blanks:answers.length, score:answers.length*per});
+          i++;
+          continue;
+        }
+        if(l.includes('分别是')){
+          const per = (l.match(/每空\s*([0-9.]+)分/)||[])[1]?parseFloat((l.match(/每空\s*([0-9.]+)分/)||[])[1]):perBlank;
+          const next = lines[i+1]||'';
+          if(next.includes('、')){
+            const answers = next.split('、').map(s=>s.trim()).filter(Boolean);
+            pushQ({id:qid++, type:'fill', prompt:l+'（请填写）', answers, blanks:answers.length, score:answers.length*per});
+            i += 2;
+            continue;
+          }
+        }
+        i++;
+      }
+      continue;
+    }
+
+    // Single choice / choice
+    if(line.startsWith('二、单选题') || line.startsWith('二、选择题')){
+      i++;
+      while(i < lines.length && !lines[i].startsWith('三、')){
+        const l = lines[i];
+        if(!/^\d+\./.test(l)){ i++; continue; }
+
+        let ans = null;
+        const mParen = l.match(/（([A-D])）/);
+        if(mParen) ans = mParen[1];
+        else {
+          const mEnd = l.match(/\s([A-D])\s*$/);
+          if(mEnd) ans = mEnd[1];
+        }
+        if(!ans){ i++; continue; }
+
+        let prompt = '';
+        let options = ['','','',''];
+
+        // embedded options on the same line
+        if(l.includes('A.') && l.includes('B.') && l.includes('C.') && l.includes('D.')){
+          const startA = l.indexOf('A.');
+          prompt = l.slice(0,startA).replace(/^\d+\.\s*/,'').replace(/（[A-D]）/g,'').trim();
+          const optMap = parseLetterItems(l.slice(startA));
+          options = ['A','B','C','D'].map(L=>optMap[L] || '');
+        } else {
+          prompt = l.replace(/^\d+\.\s*/,'').replace(/（[A-D]）/g,'').replace(/\s+[A-D]\s*$/,'').trim();
+          let j = i+1;
+          let optStr = '';
+          while(j < lines.length && !/^\d+\./.test(lines[j]) && !lines[j].startsWith('三、')){
+            if(/[A-D]\./.test(lines[j])) optStr += (optStr?' ':'') + lines[j];
+            j++;
+          }
+          const optMap = parseLetterItems(optStr);
+          options = ['A','B','C','D'].map(L=>optMap[L] || '');
+          i = j-1;
+        }
+
+        // 题干仅有一句经文（全角括号）时补全提问，避免卷面像「只有半句话」
+        if(/^（[^）]+）$/.test(prompt)){
+          prompt = '以下经文出自哪一卷书？' + prompt;
+        }
+
+        pushQ({
+          id:qid++,
+          type:'single',
+          prompt,
+          options,
+          answer_index:idxMapSingle[ans],
+          score:0.5
+        });
+        i++;
+      }
+      continue;
+    }
+
+    // Matching (only in old part)
+    if(line.startsWith('三、连线题')){
+      const prompt = (lines[i+1]||'').trim();
+      i++;
+      const left_items = [];
+      const left_correct_letters = [];
+      const right_map = {};
+      while(i < lines.length && !lines[i].startsWith('四、判断题')){
+        const l = lines[i];
+        const mLeft = l.match(/^（([A-Z])）\d+\.\s*(.+)$/);
+        if(mLeft){
+          left_correct_letters.push(mLeft[1]);
+          left_items.push(mLeft[2].trim());
+          i++;
+          continue;
+        }
+        const mRight = l.match(/^([A-Z])\.\s*(.+)$/);
+        if(mRight){
+          right_map[mRight[1]] = mRight[2].trim();
+          i++;
+          continue;
+        }
+        i++;
+      }
+      const right_letters = Object.keys(right_map).sort();
+      const right_items = right_letters.map(L=>right_map[L]);
+      const right_index = {};
+      right_letters.forEach((L,idx)=>right_index[L]=idx);
+      const answer_map = left_correct_letters.map(L=>right_index[L]);
+      pushQ({
+        id:qid++,
+        type:'match',
+        prompt,
+        left_items,
+        right_items,
+        answer_map,
+        score:0.5*left_items.length
+      });
+      continue;
+    }
+
+    // True/False
+    if(line.startsWith('四、判断题') || line.startsWith('三、判断题')){
+      i++;
+      while(i < lines.length && !lines[i].startsWith('五、排序题') && !lines[i].startsWith('四、排序题')){
+        const l = lines[i];
+        if(!/^\d+\./.test(l)){ i++; continue; }
+        if(!l.includes('√') && !l.includes('×')){ i++; continue; }
+        let stmt;
+        let truth;
+        // 新约常见：…题干。（ √ ） 或 （ × ）——符号在句末括号内
+        const parenTf = l.match(/\s*（\s*([√×])\s*）\s*$/);
+        if(parenTf){
+          truth = parenTf[1]==='√';
+          stmt = l.slice(0, parenTf.index).replace(/^\d+\.\s*/, '').trim();
+        }else{
+          // 旧约：____×____题干 或 ____√___题干（符号在题干前）
+          truth = l.includes('√');
+          const pos = l.indexOf(truth?'√':'×');
+          stmt = l.slice(pos+1).trim();
+          stmt = stmt.replace(/^[_\s　]+/,'');
+        }
+        if(!stmt){ i++; continue; }
+        pushQ({
+          id:qid++,
+          type:'truefalse',
+          prompt:stmt,
+          answer_bool:truth,
+          score:0.5
+        });
+        i++;
+      }
+      continue;
+    }
+
+    // Sorting (sequence input)
+    if(line.includes('排序题')){
+      i++;
+      while(i < lines.length && !lines[i].startsWith('六、默写题') && !lines[i].startsWith('五、默写题')){
+        const l = lines[i];
+        if(!/^\d+\./.test(l) || !l.includes('排序')){ i++; continue; }
+        const seq = (l.match(/排序\s+([A-Z]+)/)||[])[1] || '';
+        const prompt = l.replace(/^\d+\.\s*/,'').replace(/排序\s+[A-Z]+/,'').trim();
+
+        let j = i+1;
+        let optStr = '';
+        while(j < lines.length && !/^\d+\./.test(lines[j]) && !lines[j].startsWith('六、默写题') && !lines[j].startsWith('五、默写题')){
+          optStr += (optStr?' ':'') + lines[j];
+          j++;
+        }
+        const itemMap = parseLetterItems(optStr);
+        const letters = Object.keys(itemMap).sort();
+        const items = letters.map(k=>({key:k,text:itemMap[k]}));
+
+        pushQ({
+          id:qid++,
+          type:'order',
+          prompt,
+          items,
+          correct_seq: seq,
+          score:1
+        });
+        i = j;
+      }
+      continue;
+    }
+
+    // Dictation
+    if(line.includes('默写题')){
+      i++;
+      while(i < lines.length && !lines[i].startsWith('新约部分')){
+        const l = lines[i];
+        if(/^\d+\.?/.test(l)){
+          const numMatch = l.match(/^(\d+)\.?\s*/);
+          const start = numMatch ? numMatch[0].length : 0;
+          let text = l.slice(start).trim();
+          let j = i+1;
+          while(j < lines.length && !/^\d+\.?\s*/.test(lines[j]) && !lines[j].startsWith('新约部分') && !lines[j].startsWith('旧约部分')){
+            text += ' ' + lines[j].trim();
+            j++;
+          }
+          const { ref, expected } = extractZhDictationRef(text);
+          pushQ({
+            id:qid++,
+            type:'dictation',
+            prompt:'请默写：'+ref,
+            expected,
+            score:2
+          });
+          i = j;
+          continue;
+        }
+        i++;
+      }
+      continue;
+    }
+
+    i++;
+  }
+  return questions;
+}
+
+let EXAM_Qs = buildExamQuestionsFromText(EXAM_TEXT_SRC);
+
+// 兜底：如果解析失败导致空题库，保证线上仍能显示题目并进行考试
+// 说明：这里先按你当前可用的旧约部分答案文本硬编码（用于恢复“题库不为空”）。
+if(!EXAM_Qs || EXAM_Qs.length===0){
+  EXAM_Qs = [
+    // ── Fill blanks ──
+    {id:1,type:'fill',prompt:'创世记1-11章共记录了四件大事，分别是：（每空1分）',answers:['创造','堕落','挪亚洪水','巴别塔事件'],blanks:4,score:4},
+    {id:2,type:'fill',prompt:'神说：“我们要照着我们的____、按着我们的____造人，使他们管理____、____、地上的牲畜，和全地，并地上所爬的一切昆虫。”（创1:26）',answers:['形象','样式','海里的鱼','空中的鸟'],blanks:4,score:2},
+    {id:3,type:'fill',prompt:'我又要叫你和女人彼此为仇；你的后裔和女人的后裔也彼此为仇。女人的后裔要伤你的____，你要伤他的____。”（创世记3:15）',answers:['头','脚跟'],blanks:2,score:1},
+    {id:4,type:'fill',prompt:'____的记略如下：约瑟十七岁与他哥哥们一同牧羊。他是个童子，与他父亲的妾辟拉、悉帕的儿子们常在一处。约瑟将他哥哥们的恶行报给他们的父亲。（创世记37:2）',answers:['雅各'],blanks:1,score:0.5},
+    {id:5,type:'fill',prompt:'约瑟对他弟兄们说：“我要死了，但神必定看顾你们，领你们从这地上去，到他起誓所应许给____、____、____之地。”……停在____。（创世记50:24-26）',answers:['亚伯拉罕','以撒','雅各','埃及'],blanks:4,score:2},
+    {id:6,type:'fill',prompt:'有一个____家的人，娶了一个____女子为妻。那女人怀孕，生一个儿子……（出埃及记2:1-2）',answers:['利未','利未'],blanks:2,score:1},
+    {id:7,type:'fill',prompt:'神对摩西说：“____”；又说：“你要对以色列人这样说：‘那自有的打发我到你们这里来。’”（出埃及记3:14）',answers:['我是自有永有的'],blanks:1,score:0.5},
+    {id:8,type:'fill',prompt:'每逢七月初十日，你们要____……因在这日要为你们____……要守为圣安息日，要____；（利未记16:29-31）',answers:['刻苦己心','赎罪','刻苦己心'],blanks:3,score:1.5},
+    {id:9,type:'fill',prompt:'凡以色列家中的人……若吃什么血，我必向那吃血的人变脸……因为活物的____是在血中……可以在坛上为你们的生命____。因血里有____，所以能____。（利未记17:10-11）',answers:['生命','赎罪','生命','赎罪'],blanks:4,score:2},
+    {id:10,type:'fill',prompt:'在申命记中……要站在____上为百姓祝福。……都要站在____上宣布咒诅。（申命记相关段落）',answers:['基利心山','以巴路山'],blanks:2,score:1},
+    {id:11,type:'fill',prompt:'……有信心的两个分别是：____和____。（窥探迦南地）',answers:['约书亚','迦勒'],blanks:2,score:1},
+    {id:12,type:'fill',prompt:'我要作他的____，他要作我的____；……像离开在你面前所废弃的____一样。你的____和你的____，必在我面前永远坚立。（撒母耳下7:14-16）',answers:['父','子','扫罗','家','国'],blanks:5,score:2.5},
+    {id:13,type:'fill',prompt:'路得记的前面一卷书是：____，后面一卷书是____。（路得记相关题）',answers:['士师记','撒母耳记'],blanks:2,score:1},
+
+    // ── Single choice ──
+    {id:14,type:'single',prompt:'亚伯拉罕之约的内容有误的是（？）',options:['亚伯拉罕之约的内容记录在创世记12、15、17、22章中。','神与亚伯拉罕立约的仪式中，耶和华以冒烟的炉与火把的形象独自走过立约的血路。','亚伯拉罕之约的外在记号是割礼。','神应许亚伯拉罕他的子孙中必出事奉上帝的祭司。'],answer_index:3,score:0.5},
+    {id:15,type:'single',prompt:'根据出埃及记第1章，以下关于希伯来收生婆的陈述哪一项最准确？',options:['她们因害怕埃及王，便将所有男孩杀死。','她们名叫施弗拉和米利暗。','她们敬畏神，没有遵行埃及王的命令。','她们只帮助埃及妇人接生，不管希伯来人。'],answer_index:2,score:0.5},
+    {id:16,type:'single',prompt:'在十灾中，从哪一灾“开始”记录耶和华区分了他的百姓以色列人和埃及人。',options:['蛙灾','虱灾','蝇灾','畜疫之灾'],answer_index:2,score:0.5},
+    {id:17,type:'single',prompt:'民数记中记录了两次数点以色列的人数，两次数点分别是多少人？',options:['第一次603550；第二次601730','第一次1203550；第二次601730','第一次603550；第二次1201730','第一次1203550；第二次1201730'],answer_index:0,score:0.5},
+    {id:18,type:'single',prompt:'出埃及记和申命记都记录了“十诫”，请问两卷书中所记录的最大的不同是哪一诫命？',options:['第一诫命','第二诫命','第三诫命','第四诫命'],answer_index:3,score:0.5},
+    {id:19,type:'single',prompt:'关于拿细耳人的条例，记录在哪一卷书中？',options:['出埃及记','利未记','民数记','申命记'],answer_index:2,score:0.5},
+    {id:20,type:'single',prompt:'以下诗篇哪一章不是大卫的诗',options:['诗篇3','诗篇18','诗篇22','诗篇90'],answer_index:3,score:0.5},
+    {id:21,type:'single',prompt:'以下那句话不是出自箴言？',options:['智慧从何处来呢？聪明之处在哪里呢？是向一切有生命的眼目隐藏，向空中的飞鸟掩蔽。灭没和死亡说：“我们风闻其名。”','智慧建造房屋，凿成七根柱子，宰杀牲畜，调和旨酒，设摆筵席。','得智慧胜似得金子；选聪明强如选银子。','爱慕智慧的，使父亲喜乐，与妓女结交的，却浪费钱财。'],answer_index:0,score:0.5},
+    {id:22,type:'single',prompt:'以下哪一项不是耶利米书中的异象',options:['一个飞行的书卷','两筐无花果在殿中','一个向北而倾、烧开的锅','一根杏树枝'],answer_index:0,score:0.5},
+    {id:23,type:'single',prompt:'以下哪卷先知书的对象和其他书卷不同？',options:['弥迦书','俄巴底亚书','哈巴谷书','西番雅书'],answer_index:1,score:0.5},
+
+    // ── Matching ──
+    {
+      id:24,type:'match',
+      prompt:'请根据创世记49章雅各的嘱咐，把雅各儿子的名字和对应的预言连在一起：',
+      left_items:['流便','西缅与利未','犹大','西布伦','以萨迦','但','迦得','亚设','拿弗他利','约瑟','便雅悯'],
+      right_items:[
+        '必做路上的蛇，咬伤马蹄，使骑马的坠落', // A
+        '出肥美的食物，出君王的美味',             // B
+        '是撕掠的狼，早晨吃所抓的，晚上分所夺的', // C
+        '是强壮的驴，卧在羊圈之中，成为服苦的仆人', // D
+        '必住在海口，成为停船之处，境界必延到西顿', // E
+        '虽是长子，但放纵情欲，不可居首位',       // F
+        '是被释放的母鹿，出嘉美的言语',           // G
+        '他们的刀剑是残忍的器具，要分散在以色列中', // H
+        '必被敌军追逼，他却要追逼他们的脚跟',     // I
+        '与弟兄迥别之人，是多结果子的树枝',       // J
+        '圭、杖必不离开他，万民都必归顺他'        // K
+      ],
+      // 按 left_items 顺序，映射到 right_items 的下标（A=0...K=10）
+      answer_map:[5,7,10,4,3,0,8,1,6,9,2],
+      score:5
+    },
+
+    // ── True/False ──
+    {id:25,type:'truefalse',prompt:'上帝在第五天创造了月亮和星星。',answer_bool:false,score:0.5},
+    {id:26,type:'truefalse',prompt:'约书亚是摩西的继承人，继续带领以色列人进入迦南地，得到土地并分土地。',answer_bool:true,score:0.5},
+    {id:27,type:'truefalse',prompt:'约旦河东两个半支派是：流便、迦得、玛拿西。',answer_bool:true,score:0.5},
+    {id:28,type:'truefalse',prompt:'故意杀人的进入逃城也可以免于死亡，直到大祭司卸任。',answer_bool:false,score:0.5},
+    {id:29,type:'truefalse',prompt:'耶和华允许用羊奶煮山羊羔。',answer_bool:false,score:0.5},
+    {id:30,type:'truefalse',prompt:'出埃及记详细记录了会幕中所使用的香和圣膏油的做法，是为了让百姓照着这个方式来做香和膏油，好用在他们自己身上，随时闻耶和华的馨香之气。',answer_bool:false,score:0.5},
+    {id:31,type:'truefalse',prompt:'在以赛亚时就已经发生了以色列被掳。',answer_bool:false,score:0.5},
+    {id:32,type:'truefalse',prompt:'在但以理书中用圣殿中的器具饮酒的是伯沙撒王。',answer_bool:true,score:0.5},
+    {id:33,type:'truefalse',prompt:'约伯的朋友们认为约伯的遭遇和罪有关，并要他好好认罪是正确的。',answer_bool:false,score:0.5},
+    {id:34,type:'truefalse',prompt:'历代志中也同样提及了大卫数点人数的罪。',answer_bool:true,score:0.5},
+
+    // ── Order ──
+    {id:35,type:'order',prompt:'请按在创世记中出现的顺序为经文排序',items:[{key:'A',text:'日落天黑，不料有冒烟的炉，并烧着的火把，从那些肉块中经过。'},{key:'B',text:'我必使你的后裔极其繁多，国度从你而立，君王从你而出。'},{key:'C',text:'为你祝福的，我必赐福与他；那咒诅你的，我必咒诅他。地上的万族都要因你得福。'},{key:'D',text:'地上万国都必因你的后裔得福，因为你听从了我的话。'}],correct_seq:'CABD',score:1},
+    {id:36,type:'order',prompt:'按时间先后给约书亚记中的以下事件排序',items:[{key:'A',text:'攻取耶利哥城'},{key:'B',text:'在吉甲第二次给以色列人行割礼'},{key:'C',text:'基遍人欺瞒约书亚'},{key:'D',text:'亚干犯罪使以色列受连累'}],correct_seq:'BADC',score:1},
+    {id:37,type:'order',prompt:'为以下大卫所经历的事件排序',items:[{key:'A',text:'约押杀害押尼珥'},{key:'B',text:'大卫与亚玛力人争战'},{key:'C',text:'大卫运送约柜到耶路撒冷'},{key:'D',text:'拿八被神击打而死，大卫娶亚比该为妻'}],correct_seq:'DBAC',score:1},
+    {id:38,type:'order',prompt:'请按在以赛亚书中出现的顺序，为以下经文排序',items:[{key:'A',text:'以马内利啊，他展开翅膀，遍满你的地。'},{key:'B',text:'主自己要给你们一个兆头，必有童女怀孕生子，给他起名叫以马内利。'},{key:'C',text:'因有一婴孩为我们而生，有一子赐给我们，政权必担在他的肩头上。他名称为奇妙、策士、全能的神、永在的父、和平的君。'},{key:'D',text:'从耶西的本必发一条，从他根生的枝子必结果实。'}],correct_seq:'BACD',score:1},
+    {id:39,type:'order',prompt:'请按以西结书中出现的顺序，为以下经文排序',items:[{key:'A',text:'迦巴鲁河边见到四活物的异象'},{key:'B',text:'神让以西结看到耶路撒冷城的偶像'},{key:'C',text:'让以西结吃书卷'},{key:'D',text:'让以西结对着耶路撒冷城躺卧'}],correct_seq:'ACDB',score:1},
+
+    // ── Dictation ──
+    {id:40,type:'dictation',prompt:'请默写：创世记12:1-3',expected:'创世记12:1-3 耶和华对亚伯兰说：“你要离开本地、本族、父家，往我所要指示你的地去。 2 我必叫你成为大国。我必赐福给你，叫你的名为大；你也要叫别人得福。 3 为你祝福的，我必赐福与他；那咒诅你的，我必咒诅他。地上的万族都要因你得福。”',score:2},
+    {id:41,type:'dictation',prompt:'请默写：出埃及记34:6-7',expected:'出埃及记34: 6-7耶和华在他面前宣告说：“耶和华，耶和华，是有怜悯有恩典的神，不轻易发怒，并有丰盛的慈爱和诚实， 7 为千万人存留慈爱，赦免罪孽、过犯，和罪恶，万不以有罪的为无罪，必追讨他的罪，自父及子，直到三、四代。”',score:2},
+    {id:42,type:'dictation',prompt:'请默写：箴言1:7',expected:'箴言1:7 敬畏耶和华是知识的开端；愚妄人藐视智慧和训诲。',score:2},
+    {id:43,type:'dictation',prompt:'请默写：以赛亚书53:4-5',expected:'以赛亚书53:4-5他诚然担当我们的忧患，背负我们的痛苦；我们却以为他受责罚，被　神击打苦待了。哪知他为我们的过犯受害，为我们的罪孽压伤。因他受的刑罚，我们得平安；因他受的鞭伤，我们得医治。',score:2},
+    {id:44,type:'dictation',prompt:'请默写：玛拉基书4:5-6',expected:'玛拉基书4:5-6 “看哪，耶和华大而可畏之日未到以前，我必差遣先知以利亚到你们那里去。他必使父亲的心转向儿女，儿女的心转向父亲，免得我来咒诅遍地。”',score:2},
+  ];
+}
+
+// 覆盖：优先从项目目录读取你转换出来的完整 doc 文本，避免上面内嵌字符串被截断；并合并英文/印尼文试卷文本
+let __examQuestionsLoadedFromFile = false;
+
+/** Chrome 等对 file:// 页面的本地 fetch 常会一直挂起（不 resolve），导致整页卡在加载圈 */
+function isFileProtocol(){
+  return typeof location !== 'undefined' && location.protocol === 'file:';
+}
+
+async function attachExamLocales(qs){
+  if(typeof EXAM_LOCALE==='undefined' || !qs || !qs.length) return qs;
+  const enUrls = ['./docx_plain_en.txt','/docx_plain_en.txt','docx_plain_en.txt'];
+  const idUrls = ['./docx_plain_id.txt','/docx_plain_id.txt','docx_plain_id.txt'];
+  let enText=null, idText=null;
+  if(!isFileProtocol()){
+    for(const url of enUrls){
+      try{
+        const res=await fetch(url);
+        if(res.ok){ const t=await res.text(); if(t&&t.trim()){ enText=t; break; } }
+      }catch(_){}
+    }
+  }
+  if(!enText && globalThis.__BUNDLED_EXAM_TEXT_EN) enText = globalThis.__BUNDLED_EXAM_TEXT_EN;
+  if(!isFileProtocol()){
+    for(const url of idUrls){
+      try{
+        const res=await fetch(url);
+        if(res.ok){ const t=await res.text(); if(t&&t.trim()){ idText=t; break; } }
+      }catch(_){}
+    }
+  }
+  if(!idText && globalThis.__BUNDLED_EXAM_TEXT_ID) idText = globalThis.__BUNDLED_EXAM_TEXT_ID;
+  if(!enText && !idText){
+    globalThis.__EXAM_EN_PARSED = [];
+    globalThis.__EXAM_ID_PARSED = [];
+    return qs;
+  }
+  const enList = enText ? EXAM_LOCALE.buildExamLocaleList(enText,'en') : [];
+  const idList = idText ? EXAM_LOCALE.buildExamLocaleList(idText,'id') : [];
+  globalThis.__EXAM_EN_PARSED = enList;
+  globalThis.__EXAM_ID_PARSED = idList;
+  return EXAM_LOCALE.mergeLocaleIntoQuestions(qs, enList, idList);
+}
+
+async function ensureExamQuestionsLoaded(){
+  if(__examQuestionsLoadedFromFile) return;
+  if(!isFileProtocol()){
+    try{
+      const urls = ['./docx_plain2.txt','/docx_plain2.txt','docx_plain2.txt'];
+      for(const url of urls){
+        try{
+          const res = await fetch(url);
+          if(!res.ok) throw new Error('fetch failed: '+url);
+          const txt = await res.text();
+          if(txt && txt.trim().length>0){
+            let qs = buildExamQuestionsFromText(txt);
+            const qsNt = (qs||[]).filter(q=>q.section==='nt').length;
+            const embNt = (EXAM_Qs||[]).filter(q=>q.section==='nt').length;
+            if(qs && qs.length>0 && !(qsNt===0 && embNt>0)){
+              qs = await attachExamLocales(qs);
+              EXAM_Qs = qs;
+              A.examQuestions = EXAM_Qs;
+              __examQuestionsLoadedFromFile = true;
+              return;
+            }
+          }
+        }catch(_){}
+      }
+    }catch(_){}
+  }
+  EXAM_Qs = await attachExamLocales(EXAM_Qs);
+  A.examQuestions = EXAM_Qs;
+  __examQuestionsLoadedFromFile = true;
+}
 
 const MAT_ITEMS = [
-  {id:'acceptance_letter', label:'录取通知书（已签署）', req:true},
-  {id:'scholarship_form',  label:'奖学金申请表',         req:true},
-  {id:'survey',            label:'入学调查表',            req:true},
-  {id:'guarantee',         label:'牧师担保信',            req:true},
-  {id:'passport',          label:'护照扫描件',            req:true},
-  {id:'photo',             label:'红底证件照（4x6）',     req:true},
-  {id:'insurance',         label:'保险证明',              req:false},
+  {id:'acceptance_letter', label:'录取通知书（已签署） · Signed admission letter', req:true},
+  {id:'scholarship_form',  label:'奖学金申请表 · Scholarship form',              req:true},
+  {id:'survey',            label:'入学调查表 · Enrollment survey',               req:true},
+  {id:'guarantee',         label:'牧师担保信 · Pastor guarantee letter',         req:true},
+  {id:'passport',          label:'护照扫描件 · Passport scan',                   req:true},
+  {id:'photo',             label:'红底证件照（4x6） · Red-background photo (4×6)', req:true},
+  {id:'insurance',         label:'保险证明 · Insurance proof',                   req:false},
 ];
 
 const PROG_STYLE  = {'神学院':{bg:'#e0e7ff',color:'#4338ca'},'师范生':{bg:'#ccfbf1',color:'#0f766e'},'seminary':{bg:'#e0e7ff',color:'#4338ca'}};
@@ -224,11 +861,12 @@ const A = {
 
   // UI state
   adminTab: 'pipeline',
-  teacherTab: 'interviews',
   selectedApId: null,
   briefingId: null,
   showRecordForm: false,
   showAddApModal: false,
+  showEditApInfoModal: false,
+  editApInfoId: null,
   loginMode: null,   // 'applicant' | 'staff'
 
   // Applicant exam state
@@ -236,29 +874,285 @@ const A = {
   examSubmitted: false,
   examAnswers: {},
   essayText: '',
-  examTime: 5400,
+  examLang: 'zh', // zh | en | id
+  examTotalTime: 9000, // 150 minutes
+  examTime: 9000,
+  proctorFlags: 0,
   ivSelected: null,
   ivBooked: false,
+  applicantBookedInterviewSlot: null,
   uploads: {},
 
   // Data cache
   allApplicants: [],
   allSlots: [],
-  mySlots: [],        // teacher's slots
+  applicantFreeSlots: [], // 申请人可预约的空闲时段（勿与 allSlots 混用，避免覆盖管理员缓存）
   allRecords: [],
+  examQuestions: [],  // admin-managed exam questions
+  teacherProfiles: [], // role=teacher，排班下拉与语言匹配用
 };
 let examTimer = null;
+let applicantStagePoller = null;
+let interviewSlotsPoller = null;
 
 // ══════════════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════════════
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+/** 申请人界面文案（老师/管理员仍为中英双语，不调用此函数） */
+function apLine(zh, en, id){
+  const L = A.examLang || 'zh';
+  return L === 'en' ? en : L === 'id' ? id : zh;
+}
+
+/** 管理端展示笔试备注：新格式仅三项；旧版冗长备注从正则提取同样三项，避免泄露默写原文 */
+function formatExamEssayForDisplay(raw){
+  const s = String(raw || '').trim();
+  if(!s) return '';
+  const mOtNew = s.match(/旧约总分[：:]\s*([\d.]+)\s*\/\s*([\d.]+)/);
+  const mNtNew = s.match(/新约总分[：:]\s*([\d.]+)\s*\/\s*([\d.]+)/);
+  const mSwNew = s.match(/切换屏幕次数[：:]\s*(\d+)\s*次/) || s.match(/切屏次数[：:]\s*(\d+)\s*次/);
+  if(mOtNew && mNtNew && mSwNew){
+    return `旧约总分：${mOtNew[1]} / ${mOtNew[2]}\n新约总分：${mNtNew[1]} / ${mNtNew[2]}\n切换屏幕次数：${mSwNew[1]} 次`;
+  }
+  const mOtOld = s.match(/旧约累计[：:]\s*([\d.]+)\s*\/\s*([\d.]+)/);
+  const mNtOld = s.match(/新约累计[：:]\s*([\d.]+)\s*\/\s*([\d.]+)/);
+  const mSwOld = s.match(/切换窗口\/切屏次数[：:]\s*(\d+)\s*次/) || s.match(/切屏次数[：:]\s*(\d+)\s*次/);
+  if(mOtOld && mNtOld){
+    const sw = mSwOld ? mSwOld[1] : '0';
+    return `旧约总分：${mOtOld[1]} / ${mOtOld[2]}\n新约总分：${mNtOld[1]} / ${mNtOld[2]}\n切换屏幕次数：${sw} 次`;
+  }
+  return `旧约总分：— / —\n新约总分：— / —\n切换屏幕次数：— 次`;
+}
+
+/** 面试时段在 interview_slots 行上是否仍可被预约（与列表过滤、写库条件一致） */
+function isInterviewSlotRowVacant(s){
+  if(!s) return false;
+  if(s.is_booked === true || s.is_booked === 'true' || s.is_booked === 1) return false;
+  const apid = s.applicant_id;
+  if(apid == null) return true;
+  return String(apid).trim() === '';
+}
+
+/** 从 profiles.interview_langs 文本解析可面试语言（与 TEACHERS_SEED 中「中文、英文」等一致） */
+function parseInterviewLangFlags(text){
+  const raw = String(text||'');
+  const s = raw.toLowerCase();
+  const flags = { zh:false, en:false, id:false };
+  if(/中文|汉语|chinese|mandarin/.test(raw)||/中文|汉语|chinese/.test(s)) flags.zh = true;
+  if(/英文|英语|english/.test(raw)||/\benglish\b/.test(s)) flags.en = true;
+  if(/印尼|indonesia|indonesian|bahasa/.test(raw)||/\bindonesia\b/.test(s)) flags.id = true;
+  if(!flags.zh && !flags.en && !flags.id) flags.zh = true;
+  return flags;
+}
+
+function resolveTeacherProfileForSlot(slot, profileById, allProfiles){
+  if(!slot) return null;
+  const tid = slot.teacher_id;
+  if(tid!=null && String(tid).trim()!==''){
+    const p = profileById.get(String(tid));
+    if(p) return p;
+  }
+  const tn = String(slot.teacher_name||'').trim();
+  if(!tn || !allProfiles?.length) return null;
+  return allProfiles.find(pr=>{
+    const d = String(pr.display_name||'').trim();
+    return d && (tn.includes(d) || d.includes(tn));
+  }) || null;
+}
+
+/** 申请人笔试语言 zh|en|id 与教师能力匹配 */
+function slotSupportsApplicantExamLang(slot, needLang, profileById, allProfiles){
+  const p = resolveTeacherProfileForSlot(slot, profileById, allProfiles);
+  if(!p) return needLang==='zh';
+  const f = parseInterviewLangFlags(p.interview_langs);
+  if(needLang==='en') return f.en;
+  if(needLang==='id') return f.id;
+  return f.zh;
+}
+
+/** 同语言下教师展示优先级（数字越小越靠前） */
+function teacherPriorityRank(slot, needLang, profileById, allProfiles){
+  const p = resolveTeacherProfileForSlot(slot, profileById, allProfiles);
+  const name = p ? String(p.display_name||'') : String(slot.teacher_name||'');
+  if(needLang==='zh'){
+    if(/利未/i.test(name) || /levi/i.test(name)) return 0;
+    if(/文博/i.test(name) || /will/i.test(name)) return 1;
+    return 50;
+  }
+  if(needLang==='en'){
+    if(/nathan|nathen|元勋/i.test(name)) return 0;
+    if(/heaven/i.test(name)) return 1;
+    return 50;
+  }
+  if(needLang==='id'){
+    if(/yohanes/i.test(name)) return 0;
+    return 50;
+  }
+  return 50;
+}
+
+function sortSlotsForApplicantBooking(slots, needLang, profileById, allProfiles){
+  const arr = (slots||[]).slice();
+  arr.sort((a,b)=>{
+    const ra = teacherPriorityRank(a, needLang, profileById, allProfiles);
+    const rb = teacherPriorityRank(b, needLang, profileById, allProfiles);
+    if(ra!==rb) return ra - rb;
+    const dc = String(a.slot_date||'').localeCompare(String(b.slot_date||''));
+    if(dc!==0) return dc;
+    return String(a.slot_time||'').localeCompare(String(b.slot_time||''));
+  });
+  return arr;
+}
+
 const mkTag = (bg,color,text) => `<span class="tag" style="background:${bg};color:${color}">${esc(text)}</span>`;
 const mkAv  = (initials,size='md',cls='av-indigo') => `<div class="avatar av-${size} ${cls}">${esc(initials)}</div>`;
 const initials = ap => ap ? ((ap.first_name||'')[0]||(ap.full_name||'?')[0]) : '?';
 const fullName = ap => ap ? (ap.full_name || ap.first_name + ap.last_name || '未知') : '未知';
+
+/** 从缓存的 slots 中解析申请人已预约的时段（管理员 allSlots + 教师端亦会加载全表便于解析） */
+function resolveSlotForApplicant(ap){
+  if(!ap?.interview_slot_id) return null;
+  const id = String(ap.interview_slot_id);
+  if(A.role==='applicant' && A.applicant && String(ap.id)===String(A.applicant.id)){
+    const c = A.applicantBookedInterviewSlot;
+    if(c && String(c.id)===id) return c;
+  }
+  const map = new Map();
+  for(const s of (A.allSlots||[])){
+    if(s && s.id != null) map.set(String(s.id), s);
+  }
+  return map.get(id) || null;
+}
+function formatInterviewSlotLine(ap){
+  const sl = resolveSlotForApplicant(ap);
+  if(sl){
+    const tm = (sl.slot_time||'').slice(0, 5);
+    return `${sl.slot_date} ${tm}${sl.teacher_name ? ' · ' + sl.teacher_name : ''}`;
+  }
+  return ap.interview_slot_id ? '已预约（若未显示时间，请刷新或检查 interview_slots 是否已关联）' : '';
+}
 const progTag  = prog => {const s=PROG_STYLE[prog]||{bg:'#f3f4f6',color:'#6b7280'};return mkTag(s.bg,s.color,prog||'神学院');}
 const stageTag = stage => {const s=STAGE_STYLE[stage]||{bg:'#f3f4f6',color:'#6b7280'};return mkTag(s.bg,s.color,(STAGES.find(x=>x.id===stage)||{}).label||stage);}
+
+// ── Exam schedule helpers ──────────────────────────────────────
+const EXAM_OPEN_DAYS_WIB = [1,3,6]; // Mon/Wed/Sat (0=Sun)
+const EXAM_WIB_START = '09:00';
+const EXAM_WIB_END   = '11:30';
+const EXAM_ZOOM_ID = '847 5014 4631';
+const EXAM_ZOOM_PW = '156903';
+
+function pad2(n){return String(n).padStart(2,'0');}
+function parseHHMM(t){
+  const m=String(t||'').match(/^(\d{2}):(\d{2})$/);
+  if(!m) return null;
+  return {hh:+m[1], mm:+m[2]};
+}
+function formatDateYMD(d){
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+// Compute next exam start (WIB, UTC+7) as a UTC Date.
+function nextExamStartUtc(){
+  const now = new Date();
+  // "now" in UTC minutes
+  const nowUtcMs = now.getTime();
+  const startParts = parseHHMM(EXAM_WIB_START) || {hh:9,mm:0};
+
+  // iterate next 14 days, choose first day that matches and is in the future
+  for(let add=0; add<14; add++){
+    // candidate date in WIB by shifting UTC then taking Y/M/D in WIB
+    const candUtc = new Date(nowUtcMs + add*86400000);
+    // derive WIB date components by adding 7h then using UTC getters
+    const wibMs = candUtc.getTime() + 7*3600000;
+    const wib = new Date(wibMs);
+    const y=wib.getUTCFullYear(), m=wib.getUTCMonth(), d=wib.getUTCDate();
+    const day = wib.getUTCDay();
+    if(!EXAM_OPEN_DAYS_WIB.includes(day)) continue;
+
+    // build WIB start time, convert to UTC by subtracting 7h
+    const startUtc = new Date(Date.UTC(y,m,d,startParts.hh,startParts.mm,0) - 7*3600000);
+    if(startUtc.getTime() > nowUtcMs) return startUtc;
+  }
+  return null;
+}
+
+function getExamWindowUtc(){
+  // 考试窗口固定：WIB 周一/周三/周六 09:00-11:30（150 分钟）
+  const nowMs = Date.now();
+  const startParts = parseHHMM(EXAM_WIB_START) || {hh:9,mm:0};
+  const intervalMs = 150*60*1000;
+
+  let bestFuture = null;
+  for(let delta=-7; delta<=14; delta++){
+    const candUtcMs = nowMs + delta*86400000;
+    // derive WIB date components by adding 7h then using UTC getters
+    const wibMs = candUtcMs + 7*3600000;
+    const wib = new Date(wibMs);
+    const y = wib.getUTCFullYear();
+    const m = wib.getUTCMonth();
+    const d = wib.getUTCDate();
+    const day = wib.getUTCDay();
+    if(!EXAM_OPEN_DAYS_WIB.includes(day)) continue;
+
+    const startUtc = new Date(Date.UTC(y,m,d,startParts.hh,startParts.mm,0) - 7*3600000);
+    const endUtc   = new Date(startUtc.getTime() + intervalMs);
+
+    if(nowMs >= startUtc.getTime() && nowMs <= endUtc.getTime()){
+      return {startUtc,endUtc,inWindow:true};
+    }
+    if(nowMs < startUtc.getTime()){
+      if(!bestFuture || startUtc.getTime() < bestFuture.startUtc.getTime()){
+        bestFuture = {startUtc,endUtc,inWindow:false};
+      }
+    }
+  }
+  return bestFuture; // may be null if something unexpected
+}
+
+function isExamExemptApplicant(ap){
+  // 白名单：只允许这个手机号的申请人随时进入测试
+  return String(ap?.phone_last4||'') === '5668' || String(ap?.phone||'').includes('18686885668');
+}
+
+function isExamAllowedNow(ap){
+  if(isExamExemptApplicant(ap)) return true;
+  const win = getExamWindowUtc();
+  return !!win && win.inWindow;
+}
+function fmtRangeInTZ(startUtc, endUtc, timeZone){
+  try{
+    const fmt = new Intl.DateTimeFormat('zh-CN',{
+      timeZone,
+      year:'numeric',month:'2-digit',day:'2-digit',
+      hour:'2-digit',minute:'2-digit',hour12:false
+    });
+    const a = fmt.format(startUtc).replace(/\//g,'-');
+    const b = fmt.format(endUtc).replace(/\//g,'-');
+    // keep only time part for end date if same day is nicer, but keep simple
+    return `${a} – ${b}`;
+  }catch(_){
+    return null;
+  }
+}
+function guessTimeZoneFromApplicant(ap){
+  const tz = ap?.timezone || ap?.time_zone || ap?.tz;
+  if(tz) return String(tz);
+  const blob = `${ap?.current_country||''} ${ap?.residence_country||''} ${ap?.country||''} ${ap?.nationality||''} ${ap?.language_proficiency||''} ${ap?.hometown||''}`.toLowerCase();
+  const hit = (arr)=>arr.some(s=>blob.includes(s));
+  if(hit(['indonesia','indones','印尼','雅加达','jakarta','surabaya','bandung'])) return 'Asia/Jakarta';
+  if(hit(['china','中国','beijing','北京','shanghai','上海','prc'])) return 'Asia/Shanghai';
+  if(hit(['singapore','新加坡'])) return 'Asia/Singapore';
+  if(hit(['malaysia','马来','吉隆坡','kuala lumpur'])) return 'Asia/Kuala_Lumpur';
+  if(hit(['taiwan','台湾','台北'])) return 'Asia/Taipei';
+  if(hit(['hong kong','香港'])) return 'Asia/Hong_Kong';
+  if(hit(['japan','日本','tokyo','东京'])) return 'Asia/Tokyo';
+  if(hit(['korea','韩国','seoul','首尔'])) return 'Asia/Seoul';
+  if(hit(['uk','united kingdom','英国','london','伦敦'])) return 'Europe/London';
+  if(hit(['australia','澳洲','悉尼','sydney'])) return 'Australia/Sydney';
+  if(hit(['usa','united states','美国','new york','纽约','los angeles','洛杉矶'])) return 'America/New_York';
+  if(hit(['canada','加拿大','toronto','多伦多'])) return 'America/Toronto';
+  return null;
+}
 
 function toast(msg,ok=true){
   const t=document.getElementById('toast');
@@ -279,7 +1173,11 @@ function startTimer(){
     const warn=A.examTime<600;
     const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
     if(d) d.textContent=fmt(A.examTime);
-    if(b){b.style.width=`${((5400-A.examTime)/5400)*100}%`;b.style.background=warn?'#ef4444':'linear-gradient(90deg,#4f46e5,#818cf8)';}
+    if(b){
+      const total = A.examTotalTime || 9000;
+      b.style.width=`${((total-A.examTime)/total)*100}%`;
+      b.style.background=warn?'#ef4444':'linear-gradient(90deg,#4f46e5,#818cf8)';
+    }
     if(w){w.style.background=warn?'#fef2f2':'#eef2ff';w.style.borderColor=warn?'#fecaca':'#e0e7ff';}
     if(A.examTime<=0)submitExam();
   },1000);
@@ -289,63 +1187,406 @@ function startTimer(){
 // DATA LAYER
 // ══════════════════════════════════════════════════════════════
 async function loadAdminData(){
-  const [{data:aps},{data:slots},{data:recs}] = await Promise.all([
+  const [{data:aps},{data:slots},{data:recs},{data:tprof}] = await Promise.all([
     sb.from('applicants').select('*').order('created_at',{ascending:false}),
     sb.from('interview_slots').select('*').order('slot_date').order('slot_time'),
     sb.from('interview_records').select('*').order('created_at',{ascending:false}),
+    sb.from('profiles').select('id,display_name,interview_langs').eq('role','teacher').order('display_name'),
   ]);
   A.allApplicants = aps||[];
   A.allSlots      = slots||[];
   A.allRecords    = recs||[];
+  A.teacherProfiles = tprof||[];
 }
 
-async function loadTeacherData(){
-  const [{data:slots},{data:recs}] = await Promise.all([
-    sb.from('interview_slots').select('*,applicants(*)').eq('teacher_id',A.user.id).order('slot_date').order('slot_time'),
-    sb.from('interview_records').select('*,applicants(first_name,last_name,full_name)').eq('recorded_by_id',A.user.id).order('created_at',{ascending:false}),
-  ]);
-  A.mySlots   = slots||[];
-  A.allRecords = recs||[];
-  // Also load all applicants for briefing
-  const {data:aps} = await sb.from('applicants').select('*').order('created_at',{ascending:false});
-  A.allApplicants = aps||[];
+async function loadExamQuestions(){
+  await ensureExamQuestionsLoaded();
+  A.examQuestions = EXAM_Qs;
 }
 
 async function loadPublicSlots(){
-  const {data} = await sb.from('interview_slots').select('*').eq('is_booked',false).order('slot_date').order('slot_time');
-  A.allSlots = data||[];
+  const now = Date.now();
+  const needLang = (A.applicant?.exam_lang || A.examLang || 'zh');
+  const [{data: slotRows}, {data: bookedAps}, {data: tprof}] = await Promise.all([
+    sb.from('interview_slots').select('*').order('slot_date').order('slot_time'),
+    sb.from('applicants').select('interview_slot_id').not('interview_slot_id', 'is', null),
+    sb.from('profiles').select('id,display_name,interview_langs').eq('role','teacher'),
+  ]);
+  const teacherList = tprof||[];
+  const profileById = new Map(teacherList.map(p=>[String(p.id),p]));
+  const takenByApplicant = new Set(
+    (bookedAps || [])
+      .map(r => r.interview_slot_id)
+      .filter(Boolean)
+      .map(x => String(x)),
+  );
+  const toMs = s=>{
+    if(!s?.slot_date || !s?.slot_time) return null;
+    const m = String(s.slot_date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const t = String(s.slot_time).match(/^(\d{2}):(\d{2})/);
+    if(!m||!t) return null;
+    const y=+m[1], mo=+m[2]-1, d=+m[3];
+    const hh=+t[1], mm=+t[2];
+    return new Date(y,mo,d,hh,mm,0).getTime();
+  };
+  let free = (slotRows || []).filter(s=>{
+    const ms = toMs(s);
+    if(!ms || ms <= now) return false;
+    if(!isInterviewSlotRowVacant(s)) return false;
+    if(takenByApplicant.has(String(s.id))) return false;
+    if(!slotSupportsApplicantExamLang(s, needLang, profileById, teacherList)) return false;
+    return true;
+  });
+  free = sortSlotsForApplicantBooking(free, needLang, profileById, teacherList);
+  if(A.role==='applicant') A.teacherProfiles = teacherList;
+  A.applicantFreeSlots = free;
+}
+
+/** 预约面试页定时刷新空闲时段，避免他人预约后本页仍显示旧列表 */
+function syncInterviewSlotPoll(){
+  const need = A.role==='applicant' && A.applicant?.stage==='interview' && !A.applicant.interview_slot_id && !A.ivBooked;
+  if(need){
+    if(!interviewSlotsPoller){
+      interviewSlotsPoller = setInterval(async ()=>{
+        if(A.role!=='applicant' || !A.applicant?.id || A.applicant.stage!=='interview' || A.applicant.interview_slot_id || A.ivBooked){
+          clearInterval(interviewSlotsPoller);
+          interviewSlotsPoller = null;
+          return;
+        }
+        await loadPublicSlots();
+        if(A.ivSelected && !A.applicantFreeSlots.some(s=>String(s.id)===String(A.ivSelected.id))){
+          A.ivSelected = null;
+          toast('此前选择的时段已不可用，请重新选择', false);
+        }
+        render();
+      }, 12000);
+    }
+  } else if(interviewSlotsPoller){
+    clearInterval(interviewSlotsPoller);
+    interviewSlotsPoller = null;
+  }
+}
+
+/** 教师端：按日期区间批量添加 interview_slots */
+async function teacherAddSlotRange(dateInputId, startInputId, endInputId, intervalSelectId){
+  const date=document.getElementById(dateInputId)?.value;
+  const start=document.getElementById(startInputId)?.value;
+  const end=document.getElementById(endInputId)?.value;
+  const interval=parseInt(document.getElementById(intervalSelectId)?.value||'30',10);
+  if(!date||!start||!end){toast('请填写日期与开始/结束时间',false);return;}
+  const toMin = t=>{
+    const [h,m]=String(t).split(':').map(Number);
+    return h*60+m;
+  };
+  const pad2 = n=>String(n).padStart(2,'0');
+  const startMin=toMin(start);
+  const endMin=toMin(end);
+  if(!(interval===20||interval===30)) {toast('请选择 20 或 30 分钟间隔',false);return;}
+  if(endMin<=startMin){toast('结束时间必须晚于开始时间',false);return;}
+  const times=[];
+  for(let m=startMin; m+interval<=endMin; m+=interval){
+    const hh=Math.floor(m/60), mm=m%60;
+    times.push(`${pad2(hh)}:${pad2(mm)}`);
+  }
+  if(times.length===0){toast('时间段内没有可生成的时间点',false);return;}
+  const now=Date.now();
+  const msOf = t=>{
+    const dm = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!dm) return null;
+    const tt = String(t).match(/^(\d{2}):(\d{2})$/);
+    if(!tt) return null;
+    const y=+dm[1], mo=+dm[2]-1, d=+dm[3];
+    const hh=+tt[1], mm=+tt[2];
+    return new Date(y,mo,d,hh,mm,0).getTime();
+  };
+  const futureTimes=times.filter(t=>{const ms=msOf(t); return ms && ms>now;});
+  if(futureTimes.length===0){toast('该时间段内没有未来可用时间点',false);return;}
+  const {data:existing} = await sb.from('interview_slots')
+    .select('slot_time')
+    .eq('slot_date',date)
+    .in('slot_time',futureTimes);
+  const existSet=new Set((existing||[]).map(r=>r.slot_time));
+  const payload=futureTimes.filter(t=>!existSet.has(t)).map(t=>({
+    slot_date:date,
+    slot_time:t,
+    is_booked:false,
+    teacher_id:A.user.id,
+    teacher_name:A.profile?.display_name || null
+  }));
+  if(payload.length===0){toast('这些时间点已存在，无需重复添加',true);return;}
+  const {error}=await sb.from('interview_slots').insert(payload);
+  if(!error){
+    toast(`已添加 ${payload.length} 个时间点`,true);
+    await loadAdminData();
+    render();
+  } else toast('添加失败',false);
+}
+
+function longestCommonSubsequenceLen(a, b){
+  const m=a.length, n=b.length;
+  if(!m||!n) return 0;
+  const dp = Array.from({length:m+1},()=>Array(n+1).fill(0));
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+
+function longestCommonSubstringLen(a, b){
+  const m=a.length, n=b.length;
+  if(!m||!n) return 0;
+  let best=0;
+  let row=new Array(n+1).fill(0);
+  for(let i=1;i<=m;i++){
+    let prevDiag=0;
+    for(let j=1;j<=n;j++){
+      const tmp=row[j];
+      if(a[i-1]===b[j-1]){
+        row[j]=prevDiag+1;
+        if(row[j]>best) best=row[j];
+      } else row[j]=0;
+      prevDiag=tmp;
+    }
+  }
+  return best;
+}
+
+/** 默写题：按「经文重合度」阶梯给分（每题满分通常为 2）。短句摘抄也能拿到部分分。 */
+function scoreDictationByCoverage(uNorm, eNorm, maxScore){
+  const round05 = x=>Math.round(x*20)/20;
+  const u = uNorm, e = eNorm;
+  if(!u||!e||!maxScore) return {points:0, ratio:0};
+  if(u===e) return {points:round05(maxScore), ratio:1};
+  if(e.length>=12 && e.includes(u) && u.length>=6) return {points:round05(maxScore), ratio:1};
+  if(u.length>=12 && u.includes(e)) return {points:round05(maxScore), ratio:1};
+  const sub = longestCommonSubsequenceLen(u,e)/e.length;
+  const subStr = longestCommonSubstringLen(u,e)/e.length;
+  let ratio = Math.min(1, Math.max(sub, subStr));
+  const uSet=new Set(u.split(''));
+  let inter=0;
+  e.split('').forEach(ch=>{ if(uSet.has(ch)) inter++; });
+  const bagRatio = e.length ? inter/e.length : 0;
+  if(bagRatio>=0.88) ratio = Math.max(ratio, 0.92);
+  let frac;
+  if(ratio>=0.92) frac=1;
+  else if(ratio>=0.78) frac=0.82;
+  else if(ratio>=0.60) frac=0.65;
+  else if(ratio>=0.42) frac=0.48;
+  else if(ratio>=0.26) frac=0.32;
+  else if(ratio>=0.14) frac=0.21;
+  else if(ratio>=0.08) frac=0.15;
+  else if(ratio>=0.04) frac=0.10;
+  else if(ratio>0) frac=0.05;
+  else frac=0;
+  return {points:round05(maxScore*frac), ratio};
 }
 
 async function submitExam(){
   stopTimer();
+  const qs=(A.examQuestions&&A.examQuestions.length)?A.examQuestions:EXAM_Qs;
+  const EA=A.examAnswers||{};
+  const EL = A.examLang || 'zh';
+  const norm = s=>String(s||'').trim().replace(/\s+/g,'');
+  const normOrder = s=>String(s||'').toUpperCase().replace(/[^A-Z]/g,'');
+  function normalizeDict(s, lang){
+    const t = String(s||'').trim();
+    if(!lang || lang==='zh'){
+      return t.replace(/\s+/g,'').replace(/[，。！？、；：“”"']/g,'');
+    }
+    return t.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9\u00c0-\u024f]/g,'');
+  }
+
   let score=0;
-  EXAM_Qs.filter(q=>q.type==='single').forEach(q=>{if(A.examAnswers[q.id]===q.ans)score+=20;});
-  score+=A.essayText.length>30?20:5;
+  let otEarned=0, ntEarned=0;
+  let otMax=0, ntMax=0;
+
+  for(const q of qs){
+    const qid=q.id;
+    const maxQ = q.score||0;
+    const sec = q.section;
+    let earned=0;
+
+    if(q.type==='fill'){
+      const user = Array.isArray(EA[qid])?EA[qid]:[];
+      const expected = (EL==='en' && q.answers_en && q.answers_en.length) ? q.answers_en
+        : (EL==='id' && q.answers_id && q.answers_id.length) ? q.answers_id
+        : (q.answers||[]);
+      const per = expected.length ? (q.score/expected.length) : 0;
+      let correct=0;
+      for(let bi=0;bi<expected.length;bi++){
+        if(norm(user[bi])===norm(expected[bi])) correct++;
+      }
+      earned = correct * per;
+      score += earned;
+    } else if(q.type==='single'){
+      if(EA[qid]===q.answer_index) earned = q.score;
+      score += earned;
+    } else if(q.type==='truefalse'){
+      if(EA[qid]===q.answer_bool) earned = q.score;
+      score += earned;
+    } else if(q.type==='match'){
+      const user = Array.isArray(EA[qid])?EA[qid]:[];
+      const expected = q.answer_map||[];
+      const per = expected.length ? (q.score/expected.length) : 0;
+      let correct=0;
+      for(let li=0;li<expected.length;li++){
+        if(user[li]===expected[li]) correct++;
+      }
+      earned = correct * per;
+      score += earned;
+    } else if(q.type==='order'){
+      const userSeq = normOrder(EA[qid]||'');
+      const expSeq = normOrder(q.correct_seq||'');
+      if(userSeq===expSeq) earned = q.score;
+      score += earned;
+    } else if(q.type==='dictation'){
+      const expRaw = (EL==='en' && q.expected_en) ? q.expected_en
+        : (EL==='id' && q.expected_id) ? q.expected_id
+        : (q.expected||'');
+      const u = normalizeDict(EA[qid]||'', EL);
+      const e = normalizeDict(expRaw, EL);
+      if(!u||!e){
+        earned=0;
+      } else {
+        const r = scoreDictationByCoverage(u,e,q.score);
+        earned = r.points;
+      }
+      score += earned;
+    }
+
+    if(sec==='ot'){ otEarned+=earned; otMax+=maxQ; }
+    else if(sec==='nt'){ ntEarned+=earned; ntMax+=maxQ; }
+  }
+
+  // 保险：把可能因题目解析/配分差异导致的“原始得分”线性缩放到满分 100
+  const maxPossible = qs.reduce((s,q)=>s+(q.score||0),0);
+  const scoreScaled = maxPossible ? Math.round((score/maxPossible)*100) : score;
+
+  const fmt2 = n=>Number(n).toFixed(2);
+  // 成绩备注仅保留分项与监考信息（默写原文与机评细节见 exam_answers JSON）
+  const examEssayWithRemark = [
+    `旧约总分：${fmt2(otEarned)} / ${fmt2(otMax)}`,
+    `新约总分：${fmt2(ntEarned)} / ${fmt2(ntMax)}`,
+    `切换屏幕次数：${A.proctorFlags||0} 次`,
+  ].join('\n');
+
+  const EL = A.examLang || 'zh';
   const {error} = await sb.from('applicants').update({
-    exam_score:score,exam_essay:A.essayText,exam_answers:A.examAnswers,
-    exam_completed_at:new Date().toISOString(),stage:'interview'
+    exam_score:scoreScaled,
+    exam_essay:examEssayWithRemark,
+    exam_answers:EA,
+    exam_completed_at:new Date().toISOString(),
+    stage:'interview',
+    exam_lang: EL,
   }).eq('id',A.applicant.id);
   if(!error){
-    A.applicant.exam_score=score;A.applicant.exam_essay=A.essayText;
-    A.applicant.stage='interview';A.examSubmitted=true;
-    toast('答卷已提交，成绩：'+score);
+    A.applicant.exam_score=scoreScaled;
+    A.applicant.exam_essay=examEssayWithRemark;
+    A.applicant.exam_lang = EL;
+    A.applicant.stage='interview';
+    A.examSubmitted=true;
+    toast('答卷已提交，成绩：'+scoreScaled+' 分');
+    await loadPublicSlots();
   } else toast('提交失败',false);
   render();
 }
 
 async function confirmInterview(){
   if(!A.ivSelected) return;
-  const {error:e1} = await sb.from('interview_slots').update({is_booked:true,applicant_id:A.applicant.id}).eq('id',A.ivSelected.id);
+  if(!A.applicant?.id){
+    toast('登录状态异常，请重新登录后再预约', false);
+    return;
+  }
+  if(!A.ivSelected.id){
+    toast('请重新选择时段', false);
+    return;
+  }
+  // 防止用户在时间已经过去后仍然能点到“确认预约”
+  const toMs = s=>{
+    if(!s?.slot_date || !s?.slot_time) return null;
+    const m = String(s.slot_date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const t = String(s.slot_time).match(/^(\d{2}):(\d{2})/);
+    if(!m||!t) return null;
+    const y=+m[1], mo=+m[2]-1, d=+m[3];
+    const hh=+t[1], mm=+t[2];
+    return new Date(y,mo,d,hh,mm,0).getTime();
+  };
+  const ms = toMs(A.ivSelected);
+  if(ms && ms <= Date.now()){
+    toast('该面试时间已过期，请刷新选择新的时间段',false);
+    return;
+  }
+  const aid = String(A.applicant.id);
+  const {data: dupHold, error: dupErr} = await sb.from('applicants')
+    .select('id')
+    .eq('interview_slot_id', A.ivSelected.id)
+    .not('id', 'eq', aid)
+    .limit(1);
+  if(dupErr){
+    toast('无法校验是否与他人冲突：'+(dupErr.message||'')+'（请检查 applicants 表的 SELECT 策略）', false);
+    return;
+  }
+  if(dupHold && dupHold.length > 0){
+    toast('该时段已被其他同学预约，请刷新后另选', false);
+    await loadPublicSlots();
+    A.ivSelected = null;
+    render();
+    return;
+  }
+  const { data: rowFresh, error: snapErr } = await sb.from('interview_slots')
+    .select('id,applicant_id,is_booked')
+    .eq('id', A.ivSelected.id)
+    .maybeSingle();
+  if(snapErr){
+    toast('无法校验时段：'+(snapErr.message||'请稍后再试'), false);
+    return;
+  }
+  if(!rowFresh || !isInterviewSlotRowVacant(rowFresh)){
+    toast('该时段已被其他同学预约，请刷新后另选', false);
+    await loadPublicSlots();
+    A.ivSelected = null;
+    render();
+    return;
+  }
+  // 仅当该时段仍空闲时写入，防止两人同时点确认抢同一槽位（需 Supabase RLS 允许 anon 对空闲行 UPDATE）
+  const {data: bookedRows, error: e1} = await sb.from('interview_slots')
+    .update({is_booked:true, applicant_id:A.applicant.id})
+    .eq('id', A.ivSelected.id)
+    .is('applicant_id', null)
+    .select('id');
+  if(e1){
+    toast('预约失败：'+(e1.message||'')+'（若含 policy / RLS，请管理员在 Supabase 执行仓库内 migrations 中的面试预约策略）', false);
+    await loadPublicSlots();
+    A.ivSelected = null;
+    render();
+    return;
+  }
+  if(!bookedRows || bookedRows.length===0){
+    toast('未能锁定该时段（可能刚被他人预约，或数据库未允许匿名用户写入 interview_slots）。请刷新重试；管理员请检查 RLS。', false);
+    await loadPublicSlots();
+    A.ivSelected = null;
+    render();
+    return;
+  }
   const {error:e2} = await sb.from('applicants').update({interview_slot_id:A.ivSelected.id}).eq('id',A.applicant.id);
-  if(!e1&&!e2){
-    A.ivBooked=true;A.applicant.interview_slot_id=A.ivSelected.id;
-    toast('面试预约成功！');
-    // Log notification
+  if(e2){
+    await sb.from('interview_slots').update({is_booked:false, applicant_id:null}).eq('id', A.ivSelected.id);
+    toast('预约失败，请重试', false);
+    render();
+    return;
+  }
+  A.ivBooked=true;
+  A.applicant.interview_slot_id=A.ivSelected.id;
+  A.applicantBookedInterviewSlot = A.ivSelected;
+  toast('面试预约成功！');
+  try{
     await sb.from('notification_log').insert([
       {applicant_id:A.applicant.id,type:'iv_scheduled',recipient:'applicant',content:`面试时间：${A.ivSelected.slot_date} ${A.ivSelected.slot_time}`},
       {applicant_id:A.applicant.id,type:'teacher_notified',recipient:A.ivSelected.teacher_name,content:`申请人：${fullName(A.applicant)}`},
     ]);
-  } else toast('预约失败',false);
+  }catch(_){}
   render();
 }
 
@@ -353,28 +1594,79 @@ async function confirmInterview(){
 // AUTH
 // ══════════════════════════════════════════════════════════════
 async function loginApplicant(name,last4){
+  if(!sb){toast('未连接数据库，请检查网络后刷新',false);return;}
   const trimName=name.trim();
   const {data,error}=await sb.from('applicants').select('*').eq('full_name',trimName).eq('phone_last4',last4.trim()).maybeSingle();
   if(error||!data){toast('姓名或手机后四位不正确',false);return;}
   A.role='applicant';A.applicant=data;
+  A.examLang = data.exam_lang || 'zh';
+  A.applicantBookedInterviewSlot=null;
+  if(data.interview_slot_id){
+    const {data: bsl} = await sb.from('interview_slots').select('*').eq('id', data.interview_slot_id).maybeSingle();
+    if(bsl) A.applicantBookedInterviewSlot = bsl;
+  }
+
+  if(data.stage==='interview' && !data.interview_slot_id){
+    await loadPublicSlots();
+  }
+
+  // 轮询申请人状态变化：当后台把阶段推进到 exam 时自动进入笔试准备页面
+  if(applicantStagePoller){clearInterval(applicantStagePoller);applicantStagePoller=null;}
+  applicantStagePoller=setInterval(async()=>{
+    if(A.role!=='applicant' || !A.applicant?.id) return;
+    try{
+      const {data:latest}=await sb.from('applicants').select('*').eq('id',A.applicant.id).maybeSingle();
+      if(latest && latest.stage && latest.stage!==A.applicant.stage){
+        A.applicant=latest;
+        A.applicantBookedInterviewSlot=null;
+        if(latest.interview_slot_id){
+          const {data: bsl} = await sb.from('interview_slots').select('*').eq('id', latest.interview_slot_id).maybeSingle();
+          if(bsl) A.applicantBookedInterviewSlot = bsl;
+        }
+        // 重置笔试状态，避免从旧阶段残留
+        A.examStarted=false;
+        A.examSubmitted=false;
+        A.examAnswers={};
+        A.essayText='';
+        A.examLang = latest.exam_lang || A.examLang || 'zh';
+        if(latest.stage==='interview' && !latest.interview_slot_id){
+          await loadPublicSlots();
+        }
+        render();
+      }
+    }catch(_){}
+  },6000);
   render();
 }
 
 async function loginStaff(email,password){
+  if(!sb){toast('未连接数据库，请检查网络后刷新',false);return;}
   const {data,error}=await sb.auth.signInWithPassword({email,password});
   if(error){toast('邮箱或密码错误',false);return;}
   A.user=data.user;
   const {data:prof}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
   A.profile=prof;
   A.role=prof?.role||'teacher';
-  if(A.role==='admin') await loadAdminData();
-  else await loadTeacherData();
+  await loadAdminData();
+  await loadExamQuestions();
   render();
 }
 
 async function logout(){
   await sb.auth.signOut();
-  Object.assign(A,{role:null,user:null,profile:null,applicant:null,adminTab:'pipeline',teacherTab:'interviews',selectedApId:null,briefingId:null,showAddApModal:false,allApplicants:[],allSlots:[],allRecords:[]});
+  if(applicantStagePoller){clearInterval(applicantStagePoller);applicantStagePoller=null;}
+  if(interviewSlotsPoller){clearInterval(interviewSlotsPoller);interviewSlotsPoller=null;}
+  Object.assign(A,{
+    role:null,user:null,profile:null,applicant:null,
+    adminTab:'pipeline',
+    selectedApId:null,briefingId:null,
+    showAddApModal:false,
+    showEditApInfoModal:false,editApInfoId:null,
+    examStarted:false,examSubmitted:false,examAnswers:{},essayText:'',
+    examLang:'zh',examTotalTime:9000,examTime:9000,proctorFlags:0,
+    ivSelected:null,ivBooked:false,applicantBookedInterviewSlot:null,
+    allApplicants:[],allSlots:[],applicantFreeSlots:[],allRecords:[],teacherProfiles:[]
+  });
   render();
 }
 
@@ -383,11 +1675,21 @@ async function logout(){
 // ══════════════════════════════════════════════════════════════
 function renderSteps(cur){
   const idx=STAGE_IDX[cur]||0;
+  const applicantMono = A.role==='applicant' && (A.examLang==='en' || A.examLang==='id');
+  const stepLabel = (s)=>{
+    if(!applicantMono) return s.label;
+    if(A.examLang==='en'){
+      const parts = String(s.label||'').split(' · ');
+      return parts.length > 1 ? parts[parts.length - 1].trim() : s.label;
+    }
+    const idMap = {apply:'Lamaran', exam:'Ujian', interview:'Wawancara', result:'Hasil', materials:'Berkas', complete:'Selesai'};
+    return idMap[s.id] || s.label;
+  };
   return `<div class="steps">${STAGES.map((s,i)=>{
     const cls=i<idx?'done':i===idx?'active':'locked';
     const lc=i<idx?'c-indigo4':i===idx?'c-indigo6':'c-gray4';
     const conn=i<STAGES.length-1?`<div class="step-conn ${i<idx?'done':'locked'}"></div>`:'';
-    return `<div class="col" style="align-items:center"><div class="step-dot ${cls}">${i<idx?'✓':s.icon}</div><div class="step-label ${lc}">${s.label}</div></div>${conn}`;
+    return `<div class="col" style="align-items:center"><div class="step-dot ${cls}">${i<idx?'✓':s.icon}</div><div class="step-label ${lc}">${esc(stepLabel(s))}</div></div>${conn}`;
   }).join('')}</div>`;
 }
 
@@ -398,17 +1700,17 @@ function renderLogin(){
   if(A.loginMode==='applicant') return renderApplicantLogin();
   if(A.loginMode==='staff')     return renderStaffLogin();
   return `<div class="app bg-login col center" style="min-height:100vh;padding:24px 16px">
-    <div class="tc mb8"><div class="t48 mb3">🏫</div><div class="t24 fw8 c-gray8">神学院招生系统</div><div class="t12 c-gray4 mt2">Seminary Admissions Portal</div></div>
+    <div class="tc mb8"><div class="t48 mb3">🏫</div><div class="t24 fw8 c-gray8">神学院招生系统 · <span class="t20 fw6">Seminary Admissions Portal</span></div><div class="t12 c-gray4 mt2">请选择登录身份 · Select your role</div></div>
     <div class="login-card">
-      <div class="tc t12 c-gray4 mb4">请选择登录身份</div>
+      <div class="tc t12 c-gray4 mb4">请选择登录身份 · Select role</div>
       <button class="login-btn" id="btn-login-applicant">
         <div class="login-icon">🙋</div>
-        <div><div class="fw7 c-gray8 t14">申请人</div><div class="t11 c-gray4 mt1">查看进度 · 参加考试 · 预约面试</div></div>
+        <div><div class="fw7 c-gray8 t14">申请人 Applicant</div><div class="t11 c-gray4 mt1">查看进度 · 参加考试 · 预约面试 · Track · Exam · Interview</div></div>
         <div class="ml-auto c-indigo4 t18">→</div>
       </button>
       <button class="login-btn" id="btn-login-staff">
         <div class="login-icon">👨‍🏫</div>
-        <div><div class="fw7 c-gray8 t14">老师 / 管理员</div><div class="t11 c-gray4 mt1">查看档案 · 填写记录 · 管理流程</div></div>
+        <div><div class="fw7 c-gray8 t14">老师 / 管理员 · Staff / Admin</div><div class="t11 c-gray4 mt1">查看档案 · 填写记录 · 管理流程 · Records & Pipeline</div></div>
         <div class="ml-auto c-indigo4 t18">→</div>
       </button>
     </div>
@@ -418,18 +1720,27 @@ function renderLogin(){
 function renderApplicantLogin(){
   return `<div class="app bg-login col center" style="min-height:100vh;padding:24px 16px">
     <div class="login-card maxw-sm">
-      <div class="tc mb6"><div class="t48 mb2">🙋</div><div class="t20 fw8 c-gray8">申请人登录</div></div>
+      <div class="tc mb6"><div class="t48 mb2">🙋</div><div class="t20 fw8 c-gray8">${esc(apLine('申请人登录','Applicant login','Login pelamar'))}</div></div>
+      <div class="b1 bc-indigo100 bg-indigo50 r12 p3 mb4">
+        <div class="t12 fw6 c-gray6 mb2">${esc(apLine('界面语言（笔试与进度页）','Interface language','Bahasa antarmuka'))}</div>
+        <div class="row wrap g2">
+          <button type="button" class="btn ${A.examLang==='zh'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="zh">中文</button>
+          <button type="button" class="btn ${A.examLang==='en'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="en">English</button>
+          <button type="button" class="btn ${A.examLang==='id'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="id">Bahasa Indonesia</button>
+        </div>
+        <div class="t11 c-gray5 mt2">${esc(apLine('老师端仍为中英双语。','Staff portal stays Chinese + English.','Portal staf tetap dwibahasa Tionghoa–Inggris.'))}</div>
+      </div>
       <div class="col g3">
         <div>
-          <div class="t12 fw6 c-gray6 mb1">真实姓名</div>
-          <input id="ap-name" class="inp" placeholder="例：魏耀恩">
+          <div class="t12 fw6 c-gray6 mb1">${esc(apLine('真实姓名','Full name','Nama lengkap'))}</div>
+          <input id="ap-name" class="inp" placeholder="${esc(apLine('与报名表一致','As on your application','Sesuai formulir'))}">
         </div>
         <div>
-          <div class="t12 fw6 c-gray6 mb1">手机号后四位</div>
-          <input id="ap-phone4" class="inp" maxlength="4" placeholder="例：1234">
+          <div class="t12 fw6 c-gray6 mb1">${esc(apLine('手机号后四位','Last 4 digits of phone','4 digit terakhir nomor HP'))}</div>
+          <input id="ap-phone4" class="inp" maxlength="4" placeholder="1234">
         </div>
-        <button class="btn btn-primary btn-full mt2" id="btn-ap-login">登录</button>
-        <button class="btn btn-ghost btn-full btn-sm" id="btn-back-login">← 返回</button>
+        <button class="btn btn-primary btn-full mt2" id="btn-ap-login">${esc(apLine('登录','Log in','Masuk'))}</button>
+        <button class="btn btn-ghost btn-full btn-sm" id="btn-back-login">${esc(apLine('← 返回','← Back','← Kembali'))}</button>
       </div>
     </div>
   </div>`;
@@ -438,18 +1749,18 @@ function renderApplicantLogin(){
 function renderStaffLogin(){
   return `<div class="app bg-login col center" style="min-height:100vh;padding:24px 16px">
     <div class="login-card maxw-sm">
-      <div class="tc mb6"><div class="t48 mb2">👨‍🏫</div><div class="t20 fw8 c-gray8">老师 / 管理员登录</div></div>
+      <div class="tc mb6"><div class="t48 mb2">👨‍🏫</div><div class="t20 fw8 c-gray8">老师 / 管理员登录 · Staff / Admin Login</div></div>
       <div class="col g3">
         <div>
-          <div class="t12 fw6 c-gray6 mb1">邮箱</div>
-          <input id="staff-email" class="inp" type="email" placeholder="your@email.com">
+          <div class="t12 fw6 c-gray6 mb1">邮箱 · Email</div>
+          <input id="staff-email" class="inp" type="email" placeholder="you@example.com">
         </div>
         <div>
-          <div class="t12 fw6 c-gray6 mb1">密码</div>
+          <div class="t12 fw6 c-gray6 mb1">密码 · Password</div>
           <input id="staff-pw" class="inp" type="password" placeholder="••••••••">
         </div>
-        <button class="btn btn-primary btn-full mt2" id="btn-staff-login">登录</button>
-        <button class="btn btn-ghost btn-full btn-sm" id="btn-back-login">← 返回</button>
+        <button class="btn btn-primary btn-full mt2" id="btn-staff-login">登录 · Login</button>
+        <button class="btn btn-ghost btn-full btn-sm" id="btn-back-login">← 返回 · Back</button>
       </div>
     </div>
   </div>`;
@@ -464,24 +1775,73 @@ function renderApplicant(){
   let content='';
   if(stage==='apply') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
     <div class="t48 mb3">👋</div>
-    <div class="t22 fw7 c-gray8 mb2">平安，${esc(fullName(ap))}！</div>
-    <div class="t13 c-gray5 mb6">感谢报名，你的申请已收到。笔试开放后系统会通知你，请留意。</div>
+    <div class="t22 fw7 c-gray8 mb2">${esc(apLine(`平安，${fullName(ap)}！`,`Peace, ${fullName(ap)}!`,`Shalom, ${fullName(ap)}!`))}</div>
+    <div class="t13 c-gray5 mb6">${esc(apLine('感谢报名，你的申请已收到。笔试开放后系统会通知你，请留意。','Thank you. Your application is received. You will be notified when the written exam opens.','Terima kasih. Lamaran Anda telah kami terima. Anda akan diberitahu saat ujian tertulis dibuka.'))}</div>
     <div class="bg-indigo50 b1 bc-indigo100 r16 p4 t13 tl col g2">
-      <div class="row g2"><span class="c-indigo4">📌</span><span>报名项目：<strong>神学院 2026 秋季班</strong></span></div>
-      <div class="row g2"><span class="c-indigo4">📞</span><span>如有疑问请联系：张琦 Alex</span></div>
+      <div class="row g2"><span class="c-indigo4">📌</span><span>${esc(apLine('报名项目：','Program:','Program:'))} <strong>${esc(apLine('神学院 2026 秋季班','Seminary Fall 2026','Seminari Angkatan Gugur 2026'))}</strong></span></div>
+      <div class="row g2"><span class="c-indigo4">📞</span><span>${esc(apLine('如有疑问请联系：张琦 Alex','Questions? Contact: Zhang Qi (Alex)','Pertanyaan? Hubungi: Zhang Qi (Alex)'))}</span></div>
     </div>
   </div>`;
   else if(stage==='exam'){
-    if(!A.examStarted) content=`<div class="col center py12 px4 tc maxw-md mx-auto">
-      <div class="t48 mb3">📖</div><div class="t22 fw7 c-gray8 mb2">笔试准备</div>
-      <div class="t13 c-gray5 mb6 lh16">共 <strong>5 道题</strong>（4道单选 + 1道简答）<br>考试时间 <strong>90 分钟</strong></div>
-      <div class="b1 bc-amber200 bg-amber50 r12 p4 t12 tl mb6" style="color:#92400e;max-width:420px">⚠️ 请准备两个设备，全程开启摄像头。</div>
-      <button class="btn btn-primary" id="btn-start-exam">开始考试</button>
-    </div>`;
+    if(!A.examStarted){
+      const win = getExamWindowUtc();
+      const jakarta = win ? fmtRangeInTZ(win.startUtc, win.endUtc, 'Asia/Jakarta') : null;
+      const beijing = win ? fmtRangeInTZ(win.startUtc, win.endUtc, 'Asia/Shanghai') : null;
+      const allowedNow = isExamAllowedNow(ap);
+
+      const proctorNotice = `【中文】双机位线上考试：请考生准备两个设备（手机或电脑均可）：一个设备正对本人，需全程开启摄像头并打开麦克风；另一个设备放在本人斜后方约45度，对准屏幕、答题区域及周围环境。\n\n进入会议室时，请将两个设备的显示名称分别设置为“姓名-1”和“姓名-2”，以便监考识别。\n\n考试时间为北京时间 10:00-12:30（印尼时间9:00-11:30），请至少提前15分钟进入会议室完成设备调试。\n\nZoom会议号：${EXAM_ZOOM_ID}，密码：${EXAM_ZOOM_PW}。\n\n请提前充满电、保证网络稳定，并将环境保持安静，考试过程中不随意移动设备或离开镜头范围，不使用其他电子设备，如遇设备或网络问题请第一时间在会议室中说明。\n\n感谢您的配合与理解。\n\n【English】Dual-device online exam: use two devices (phone or computer). One faces you with camera and microphone on; the other is about 45° behind you, showing your screen and workspace. Rename devices to “Name-1” and “Name-2”. Exam time: Beijing 10:00–12:30 / Jakarta 9:00–11:30. Join Zoom at least 15 minutes early. Zoom ID: ${EXAM_ZOOM_ID}, passcode: ${EXAM_ZOOM_PW}. Stay charged, stable network, quiet room; do not leave view or use other devices. Report tech issues in the meeting room immediately. Thank you.\n\n【Bahasa Indonesia】Ujian daring dua perangkat: sediakan dua perangkat (ponsel atau komputer). Satu menghadap Anda dengan kamera dan mikrofon menyala sepanjang ujian; yang lain di belakang samping sekitar 45°, memperlihatkan layar, area menjawab, dan lingkungan sekitar.\n\nSaat bergabung ke Zoom, ubah nama tampilan menjadi “Nama-1” dan “Nama-2” agar proktor dapat mengenali Anda.\n\nWaktu ujian: WIB 09:00–11:30; Waktu Beijing 10:00–12:30. Harap masuk ruang rapat minimal 15 menit lebih awal untuk uji coba perangkat.\n\nZoom ID: ${EXAM_ZOOM_ID}, kode sandi: ${EXAM_ZOOM_PW}.\n\nPastikan baterai terisi, jaringan stabil, dan ruangan tenang; jangan meninggalkan bidang kamera atau memakai perangkat lain. Jika ada masalah perangkat atau jaringan, segera laporkan di ruang Zoom.\n\nTerima kasih atas kerja sama Anda.`;
+
+      const isExempt = isExamExemptApplicant(ap);
+      const blockReason = isExempt
+        ? `测试账号：可随时进入答题。 · Test account: you may start anytime.`
+        : (allowedNow
+          ? `当前在开放时间内，可以进入答题。 · You may start the exam now.`
+          : (win && !win.inWindow ? `当前非开放时间。下次开放时间：${jakarta||''}（印尼时间 WIB），${beijing||''}（北京时间 CST）。 · Outside the window. Next: ${jakarta||''} (WIB), ${beijing||''} (CST).` : '当前暂无法获取开放时间，请稍后再试。 · Cannot load schedule; please try again later.'));
+
+      content=`<div class="col center py12 px4 tc maxw-md mx-auto">
+        <div class="t48 mb3">📖</div><div class="t22 fw7 c-gray8 mb2">笔试准备 · Exam briefing</div>
+        <div class="t13 c-gray5 mb4 lh16">
+          共 <strong>${(A.examQuestions&&A.examQuestions.length)||EXAM_Qs.length}</strong> 道题 · <span class="t12 c-gray4">Total questions</span><br>
+          考试时长 <strong>150 分钟</strong> · <span class="t12 c-gray4">150 minutes</span><br>
+          开放时间：<strong>周一 / 周三 / 周六</strong> · <span class="t12 c-gray4">Mon / Wed / Sat</span><br>
+          印尼时间（WIB） <strong>${EXAM_WIB_START}–${EXAM_WIB_END}</strong> · 北京时间 <strong>10:00–12:30</strong>
+        </div>
+
+        <div class="card p4 tl mb4" style="max-width:520px">
+          <div class="fw7 c-gray8 t13 mb2">⏰ 下一次（或当前）开放时间 · Next / current window</div>
+          <div class="t13 c-gray7 lh16">
+            ${jakarta?`印尼时间 WIB：<strong>${esc(jakarta)}</strong><br>`:''}
+            ${beijing?`北京时间 CST：<strong>${esc(beijing)}</strong><br>`:''}
+          </div>
+        </div>
+
+        <div class="card p4 tl mb4" style="max-width:520px">
+          <div class="fw7 c-gray8 t13 mb2">🌐 试卷语言 · Exam language</div>
+          <div class="row wrap g2">
+            <button class="btn ${A.examLang==='zh'?'btn-primary':'btn-outline'} btn-sm" data-action="set-exam-lang" data-lang="zh">中文 Chinese</button>
+            <button class="btn ${A.examLang==='en'?'btn-primary':'btn-outline'} btn-sm" data-action="set-exam-lang" data-lang="en">English</button>
+            <button class="btn ${A.examLang==='id'?'btn-primary':'btn-outline'} btn-sm" data-action="set-exam-lang" data-lang="id">Bahasa Indonesia</button>
+          </div>
+          <div class="t12 c-gray5 mt2">题目与阅卷标准将随所选语言切换（中 / 英 / 印尼）。 · Questions and grading follow the language you choose.</div>
+        </div>
+
+        <div class="b1 bc-amber200 bg-amber50 r12 p4 t12 tl mb4" style="color:#92400e;max-width:520px">
+          ⚠️ ${esc(blockReason)}
+          <br><span class="t12">考试过程中切换窗口/切屏会被记录，并在最后成绩备注中显示。 · Window/tab switches are logged and noted on your result.</span>
+        </div>
+
+        <details class="card p4 tl mb5" style="max-width:520px">
+          <summary class="fw7 c-gray8 t13" style="cursor:pointer">📌 考前提醒 · Pre-exam notes · Catatan pra-ujian（点击展开 · tap to expand）</summary>
+          <pre class="t12 c-gray7 lh16" style="white-space:pre-wrap;margin-top:10px">${esc(proctorNotice)}</pre>
+        </details>
+
+        ${allowedNow?`<button class="btn btn-primary" id="btn-start-exam">开始考试 · Start exam</button>`:`<button class="btn btn-ghost" disabled style="opacity:.6">当前不可答题 · Not available now</button>`}
+      </div>`;
+    }
     else if(A.examSubmitted) content=`<div class="col center py12 px4 tc maxw-md mx-auto">
-      <div class="t48 mb3">🎉</div><div class="t22 fw7 c-gray8 mb2">答卷已提交！</div>
-      <div class="b1 bc-indigo200 bg-indigo50 r16 p5 mb6"><div style="font-size:48px;font-weight:800;color:#4f46e5">${ap.exam_score||'—'}</div><div class="t11 c-indigo4 mt1">满分 100 · 暂估分</div></div>
-      <button class="btn btn-primary" id="btn-go-interview">前往预约面试 →</button>
+      <div class="t48 mb3">🎉</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('答卷已提交！','Exam submitted','Jawaban ujian terkirim'))}</div>
+      <div class="b1 bc-indigo200 bg-indigo50 r16 p5 mb6"><div style="font-size:48px;font-weight:800;color:#4f46e5">${ap.exam_score||'—'}</div><div class="t11 c-indigo4 mt1">${esc(apLine('满分 100 · 暂估分','Max 100 · provisional','Maks 100 · nilai sementara'))}</div></div>
+      <button class="btn btn-primary" id="btn-go-interview">${esc(apLine('前往预约面试 →','Book interview →','Pesan wawancara →'))}</button>
     </div>`;
     else content=renderExamDoing();
   }
@@ -490,19 +1850,26 @@ function renderApplicant(){
     else content=renderIvBooking();
   }
   else if(stage==='result') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
-    <div class="t48 mb3">⏳</div><div class="t22 fw7 c-gray8 mb2">等待录取结果</div>
-    <div class="t13 c-gray5">感谢你参与面试，结果将在 3–5 个工作日内通知。</div>
+    <div class="t48 mb3">⏳</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('等待录取结果','Awaiting decision','Menunggu keputusan'))}</div>
+    <div class="t13 c-gray5">${esc(apLine('感谢你参与面试，结果将在 3–5 个工作日内通知。','Thank you for your interview. Results are usually shared within 3–5 business days.','Terima kasih atas wawancaranya. Hasil biasanya dikirim dalam 3–5 hari kerja.'))}</div>
   </div>`;
   else if(stage==='materials') content=renderMaterials();
   else if(stage==='complete') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
-    <div style="font-size:56px" class="mb3">🎓</div><div class="t22 fw7 c-gray8 mb2">恭喜！入学流程已完成</div>
-    <div class="t13 c-gray5">所有材料已审核通过，请关注来印攻略文件。</div>
+    <div style="font-size:56px" class="mb3">🎓</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('恭喜！入学流程已完成','All steps complete','Selamat! Semua langkah selesai'))}</div>
+    <div class="t13 c-gray5">${esc(apLine('所有材料已审核通过，请关注来印攻略文件。','All materials are approved. Please watch for arrival guidance.','Semua berkas disetujui. Perhatikan panduan kedatangan.'))}</div>
   </div>`;
+
+  const examOnlyEn = A.role==='applicant' && A.examLang==='en';
+  const examOnlyId = A.role==='applicant' && A.examLang==='id';
+  const brandLine = examOnlyEn ? 'Seminary Admissions'
+    : examOnlyId ? 'Penerimaan Seminari'
+    : '神学院招生系统 · Seminary Admissions';
+  const logoutLine = examOnlyEn ? 'Logout' : examOnlyId ? 'Keluar' : '退出 · Logout';
 
   return `<div style="min-height:100vh;background:linear-gradient(135deg,#eef2ff,#fff 50%,#f5f3ff)">
     <div class="header">
-      <div class="row g2"><span class="t20">🏫</span><span class="fw7 c-gray8 t14">神学院招生系统</span></div>
-      <div class="row g2">${mkAv(initials(ap),'sm')}<span class="t12 c-gray6">${esc(fullName(ap))}</span><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
+      <div class="row g2"><span class="t20">🏫</span><span class="fw7 c-gray8 t14">${esc(brandLine)}</span></div>
+      <div class="row g2">${mkAv(initials(ap),'sm')}<span class="t12 c-gray6">${esc(fullName(ap))}</span><button class="btn btn-ghost btn-sm" id="btn-logout">${esc(logoutLine)}</button></div>
     </div>
     ${renderSteps(stage)}
     <main style="padding-bottom:48px">${content}</main>
@@ -511,182 +1878,492 @@ function renderApplicant(){
 
 function renderExamDoing(){
   const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  if(A.role!=='applicant' || !isExamAllowedNow(A.applicant)){
+    const win=getExamWindowUtc();
+    const jakarta = win ? fmtRangeInTZ(win.startUtc, win.endUtc, 'Asia/Jakarta') : null;
+    const beijing = win ? fmtRangeInTZ(win.startUtc, win.endUtc, 'Asia/Shanghai') : null;
+    return `<div class="maxw-lg mx-auto px4" style="padding:28px 16px 64px">
+      <div class="t48 mb3">⛔</div>
+      <div class="t22 fw7 c-gray8 mb2">当前不可答题 · Exam closed</div>
+      <div class="t13 c-gray5 mb4 lh16">只有在印尼时间周一/周三/周六上午 <strong>${EXAM_WIB_START}–${EXAM_WIB_END}</strong> 才可以进入答题。<br><span class="t12 c-gray4">Available Mon/Wed/Sat mornings WIB ${EXAM_WIB_START}–${EXAM_WIB_END} only.</span></div>
+      <div class="card p4 tl mb4">
+        <div class="fw7 c-gray8 t13 mb2">下一次开放 · Next window</div>
+        <div class="t12 c-gray7 lh16">
+          ${jakarta?`印尼时间 WIB：<strong>${esc(jakarta)}</strong><br>`:''}
+          ${beijing?`北京时间 CST：<strong>${esc(beijing)}</strong><br>`:''}
+        </div>
+      </div>
+      <div class="t12 c-gray5">请返回“笔试准备”页查看提醒。 · Return to the exam briefing page.</div>
+    </div>`;
+  }
+  const qs=(A.examQuestions&&A.examQuestions.length)?A.examQuestions:(EXAM_Qs&&EXAM_Qs.length?EXAM_Qs:[]);
+  const EA=A.examAnswers||{};
+  const EL=A.examLang||'zh';
+  const normOrder = s=>String(s||'').toUpperCase().replace(/[^A-Z]/g,'');
+
+  function locQ(qi){
+    if(EL==='en' && globalThis.__EXAM_EN_PARSED && globalThis.__EXAM_EN_PARSED[qi]) return globalThis.__EXAM_EN_PARSED[qi];
+    if(EL==='id' && globalThis.__EXAM_ID_PARSED && globalThis.__EXAM_ID_PARSED[qi]) return globalThis.__EXAM_ID_PARSED[qi];
+    return null;
+  }
+  function qPrompt(q, qi){
+    if(q.type==='dictation'){
+      const exp = EL==='en' && q.expected_en ? q.expected_en
+        : EL==='id' && q.expected_id ? q.expected_id
+        : (q.expected||'');
+      if(EL==='zh'){
+        const { ref } = extractZhDictationRef(exp);
+        return '请默写：' + (ref || String(q.prompt||'').replace(/^请默写[：:]\s*/,'').trim() || '经文');
+      }
+      if(EL==='en'){
+        const er = extractLatinDictRefFromExpected(exp);
+        return er ? ('Write from memory: '+er) : (q.prompt_en||'');
+      }
+      if(EL==='id'){
+        const ir = extractLatinDictRefFromExpected(exp);
+        return ir ? ('Tuliskan dari hafalan: '+ir) : (q.prompt_id||'');
+      }
+      return q.prompt||'';
+    }
+    const L = locQ(qi);
+    if(L && L.type===q.type && L.prompt) return L.prompt;
+    if(EL==='en' && q.prompt_en) return q.prompt_en;
+    if(EL==='id' && q.prompt_id) return q.prompt_id;
+    if(EL==='en'){
+      return 'This question could not be loaded in English. Ensure exam-plain-bundled.js is present and refresh the page, or open the site over http(s) so docx_plain_en.txt can load.';
+    }
+    if(EL==='id'){
+      return 'Soal bahasa Indonesia tidak dapat dimuat. Pastikan exam-plain-bundled.js ada dan muat ulang halaman, atau buka situs lewat http(s) agar docx_plain_id.txt dapat diunduh.';
+    }
+    return q.prompt||'';
+  }
+  function qOptions(q, qi){
+    const L = locQ(qi);
+    if(L && L.type==='single' && Array.isArray(L.options) && L.options.some(x=>String(x||'').trim())) return L.options;
+    if(EL==='en' && q.options_en && q.options_en.length) return q.options_en;
+    if(EL==='id' && q.options_id && q.options_id.length) return q.options_id;
+    if(EL==='en' || EL==='id') return [];
+    return q.options||[];
+  }
+  function qLeftItems(q, qi){
+    const L = locQ(qi);
+    if(L && L.type==='match' && L.left_items && q.left_items && L.left_items.length===q.left_items.length) return L.left_items;
+    if(EL==='en' && q.left_items_en && q.left_items && q.left_items_en.length===q.left_items.length) return q.left_items_en;
+    if(EL==='id' && q.left_items_id && q.left_items && q.left_items_id.length===q.left_items.length) return q.left_items_id;
+    return q.left_items||[];
+  }
+  function qRightItems(q, qi){
+    const L = locQ(qi);
+    if(L && L.type==='match' && L.right_items && q.right_items && L.right_items.length===q.right_items.length) return L.right_items;
+    if(EL==='en' && q.right_items_en && q.right_items && q.right_items_en.length===q.right_items.length) return q.right_items_en;
+    if(EL==='id' && q.right_items_id && q.right_items && q.right_items_id.length===q.right_items.length) return q.right_items_id;
+    return q.right_items||[];
+  }
+  function qOrderItems(q, qi){
+    const L = locQ(qi);
+    if(L && L.type==='order' && L.items && L.items.length) return L.items;
+    if(EL==='en' && q.items_en && q.items_en.length) return q.items_en;
+    if(EL==='id' && q.items_id && q.items_id.length) return q.items_id;
+    return q.items||[];
+  }
+  function fillBlanksCount(q){
+    if(EL==='en' && q.answers_en && q.answers_en.length) return q.answers_en.length;
+    if(EL==='id' && q.answers_id && q.answers_id.length) return q.answers_id.length;
+    return q.blanks ?? (q.answers||[]).length;
+  }
+
+  const examUi = EL==='en' ? {
+    fillHint:(n)=>`Fill in ${n} blank${n>1?'s':''}.`,
+    fillPh:(i)=>`Blank ${i+1}`,
+    match:'Match each numbered item with the correct option.',
+    order:'Enter the letter order (e.g. CABD).',
+    orderPh:'e.g. CABD',
+    dictPh:'Type the passage from memory.',
+    tfT:'True',
+    tfF:'False',
+    submit:'Submit',
+    remain:'Time left',
+  } : EL==='id' ? {
+    fillHint:(n)=>`Isi ${n} bagian yang kosong.`,
+    fillPh:(i)=>`Kosong ${i+1}`,
+    match:'Pasangkan setiap nomor dengan jawaban yang tepat.',
+    order:'Tuliskan urutan huruf (mis. CABD).',
+    orderPh:'mis. CABD',
+    dictPh:'Tuliskan ayat dari ingatan Anda.',
+    tfT:'Benar',
+    tfF:'Salah',
+    submit:'Kirim jawaban',
+    remain:'Sisa waktu',
+  } : {
+    fillHint:(n)=>`请填写（${n} 空） · Fill in (${n} blank${n>1?'s':''})`,
+    fillPh:(i)=>`空${i+1} · B${i+1}`,
+    match:'请完成配对 · Match each item',
+    order:'请输入排序字母顺序 · Enter letter order (e.g. CABD)',
+    orderPh:'例如 · e.g. CABD',
+    dictPh:'请在此输入文本… · Type your answer here…',
+    tfT:'√ 对 · True',
+    tfF:'× 错 · False',
+    submit:'提交答卷 · Submit',
+    remain:'剩余 · Left',
+  };
+
+  function renderOne(q,qi){
+    const qid=q.id;
+    const top = `<div class="row g2 mb4">
+      <div class="shrink0" style="width:24px;height:24px;border-radius:50%;background:#4f46e5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:2px">${qi+1}</div>
+      <p class="c-gray8 fw5 t13 lh16 flex1">${esc(qPrompt(q, qi))}</p>
+    </div>`;
+
+    if(q.type==='fill'){
+      const blanks=fillBlanksCount(q);
+      const cur=Array.isArray(EA[qid])?EA[qid]:[];
+      return `<div class="card p5 mb3">
+        ${top}
+        <div class="col g2" style="padding-left:32px">
+          <div class="t13 c-gray8 mb1" style="color:#111827">${examUi.fillHint(blanks)}</div>
+          <div class="row wrap g2">
+            ${Array.from({length:blanks}).map((_,bi)=>{
+              const val=cur[bi]||'';
+              return `<input class="inp" style="min-width:140px;flex:1" data-kind="fill" data-qid="${qid}" data-blank="${bi}" placeholder="${esc(examUi.fillPh(bi))}" value="${esc(val)}">`;
+            }).join('')}
+          </div>
+        </div>
+      </div>`;
+    }
+
+    if(q.type==='single'){
+      const opts=qOptions(q, qi);
+      const optMissing = EL==='en'
+        ? '<p class="t13" style="color:#b45309">Answer choices failed to load. Refresh the page or use http(s) hosting.</p>'
+        : EL==='id'
+          ? '<p class="t13" style="color:#b45309">Pilihan jawaban tidak dimuat. Muat ulang halaman atau gunakan hosting http(s).</p>'
+          : '';
+      return `<div class="card p5 mb3">
+        ${top}
+        <div class="col g2" style="padding-left:32px">
+          ${!opts.length ? optMissing : opts.map((opt,oi)=>{
+            const checked=EA[qid]===oi;
+            return `<label class="radio-opt${checked?' checked':''}">
+              <input type="radio" data-kind="single" data-qid="${qid}" name="q-single-${qid}" value="${oi}" ${checked?'checked':''}>
+              <span class="t14 c-gray8" style="color:#111827">${String.fromCharCode(65+oi)}. ${esc(opt)}</span>
+            </label>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
+    if(q.type==='truefalse'){
+      const checkedTrue=EA[qid]===true;
+      const checkedFalse=EA[qid]===false;
+      return `<div class="card p5 mb3">
+        ${top}
+        <div class="col g2" style="padding-left:32px">
+          <label class="radio-opt${checkedTrue?' checked':''}">
+            <input type="radio" data-kind="truefalse" data-qid="${qid}" name="q-tf-${qid}" value="1" ${checkedTrue?'checked':''}>
+            <span class="t14 c-gray8" style="color:#111827">${esc(examUi.tfT)}</span>
+          </label>
+          <label class="radio-opt${checkedFalse?' checked':''}">
+            <input type="radio" data-kind="truefalse" data-qid="${qid}" name="q-tf-${qid}" value="0" ${checkedFalse?'checked':''}>
+            <span class="t14 c-gray8" style="color:#111827">${esc(examUi.tfF)}</span>
+          </label>
+        </div>
+      </div>`;
+    }
+
+    if(q.type==='match'){
+      const cur=Array.isArray(EA[qid])?EA[qid]:[];
+      const L=qLeftItems(q, qi), R=qRightItems(q, qi);
+      return `<div class="card p5 mb3">
+        ${top}
+        <div class="col g2" style="padding-left:32px">
+          <div class="t13 c-gray8 mb1" style="color:#111827">${esc(examUi.match)}</div>
+          ${L.map((li,leftIdx)=>{
+            const sel=cur[leftIdx];
+            return `<div class="row g2 mb2">
+              <div class="t13 c-gray8 shrink0" style="width:170px;color:#111827">${leftIdx+1}. ${esc(li)}</div>
+              <select class="sel" data-kind="match" data-qid="${qid}" data-left="${leftIdx}">
+                ${R.map((ri,rightIdx)=>{
+                  const optSel = sel===rightIdx;
+                  return `<option value="${rightIdx}" ${optSel?'selected':''}>${esc(ri)}</option>`;
+                }).join('')}
+              </select>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
+    if(q.type==='order'){
+      const cur=EA[qid]||'';
+      const oItems=qOrderItems(q, qi);
+      return `<div class="card p5 mb3">
+        ${top}
+        <div class="col g2" style="padding-left:32px">
+          <div class="t13 c-gray8 mb1" style="color:#111827">${esc(examUi.order)}</div>
+          <input class="inp" style="max-width:320px" data-kind="order" data-qid="${qid}" value="${esc(cur)}" placeholder="${esc(examUi.orderPh)}">
+          <div class="col g2 mt2 t13 c-gray8" style="color:#111827">${oItems.map(it=>`<div class="lh16">${esc(it.key)}. ${esc(it.text)}</div>`).join('')}</div>
+        </div>
+      </div>`;
+    }
+
+    if(q.type==='dictation'){
+      const cur=EA[qid]||'';
+      return `<div class="card p5 mb3">
+        ${top}
+        <div class="col g2" style="padding-left:32px">
+          <textarea class="textarea" rows="5" data-kind="dictation" data-qid="${qid}" placeholder="${esc(examUi.dictPh)}">${esc(cur)}</textarea>
+        </div>
+      </div>`;
+    }
+
+    // fallback
+    const unsup = EL==='en'
+      ? 'Unsupported question type: '+(q.type||'unknown')
+      : EL==='id'
+        ? 'Jenis soal tidak didukung: '+(q.type||'unknown')
+        : '不支持的题型 · Unsupported：'+(q.type||'unknown');
+    return `<div class="card p5 mb3">${top}<div class="t12 c-gray4">${esc(unsup)}</div></div>`;
+  }
+
+  const pf = A.proctorFlags||0;
+  const switchLabel = EL==='en'
+    ? `${pf} tab/window switch${pf===1?'':'es'}`
+    : EL==='id'
+      ? `Pergantian jendela/tab: ${pf} kali`
+      : `切屏 ${pf} 次 · ${pf===1?'1 switch':'switches'}`;
+
   return `<div class="maxw-2xl mx-auto px4" style="padding-bottom:64px">
     <div id="timer-wrap" class="row g3 r12 p3 mb4" style="position:sticky;top:64px;z-index:10;background:#eef2ff;border:1px solid #e0e7ff">
       <span>⏱</span>
       <div class="timer-bar-outer"><div id="timer-bar" class="timer-bar-inner" style="width:0%;background:linear-gradient(90deg,#4f46e5,#818cf8)"></div></div>
       <span id="timer-disp" class="mono fw7 t13 c-indigo6">${fmt(A.examTime)}</span>
-      <span class="t12 c-gray4">剩余</span>
+      <span class="t12 c-gray4">${esc(examUi.remain)}</span>
+      <span class="ml-auto tag" style="background:#fee2e2;color:#dc2626">${esc(switchLabel)}</span>
     </div>
     <div class="col g4">
-    ${EXAM_Qs.map((q,qi)=>`<div class="card p5">
-      <div class="row g2 mb4">
-        <div class="shrink0" style="width:24px;height:24px;border-radius:50%;background:#4f46e5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:2px">${qi+1}</div>
-        <p class="c-gray8 fw5 t13 lh16 flex1">${esc(q.q)}</p>
-      </div>
-      ${q.type==='single'?`<div class="col g2" style="padding-left:32px">
-        ${q.opts.map((opt,oi)=>`<label class="radio-opt${A.examAnswers[q.id]===oi?' checked':''}" data-qid="${q.id}" data-oi="${oi}">
-          <input type="radio" name="q${q.id}" value="${oi}" ${A.examAnswers[q.id]===oi?'checked':''}><span class="t13 c-gray7">${String.fromCharCode(65+oi)}. ${esc(opt)}</span>
-        </label>`).join('')}
-      </div>`:`<div style="padding-left:32px">
-        <textarea id="essay-ta" class="textarea" rows="6" placeholder="请在此输入（100-200字）...">${esc(A.essayText)}</textarea>
-        <div id="essay-count" class="tr t11 mt1" style="color:${A.essayText.length<100?'#f59e0b':'#16a34a'}">${A.essayText.length} 字</div>
-      </div>`}
-    </div>`).join('')}
+      ${qs.map((q,qi)=>renderOne(q,qi)).join('')}
     </div>
-    <div class="tc mt8"><button class="btn btn-primary" id="btn-submit-exam">提交答卷</button></div>
+    <div class="tc mt8"><button class="btn btn-primary" id="btn-submit-exam">${esc(examUi.submit)}</button></div>
   </div>`;
 }
 
 function renderIvBooking(){
-  const slots=A.allSlots;
+  const slots=A.applicantFreeSlots||[];
   const grouped={};
   slots.forEach(s=>{if(!grouped[s.slot_date])grouped[s.slot_date]=[];grouped[s.slot_date].push(s);});
+  const el = A.applicant?.exam_lang || A.examLang || 'zh';
+  const langHint = el==='en'
+    ? apLine('当前为英文笔试，仅显示具备英文面试能力的老师时段（优先 Nathan / Heaven）。','English exam: only slots from English-capable teachers (Nathan / Heaven first).','Ujian EN: hanya slot guru EN.')
+    : el==='id'
+      ? apLine('当前为印尼语笔试，仅显示具备印尼语面试能力的老师时段（优先 Yohanes）。','Indonesian exam: Indonesian-capable teachers only (Yohanes first).','Ujian ID: hanya slot guru bahasa Indonesia.')
+      : apLine('当前为中文笔试，仅显示具备中文面试能力的老师时段（优先 Levi / Will）。','Chinese exam: Chinese-capable teachers only (Levi / Will first).','Ujian ZH: hanya slot guru bahasa Tionghoa.');
+
+  const toMin = t=>{
+    const m=String(t||'').match(/^(\d{2}):(\d{2})/);
+    if(!m) return null;
+    return (+m[1])*60+(+m[2]);
+  };
+  const inferInterval = (ss)=>{
+    const times = ss
+      .map(x=>toMin(x.slot_time))
+      .filter(v=>v!=null)
+      .sort((a,b)=>a-b);
+    if(times.length<2) return 30;
+    const diffs=[];
+    for(let i=1;i<times.length;i++){
+      const d=times[i]-times[i-1];
+      if(d>0 && d<=60) diffs.push(d);
+    }
+    const freq = {};
+    diffs.forEach(d=>freq[d]=(freq[d]||0)+1);
+    // 优先选择 20/30，如果存在
+    if(freq[20]||freq[30]){
+      return (freq[20]>=freq[30])?20:30;
+    }
+    // 否则取最接近 20/30 的
+    const all = Object.keys(freq).map(Number);
+    if(!all.length) return 30;
+    const target = all.reduce((best,d)=>Math.abs(d-30)<Math.abs(best-30)?d:best,all[0]);
+    // 再校正到 20/30
+    return (Math.abs(target-20)<=Math.abs(target-30))?20:30;
+  };
+  const buildClusters = (ss, interval)=>{
+    const sorted = ss
+      .slice()
+      .sort((a,b)=>(a.slot_time||'').localeCompare(b.slot_time||''));
+    const clusters=[];
+    let cur=[];
+    for(let i=0;i<sorted.length;i++){
+      if(cur.length===0){
+        cur=[sorted[i]];
+        continue;
+      }
+      const prevMin = toMin(cur[cur.length-1].slot_time);
+      const curMin = toMin(sorted[i].slot_time);
+      if(prevMin!=null && curMin!=null && (curMin-prevMin)===interval){
+        cur.push(sorted[i]);
+      }else{
+        clusters.push(cur);
+        cur=[sorted[i]];
+      }
+    }
+    if(cur.length) clusters.push(cur);
+    // 按“尽量连续 + 尽量靠前”：先按长度降序，再按起始时间升序
+    clusters.sort((a,b)=>{
+      if(b.length!==a.length) return b.length-a.length;
+      const am=toMin(a[0].slot_time), bm=toMin(b[0].slot_time);
+      return (am||0)-(bm||0);
+    });
+    return clusters;
+  };
+
   return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
-    <div class="t20 fw7 c-gray8 mb1">预约面试时间</div>
-    <div class="t13 c-gray5 mb5">请选择你方便的时间，系统将自动通知面试老师。</div>
-    ${slots.length===0?`<div class="card p5 tc c-gray4 t13">暂无可用时间段，请等待管理员开放</div>`:''}
-    <div class="col g3">
-    ${Object.entries(grouped).map(([date,ss])=>`<div class="card p4">
-      <div class="fw6 c-gray7 t13 mb3">${esc(date)}</div>
-      <div class="row wrap g2">
-        ${ss.map(s=>`<button class="slot-btn${A.ivSelected?.id===s.id?' active':''}" data-action="pick-slot" data-slotid="${s.id}">${esc(s.slot_time.slice(0,5))}</button>`).join('')}
-      </div>
-    </div>`).join('')}
+    <div class="t20 fw7 c-gray8 mb1">${esc(apLine('预约面试时间','Book interview','Jadwal wawancara'))}</div>
+    <div class="b1 bc-indigo100 bg-indigo50 r10 p3 mb4 t12 c-indigo6 lh16">${esc(langHint)}</div>
+    <div class="row g2 mb5" style="align-items:center">
+      <div class="t13 c-gray5">${esc(apLine('为避免空档，系统会优先推荐连续可预约的时间点；不方便再选备选。','We highlight continuous slots first; pick another if needed.','Kami menonjolkan slot berurutan; pilih lain jika perlu.'))}</div>
+      <button class="btn btn-ghost btn-sm ml-auto" id="btn-refresh-slots">${esc(apLine('刷新','Refresh','Muat ulang'))}</button>
     </div>
-    ${A.ivSelected?`<div class="b1 bc-indigo200 bg-indigo50 r10 p3 mt4 t13 fw6 c-indigo6">已选择：${esc(A.ivSelected.slot_date)} ${esc(A.ivSelected.slot_time?.slice(0,5)||'')}</div>`:''}
-    <button class="btn btn-full mt4 ${A.ivSelected?'btn-primary':'btn-ghost'}" id="btn-confirm-iv" ${A.ivSelected?'':'disabled'}>确认预约</button>
+    ${slots.length===0?`<div class="card p5 tc c-gray4 t13">${esc(apLine('暂无可用时间段，请等待管理员开放。','No open slots yet — please wait for the admin.','Belum ada slot — tunggu admin membuka jadwal.'))}</div>`:''}
+    <div class="col g3">
+    ${Object.entries(grouped).sort(([da],[db])=>String(da).localeCompare(String(db))).map(([date,ss])=>{
+      const interval=inferInterval(ss);
+      const clusters=buildClusters(ss, interval);
+      const primary=clusters[0]?.[0] || null;
+      const secondary=clusters[1]?.[0] || null;
+      return `<div class="card p4">
+        <div class="fw6 c-gray7 t13 mb3">${esc(date)}</div>
+        <div class="row wrap g2">
+          ${ss
+            .slice()
+            .sort((a,b)=>{
+              const aKey = (primary && a.id===primary.id)?0:(secondary && a.id===secondary.id)?1:2;
+              const bKey = (primary && b.id===primary.id)?0:(secondary && b.id===secondary.id)?1:2;
+              if(aKey!==bKey) return aKey-bKey;
+              return (a.slot_time||'').localeCompare(b.slot_time||'');
+            })
+            .map(s=>{
+              const isP = primary && s.id===primary.id;
+              const isS = secondary && s.id===secondary.id;
+              const label = isP ? apLine(' 推荐1',' P1',' P1') : isS ? apLine(' 推荐2',' P2',' P2') : '';
+              const style = isP ? 'border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.25);' :
+                             isS ? 'border-color:#4f46e5;box-shadow:0 0 0 2px rgba(79,70,229,.2);' : '';
+              return `<button class="slot-btn${A.ivSelected?.id===s.id?' active':''}" style="${style}" data-action="pick-slot" data-slotid="${s.id}">${esc(s.slot_time.slice(0,5))}${esc(label)}</button>`;
+            }).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+    </div>
+    ${A.ivSelected?`<div class="b1 bc-indigo200 bg-indigo50 r10 p3 mt4 t13 fw6 c-indigo6">${esc(apLine('已选择：','Selected:','Dipilih:'))} ${esc(A.ivSelected.slot_date)} ${esc(A.ivSelected.slot_time?.slice(0,5)||'')}</div>`:''}
+    <button class="btn btn-full mt4 ${A.ivSelected?'btn-primary':'btn-ghost'}" id="btn-confirm-iv" ${A.ivSelected?'':'disabled'}>${esc(apLine('确认预约','Confirm','Konfirmasi'))}</button>
   </div>`;
 }
 
 function renderIvConfirmed(){
-  const sl=A.ivSelected;
+  const sl=A.ivSelected || resolveSlotForApplicant(A.applicant);
+  const waNumber = '6285283251074'; // +62 85283251074
+  const waText = encodeURIComponent(`【面试预约提醒】\n申请人：${fullName(A.applicant)}\n时间：${sl?sl.slot_date+' '+(sl.slot_time||'').slice(0,5):''}\nZoom：${sl?.zoom_id||'847 5014 4631'} 密码：${sl?.zoom_password||'156903'}`);
   return `<div class="maxw-lg mx-auto px4" style="padding:20px 16px 64px">
-    <div class="tc mb6"><div class="t48 mb2">📅</div><div class="t22 fw7 c-gray8 mb1">面试预约成功！</div>
+    <div class="tc mb6"><div class="t48 mb2">📅</div><div class="t22 fw7 c-gray8 mb1">${esc(apLine('面试预约成功！','Interview booked!','Wawancara berhasil dipesan!'))}</div>
     <div class="b1 bc-indigo200 bg-indigo50 r14 px6 py4 mt3" style="display:inline-block;text-align:left">
-      <div class="t11 c-indigo4 mb1">面试时间</div>
-      <div class="t20 fw8 c-indigo6 mb3">${sl?esc(sl.slot_date)+' '+esc(sl.slot_time?.slice(0,5)||''):'已预约'}</div>
-      <div class="t12 c-gray5">Zoom 会议号：${sl?.zoom_id||'847 5014 4631'}&nbsp;/&nbsp;密码：${sl?.zoom_password||'156903'}</div>
+      <div class="t11 c-indigo4 mb1">${esc(apLine('面试时间','Time','Waktu'))}</div>
+      <div class="t20 fw8 c-indigo6 mb3">${sl?esc(sl.slot_date)+' '+esc(sl.slot_time?.slice(0,5)||''):esc(apLine('已预约','Booked','Terjadwal'))}</div>
+      <div class="t12 c-gray5">${esc(apLine('Zoom ID','Zoom ID','Zoom ID'))}：${sl?.zoom_id||'847 5014 4631'}&nbsp;/&nbsp;${esc(apLine('密码','Passcode','Kode'))}：${sl?.zoom_password||'156903'}</div>
     </div></div>
-    <div class="fw7 c-gray7 t13 mb3">✅ 已自动发出以下通知</div>
-    <div class="card p4 mb3"><div class="row g2 mb2"><span>🙋</span><span class="fw6 t13 c-indigo6">通知申请人</span><span class="ml-auto tag bg-green100 c-green6">✓ 已发送</span></div>
-    <div class="notif-preview">面试时间已确认。请提前进入会议室，确保网络和摄像头正常。\nZoom：${sl?.zoom_id||'847 5014 4631'} / 密码：${sl?.zoom_password||'156903'}</div></div>
-    <div class="card p4 mb3"><div class="row g2 mb2"><span>👨‍🏫</span><span class="fw6 t13 c-violet7">通知面试老师</span><span class="ml-auto tag bg-green100 c-green6">✓ 已发送</span></div>
-    <div class="notif-preview">申请人 ${esc(fullName(A.applicant))} 已预约 ${sl?esc(sl.slot_date)+' '+esc(sl.slot_time?.slice(0,5)||''):''}面试。申请人资料包请在管理后台查看。</div></div>
-    <div class="card p4"><div class="fw6 c-gray7 t13 mb2">⏰ 自动提醒计划</div>
-    <div class="t12 c-gray5">• 面试前 24 小时自动提醒申请人和老师<br>• 面试前 30 分钟再次提醒</div></div>
+    <div class="t12 c-gray5 mb4 lh16">请按上述时间准时参加面试；如有变动，教务会通过您预留的联系方式与您沟通。<br><span class="t11 c-gray4">Please join on time. The office will contact you if anything changes.</span></div>
+    <a class="btn btn-primary btn-full mb2" href="https://wa.me/${waNumber}?text=${waText}" target="_blank" rel="noreferrer">通过 WhatsApp 提醒管理员 · Notify via WhatsApp</a>
+    <div class="t11 c-gray4 tc lh16">（管理员可部署 WhatsApp Cloud API 自动通知 · Optional server-side WhatsApp automation.）</div>
   </div>`;
 }
 
 function renderMaterials(){
   const miss=MAT_ITEMS.filter(i=>i.req&&!A.uploads[i.id]).length;
   return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
-    <div class="t20 fw7 c-gray8 mb1">提交入学材料</div>
-    <div class="t13 c-gray5 mb5">请在 <strong style="color:#dc2626">3天内</strong> 提交以下全部必填材料。</div>
+    <div class="t20 fw7 c-gray8 mb1">${esc(apLine('提交入学材料','Submit materials','Kirim berkas'))}</div>
+    <div class="t13 c-gray5 mb5">${esc(apLine('请在 3 天内提交以下全部必填材料。','Submit all required items within 3 days.','Kirim semua berkas wajib dalam 3 hari.'))}</div>
     <div class="col g2">
     ${MAT_ITEMS.map(item=>`<div class="mat-item${A.uploads[item.id]?' done':''}" data-action="toggle-mat" data-mid="${item.id}">
       <div class="mat-check${A.uploads[item.id]?' done':''}">${A.uploads[item.id]?'✓':''}</div>
       <span class="flex1 t13 fw5 c-gray7">${esc(item.label)}</span>
-      ${!item.req?'<span class="t11 c-gray4">（选填）</span>':''}
-      ${!A.uploads[item.id]?'<span class="tag" style="background:#4f46e5;color:#fff">上传</span>':''}
+      ${!item.req?'<span class="t11 c-gray4">（选填 · optional）</span>':''}
+      ${!A.uploads[item.id]?'<span class="tag" style="background:#4f46e5;color:#fff">上传 · Upload</span>':''}
     </div>`).join('')}
     </div>
     <div class="b1 r12 p3 mt5 t13 ${miss===0?'bg-green50 bc-green200':'bg-amber50 bc-amber200'}" style="color:${miss===0?'#15803d':'#92400e'}">
-      ${miss===0?'✅ 所有必填材料已提交，等待管理员审核。':`⚠️ 还有 ${miss} 项必填材料未提交。`}
+      ${miss===0?esc(apLine('✅ 所有必填材料已提交，等待管理员审核。','✅ All required files submitted; pending review.','✅ Semua berkas wajib terkirim; menunggu tinjauan.')):esc(apLine(`⚠️ 还有 ${miss} 项必填材料未提交。`,`⚠️ ${miss} required item(s) missing.`,`⚠️ Masih ada ${miss} berkas wajib belum dikirim.`))}
     </div>
   </div>`;
 }
 
 // ══════════════════════════════════════════════════════════════
-// TEACHER VIEW
+// STAFF VIEW（管理员与教师共用同一套页面）
 // ══════════════════════════════════════════════════════════════
-function renderTeacher(){
+function renderStaffMe(){
   const prof=A.profile;
-  const tabs=[{id:'interviews',label:'我的面试',icon:'📅'},{id:'records',label:'面试记录',icon:'📝'},{id:'briefings',label:'申请人档案',icon:'📋'}];
-  let content='';
-  if(A.teacherTab==='interviews') content=renderTeacherInterviews();
-  else if(A.teacherTab==='records') content=renderTeacherRecords();
-  else if(A.teacherTab==='briefings') content=renderTeacherBriefings();
-
-  const selAp=A.briefingId?A.allApplicants.find(a=>a.id===A.briefingId):null;
-
-  return `<div style="min-height:100vh;background:#f4f5ff;display:flex;flex-direction:column">
-    <div class="header">
-      <div class="row g3"><span class="t20">🏫</span><span class="fw7 c-gray8">教师端</span>${mkTag('#ede9fe','#6d28d9',prof?.display_name||'老师')}</div>
-      <div class="row g2">${mkAv((prof?.display_name||'T')[0],'sm','av-violet')}<button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
-    </div>
-    <div class="tabbar">${tabs.map(t=>`<button class="tab${A.teacherTab===t.id?' active':''}" data-teacher-tab="${t.id}">${t.icon} ${t.label}</button>`).join('')}</div>
-    <div class="flex1 ovy px6 py4" style="padding-bottom:40px">${content}</div>
-    ${selAp?renderBriefingModal(selAp):''}
-  </div>`;
-}
-
-function renderTeacherInterviews(){
-  const booked=A.mySlots.filter(s=>s.is_booked&&s.applicants);
-  const available=A.mySlots.filter(s=>!s.is_booked);
+  const uid=A.user?.id;
+  const mine=(A.allSlots||[]).filter(s=>uid!=null && String(s.teacher_id)===String(uid));
+  const available=mine.filter(s=>isInterviewSlotRowVacant(s));
+  const bookedMine=mine.filter(s=>!isInterviewSlotRowVacant(s));
+  const langs=prof?.interview_langs!=null && String(prof.interview_langs).trim()!=='' ? String(prof.interview_langs) : '—';
   return `<div class="col g4 maxw-2xl">
-    <div>
-      <div class="fw7 c-gray8 t14 mb3">已预约面试（${booked.length}）</div>
-      ${booked.length===0?`<div class="card p5 tc c-gray4 t13">暂无已预约的面试</div>`:''}
-      ${booked.map(s=>{const ap=s.applicants;return `<div class="card p4 mb3">
-        <div class="row g3 mb3">
-          <div class="bg-indigo50 r10 px4 py2 tc shrink0"><div class="t11 c-indigo4 fw6">${esc(s.slot_date)}</div><div class="t18 fw8 c-indigo6">${esc(s.slot_time?.slice(0,5)||'')}</div></div>
-          <div class="flex1">${mkAv(initials(ap),'md')}<span class="fw6 c-gray8 t14 ml2">${esc(fullName(ap))}</span>${ap?stageTag(ap.stage):''}</div>
-          <button class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${s.applicant_id}">📋 查看档案</button>
-          <button class="btn btn-primary btn-sm" data-action="write-record" data-apid="${s.applicant_id}">✍️ 写记录</button>
-        </div>
-        <div class="t12 c-gray5">Zoom：${esc(s.zoom_id)} / 密码：${esc(s.zoom_password)}</div>
-      </div>`;}).join('')}
-    </div>
     <div class="card p5">
-      <div class="fw7 c-gray8 mb3 t14">我的可用时间段（${available.length}个）</div>
-      ${available.length===0?`<div class="tc c-gray4 t13 py3">暂无开放时间段</div>`:''}
+      <div class="fw7 c-gray8 t14 mb1">账号</div>
+      <div class="t12 c-gray5 mb2">${esc(prof?.display_name||'用户')} · ${esc(A.user?.email||'')}</div>
+      <div class="t12 c-gray6 mb4">可参与面试语言：${esc(langs)}</div>
+      <div class="fw7 c-gray8 t14 mb2">我负责的已预约面试（${bookedMine.length}）</div>
+      ${bookedMine.length===0?`<div class="t13 c-gray4 mb4">暂无（时段需将 teacher_id 设为您本人）</div>`:bookedMine.map(s=>{
+        const ap=A.allApplicants.find(a=>String(a.id)===String(s.applicant_id));
+        return `<div class="row g3 mb3 p3 bg-indigo50 r10">
+          <div class="t13 fw6 c-indigo6">${esc(s.slot_date)} ${esc(s.slot_time?.slice(0,5)||'')}</div>
+          <div class="flex1 t13">${ap?esc(fullName(ap)):'申请人'}</div>
+          ${ap?`<button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">档案</button>`:''}
+        </div>`;
+      }).join('')}
+      <div class="fw7 c-gray8 t14 mb3 mt4">上传我可用的面试时间段</div>
+      <div class="t12 c-gray5 mb3">以下为归属您本人的空闲时段；删除仅影响未预约的空位。</div>
       <div class="row wrap g2 mb4">
-        ${available.map(s=>`<div class="row g2 bg-indigo50 b1 bc-indigo200 r8 px3 py2">
+        ${available.length===0?`<span class="t13 c-gray4">暂无空闲时段</span>`:available.map(s=>`<div class="row g2 bg-white b1 bc-indigo200 r8 px3 py2">
           <span class="t13 c-indigo6 fw5">${esc(s.slot_date)} ${esc(s.slot_time?.slice(0,5)||'')}</span>
-          <button class="t11 c-indigo4" style="padding:0 2px" data-action="del-teacher-slot" data-slotid="${s.id}">✕</button>
+          <button type="button" class="t11 c-indigo4" style="padding:0 2px;border:none;background:none;cursor:pointer" data-action="del-my-slot" data-slotid="${s.id}">✕</button>
         </div>`).join('')}
       </div>
-      <div class="fw6 c-gray7 t13 mb3">添加可用时间</div>
+      <div class="fw6 c-gray7 t13 mb3">按日期区间添加（自动拆分时间点，并关联到当前登录账号）</div>
       <div class="row wrap g3">
-        <input id="t-slot-date" class="inp" style="flex:1;min-width:140px" type="date" placeholder="日期">
-        <input id="t-slot-time" class="inp" style="width:100px" type="time" placeholder="时间">
-        <button class="btn btn-primary" id="btn-add-teacher-slot">添加</button>
+        <input id="me-slot-date" class="inp" style="flex:1;min-width:140px" type="date">
+        <input id="me-slot-start" class="inp" style="width:120px" type="time">
+        <input id="me-slot-end" class="inp" style="width:120px" type="time">
+        <select id="me-slot-interval" class="sel" style="width:140px">
+          <option value="30">30 分钟一场</option>
+          <option value="20">20 分钟一场</option>
+        </select>
+        <button class="btn btn-primary" id="btn-me-add-slots">添加空闲时段</button>
+      </div>
+    </div>
+    <div class="card p5">
+      <div class="fw7 c-gray8 t14 mb3">修改登录密码</div>
+      <div class="col g3">
+        <input id="me-pw-new" class="inp" type="password" autocomplete="new-password" placeholder="新密码（至少 6 位）">
+        <input id="me-pw-new2" class="inp" type="password" autocomplete="new-password" placeholder="再次输入新密码">
+        <button class="btn btn-primary" id="btn-me-change-pw">保存新密码</button>
       </div>
     </div>
   </div>`;
 }
 
-function renderTeacherRecords(){
-  return `<div class="maxw-2xl">
-    <div class="fw7 c-gray8 t14 mb3">我的面试记录（${A.allRecords.length}）</div>
-    ${A.allRecords.length===0?`<div class="card p5 tc c-gray4 t13">暂无记录</div>`:''}
-    ${A.allRecords.map(r=>{const ap=r.applicants;const rec=REC_STYLE[r.recommendation]||{bg:'#f3f4f6',color:'#6b7280',label:'未填写'};return `<div class="card p4 mb3">
-      <div class="row g3 mb3">${mkAv(initials(ap),'md')}<div><div class="fw6 c-gray8">${esc(fullName(ap))}</div><div class="t11 c-gray4 mt1">${esc(r.interview_date?.slice(0,10)||'')}</div></div>
-      <span class="ml-auto rec-badge" style="background:${rec.bg};color:${rec.color}">${rec.label}</span></div>
-      ${r.content?`<div class="t13 c-gray6 lh16 bg-gray50 r8 p3">${esc(r.content)}</div>`:''}
-    </div>`;}).join('')}
-  </div>`;
-}
-
-function renderTeacherBriefings(){
-  const interviewed=A.allApplicants.filter(a=>['interview','result','materials','complete'].includes(a.stage));
-  return `<div class="maxw-2xl">
-    <div class="fw7 c-gray8 t14 mb3">进入面试阶段的申请人（${interviewed.length}）</div>
-    ${interviewed.map(ap=>`<div class="card p4 mb3 row g3">
-      ${mkAv(initials(ap),'md')}
-      <div class="flex1"><div class="fw6 c-gray8">${esc(fullName(ap))}</div>
-      <div class="row g2 mt1">${stageTag(ap.stage)}${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
-      <button class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${ap.id}">📋 查看档案</button>
-    </div>`).join('')}
-  </div>`;
-}
-
-// ══════════════════════════════════════════════════════════════
-// ADMIN VIEW
-// ══════════════════════════════════════════════════════════════
 function renderAdmin(){
-  const tabs=[{id:'pipeline',label:'申请人看板',icon:'📊'},{id:'exams',label:'笔试成绩',icon:'📝'},{id:'schedule',label:'面试排班',icon:'📅'},{id:'docs',label:'材料审核',icon:'📄'}];
+  const validStaffTabs=new Set(['pipeline','exams','schedule','docs','me']);
+  if(!validStaffTabs.has(A.adminTab)) A.adminTab='pipeline';
+  const isAd=A.role==='admin';
+  const roleLabel=isAd?'管理员':'教师';
+  const roleTag=isAd?mkTag('#eef2ff','#4f46e5',roleLabel):mkTag('#ede9fe','#6d28d9',roleLabel);
+  const avLetter=(A.profile?.display_name||A.user?.email||'?')[0];
+  const tabs=[
+    {id:'pipeline',label:'申请人看板',icon:'📊'},
+    {id:'exams',label:'笔试成绩',icon:'📝'},
+    {id:'schedule',label:'面试排班',icon:'📅'},
+    {id:'docs',label:'材料审核',icon:'📄'},
+    {id:'me',label:'我的',icon:'👤'},
+  ];
   const stats=[
     {label:'总申请人',value:A.allApplicants.length,color:'#4f46e5'},
     {label:'待笔试',value:A.allApplicants.filter(a=>a.stage==='exam').length,color:'#2563eb'},
@@ -698,14 +2375,16 @@ function renderAdmin(){
   else if(A.adminTab==='exams') content=renderExams();
   else if(A.adminTab==='schedule') content=renderSchedule();
   else if(A.adminTab==='docs') content=renderDocs();
+  else if(A.adminTab==='me') content=renderStaffMe();
 
   const selAp=A.selectedApId?A.allApplicants.find(a=>a.id===A.selectedApId):null;
   const briefAp=A.briefingId?A.allApplicants.find(a=>a.id===A.briefingId):null;
+  const editAp=A.editApInfoId?A.allApplicants.find(a=>a.id===A.editApInfoId):null;
 
   return `<div style="min-height:100vh;background:#f4f5ff;display:flex;flex-direction:column">
     <div class="header">
-      <div class="row g3"><span class="t20">🏫</span><span class="fw7 c-gray8">招生管理后台</span>${mkTag('#eef2ff','#4f46e5','Admin')}</div>
-      <div class="row g2">${mkAv('张','sm')}<span class="t12 c-gray6">张琦 Alex</span><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
+      <div class="row g3"><span class="t20">🏫</span><span class="fw7 c-gray8">招生工作台</span>${roleTag}</div>
+      <div class="row g2">${mkAv(avLetter,'sm',isAd?'av-indigo':'av-violet')}<span class="t12 c-gray6">${esc(A.profile?.display_name||A.user?.email||'')}</span><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
     </div>
     <div class="stats">${stats.map(s=>`<div class="stat-card"><div class="t28 fw8" style="color:${s.color}">${s.value}</div><div class="t11 c-gray4 mt1">${s.label}</div></div>`).join('')}</div>
     <div class="tabbar">${tabs.map(t=>`<button class="tab${A.adminTab===t.id?' active':''}" data-admin-tab="${t.id}">${t.icon} ${t.label}</button>`).join('')}</div>
@@ -714,14 +2393,16 @@ function renderAdmin(){
     ${briefAp?renderBriefingModal(briefAp):''}
     ${A.showRecordForm?renderRecordForm():''}
     ${A.showAddApModal?renderAddApModal():''}
+    ${A.showEditApInfoModal && editAp?renderEditApInfoModal(editAp):''}
   </div>`;
 }
 
 function renderPipeline(){
+  const isAd=A.role==='admin';
   return `<div>
-    <div class="row g2 mb4">
+    ${isAd?`<div class="row g2 mb4">
       <button class="btn btn-primary btn-sm" data-action="show-add-ap-modal">➕ 手动添加面试者</button>
-    </div>
+    </div>`:''}
     <div class="kanban">
     ${STAGES.map(sg=>{
       const aps=A.allApplicants.filter(a=>a.stage===sg.id);
@@ -732,9 +2413,10 @@ function renderPipeline(){
         </div>
         <div class="col g2">
           ${aps.map(ap=>`<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
-            <button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>
+            ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
             <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13">${esc(fullName(ap))}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
             ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
+            ${ap.interview_slot_id?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
           </div>`).join('')}
           ${aps.length===0?`<div style="font-size:11px;color:#d1d5db;text-align:center;padding:24px 0;border:2px dashed #f3f4f6;border-radius:12px">暂无</div>`:''}
         </div>
@@ -759,16 +2441,8 @@ function renderAddApModal(){
           <input id="add-ap-phone" class="inp" placeholder="例：13812345678">
         </div>
         <div>
-          <div class="t12 fw6 c-gray6 mb1">邮笱</div>
+          <div class="t12 fw6 c-gray6 mb1">邮箱</div>
           <input id="add-ap-email" class="inp" type="email" placeholder="例：zhang@example.com">
-        </div>
-        <div>
-          <div class="t12 fw6 c-gray6 mb1">报名项目</div>
-          <select id="add-ap-program" class="sel">
-            <option value="神学院">神学院</option>
-            <option value="圣经学院">圣经学院</option>
-            <option value="宣道学院">宣道学院</option>
-          </select>
         </div>
         <div>
           <div class="t12 fw6 c-gray6 mb1">当前阶段</div>
@@ -783,6 +2457,7 @@ function renderAddApModal(){
 }
 
 function renderExams(){
+  const isAd=A.role==='admin';
   return `<div class="maxw-2xl card" style="overflow:hidden">
     <table class="tbl"><thead><tr><th>姓名</th><th>联系方式</th><th>状态</th><th>成绩</th><th>操作</th></tr></thead><tbody>
     ${A.allApplicants.map(ap=>{
@@ -794,8 +2469,8 @@ function renderExams(){
         <td>${mkTag(ss.bg,ss.c,ss.t)}</td>
         <td>${done?`<span style="font-size:18px;font-weight:700;color:${ap.exam_score>=80?'#16a34a':ap.exam_score>=60?'#d97706':'#dc2626'}">${ap.exam_score}</span>`:'<span style="color:#d1d5db">—</span>'}</td>
         <td class="row g1" style="flex-wrap:wrap;gap:4px">
-          ${STAGE_IDX[ap.stage]>=STAGE_IDX['exam']?`<input id="manual-score-${ap.id}" type="number" min="0" max="100" class="inp" style="width:64px;padding:3px 6px" placeholder="0–100" value="${ap.exam_score??''}"><button class="btn btn-primary btn-xs" data-action="save-manual-score" data-apid="${ap.id}">${done?'修改':'录入'}</button>`:''}
-          ${done&&ap.stage==='exam'?`<button class="btn btn-primary btn-xs" data-action="advance-ap" data-apid="${ap.id}">推进至面试</button>`:''}
+          ${isAd&&STAGE_IDX[ap.stage]>=STAGE_IDX['exam']?`<input id="manual-score-${ap.id}" type="number" min="0" max="100" class="inp" style="width:64px;padding:3px 6px" placeholder="0–100" value="${ap.exam_score??''}"><button class="btn btn-primary btn-xs" data-action="save-manual-score" data-apid="${ap.id}">${done?'修改':'录入'}</button>`:''}
+          ${isAd&&done&&ap.stage==='exam'?`<button class="btn btn-primary btn-xs" data-action="advance-ap" data-apid="${ap.id}">推进至面试</button>`:''}
           <button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">档案</button>
         </td>
       </tr>`;
@@ -805,22 +2480,37 @@ function renderExams(){
 }
 
 function renderSchedule(){
+  const isAd=A.role==='admin';
+  const claimedIds = new Set(
+    A.allApplicants.filter(a=>a.interview_slot_id).map(a=>String(a.interview_slot_id)),
+  );
   const booked=A.allApplicants.filter(a=>a.interview_slot_id);
-  const freeSlots=A.allSlots.filter(s=>!s.is_booked);
+  const freeSlots=A.allSlots.filter(s=>{
+    if(!isInterviewSlotRowVacant(s)) return false;
+    if(claimedIds.has(String(s.id))) return false;
+    return true;
+  });
   return `<div class="col g4 maxw-2xl">
     <div>
       <div class="fw7 c-gray8 t14 mb3">已预约面试（${booked.length}人）</div>
-      ${booked.map(ap=>`<div class="card p4 mb3">
+      ${booked.map(ap=>{
+        const sl = resolveSlotForApplicant(ap);
+        return `<div class="card p4 mb3">
         <div class="row g3">
-          <div class="bg-indigo50 r10 px3 py2 tc shrink0"><div class="t11 c-indigo4 fw6">已预约</div></div>
+          <div class="bg-indigo50 r10 px3 py2 tc shrink0">
+            <div class="t11 c-indigo4 fw6">${esc(sl?.slot_date||'—')}</div>
+            <div class="t18 fw8 c-indigo6">${esc((sl?.slot_time||'').slice(0,5)||'—')}</div>
+          </div>
           <div class="flex1 row g2">${mkAv(initials(ap),'sm')}<span class="fw6 c-gray8">${esc(fullName(ap))}</span>${stageTag(ap.stage)}</div>
           <div class="row g1">
             <button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">📋 档案</button>
           </div>
         </div>
-      </div>`).join('')}
+        ${sl?.teacher_name?`<div class="t11 c-gray5 mt2">${esc(sl.teacher_name)} · Zoom ${esc(sl.zoom_id||'')} / ${esc(sl.zoom_password||'')}</div>`:''}
+      </div>`;
+      }).join('')}
     </div>
-    <div class="card p5">
+    ${isAd?`<div class="card p5">
       <div class="fw7 c-gray8 mb3 t14">📅 开放时间段（${freeSlots.length}个可预约）</div>
       <div class="row wrap g2 mb4">
         ${freeSlots.map(s=>`<div class="row g2 bg-indigo50 b1 bc-indigo200 r8 px3 py2">
@@ -829,14 +2519,22 @@ function renderSchedule(){
         </div>`).join('')}
         ${freeSlots.length===0?`<span class="t13 c-gray4">暂无开放时间段</span>`:''}
       </div>
-      <div class="fw6 c-gray7 t13 mb3">添加新时间段</div>
+      <div class="fw6 c-gray7 t13 mb3">添加新时间段（请选择负责老师，以便按笔试语言自动匹配申请人）</div>
       <div class="row wrap g3">
         <input id="a-slot-date" class="inp" style="flex:1;min-width:140px" type="date">
-        <input id="a-slot-time" class="inp" style="width:100px" type="time">
-        <input id="a-slot-teacher" class="inp" style="flex:1;min-width:120px" placeholder="老师姓名">
+        <input id="a-slot-start" class="inp" style="width:120px" type="time" placeholder="开始">
+        <input id="a-slot-end" class="inp" style="width:120px" type="time" placeholder="结束">
+        <select id="a-slot-interval" class="sel" style="width:140px">
+          <option value="30">30 分钟一场</option>
+          <option value="20">20 分钟一场</option>
+        </select>
+        <select id="a-slot-teacher-id" class="sel" style="flex:1;min-width:200px">
+          <option value="">请选择负责老师（必选）</option>
+          ${(A.teacherProfiles||[]).map(t=>`<option value="${esc(t.id)}">${esc(t.display_name||t.id)}</option>`).join('')}
+        </select>
         <button class="btn btn-primary" id="btn-add-admin-slot">添加</button>
       </div>
-    </div>
+    </div>`:`<div class="card p5"><div class="t13 c-gray5">开放时段的维护由管理员在「面试排班」中操作；您可在「我的」中上传本人可面试的时间。</div></div>`}
   </div>`;
 }
 
@@ -855,6 +2553,7 @@ function renderDocs(){
 // ── Applicant Detail Modal ────────────────────────────────────
 function renderApDetailModal(ap){
   const rec=A.allRecords.find(r=>r.applicant_id===ap.id);
+  const isAd=A.role==='admin';
   return `<div class="modal-overlay" id="ap-modal" data-action="close-modal">
     <div class="modal-sm" onclick="event.stopPropagation()">
       <div class="row g3 mb4">${mkAv(initials(ap),'xl')}<div><div class="fw7 c-gray8 t16">${esc(fullName(ap))}</div>${stageTag(ap.stage)}</div>
@@ -863,12 +2562,15 @@ function renderApDetailModal(ap){
         <div class="info-row"><span>电话</span><span class="fw5">${esc(ap.phone||'—')}</span></div>
         <div class="info-row"><span>邮箱</span><span class="fw5">${esc(ap.email||'—')}</span></div>
         <div class="info-row"><span>笔试成绩</span><strong class="c-indigo6">${ap.exam_score??'—'}</strong></div>
+        ${ap.interview_slot_id?`<div class="info-row"><span>面试预约</span><span class="fw6 c-indigo6">${esc(formatInterviewSlotLine(ap))}</span></div>`:''}
         ${rec?`<div class="info-row"><span>面试评价</span>${mkTag(REC_STYLE[rec.recommendation]?.bg||'#f3f4f6',REC_STYLE[rec.recommendation]?.color||'#6b7280',REC_STYLE[rec.recommendation]?.label||'已填写')}</div>`:''}
       </div>
       <div class="col g2">
-        <button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>
+        ${isAd?`<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>`:''}
         <button class="btn btn-outline btn-full" data-action="view-briefing" data-apid="${ap.id}">📋 查看完整档案</button>
-        <button class="btn btn-danger btn-full" data-action="reject-ap" data-apid="${ap.id}">标记拒绝</button>
+        ${isAd?`<button class="btn btn-danger btn-full" data-action="reject-ap" data-apid="${ap.id}">标记拒绝</button>
+        <button class="btn btn-ghost btn-full mt2" data-action="delete-ap" data-apid="${ap.id}">删除账号</button>
+        <button class="btn btn-outline btn-full mt2" data-action="edit-ap-info" data-apid="${ap.id}">添加/编辑信息</button>`:''}
       </div>
     </div>
   </div>`;
@@ -876,7 +2578,9 @@ function renderApDetailModal(ap){
 
 // ── Briefing Modal (teacher + admin) ─────────────────────────
 function renderBriefingModal(ap){
+  const isAd=A.role==='admin';
   const rec=A.allRecords.find(r=>r.applicant_id===ap.id);
+  const ivSl=resolveSlotForApplicant(ap);
   const sc=ap.exam_score;
   const scoreColor=sc==null?'#9ca3af':sc>=85?'#16a34a':sc>=70?'#d97706':'#dc2626';
   return `<div class="modal-overlay" data-action="close-briefing">
@@ -899,14 +2603,29 @@ function renderBriefingModal(ap){
         <div class="info-row"><span class="c-gray5">归主时间</span><span>${esc(ap.conversion_time||'—')}</span></div>
       </div>
 
+      ${ap.interview_slot_id ? `<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">面试预约 · Interview appointment</div>
+      <div class="card p4 mb4" style="border:1px solid #c7d2fe;background:#f8faff">
+        <div class="info-row"><span class="c-gray5">预约时间 · Scheduled time</span><span class="fw6 c-indigo6">${esc(formatInterviewSlotLine(ap))}</span></div>
+        ${ivSl?`<div class="info-row"><span class="c-gray5">负责老师 · Teacher</span><span>${esc(ivSl.teacher_name||'—')}</span></div>
+        <div class="t12 c-gray6 mt2">Zoom：${esc(ivSl.zoom_id||'847 5014 4631')} &nbsp;/&nbsp; 密码 Passcode：${esc(ivSl.zoom_password||'156903')}</div>`:''}
+      </div>`:''}
+
       <div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">笔试成绩</div>
       <div class="card p4 mb4">
         ${sc!=null?`<div class="row g4"><div class="tc"><div style="font-size:40px;font-weight:800;color:${scoreColor}">${sc}</div><div class="t11 c-gray4">满分 100</div></div>
         <div class="flex1 t12 c-gray5 mt2">${sc>=85?'✓ 成绩优秀，推荐面试':sc>=70?'△ 成绩一般，重点考察':'！成绩偏低，需综合评估'}</div></div>`:'<div class="t13 c-gray4">尚未完成笔试</div>'}
       </div>
+      ${A.role==='admin' && STAGE_IDX[ap.stage]>=STAGE_IDX['exam']?`<div class="card p4 mb4 bg-gray50 b1 bc-indigo200">
+        <div class="row g2 mb2" style="align-items:center">
+          <div class="t12 fw6 c-gray6">手动录入成绩</div>
+          <input id="manual-score-${ap.id}" type="number" min="0" max="100" class="inp" style="width:120px" value="${ap.exam_score??''}" placeholder="0-100">
+          <button class="btn btn-primary btn-sm" data-action="save-manual-score" data-apid="${ap.id}">${sc!=null?'修改':'录入'}</button>
+        </div>
+        <div class="t11 c-gray4">用于管理员/人工批卷结果展示（会同步到申请者端笔试成绩）。</div>
+      </div>`:''}
 
-      ${ap.exam_essay?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">简答题答案</div>
-      <div class="card p4 mb4"><div class="t13 c-gray7 lh16">${esc(ap.exam_essay)}</div></div>`:''}
+      ${ap.exam_essay?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">笔试备注（旧约·新约·切换屏幕）· Exam note (OT / NT / screen switches)</div>
+      <div class="card p4 mb4"><div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(formatExamEssayForDisplay(ap.exam_essay))}</div></div>`:''}
 
       ${ap.conversion_testimony?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">得救见证</div>
       <div class="card p4 mb4"><div class="t13 c-gray7 lh16">${esc(ap.conversion_testimony)}</div></div>`:''}
@@ -929,8 +2648,97 @@ function renderBriefingModal(ap){
       </div>`:''}
 
       <div class="b1 bc-indigo200 bg-indigo50 r12 p4">
-        <div class="fw6 c-indigo6 t13 mb1">💻 Zoom 面试信息</div>
-        <div class="t12 c-gray6">会议号：847 5014 4631 &nbsp;/&nbsp; 密码：156903</div>
+        <div class="fw6 c-indigo6 t13 mb1">💻 Zoom 面试信息 · Zoom</div>
+        <div class="t12 c-gray6">会议号：${esc(ivSl?.zoom_id||'847 5014 4631')} &nbsp;/&nbsp; 密码：${esc(ivSl?.zoom_password||'156903')}</div>
+        ${!ivSl?'<div class="t11 c-gray4 mt1">（未匹配到时段表中的 Zoom 时使用默认会议号 · Default if slot has no Zoom）</div>':''}
+      </div>
+
+      <div class="row g2 mt5">
+        ${isAd && STAGE_IDX[ap.stage] < STAGE_IDX['complete'] ? `<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>` : ''}
+        <button class="btn btn-outline btn-full" data-action="write-record" data-apid="${ap.id}" ${STAGE_IDX[ap.stage] < STAGE_IDX['interview']?'disabled':''}>填写面试记录</button>
+      </div>
+      ${isAd?`<div class="row g2 mt3">
+        <button class="btn btn-danger btn-full" data-action="reject-ap" data-apid="${ap.id}">标记拒绝</button>
+        <button class="btn btn-ghost btn-full" data-action="delete-ap" data-apid="${ap.id}">删除账号</button>
+      </div>
+
+      <div class="row g2 mt3">
+        <button class="btn btn-outline btn-full" data-action="edit-ap-info" data-apid="${ap.id}">添加/编辑申请人信息</button>
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+function renderEditApInfoModal(ap){
+  const val=s=>esc(s==null?'':String(s));
+  // 只编辑 applicants 表里页面已展示过的“其他信息”字段
+  return `<div class="modal-overlay" data-action="close-edit-ap-info">
+    <div class="modal-lg" onclick="event.stopPropagation()">
+      <div class="row g3 mb4">
+        ${mkAv(initials(ap),'xl')}<div style="flex:1">
+          <div class="fw8 c-gray8 t16 mb1">${esc(fullName(ap))}</div>
+          <div class="t12 c-gray5">添加/编辑申请人档案信息</div>
+        </div>
+        <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-edit-ap-info">✕</button>
+      </div>
+
+      <div class="col g2">
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">性别 Gender</div>
+          <select id="edit-ap-gender" class="sel" style="width:100%">
+            <option value="">未填写</option>
+            <option value="男" ${ap.gender==='男'?'selected':''}>男</option>
+            <option value="女" ${ap.gender==='女'?'selected':''}>女</option>
+          </select>
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">籍贯 Hometown</div>
+          <input id="edit-ap-hometown" class="inp" style="width:100%" value="${val(ap.hometown)}" placeholder="例如：江苏省...">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">学历 Education</div>
+          <input id="edit-ap-education" class="inp" style="width:100%" value="${val(ap.education)}" placeholder="例如：本科/硕士...">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">教会 Church</div>
+          <input id="edit-ap-church" class="inp" style="width:100%" value="${val(ap.church_name)}" placeholder="例如：某某教会">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">宗派 Denomination</div>
+          <input id="edit-ap-denom" class="inp" style="width:100%" value="${val(ap.denomination)}" placeholder="例如：卫理/改革/浸信...">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">语言能力 Language</div>
+          <input id="edit-ap-language" class="inp" style="width:100%" value="${val(ap.language_proficiency)}" placeholder="例如：中文/英文...">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">婚姻状况 Marital</div>
+          <input id="edit-ap-marital" class="inp" style="width:100%" value="${val(ap.marital_status)}" placeholder="例如：未婚/已婚...">
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">归主时间 Conversion time</div>
+          <input id="edit-ap-conversion-time" class="inp" style="width:100%" value="${ap.conversion_time?esc(ap.conversion_time.slice(0,10)):''}" placeholder="YYYY-MM-DD">
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="t12 fw6 c-gray6 mb1">得救见证 Testimony</div>
+          <textarea id="edit-ap-conv-testimony" class="textarea" rows="4" style="width:100%" placeholder="可填写得救经过...">${val(ap.conversion_testimony)}</textarea>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="t12 fw6 c-gray6 mb1">事工经历 Ministry</div>
+          <textarea id="edit-ap-ministry" class="textarea" rows="4" style="width:100%" placeholder="可填写事工/服事经历...">${val(ap.ministry_experience)}</textarea>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="t12 fw6 c-gray6 mb1">管理备注 Admin notes（可选）</div>
+          <textarea id="edit-ap-admin-notes" class="textarea" rows="3" style="width:100%" placeholder="仅管理员可见...">${val(ap.admin_notes)}</textarea>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="t12 fw6 c-gray6 mb1">微信备注 Wechat notes（可选）</div>
+          <textarea id="edit-ap-wechat-notes" class="textarea" rows="2" style="width:100%" placeholder="可选...">${val(ap.wechat_notes)}</textarea>
+        </div>
+      </div>
+
+      <div class="row g2 mt4" style="justify-content:flex-end">
+        <button class="btn btn-primary" id="btn-save-ap-info" data-apid="${ap.id}">保存</button>
       </div>
     </div>
   </div>`;
@@ -968,10 +2776,10 @@ function render(){
   const root=document.getElementById('root');
   if(!A.role) root.innerHTML=renderLogin();
   else if(A.role==='applicant') root.innerHTML=renderApplicant();
-  else if(A.role==='teacher')   root.innerHTML=renderTeacher();
-  else if(A.role==='admin')     root.innerHTML=renderAdmin();
+  else if(A.role==='teacher'||A.role==='admin') root.innerHTML=renderAdmin();
   bind();
   if(A.role==='applicant'&&A.applicant?.stage==='exam'&&A.examStarted&&!A.examSubmitted) startTimer();
+  syncInterviewSlotPoll();
 }
 
 function bind(){
@@ -984,7 +2792,7 @@ function bind(){
   document.getElementById('btn-ap-login')?.addEventListener('click',async()=>{
     const name=document.getElementById('ap-name')?.value;
     const last4=document.getElementById('ap-phone4')?.value;
-    if(!name||!last4){toast('请填写姓名和手机后四位',false);return;}
+    if(!name||!last4){toast(apLine('请填写姓名和手机后四位','Please enter your name and last 4 digits of your phone','Isi nama dan 4 digit terakhir nomor HP'),false);return;}
     await loginApplicant(name,last4);
   });
   document.getElementById('btn-staff-login')?.addEventListener('click',async()=>{
@@ -996,21 +2804,107 @@ function bind(){
   document.getElementById('btn-logout')?.addEventListener('click',logout);
 
   // ── Exam ──
-  document.getElementById('btn-start-exam')?.addEventListener('click',()=>{A.examStarted=true;render();});
-  document.getElementById('btn-submit-exam')?.addEventListener('click',()=>submitExam());
-  document.getElementById('btn-go-interview')?.addEventListener('click',async()=>{await loadPublicSlots();render();});
-  root.querySelectorAll('input[type=radio][name^=q]').forEach(r=>{
-    r.addEventListener('change',e=>{
-      const qid=+e.target.name.replace('q',''),oi=+e.target.value;
-      A.examAnswers[qid]=oi;
-      root.querySelectorAll(`[data-qid="${qid}"]`).forEach(l=>l.classList.toggle('checked',+l.dataset.oi===oi));
+  root.querySelectorAll('[data-action=set-exam-lang]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      A.examLang = el.dataset.lang || 'zh';
+      render();
     });
   });
-  const ta=document.getElementById('essay-ta');
-  if(ta) ta.addEventListener('input',e=>{
-    A.essayText=e.target.value;
-    const cnt=document.getElementById('essay-count');
-    if(cnt){const len=e.target.value.length;cnt.textContent=`${len} 字`;cnt.style.color=len<100?'#f59e0b':'#16a34a';}
+  root.querySelectorAll('[data-action=set-app-lang]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      A.examLang = el.dataset.lang || 'zh';
+      render();
+    });
+  });
+  document.getElementById('btn-start-exam')?.addEventListener('click',()=>{
+    const ap = A.applicant;
+    const win = getExamWindowUtc();
+    const allowedNow = isExamAllowedNow(ap);
+    if(!allowedNow){
+      toast('当前非笔试开放时间，暂不可答题',false);
+      render();
+      return;
+    }
+    if(!win || !win.endUtc){
+      toast('无法获取考试时间窗口',false);
+      return;
+    }
+    const remainSec = isExamExemptApplicant(ap) ? (A.examTotalTime||9000) : Math.max(0, Math.floor((win.endUtc.getTime() - Date.now())/1000));
+    if(remainSec<=0){
+      toast('该开放时间已结束，请刷新后选择下一次',false);
+      render();
+      return;
+    }
+    A.examStarted=true;
+    A.examSubmitted=false;
+    A.examAnswers={};
+    A.essayText='';
+    A.proctorFlags=0;
+    A.examTime=remainSec;
+
+    // Basic proctoring: detect tab switch / blur / visibility change
+    try{
+      if(!window.__proctorInstalled){
+        window.__proctorInstalled=true;
+        const flag = ()=>{
+          if(A.role!=='applicant' || A.applicant?.stage!=='exam' || !A.examStarted || A.examSubmitted) return;
+          A.proctorFlags=(A.proctorFlags||0)+1;
+          toast('检测到切屏/切换窗口（已记录 '+A.proctorFlags+' 次）',false);
+          render();
+        };
+        document.addEventListener('visibilitychange',()=>{
+          if(document.visibilityState==='hidden') flag();
+        });
+        window.addEventListener('blur',()=>flag());
+      }
+    }catch(_){}
+    render();
+  });
+  document.getElementById('btn-submit-exam')?.addEventListener('click',()=>submitExam());
+  document.getElementById('btn-go-interview')?.addEventListener('click',async()=>{await loadPublicSlots();render();});
+  document.getElementById('btn-refresh-slots')?.addEventListener('click',async()=>{await loadPublicSlots();render();});
+
+  // Exam inputs
+  root.querySelectorAll('input[data-kind="single"]').forEach(el=>{
+    el.addEventListener('change',e=>{
+      const qid=+el.dataset.qid;
+      A.examAnswers[qid]=+el.value;
+    });
+  });
+  root.querySelectorAll('input[data-kind="truefalse"]').forEach(el=>{
+    el.addEventListener('change',e=>{
+      const qid=+el.dataset.qid;
+      A.examAnswers[qid]=el.value==='1';
+    });
+  });
+  root.querySelectorAll('input[data-kind="fill"]').forEach(el=>{
+    el.addEventListener('input',e=>{
+      const qid=+el.dataset.qid;
+      const bi=+el.dataset.blank;
+      if(!Array.isArray(A.examAnswers[qid])) A.examAnswers[qid]=[];
+      A.examAnswers[qid][bi]=el.value;
+    });
+  });
+  root.querySelectorAll('select[data-kind="match"]').forEach(el=>{
+    el.addEventListener('change',e=>{
+      const qid=+el.dataset.qid;
+      const li=+el.dataset.left;
+      const ri=parseInt(el.value,10);
+      if(!Array.isArray(A.examAnswers[qid])) A.examAnswers[qid]=[];
+      A.examAnswers[qid][li]=ri;
+    });
+  });
+  root.querySelectorAll('input[data-kind="order"]').forEach(el=>{
+    el.addEventListener('input',e=>{
+      const qid=+el.dataset.qid;
+      A.examAnswers[qid]=String(el.value||'').toUpperCase().replace(/[^A-Z]/g,'');
+    });
+  });
+  root.querySelectorAll('textarea[data-kind="dictation"]').forEach(el=>{
+    el.addEventListener('input',e=>{
+      const qid=+el.dataset.qid;
+      A.examAnswers[qid]=el.value;
+    });
   });
 
   // ── Interview booking ──
@@ -1025,7 +2919,7 @@ function bind(){
   root.querySelectorAll('[data-action=pick-slot]').forEach(el=>{
     el.addEventListener('click',()=>{
       const slotid=el.dataset.slotid;
-      A.ivSelected=A.allSlots.find(s=>s.id===slotid)||null;
+      A.ivSelected=(A.applicantFreeSlots||[]).find(s=>String(s.id)===String(slotid))||null;
       render();
     });
   });
@@ -1034,12 +2928,6 @@ function bind(){
   root.querySelectorAll('[data-admin-tab]').forEach(el=>{
     el.addEventListener('click',()=>{A.adminTab=el.dataset.adminTab;A.selectedApId=null;render();});
   });
-
-  // ── Teacher tab ──
-  root.querySelectorAll('[data-teacher-tab]').forEach(el=>{
-    el.addEventListener('click',()=>{A.teacherTab=el.dataset.teacherTab;render();});
-  });
-
   // ── Select / close applicant ──
   root.querySelectorAll('[data-action=select-ap]').forEach(el=>{
     el.addEventListener('click',()=>{A.selectedApId=el.dataset.apid;render();});
@@ -1059,6 +2947,7 @@ function bind(){
   // ── Manual score entry ──
   root.querySelectorAll('[data-action=save-manual-score]').forEach(el=>{
     el.addEventListener('click',async()=>{
+      if(A.role!=='admin'){toast('仅管理员可录入成绩',false);return;}
       const apid=el.dataset.apid;
       const scoreVal=document.getElementById('manual-score-'+apid)?.value;
       const score=parseInt(scoreVal);
@@ -1074,34 +2963,120 @@ function bind(){
 
   // ── Add applicant modal ──
   root.querySelectorAll('[data-action=show-add-ap-modal]').forEach(el=>{
-    el.addEventListener('click',e=>{e.stopPropagation();A.showAddApModal=true;render();});
+    el.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(A.role!=='admin') return;
+      A.showAddApModal=true;render();
+    });
   });
   root.querySelectorAll('[data-action=close-add-ap-modal]').forEach(el=>{
     el.addEventListener('click',()=>{A.showAddApModal=false;render();});
   });
   document.getElementById('btn-save-add-ap')?.addEventListener('click',async()=>{
+    if(A.role!=='admin') return;
     const name=(document.getElementById('add-ap-name')?.value||'').trim();
     const phone=(document.getElementById('add-ap-phone')?.value||'').trim();
     const email=(document.getElementById('add-ap-email')?.value||'').trim();
-    const program=document.getElementById('add-ap-program')?.value||'神学院';
+    // 注意：当前 Supabase 的 `applicants` 表可能没有 `program` 列
+    // 所以这里不把它写入数据库，避免插入失败
     const stage=document.getElementById('add-ap-stage')?.value||'apply';
     if(!name){toast('请输入姓名',false);return;}
-    const last4=phone.length>=4?phone.slice(-4):phone;
-    const {data,error}=await sb.from('applicants').insert([{first_name:name,last_name:'',phone,email:email||null,stage}]).select().single();
+    const phoneDigits=(phone||'').replace(/\D/g,'');
+    const last4=phoneDigits.length>=4?phoneDigits.slice(-4):phoneDigits;
+    if(!last4||last4.length!==4){
+      toast('请填写手机号后四位（或完整手机号）',false);
+      return;
+    }
+    // 注意：登录与查询使用的是 full_name + phone_last4
+    // 但在你的数据库中，phone_last4 很可能也是 GENERATED（自动生成）列
+    // 因此这里只写入 phone，让后端自动生成 phone_last4
+    const {data,error}=await sb.from('applicants').insert([{
+      // `full_name` 在数据库里可能是 GENERATED（自动生成）列
+      // 因此这里不要手动写入 full_name，改为写 first_name/last_name
+      first_name:name,
+      last_name:'',
+      phone:phone||null,
+      email:email||null,
+      stage
+    }]).select().single();
     if(!error&&data){A.allApplicants.unshift(data);A.showAddApModal=false;toast('已添加：'+name);render();}
     else toast('添加失败：'+(error?.message||'未知错误'),false);
+  });
+
+  // ── Edit applicant info modal ──
+  root.querySelectorAll('[data-action=edit-ap-info]').forEach(el=>{
+    el.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(A.role!=='admin') return;
+      const apid=el.dataset.apid;
+      A.showEditApInfoModal=true;
+      A.editApInfoId=apid;
+      render();
+    });
+  });
+  root.querySelectorAll('[data-action=close-edit-ap-info]').forEach(el=>{
+    el.addEventListener('click',()=>{A.showEditApInfoModal=false;A.editApInfoId=null;render();});
+  });
+  document.getElementById('btn-save-ap-info')?.addEventListener('click',async()=>{
+    if(A.role!=='admin') return;
+    const apid=document.getElementById('btn-save-ap-info')?.dataset?.apid;
+    if(!apid) return;
+    const gender=document.getElementById('edit-ap-gender')?.value || '';
+    const hometown=document.getElementById('edit-ap-hometown')?.value || '';
+    const education=document.getElementById('edit-ap-education')?.value || '';
+    const church_name=document.getElementById('edit-ap-church')?.value || '';
+    const denomination=document.getElementById('edit-ap-denom')?.value || '';
+    const language_proficiency=document.getElementById('edit-ap-language')?.value || '';
+    const marital_status=document.getElementById('edit-ap-marital')?.value || '';
+    const conversion_time_raw=document.getElementById('edit-ap-conversion-time')?.value || '';
+    const conversion_testimony=document.getElementById('edit-ap-conv-testimony')?.value || '';
+    const ministry_experience=document.getElementById('edit-ap-ministry')?.value || '';
+    const admin_notes=document.getElementById('edit-ap-admin-notes')?.value || '';
+    const wechat_notes=document.getElementById('edit-ap-wechat-notes')?.value || '';
+
+    const payload={
+      gender: gender||null,
+      hometown: hometown||null,
+      education: education||null,
+      church_name: church_name||null,
+      denomination: denomination||null,
+      language_proficiency: language_proficiency||null,
+      marital_status: marital_status||null,
+      conversion_time: conversion_time_raw ? new Date(conversion_time_raw).toISOString() : null,
+      conversion_testimony: conversion_testimony||null,
+      ministry_experience: ministry_experience||null,
+      admin_notes: admin_notes||null,
+      wechat_notes: wechat_notes||null,
+    };
+
+    const {error}=await sb.from('applicants').update(payload).eq('id',apid);
+    if(!error){
+      toast('档案信息已保存');
+      A.showEditApInfoModal=false;
+      A.editApInfoId=null;
+      await loadAdminData();
+      render();
+    } else {
+      toast('保存失败：'+(error?.message||'未知错误'),false);
+    }
   });
 
   // ── Delete applicant ──
   root.querySelectorAll('[data-action=delete-ap]').forEach(el=>{
     el.addEventListener('click',async e=>{
       e.stopPropagation();
+      if(A.role!=='admin') return;
       const apid=el.dataset.apid;
       const ap=A.allApplicants.find(a=>a.id===apid);
       if(!confirm('确认删除「'+(ap?fullName(ap):'该申请人')+'」？此操作不可撤销。'))return;
       const {error}=await sb.from('applicants').delete().eq('id',apid);
-      if(!error){A.allApplicants=A.allApplicants.filter(a=>a.id!==apid);if(A.selectedApId===apid)A.selectedApId=null;toast('已删除');render();}
-      else toast('删除失败',false);
+      if(!error){
+        A.allApplicants=A.allApplicants.filter(a=>a.id!==apid);
+        if(A.selectedApId===apid)A.selectedApId=null;
+        if(A.briefingId===apid)A.briefingId=null;
+        toast('已删除');
+        render();
+      } else toast('删除失败',false);
     });
   });
 
@@ -1131,6 +3106,7 @@ function bind(){
   // ── Advance / Reject ──
   root.querySelectorAll('[data-action=advance-ap]').forEach(el=>{
     el.addEventListener('click',async()=>{
+      if(A.role!=='admin') return;
       const ap=A.allApplicants.find(a=>a.id===el.dataset.apid);
       if(!ap)return;
       const idx=STAGE_IDX[ap.stage]||0;
@@ -1143,6 +3119,7 @@ function bind(){
   });
   root.querySelectorAll('[data-action=reject-ap]').forEach(el=>{
     el.addEventListener('click',async()=>{
+      if(A.role!=='admin') return;
       if(!confirm('确认拒绝此申请人？'))return;
       const {error}=await sb.from('applicants').update({stage:'rejected'}).eq('id',el.dataset.apid);
       if(!error){A.allApplicants=A.allApplicants.map(a=>a.id===el.dataset.apid?{...a,stage:'rejected'}:a);A.selectedApId=null;toast('已标记拒绝');render();}
@@ -1151,34 +3128,111 @@ function bind(){
 
   // ── Admin: add slot ──
   document.getElementById('btn-add-admin-slot')?.addEventListener('click',async()=>{
+    if(A.role!=='admin'){toast('仅管理员可在此添加公共排班',false);return;}
     const date=document.getElementById('a-slot-date')?.value;
-    const time=document.getElementById('a-slot-time')?.value;
-    const teacher=document.getElementById('a-slot-teacher')?.value?.trim();
-    if(!date||!time){toast('请填写日期和时间',false);return;}
-    const {data,error}=await sb.from('interview_slots').insert([{slot_date:date,slot_time:time,teacher_name:teacher||null}]).select().single();
-    if(!error&&data){A.allSlots.push(data);toast('时间段已添加');render();}
-    else toast('添加失败',false);
+    const start=document.getElementById('a-slot-start')?.value;
+    const end=document.getElementById('a-slot-end')?.value;
+    const interval=parseInt(document.getElementById('a-slot-interval')?.value||'30',10);
+    const teacherId=(document.getElementById('a-slot-teacher-id')?.value||'').trim();
+    if(!teacherId){toast('请选择负责老师',false);return;}
+    const tp=(A.teacherProfiles||[]).find(x=>String(x.id)===String(teacherId));
+    if(!date||!start||!end){toast('请填写日期与开始/结束时间',false);return;}
+    const toMin = t=>{
+      const [h,m]=String(t).split(':').map(Number);
+      return h*60+m;
+    };
+    const pad2 = n=>String(n).padStart(2,'0');
+    const startMin=toMin(start);
+    const endMin=toMin(end);
+    if(!(interval===20||interval===30)) {toast('请选择 20 或 30 分钟间隔',false);return;}
+    if(endMin<=startMin){toast('结束时间必须晚于开始时间',false);return;}
+
+    const times=[];
+    for(let m=startMin; m+interval<=endMin; m+=interval){
+      const hh=Math.floor(m/60), mm=m%60;
+      times.push(`${pad2(hh)}:${pad2(mm)}`);
+    }
+    if(times.length===0){toast('时间段内没有可生成的时间点',false);return;}
+
+    // 过滤掉已经过去的时间点，避免申请者无法选择但后台还能插入
+    const now=Date.now();
+    const msOf = t=>{
+      const m = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m) return null;
+      const tt = String(t).match(/^(\d{2}):(\d{2})$/);
+      if(!tt) return null;
+      const y=+m[1], mo=+m[2]-1, d=+m[3];
+      const hh=+tt[1], mm=+tt[2];
+      return new Date(y,mo,d,hh,mm,0).getTime();
+    };
+    const futureTimes=times.filter(t=>{const ms=msOf(t); return ms && ms>now;});
+    if(futureTimes.length===0){toast('该时间段内没有未来可用时间点',false);return;}
+
+    // 跳过已存在的时间点，避免插入重复
+    const {data:existing} = await sb.from('interview_slots')
+      .select('slot_time')
+      .eq('slot_date',date)
+      .in('slot_time',futureTimes);
+    const existSet=new Set((existing||[]).map(r=>r.slot_time));
+    const payload=futureTimes.filter(t=>!existSet.has(t)).map(t=>({
+      slot_date:date,
+      slot_time:t,
+      is_booked:false,
+      teacher_id:teacherId,
+      teacher_name:tp?.display_name||null
+    }));
+    if(payload.length===0){toast('这些时间点已存在，无需重复添加',true);return;}
+
+    const {error}=await sb.from('interview_slots').insert(payload);
+    if(!error){
+      toast(`已添加 ${payload.length} 个时间点`,true);
+      await loadAdminData();
+      render();
+    } else toast('添加失败',false);
   });
   root.querySelectorAll('[data-action=del-slot]').forEach(el=>{
     el.addEventListener('click',async()=>{
+      if(A.role!=='admin'){toast('仅管理员可删除排班上的时段',false);return;}
       const {error}=await sb.from('interview_slots').delete().eq('id',el.dataset.slotid);
       if(!error){A.allSlots=A.allSlots.filter(s=>s.id!==el.dataset.slotid);toast('已删除');render();}
     });
   });
 
-  // ── Teacher: add slot ──
-  document.getElementById('btn-add-teacher-slot')?.addEventListener('click',async()=>{
-    const date=document.getElementById('t-slot-date')?.value;
-    const time=document.getElementById('t-slot-time')?.value;
-    if(!date||!time){toast('请填写日期和时间',false);return;}
-    const {data,error}=await sb.from('interview_slots').insert([{slot_date:date,slot_time:time,teacher_id:A.user.id,teacher_name:A.profile?.display_name}]).select().single();
-    if(!error&&data){A.mySlots.push(data);toast('时间段已添加');render();}
-    else toast('添加失败',false);
+  // ── 我的：改密 + 本人面试时段 ──
+  document.getElementById('btn-me-add-slots')?.addEventListener('click',async()=>{
+    await teacherAddSlotRange('me-slot-date','me-slot-start','me-slot-end','me-slot-interval');
   });
-  root.querySelectorAll('[data-action=del-teacher-slot]').forEach(el=>{
+  document.getElementById('btn-me-change-pw')?.addEventListener('click',async()=>{
+    const p1=(document.getElementById('me-pw-new')?.value||'').trim();
+    const p2=(document.getElementById('me-pw-new2')?.value||'').trim();
+    if(p1.length<6){toast('新密码至少 6 位',false);return;}
+    if(p1!==p2){toast('两次输入的密码不一致',false);return;}
+    const {error}=await sb.auth.updateUser({password:p1});
+    if(error){toast('修改失败：'+(error.message||''),false);return;}
+    toast('密码已更新');
+    const el1=document.getElementById('me-pw-new');
+    const el2=document.getElementById('me-pw-new2');
+    if(el1) el1.value='';
+    if(el2) el2.value='';
+  });
+  root.querySelectorAll('[data-action=del-my-slot]').forEach(el=>{
     el.addEventListener('click',async()=>{
-      const {error}=await sb.from('interview_slots').delete().eq('id',el.dataset.slotid);
-      if(!error){A.mySlots=A.mySlots.filter(s=>s.id!==el.dataset.slotid);toast('已删除');render();}
+      const sid=el.dataset.slotid;
+      const row=A.allSlots.find(s=>String(s.id)===String(sid));
+      if(!row || String(row.teacher_id)!==String(A.user?.id)){
+        toast('只能删除归属您本人的空闲时段',false);
+        return;
+      }
+      if(!isInterviewSlotRowVacant(row)){
+        toast('已有人预约的时段不可删除',false);
+        return;
+      }
+      const {error}=await sb.from('interview_slots').delete().eq('id',sid);
+      if(!error){
+        A.allSlots=A.allSlots.filter(s=>String(s.id)!==String(sid));
+        toast('已删除');
+        render();
+      } else toast('删除失败',false);
     });
   });
 }
@@ -1187,6 +3241,11 @@ function bind(){
 // INIT
 // ══════════════════════════════════════════════════════════════
 async function init(){
+  if(!sb){
+    document.getElementById('root').innerHTML='<div class="p6" style="max-width:520px;margin:48px auto;line-height:1.65;font-family:system-ui,sans-serif"><h1 class="t18 fw7 c-gray8 mb3">无法加载 Supabase 客户端</h1><p class="t13 c-gray6 mb2">浏览器未能从 CDN 加载 <code>@supabase/supabase-js</code>（常见于网络限制或广告拦截）。</p><p class="t13 c-gray6 mb2"><strong>可尝试：</strong>换网络、关闭广告拦截、用手机热点；或在项目文件夹运行 <code>npx serve .</code> 后用 <code>http://localhost:3000</code> 打开（不要用错误的子路径）。</p></div>';
+    return;
+  }
+  await ensureExamQuestionsLoaded();
   // Check existing session
   const {data:{session}}=await sb.auth.getSession();
   if(session){
@@ -1194,14 +3253,23 @@ async function init(){
     const {data:prof}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
     if(prof){
       A.profile=prof;A.role=prof.role;
-      if(A.role==='admin') await loadAdminData();
-      else await loadTeacherData();
+      if(A.role==='admin'||A.role==='teacher'){ await loadAdminData(); await loadExamQuestions(); }
     }
   }
   render();
 }
 
-init();
+init().catch(err=>{
+  console.error(err);
+  try{
+    A.role=null;
+    A.user=null;
+    A.profile=null;
+    render();
+  }catch(_){}
+  const msg=err&&err.message?String(err.message):String(err);
+  toast('页面加载异常，已显示登录页。若持续如此，请按 F12 查看控制台错误。'+msg.slice(0,120), false);
+});
 </script>
 </body>
 </html>
