@@ -1573,6 +1573,17 @@ async function loadAdminData(){
   A.teacherProfiles = mergeTeacherProfilesFromSlots(A.allSlots, tprof);
 }
 
+/** 管理员删除申请人（需 Supabase 已执行 migrations/20260417100000_delete_applicant_by_admin_rpc.sql） */
+async function deleteApplicantByAdminRpc(apid){
+  const {data,error}=await sb.rpc('delete_applicant_by_admin',{p_applicant_id:apid});
+  if(error) return {ok:false,msg:error.message||'请求失败'};
+  const row=data;
+  if(row&&row.ok===true) return {ok:true};
+  const code=row&&row.error?String(row.error):'unknown';
+  const map={forbidden:'无权限（需管理员账号）',not_found:'记录不存在或已删除',bad_id:'参数无效'};
+  return {ok:false,msg:map[code]||code};
+}
+
 async function loadExamQuestions(){
   await ensureExamQuestionsLoaded();
   A.examQuestions = EXAM_Qs;
@@ -2101,10 +2112,33 @@ async function applicantAdvanceFromMaterialsToVisaOrComplete(){
   render();
 }
 
+/** 职员登录：把 Supabase 常见错误译成可操作的提示（避免一律显示「邮箱或密码错误」） */
+function messageForStaffAuthError(err){
+  if(!err) return '登录失败，请稍后再试';
+  const raw=String(err.message||'');
+  const low=raw.toLowerCase();
+  const code=String(err.code||'');
+  if(low.includes('email not confirmed')||code==='email_not_confirmed'||(low.includes('confirm')&&low.includes('email'))){
+    return '该邮箱尚未完成验证：请查收确认邮件并点击链接；或由管理员在 Supabase → Authentication → 点开该用户 → 将邮箱标为已确认（Confirm）。';
+  }
+  if(low.includes('too many request')||code==='over_request_rate_limit'){
+    return '尝试过于频繁，请几分钟后再试。';
+  }
+  if(low.includes('invalid login')||low.includes('invalid_grant')||low.includes('invalid credentials')){
+    return '邮箱或密码不正确。若忘记密码：管理员可在招生系统「我的」里用「重置教师密码」；或在 Supabase 用户详情中发送重置邮件 / 设置新密码。';
+  }
+  return '登录失败：'+raw;
+}
+
 async function loginStaff(email,password){
   if(!sb){toast('未连接数据库，请检查网络后刷新',false);return;}
-  const {data,error}=await sb.auth.signInWithPassword({email,password});
-  if(error){toast('邮箱或密码错误',false);return;}
+  const emailNorm=String(email||'').trim();
+  const {data,error}=await sb.auth.signInWithPassword({email:emailNorm,password});
+  if(error){
+    console.warn('loginStaff', error.message, error);
+    toast(messageForStaffAuthError(error),false);
+    return;
+  }
   A.user=data.user;
   const {data:prof}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
   A.profile=prof;
@@ -4478,16 +4512,23 @@ function bind(){
       e.stopPropagation();
       if(A.role!=='admin') return;
       const apid=el.dataset.apid;
-      const ap=A.allApplicants.find(a=>a.id===apid);
+      const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
       if(!confirm('确认删除「'+(ap?fullName(ap):'该申请人')+'」？此操作不可撤销。'))return;
-      const {error}=await sb.from('applicants').delete().eq('id',apid);
-      if(!error){
-        A.allApplicants=A.allApplicants.filter(a=>a.id!==apid);
-        if(A.selectedApId===apid)A.selectedApId=null;
-        if(A.briefingId===apid)A.briefingId=null;
+      const res=await deleteApplicantByAdminRpc(apid);
+      if(res.ok){
+        A.allApplicants=A.allApplicants.filter(a=>String(a.id)!==String(apid));
+        A.allRecords=(A.allRecords||[]).filter(r=>String(r.applicant_id)!==String(apid));
+        if(ap?.interview_slot_id){
+          const sid=String(ap.interview_slot_id);
+          A.allSlots=(A.allSlots||[]).map(s=>String(s.id)===sid?{...s,is_booked:false,applicant_id:null}:s);
+        }
+        if(String(A.selectedApId)===String(apid))A.selectedApId=null;
+        if(String(A.briefingId)===String(apid))A.briefingId=null;
         toast('已删除');
         render();
-      } else toast('删除失败',false);
+      }else{
+        toast('删除失败：'+res.msg+'。若提示函数不存在，请在 Supabase SQL Editor 执行仓库内 migrations/20260417100000_delete_applicant_by_admin_rpc.sql。',false);
+      }
     });
   });
 
