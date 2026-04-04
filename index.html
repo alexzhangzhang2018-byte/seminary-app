@@ -677,7 +677,13 @@ function buildExamQuestionsFromText(text){
   return questions;
 }
 
-let EXAM_Qs = buildExamQuestionsFromText(EXAM_TEXT_SRC);
+let EXAM_Qs = [];
+try{
+  EXAM_Qs = buildExamQuestionsFromText(EXAM_TEXT_SRC) || [];
+}catch(e){
+  console.error('buildExamQuestionsFromText failed', e);
+  EXAM_Qs = [];
+}
 
 // 兜底：如果解析失败导致空题库，保证线上仍能显示题目并进行考试
 // 说明：这里先按你当前可用的旧约部分答案文本硬编码（用于恢复“题库不为空”）。
@@ -769,6 +775,16 @@ function isFileProtocol(){
   return typeof location !== 'undefined' && location.protocol === 'file:';
 }
 
+async function fetchWithTimeout(url, ms=8000){
+  const c=new AbortController();
+  const t=setTimeout(()=>c.abort(),ms);
+  try{
+    return await fetch(url,{signal:c.signal});
+  }finally{
+    clearTimeout(t);
+  }
+}
+
 async function attachExamLocales(qs){
   if(typeof EXAM_LOCALE==='undefined' || !qs || !qs.length) return qs;
   const enUrls = ['./docx_plain_en.txt','/docx_plain_en.txt','docx_plain_en.txt'];
@@ -777,7 +793,7 @@ async function attachExamLocales(qs){
   if(!isFileProtocol()){
     for(const url of enUrls){
       try{
-        const res=await fetch(url);
+        const res=await fetchWithTimeout(url);
         if(res.ok){ const t=await res.text(); if(t&&t.trim()){ enText=t; break; } }
       }catch(_){}
     }
@@ -786,7 +802,7 @@ async function attachExamLocales(qs){
   if(!isFileProtocol()){
     for(const url of idUrls){
       try{
-        const res=await fetch(url);
+        const res=await fetchWithTimeout(url);
         if(res.ok){ const t=await res.text(); if(t&&t.trim()){ idText=t; break; } }
       }catch(_){}
     }
@@ -804,35 +820,48 @@ async function attachExamLocales(qs){
   return EXAM_LOCALE.mergeLocaleIntoQuestions(qs, enList, idList);
 }
 
+let __examEnsurePromise = null;
 async function ensureExamQuestionsLoaded(){
   if(__examQuestionsLoadedFromFile) return;
-  if(!isFileProtocol()){
+  if(__examEnsurePromise) return __examEnsurePromise;
+  __examEnsurePromise = (async()=>{
     try{
-      const urls = ['./docx_plain2.txt','/docx_plain2.txt','docx_plain2.txt'];
-      for(const url of urls){
+      if(!isFileProtocol()){
         try{
-          const res = await fetch(url);
-          if(!res.ok) throw new Error('fetch failed: '+url);
-          const txt = await res.text();
-          if(txt && txt.trim().length>0){
-            let qs = buildExamQuestionsFromText(txt);
-            const qsNt = (qs||[]).filter(q=>q.section==='nt').length;
-            const embNt = (EXAM_Qs||[]).filter(q=>q.section==='nt').length;
-            if(qs && qs.length>0 && !(qsNt===0 && embNt>0)){
-              qs = await attachExamLocales(qs);
-              EXAM_Qs = qs;
-              A.examQuestions = EXAM_Qs;
-              __examQuestionsLoadedFromFile = true;
-              return;
-            }
+          const urls = ['./docx_plain2.txt','/docx_plain2.txt','docx_plain2.txt'];
+          for(const url of urls){
+            try{
+              const res = await fetchWithTimeout(url);
+              if(!res.ok) throw new Error('fetch failed: '+url);
+              const txt = await res.text();
+              if(txt && txt.trim().length>0){
+                let qs = buildExamQuestionsFromText(txt);
+                const qsNt = (qs||[]).filter(q=>q.section==='nt').length;
+                const embNt = (EXAM_Qs||[]).filter(q=>q.section==='nt').length;
+                if(qs && qs.length>0 && !(qsNt===0 && embNt>0)){
+                  qs = await attachExamLocales(qs);
+                  EXAM_Qs = qs;
+                  A.examQuestions = EXAM_Qs;
+                  __examQuestionsLoadedFromFile = true;
+                  return;
+                }
+              }
+            }catch(_){}
           }
         }catch(_){}
       }
-    }catch(_){}
-  }
-  EXAM_Qs = await attachExamLocales(EXAM_Qs);
-  A.examQuestions = EXAM_Qs;
-  __examQuestionsLoadedFromFile = true;
+      EXAM_Qs = await attachExamLocales(EXAM_Qs);
+      A.examQuestions = EXAM_Qs;
+      __examQuestionsLoadedFromFile = true;
+    }catch(e){
+      console.warn('ensureExamQuestionsLoaded', e);
+      A.examQuestions = EXAM_Qs;
+      __examQuestionsLoadedFromFile = true;
+    }finally{
+      __examEnsurePromise = null;
+    }
+  })();
+  return __examEnsurePromise;
 }
 
 const MAT_ITEMS = [
@@ -1648,8 +1677,8 @@ async function loginStaff(email,password){
   A.profile=prof;
   A.role=prof?.role||'teacher';
   await loadAdminData();
-  await loadExamQuestions();
   render();
+  ensureExamQuestionsLoaded().then(()=>render()).catch(()=>{});
 }
 
 async function logout(){
@@ -3245,7 +3274,8 @@ async function init(){
     document.getElementById('root').innerHTML='<div class="p6" style="max-width:520px;margin:48px auto;line-height:1.65;font-family:system-ui,sans-serif"><h1 class="t18 fw7 c-gray8 mb3">无法加载 Supabase 客户端</h1><p class="t13 c-gray6 mb2">未找到全局 <code>supabase</code>。请确认已部署 <code>vendor/supabase.js</code>，且与 <code>index.html</code> 中引用路径一致。</p><p class="t13 c-gray6 mb2">若曾用外网 CDN，请重新部署当前仓库（含 <code>vendor/</code> 目录）。</p></div>';
     return;
   }
-  await ensureExamQuestionsLoaded();
+  // 先用内嵌中文题库出首屏；ensureExamQuestionsLoaded 内含大量同步解析，若在 render 之前 await 会导致整页长时间停在初始转圈
+  A.examQuestions = (EXAM_Qs && EXAM_Qs.length) ? EXAM_Qs : [];
   // Check existing session（避免 API 长时间无响应导致整页一直转圈）
   let session=null;
   try{
@@ -3272,7 +3302,7 @@ async function init(){
       if(A.role==='admin'||A.role==='teacher'){
         try{
           await Promise.race([
-            (async()=>{ await loadAdminData(); await loadExamQuestions(); })(),
+            loadAdminData(),
             new Promise((_,rej)=>setTimeout(()=>rej(new Error('loadAdminData 超时')),20000)),
           ]);
         }catch(e){ console.warn(e); }
@@ -3280,6 +3310,9 @@ async function init(){
     }
   }
   render();
+  ensureExamQuestionsLoaded()
+    .then(()=>{ render(); })
+    .catch(e=>console.warn('题库后台加载', e));
 }
 
 init().catch(err=>{
