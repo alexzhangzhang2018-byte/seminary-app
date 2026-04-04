@@ -1501,7 +1501,6 @@ async function submitExam(){
     `切换屏幕次数：${A.proctorFlags||0} 次`,
   ].join('\n');
 
-  const EL = A.examLang || 'zh';
   const {error} = await sb.from('applicants').update({
     exam_score:scoreScaled,
     exam_essay:examEssayWithRemark,
