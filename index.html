@@ -101,9 +101,11 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 
 /* Cards */
 .card{background:#fff;border-radius:14px;border:1px solid #f3f4f6;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:700px){.grid-2{grid-template-columns:1fr}}
 .kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:16px;min-height:400px}
-.kanban-col{flex-shrink:0;width:196px}
-.kanban-col-wide{flex-shrink:0;width:min(380px,92vw)}
+.kanban-col{flex-shrink:0;width:196px;max-width:min(196px,88vw)}
+.kanban-col-interview{flex-shrink:0;width:300px;max-width:min(300px,92vw)}
 .lang-subgroup{padding-top:10px;margin-top:10px;border-top:1px solid #eef2ff}
 .lang-subgroup:first-child{padding-top:0;margin-top:0;border-top:none}
 .lang-subgroup-h{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;letter-spacing:.04em}
@@ -230,6 +232,12 @@ const STAGES = [
   {id:'complete',  label:'完成 · Complete',       icon:'✅'},
 ];
 const STAGE_IDX = Object.fromEntries(STAGES.map((s,i)=>[s.id,i]));
+/** 教务调整阶段用（含看板未单独成列的终态） */
+const STAFF_STAGE_OPTIONS = [
+  ...STAGES.map(s=>({id:s.id,label:s.label})),
+  {id:'rejected',label:'拒绝 · Rejected'},
+  {id:'waitlist',label:'候补 · Waitlist'},
+];
 
 /** 申请人笔试/面试语言归一 */
 function getApplicantExamLang(ap){
@@ -1372,7 +1380,7 @@ function formatInterviewSlotLine(ap){
   return ap.interview_slot_id ? '已预约（若未显示时间，请刷新或检查 interview_slots 是否已关联）' : '';
 }
 const progTag  = prog => {const s=PROG_STYLE[prog]||{bg:'#f3f4f6',color:'#6b7280'};return mkTag(s.bg,s.color,prog||'神学院');}
-const stageTag = stage => {const s=STAGE_STYLE[stage]||{bg:'#f3f4f6',color:'#6b7280'};return mkTag(s.bg,s.color,(STAGES.find(x=>x.id===stage)||{}).label||stage);}
+const stageTag = stage => {const s=STAGE_STYLE[stage]||{bg:'#f3f4f6',color:'#6b7280'};const lab=(STAGES.find(x=>x.id===stage)||{}).label||(STAFF_STAGE_OPTIONS.find(x=>x.id===stage)||{}).label||stage;return mkTag(s.bg,s.color,lab);}
 
 // ── Exam schedule helpers ──────────────────────────────────────
 const EXAM_OPEN_DAYS_WIB = [1,3,6]; // Mon/Wed/Sat (0=Sun)
@@ -1703,8 +1711,9 @@ function mergeTeacherProfilesFromSlots(slots, baseList){
 const APPLICANTS_STAFF_LIST_COLS =
   'id,created_at,first_name,last_name,full_name,phone,phone_last4,email,stage,exam_lang,ui_lang,exam_score,exam_essay,interview_slot_id,materials_submitted_at,'+
   'scholarship_form_json,enrollment_survey_json,pastor_letter_json,mat_files_json,mat_financial_proof_filename,mat_survey_alert,mat_survey_alert_reason,'+
-  'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,conversion_testimony,ministry_experience,admin_notes,wechat_notes,'+
-  'gender,hometown,education,church_name,denomination,language_proficiency,marital_status,conversion_time';
+  'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,gospel_confession,conversion_testimony,ministry_experience,admin_notes,'+
+  'gender,hometown,education,church_name,denomination,language_proficiency,marital_status,conversion_time,date_of_birth,'+
+  'sheet_import_unseen,google_sheet_row';
 
 async function mergeApplicantHeavyFields(apid){
   if(!sb||apid==null||apid==='') return;
@@ -1714,6 +1723,15 @@ async function mergeApplicantHeavyFields(apid){
   if(error||!data) return;
   if(data.visa_files_json!==undefined) ap.visa_files_json=data.visa_files_json;
   if(data.mat_financial_proof_data!==undefined) ap.mat_financial_proof_data=data.mat_financial_proof_data;
+}
+
+/** 表格新导入小红点：教务点开详情或档案后清除 */
+async function acknowledgeApplicantSheetImport(apid){
+  if(!sb||apid==null||apid===''||(A.role!=='admin'&&A.role!=='teacher')) return;
+  const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+  if(!ap||!ap.sheet_import_unseen) return;
+  const {error}=await sb.from('applicants').update({sheet_import_unseen:false}).eq('id',apid);
+  if(!error) ap.sheet_import_unseen=false;
 }
 
 async function loadAdminData(){
@@ -3159,6 +3177,31 @@ function formatSurveyHumanSectionsZh(sur){
 function renderBriefStaffSections(sections){
   return sections.map(s=>`<div class="mb3"><div class="fw6 t11 c-gray6 mb1">${esc(s.title)}</div><div class="b1 bc-gray100 r8 p2">${renderBriefStaffRows(s.rows)}</div></div>`).join('');
 }
+
+function filterSurveySectionsForBriefing(sections,sur){
+  const keep=[];
+  const alert=computeSurveyAlertFromSurveyJson(sur||{});
+  const hasSpouseFaith=String(sur?.spouse_faith||'').trim()!=='';
+  const keepTitles=new Set();
+  keepTitles.add('1. 灵性背景');
+  if(hasSpouseFaith) keepTitles.add('4. 婚姻与性关系');
+  if(alert?.alert){
+    // 需留意时，额外保留所有可能包含异常项的 section（该摘要本身也只在有行时输出）
+    keepTitles.add('2. 健康状况');
+    keepTitles.add('3. 生活习惯');
+    keepTitles.add('4. 婚姻与性关系');
+    keepTitles.add('5. 财务状况');
+    keepTitles.add('6. 信仰经历补充');
+  }
+  for(const s of (sections||[])){
+    if(keepTitles.has(String(s.title||''))) keep.push(s);
+  }
+  // “调查表姓名/保存时间”如果存在，放在最后
+  for(const s of (sections||[])){
+    if(!keep.includes(s) && /^调查表姓名|^入学调查/.test(String(s.title||''))) keep.push(s);
+  }
+  return keep;
+}
 function materialsMissingCount(ap){
   const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
   const sur=parseApplicantJsonCol(ap.enrollment_survey_json,{});
@@ -3647,13 +3690,22 @@ function renderStaffMe(){
 }
 
 function renderScholarshipReview(){
-  const list=(A.allApplicants||[]).filter(a=>a.materials_submitted_at).sort((a,b)=>String(a.materials_submitted_at||'').localeCompare(String(b.materials_submitted_at||'')));
+  const stageOrder={materials:0,visa:1,complete:2};
+  const list=(A.allApplicants||[]).filter(a=>['materials','visa','complete'].includes(a.stage)).sort((a,b)=>{
+    const oa=stageOrder[a.stage]??9,ob=stageOrder[b.stage]??9;
+    if(oa!==ob) return oa-ob;
+    const ta=String(a.materials_submitted_at||a.created_at||''),tb=String(b.materials_submitted_at||b.created_at||'');
+    if(ta!==tb) return ta.localeCompare(tb);
+    return String(fullName(a)).localeCompare(String(fullName(b)),'zh');
+  });
   const row=ap=>{
     const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
     const v=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''?String(ap.scholarship_amount_approved):'';
+    const stLab=(STAGES.find(s=>s.id===ap.stage)||{}).label||ap.stage;
     return `<tr>
       <td><div class="row g1 wrap" style="align-items:center"><span class="fw6">${esc(fullName(ap))}</span>${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>
         <div class="t11 c-gray4">${esc(ap.phone||'')}</div></td>
+      <td class="t11 c-gray6" style="white-space:nowrap">${esc(stLab)}</td>
       <td>${ap.exam_score!=null?esc(String(ap.exam_score)):'—'}</td>
       <td class="t11 c-gray6" style="max-width:220px;word-break:break-word">${esc(String(sch.requested_amount||sch.amount_requested||sch.family_support||sch.total_self_funded||'—').slice(0,120))}</td>
       <td><input type="number" class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px" step="1" placeholder="额度" value="${esc(v)}"></td>
@@ -3664,10 +3716,10 @@ function renderScholarshipReview(){
   };
   return `<div class="maxw-3xl col g4">
     <div class="fw7 c-gray8 t16">奖学金批复</div>
-    <div class="t12 c-gray5 lh16">以下为已点击「提交全部资料待审核」的申请人。请结合笔试、面试与家庭经济情况填写<strong>批复额度</strong>（数字）后保存；申请人端将显示该金额。若入学调查表中披露物质使用/成瘾史等，姓名旁会标「需留意」。</div>
+    <div class="t12 c-gray5 lh16">列表包含当前处于<strong>上传资料、签证、完成</strong>三个阶段的全部申请人（无需先点「提交审核」也会出现）。请结合笔试、面试与家庭经济情况填写<strong>批复额度</strong>（数字）后保存；保存后会在<strong>档案 · 基本资料</strong>与申请人端展示该金额。若入学调查表中披露物质使用/成瘾史等，姓名旁会标「需留意」。</div>
     <div class="card" style="overflow:auto">
-      <table class="tbl"><thead><tr><th>申请人</th><th>笔试</th><th>申请额度</th><th>批复额度</th><th>备注</th><th>操作</th></tr></thead>
-      <tbody>${list.length?list.map(row).join(''):`<tr><td colspan="6" class="t13 c-gray4 tc" style="padding:24px">暂无已提交资料待批复的记录</td></tr>`}</tbody></table>
+      <table class="tbl"><thead><tr><th>申请人</th><th>当前阶段</th><th>笔试</th><th>申请额度</th><th>批复额度</th><th>备注</th><th>操作</th></tr></thead>
+      <tbody>${list.length?list.map(row).join(''):`<tr><td colspan="7" class="t13 c-gray4 tc" style="padding:24px">暂无处于「上传资料 / 签证 / 完成」环节的申请人</td></tr>`}</tbody></table>
     </div>
   </div>`;
 }
@@ -3731,6 +3783,7 @@ function renderPipeline(){
   const isAd=A.role==='admin';
   const canAddAp=isAd||A.role==='teacher';
   const cardHtml=(ap)=>`<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
+            ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
             ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
             <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
             <div class="t11 c-gray5 mb1">${esc(examLangLabelShort(getApplicantExamLang(ap)))}</div>
@@ -3745,7 +3798,7 @@ function renderPipeline(){
     <div class="kanban">
     ${STAGES.map(sg=>{
       const aps=A.allApplicants.filter(a=>a.stage===sg.id);
-      const wide=sg.id==='interview';
+      const colClass=sg.id==='interview'?'kanban-col kanban-col-interview':'kanban-col';
       let inner='';
       if(sg.id==='interview'){
         const by={zh:[],en:[],id:[]};
@@ -3766,7 +3819,7 @@ function renderPipeline(){
       } else {
         inner=`<div class="col g2">${aps.map(cardHtml).join('')}${aps.length===0?emptyHtml:''}</div>`;
       }
-      return `<div class="kanban-col${wide?' kanban-col-wide':''}">
+      return `<div class="${colClass}">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
           <span>${sg.icon}</span><span class="fw6 c-gray7 t13">${sg.label}</span>
           <span class="ml-auto tag" style="background:#f3f4f6;color:#6b7280">${aps.length}</span>
@@ -3939,6 +3992,8 @@ function renderDocs(){
 function renderApDetailModal(ap){
   const rec=A.allRecords.find(r=>r.applicant_id===ap.id);
   const isAd=A.role==='admin';
+  const canStaff=isAd||A.role==='teacher';
+  const schApprOk=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved));
   return `<div class="modal-overlay" id="ap-modal" data-action="close-modal">
     <div class="modal-sm" onclick="event.stopPropagation()">
       <div class="row g3 mb4">${mkAv(initials(ap),'xl')}<div><div class="fw7 c-gray8 t16">${esc(fullName(ap))}</div>${stageTag(ap.stage)}</div>
@@ -3947,15 +4002,30 @@ function renderApDetailModal(ap){
         <div class="info-row"><span>电话</span><span class="fw5">${esc(ap.phone||'—')}</span></div>
         <div class="info-row"><span>邮箱</span><span class="fw5">${esc(ap.email||'—')}</span></div>
         <div class="info-row"><span>笔试成绩</span><strong class="c-indigo6">${ap.exam_score??'—'}</strong></div>
+        <div class="info-row"><span>奖学金批复（最终）</span>${schApprOk?`<strong class="c-green7">${esc(String(ap.scholarship_amount_approved))}</strong>`:`<span class="c-gray4">尚未批复</span>`}</div>
         ${ap.interview_slot_id&&ap.stage!=='complete'?`<div class="info-row"><span>面试预约</span><span class="fw6 c-indigo6">${esc(formatInterviewSlotLine(ap))}</span></div>`:''}
         ${rec?`<div class="info-row"><span>面试评价</span>${mkTag(REC_STYLE[rec.recommendation]?.bg||'#f3f4f6',REC_STYLE[rec.recommendation]?.color||'#6b7280',REC_STYLE[rec.recommendation]?.label||'已填写')}</div>`:''}
       </div>
+      ${canStaff?`<div class="staff-stage-edit mb3" data-apid="${ap.id}">
+        <div class="t12 fw6 c-gray6 mb1">招生阶段（可前进或回退）</div>
+        <div class="row g2" style="align-items:center">
+          <select class="sel staff-ap-stage-select" style="flex:1;min-width:0">
+            ${STAFF_STAGE_OPTIONS.map(s=>`<option value="${esc(s.id)}" ${String(ap.stage||'')===s.id?'selected':''}>${esc(s.label)}</option>`).join('')}
+          </select>
+          <button type="button" class="btn btn-outline btn-sm" style="white-space:nowrap" data-action="save-ap-stage" data-apid="${ap.id}">保存</button>
+        </div>
+      </div>`:''}
       <div class="col g2">
-        ${isAd?`<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>`:''}
         <button class="btn btn-outline btn-full" data-action="view-briefing" data-apid="${ap.id}">📋 查看完整档案</button>
-        ${isAd?`<button class="btn btn-danger btn-full" data-action="reject-ap" data-apid="${ap.id}">标记拒绝</button>
-        <button class="btn btn-ghost btn-full mt2" data-action="delete-ap" data-apid="${ap.id}">删除账号</button>
-        <button class="btn btn-outline btn-full mt2" data-action="edit-ap-info" data-apid="${ap.id}">添加/编辑信息</button>`:''}
+        ${isAd?`<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>`:''}
+        ${isAd?`<details class="mt2">
+          <summary class="t12 fw6 c-gray6" style="cursor:pointer;user-select:none">更多操作</summary>
+          <div class="col g2 mt2">
+            <button class="btn btn-danger btn-full" data-action="reject-ap" data-apid="${ap.id}">标记拒绝</button>
+            <button class="btn btn-ghost btn-full" data-action="delete-ap" data-apid="${ap.id}">删除账号</button>
+            <button class="btn btn-outline btn-full" data-action="edit-ap-info" data-apid="${ap.id}">添加/编辑信息</button>
+          </div>
+        </details>`:''}
       </div>
     </div>
   </div>`;
@@ -3977,6 +4047,7 @@ function renderBriefingModal(ap){
   };
   const schHumanRows=formatScholarshipHumanZh(schB);
   const surHumanSecs=formatSurveyHumanSectionsZh(surB);
+  const surBriefSecs=filterSurveySectionsForBriefing(surHumanSecs,surB);
   const valB=s=>esc(s==null?'':String(s));
   const convDate=ap.conversion_time?String(ap.conversion_time).slice(0,10):'';
   const curLang=getApplicantExamLang(ap);
@@ -3984,38 +4055,57 @@ function renderBriefingModal(ap){
   const visaSpec=visaMaterialsSpecOk(visaF);
   const showVisaInner=STAGE_IDX[ap.stage]>=STAGE_IDX['visa']||visaF._saved_at;
   const vlnk=(d,fn,lab)=>d&&fn?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(fn)}">⬇ ${esc(lab)} · ${esc(fn)}</a></div>`:'';
+  const schFinalApproved=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved));
+  const schFinalLine=schFinalApproved
+    ?`<div class="info-row"><span class="c-gray5">奖学金批复（最终）</span><span class="fw6 c-green7">${esc(String(ap.scholarship_amount_approved))}</span></div>`
+    :`<div class="info-row"><span class="c-gray5">奖学金批复（最终）</span><span class="t12 c-gray4">尚未批复</span></div>`;
   return `<div class="modal-overlay" data-action="close-briefing">
     <div class="modal-lg" onclick="event.stopPropagation()">
       <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18 row g2 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','调查表·需留意'):''}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
       <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-briefing">✕</button></div>
 
+      ${canStaff?`<div class="staff-stage-edit card p3 mb4" data-apid="${ap.id}">
+        <div class="fw7 c-gray6 t11 mb2">招生流程阶段</div>
+        <div class="row g2 wrap" style="align-items:center">
+          <select class="sel staff-ap-stage-select" style="min-width:220px;flex:1">
+            ${STAFF_STAGE_OPTIONS.map(s=>`<option value="${esc(s.id)}" ${String(ap.stage||'')===s.id?'selected':''}>${esc(s.label)}</option>`).join('')}
+          </select>
+          <button type="button" class="btn btn-primary btn-sm" data-action="save-ap-stage" data-apid="${ap.id}">保存阶段</button>
+        </div>
+        <div class="t11 c-gray4 mt2">可在各环节间自由调整；误推进时可在此回退。</div>
+      </div>`:''}
+
       <div class="fw7 c-gray6 t11 mb2">1. 基本资料</div>
       <div class="card p4 mb4">
         <div class="info-row"><span class="c-gray5">姓名</span><span class="fw6">${esc(fullName(ap))}</span></div>
-        ${canStaff?`<div class="col g3 mt2">
-          <div><div class="t12 fw6 c-gray6 mb1">电话</div><input id="brief-ap-phone" class="inp" style="width:100%" value="${valB(ap.phone)}" placeholder="手机"></div>
-          <div><div class="t12 fw6 c-gray6 mb1">邮箱</div><input id="brief-ap-email" class="inp" style="width:100%" value="${valB(ap.email)}" placeholder="邮箱"></div>
-          <div><div class="t12 fw6 c-gray6 mb1">笔试/面试语言</div>
-            <select id="brief-ap-exam-lang" class="sel" style="width:100%">
-              <option value="zh" ${curLang==='zh'?'selected':''}>中文</option>
-              <option value="en" ${curLang==='en'?'selected':''}>English</option>
-              <option value="id" ${curLang==='id'?'selected':''}>Bahasa Indonesia</option>
-            </select></div>
-          <div><div class="t12 fw6 c-gray6 mb1">性别</div>
-            <select id="brief-ap-gender" class="sel" style="width:100%">
-              <option value="">未填写</option>
-              <option value="男" ${ap.gender==='男'?'selected':''}>男</option>
-              <option value="女" ${ap.gender==='女'?'selected':''}>女</option>
-            </select></div>
-          <div><div class="t12 fw6 c-gray6 mb1">籍贯</div><input id="brief-ap-hometown" class="inp" style="width:100%" value="${valB(ap.hometown)}" placeholder="籍贯"></div>
-          <div><div class="t12 fw6 c-gray6 mb1">学历</div><input id="brief-ap-education" class="inp" style="width:100%" value="${valB(ap.education)}" placeholder="学历"></div>
-          <div><div class="t12 fw6 c-gray6 mb1">教会</div><input id="brief-ap-church" class="inp" style="width:100%" value="${valB(ap.church_name)}" placeholder="教会"></div>
-          <div><div class="t12 fw6 c-gray6 mb1">宗派</div><input id="brief-ap-denom" class="inp" style="width:100%" value="${valB(ap.denomination)}" placeholder="宗派"></div>
-          <div><div class="t12 fw6 c-gray6 mb1">语言能力</div><input id="brief-ap-language" class="inp" style="width:100%" value="${valB(ap.language_proficiency)}" placeholder="语言能力"></div>
-          <div><div class="t12 fw6 c-gray6 mb1">婚姻状况</div><input id="brief-ap-marital" class="inp" style="width:100%" value="${valB(ap.marital_status)}" placeholder="婚姻状况"></div>
-          <div><div class="t12 fw6 c-gray6 mb1">归主时间</div><input id="brief-ap-conversion-time" class="inp" type="date" style="width:100%" value="${valB(convDate)}"></div>
-          <div class="row g2" style="align-items:flex-end"><button type="button" class="btn btn-primary" data-action="save-brief-basic" data-apid="${ap.id}">保存基本资料</button></div>
-        </div>`:`<div class="info-row"><span class="c-gray5">电话</span><span>${esc(ap.phone||'—')}</span></div>
+        ${schFinalLine}
+        ${canStaff?`<div class="mt2">
+          <div class="grid-2">
+            <div><div class="t12 fw6 c-gray6 mb1">电话</div><input id="brief-ap-phone" class="inp" style="width:100%" value="${valB(ap.phone)}" placeholder="手机"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">邮箱</div><input id="brief-ap-email" class="inp" style="width:100%" value="${valB(ap.email)}" placeholder="邮箱"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">笔试/面试语言</div>
+              <select id="brief-ap-exam-lang" class="sel" style="width:100%">
+                <option value="zh" ${curLang==='zh'?'selected':''}>中文</option>
+                <option value="en" ${curLang==='en'?'selected':''}>English</option>
+                <option value="id" ${curLang==='id'?'selected':''}>Bahasa Indonesia</option>
+              </select></div>
+            <div><div class="t12 fw6 c-gray6 mb1">性别</div>
+              <select id="brief-ap-gender" class="sel" style="width:100%">
+                <option value="">未填写</option>
+                <option value="男" ${ap.gender==='男'?'selected':''}>男</option>
+                <option value="女" ${ap.gender==='女'?'selected':''}>女</option>
+              </select></div>
+            <div><div class="t12 fw6 c-gray6 mb1">籍贯</div><input id="brief-ap-hometown" class="inp" style="width:100%" value="${valB(ap.hometown)}" placeholder="籍贯"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">学历</div><input id="brief-ap-education" class="inp" style="width:100%" value="${valB(ap.education)}" placeholder="学历"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">教会</div><input id="brief-ap-church" class="inp" style="width:100%" value="${valB(ap.church_name)}" placeholder="教会"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">宗派</div><input id="brief-ap-denom" class="inp" style="width:100%" value="${valB(ap.denomination)}" placeholder="宗派"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">语言能力</div><input id="brief-ap-language" class="inp" style="width:100%" value="${valB(ap.language_proficiency)}" placeholder="语言能力"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">婚姻状况</div><input id="brief-ap-marital" class="inp" style="width:100%" value="${valB(ap.marital_status)}" placeholder="婚姻状况"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">归主时间</div><input id="brief-ap-conversion-time" class="inp" type="date" style="width:100%" value="${valB(convDate)}"></div>
+          </div>
+          <div class="row g2 mt3" style="justify-content:flex-end"><button type="button" class="btn btn-primary" data-action="save-brief-basic" data-apid="${ap.id}">保存基本资料</button></div>
+        </div>`:`${schFinalLine}
+        <div class="info-row"><span class="c-gray5">电话</span><span>${esc(ap.phone||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">邮箱</span><span>${esc(ap.email||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">性别</span><span>${esc(ap.gender||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">籍贯</span><span>${esc(ap.hometown||'—')}</span></div>
@@ -4034,19 +4124,37 @@ function renderBriefingModal(ap){
         <div class="t12 c-gray6 mt2">Zoom：${esc(ivSl.zoom_id||'847 5014 4631')} &nbsp;/&nbsp; 密码：${esc(ivSl.zoom_password||'156903')}</div>`:''}
       </div>`:''}
 
-      <div class="fw7 c-gray6 t11 mb2">2. 得救见证</div>
+      <div class="fw7 c-gray6 t11 mb2">2. 福音认信</div>
       <div class="card p4 mb4">
-        ${canStaff?`<textarea id="brief-ap-conv-testimony" class="textarea" rows="5" style="width:100%" placeholder="可填写得救经过…">${valB(ap.conversion_testimony)}</textarea>
-        <button type="button" class="btn btn-primary mt2" data-action="save-brief-testimony" data-apid="${ap.id}">保存得救见证</button>`:(ap.conversion_testimony?`<div class="t13 c-gray7 lh16">${esc(ap.conversion_testimony)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+        ${canStaff?(
+          ap.gospel_confession
+            ? `<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.gospel_confession)}</div>`
+            : `<textarea id="brief-ap-gospel" class="textarea" rows="5" style="width:100%" placeholder="可填写福音认信…"></textarea>
+               <button type="button" class="btn btn-primary mt2" style="display:none" data-action="save-brief-gospel" data-apid="${ap.id}">保存福音认信</button>`
+        ):(ap.gospel_confession?`<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.gospel_confession)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
       </div>
 
-      <div class="fw7 c-gray6 t11 mb2">3. 事工经历</div>
+      <div class="fw7 c-gray6 t11 mb2">3. 得救见证</div>
       <div class="card p4 mb4">
-        ${canStaff?`<textarea id="brief-ap-ministry" class="textarea" rows="5" style="width:100%" placeholder="可填写事工/服事经历…">${valB(ap.ministry_experience)}</textarea>
-        <button type="button" class="btn btn-primary mt2" data-action="save-brief-ministry" data-apid="${ap.id}">保存事工经历</button>`:(ap.ministry_experience?`<div class="t13 c-gray7 lh16">${esc(ap.ministry_experience)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+        ${canStaff?(
+          ap.conversion_testimony
+            ? `<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.conversion_testimony)}</div>`
+            : `<textarea id="brief-ap-conv-testimony" class="textarea" rows="5" style="width:100%" placeholder="可填写得救经过…"></textarea>
+               <button type="button" class="btn btn-primary mt2" style="display:none" data-action="save-brief-testimony" data-apid="${ap.id}">保存得救见证</button>`
+        ):(ap.conversion_testimony?`<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.conversion_testimony)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
       </div>
 
-      <div class="fw7 c-gray6 t11 mb2">4. 笔试成绩</div>
+      <div class="fw7 c-gray6 t11 mb2">4. 事工经历</div>
+      <div class="card p4 mb4">
+        ${canStaff?(
+          ap.ministry_experience
+            ? `<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.ministry_experience)}</div>`
+            : `<textarea id="brief-ap-ministry" class="textarea" rows="5" style="width:100%" placeholder="可填写事工/服事经历…"></textarea>
+               <button type="button" class="btn btn-primary mt2" style="display:none" data-action="save-brief-ministry" data-apid="${ap.id}">保存事工经历</button>`
+        ):(ap.ministry_experience?`<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.ministry_experience)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+      </div>
+
+      <div class="fw7 c-gray6 t11 mb2">5. 笔试成绩</div>
       <div class="card p4 mb4">
         ${sc!=null?`<div class="row g4"><div class="tc"><div style="font-size:40px;font-weight:800;color:${scoreColor}">${sc}</div><div class="t11 c-gray4">满分 100</div></div>
         <div class="flex1 t12 c-gray5 mt2">${sc>=85?'✓ 成绩优秀，推荐面试':sc>=70?'△ 成绩一般，重点考察':'！成绩偏低，需综合评估'}</div></div>`:'<div class="t13 c-gray4 mb2">尚未录入或未完成笔试</div>'}
@@ -4059,7 +4167,7 @@ function renderBriefingModal(ap){
         ${ap.exam_essay?`<div class="t13 c-gray7 lh16 bg-gray50 r8 p3" style="white-space:pre-wrap">${esc(formatExamEssayForDisplay(ap.exam_essay))}</div>`:'<div class="t13 c-gray4">暂无笔试过程记录</div>'}
       </div>
 
-      <div class="fw7 c-gray6 t11 mb2">5. 面试记录</div>
+      <div class="fw7 c-gray6 t11 mb2">6. 面试记录</div>
       <div class="card p4 mb4">
         ${rec?`<div class="row g2 mb2"><span class="fw6 c-gray7">${esc(rec.recorded_by_name)}</span><span class="t11 c-gray4">${esc(rec.interview_date?.slice(0,10)||'')}</span>
         ${rec.recommendation?`<span class="ml-auto rec-badge" style="background:${REC_STYLE[rec.recommendation]?.bg||'#f3f4f6'};color:${REC_STYLE[rec.recommendation]?.color||'#6b7280'}">${REC_STYLE[rec.recommendation]?.label||''}</span>`:''}
@@ -4071,11 +4179,11 @@ function renderBriefingModal(ap){
         </div>
       </div>
 
-      <div class="fw7 c-gray6 t11 mb2">6. 入学调查</div>
+      <div class="fw7 c-gray6 t11 mb2">7. 入学调查</div>
       <div class="card p4 mb4">
         ${ap.mat_survey_alert?`<div class="b1 bc-red200 bg-red50 r8 p3 mb3 t12" style="color:#991b1b"><strong>⚠ 调查表需教务留意</strong>：${esc(ap.mat_survey_alert_reason||'—')}</div>`:''}
         ${canStaff?`<div id="brief-enrollment-survey-root" class="mms-survey-root" style="font-size:13px;line-height:1.65;max-height:min(70vh,720px);overflow-y:auto;padding-right:4px">${renderEnrollmentSurveyMMS(surBdisp,surveyTzh,{hideConfidential:true})}</div>
-        <button type="button" class="btn btn-primary btn-sm mt3" data-action="save-brief-survey" data-apid="${ap.id}">保存入学调查表</button>`:(surB._saved_at?(surHumanSecs.length?renderBriefStaffSections(surHumanSecs):'<div class="t13 c-gray4 mb2">调查表已保存，摘要暂无可用字段。</div>'):'<div class="t13 c-gray4 mb2">尚未提交入学调查表。</div>')}
+        <button type="button" class="btn btn-primary btn-sm mt3" data-action="save-brief-survey" data-apid="${ap.id}">保存入学调查表</button>`:(surB._saved_at?(surBriefSecs.length?renderBriefStaffSections(surBriefSecs):'<div class="t13 c-gray4 mb2">调查表已保存（无需要特别留意的条目）。</div>'):'<div class="t13 c-gray4 mb2">尚未提交入学调查表。</div>')}
         ${isAd?`<details class="mb2 mt3"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">原始 JSON · 入学调查（调试）</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(surB)}</pre></details>`:''}
       </div>
 
@@ -4087,7 +4195,7 @@ function renderBriefingModal(ap){
         ${(()=>{const d=schB.pastor_letter_upload_data,f=schB.pastor_letter_upload_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 牧师担保信扫描件 · ${esc(f)}</a></div>`:'';})()}
         ${(()=>{const d=schB.sponsor_proof_data,f=schB.sponsor_proof_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 他人资助证明 · ${esc(f)}</a></div>`:'';})()}
         ${isAd?`<details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">原始 JSON · 奖学金表（调试）</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(schB)}</pre></details>`:''}
-        ${ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved))?`<div class="t13 fw6 c-green7">已批复奖学金额度：${esc(String(ap.scholarship_amount_approved))}</div>`:''}
+        ${schFinalApproved?`<div class="t13 fw6 c-green7 mt2">与基本资料一致 · 已批复：${esc(String(ap.scholarship_amount_approved))}</div>`:''}
         ${ap.materials_submitted_at?`<div class="t11 c-gray4 mt2">资料提交时间：${esc(String(ap.materials_submitted_at).slice(0,19).replace('T',' '))}</div>`:''}
       </div>
 
@@ -4104,13 +4212,10 @@ function renderBriefingModal(ap){
       ${isAd?`<div class="fw7 c-gray6 t11 mb2">管理备注</div>
       <div class="card p4 mb4 bg-amber50 b1 bc-amber200">
         <textarea id="brief-ap-admin-notes" class="textarea" rows="3" style="width:100%" placeholder="管理员内部备注…">${valB(ap.admin_notes)}</textarea>
-        <div class="t12 fw6 c-gray6 mb1 mt2">微信备注</div>
-        <textarea id="brief-ap-wechat-notes" class="textarea" rows="2" style="width:100%">${valB(ap.wechat_notes)}</textarea>
         <button type="button" class="btn btn-primary mt2" data-action="save-brief-admin-notes" data-apid="${ap.id}">保存管理备注</button>
-      </div>`:(ap.admin_notes||ap.wechat_notes?`<div class="fw7 c-gray6 t11 mb2">管理备注</div>
+      </div>`:(ap.admin_notes?`<div class="fw7 c-gray6 t11 mb2">管理备注</div>
       <div class="card p4 mb4 bg-amber50 b1 bc-amber200">
-        ${ap.admin_notes?`<div class="t13 c-gray7 lh16 mb2">${esc(ap.admin_notes)}</div>`:''}
-        ${ap.wechat_notes?`<div class="t12 c-gray5">📱 微信备注：${esc(ap.wechat_notes)}</div>`:''}
+        <div class="t13 c-gray7 lh16 mb2">${esc(ap.admin_notes)}</div>
       </div>`:'')}
 
       <div class="row g2 mt5">
@@ -4206,10 +4311,6 @@ function renderEditApInfoModal(ap){
         <div style="grid-column:1/-1">
           <div class="t12 fw6 c-gray6 mb1">管理备注 Admin notes（可选）</div>
           <textarea id="edit-ap-admin-notes" class="textarea" rows="3" style="width:100%" placeholder="仅管理员可见...">${val(ap.admin_notes)}</textarea>
-        </div>
-        <div style="grid-column:1/-1">
-          <div class="t12 fw6 c-gray6 mb1">微信备注 Wechat notes（可选）</div>
-          <textarea id="edit-ap-wechat-notes" class="textarea" rows="2" style="width:100%" placeholder="可选...">${val(ap.wechat_notes)}</textarea>
         </div>
       </div>
 
@@ -4599,7 +4700,11 @@ function bind(){
   });
   // ── Select / close applicant ──
   root.querySelectorAll('[data-action=select-ap]').forEach(el=>{
-    el.addEventListener('click',()=>{A.selectedApId=el.dataset.apid;render();});
+    el.addEventListener('click',async()=>{
+      const apid=el.dataset.apid;
+      await acknowledgeApplicantSheetImport(apid);
+      A.selectedApId=apid;render();
+    });
   });
   root.querySelectorAll('[data-action=close-modal]').forEach(el=>{
     el.addEventListener('click',()=>{A.selectedApId=null;render();});
@@ -4609,7 +4714,10 @@ function bind(){
   root.querySelectorAll('[data-action=view-briefing]').forEach(el=>{
     el.addEventListener('click',async()=>{
       const apid=el.dataset.apid;
-      if((A.role==='admin'||A.role==='teacher')&&apid) await mergeApplicantHeavyFields(apid);
+      if((A.role==='admin'||A.role==='teacher')&&apid){
+        await mergeApplicantHeavyFields(apid);
+        await acknowledgeApplicantSheetImport(apid);
+      }
       A.briefingId=apid;A.selectedApId=null;render();
     });
   });
@@ -4662,6 +4770,54 @@ function bind(){
       } else toast('保存失败：'+(error?.message||''),false);
     });
   });
+  root.querySelectorAll('[data-action=save-brief-gospel]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      if(A.role!=='admin'&&A.role!=='teacher') return;
+      const apid=el.dataset.apid;
+      if(!apid) return;
+      const gospel_confession=(document.getElementById('brief-ap-gospel')?.value||'').trim()||null;
+      const {error}=await sb.from('applicants').update({gospel_confession}).eq('id',apid);
+      if(!error){
+        const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+        if(ap) ap.gospel_confession=gospel_confession;
+        toast('福音认信已保存');
+        render();
+      } else toast('保存失败：'+(error?.message||''),false);
+    });
+  });
+  // 福音认信：为空时，输入后才显示保存按钮
+  const gTa=document.getElementById('brief-ap-gospel');
+  if(gTa){
+    const btn=document.querySelector('[data-action=save-brief-gospel]');
+    const sync=()=>{
+      const has=String(gTa.value||'').trim().length>0;
+      if(btn) btn.style.display=has?'':'none';
+    };
+    gTa.addEventListener('input',sync);
+    sync();
+  }
+  // 得救见证：为空时，输入后才显示保存按钮
+  const tTa=document.getElementById('brief-ap-conv-testimony');
+  if(tTa){
+    const btn=document.querySelector('[data-action=save-brief-testimony]');
+    const sync=()=>{
+      const has=String(tTa.value||'').trim().length>0;
+      if(btn) btn.style.display=has?'':'none';
+    };
+    tTa.addEventListener('input',sync);
+    sync();
+  }
+  // 事工经历：为空时，输入后才显示保存按钮
+  const mTa=document.getElementById('brief-ap-ministry');
+  if(mTa){
+    const btn=document.querySelector('[data-action=save-brief-ministry]');
+    const sync=()=>{
+      const has=String(mTa.value||'').trim().length>0;
+      if(btn) btn.style.display=has?'':'none';
+    };
+    mTa.addEventListener('input',sync);
+    sync();
+  }
   root.querySelectorAll('[data-action=save-brief-ministry]').forEach(el=>{
     el.addEventListener('click',async()=>{
       if(A.role!=='admin'&&A.role!=='teacher') return;
@@ -4707,11 +4863,10 @@ function bind(){
       const apid=el.dataset.apid;
       if(!apid) return;
       const admin_notes=(document.getElementById('brief-ap-admin-notes')?.value||'').trim()||null;
-      const wechat_notes=(document.getElementById('brief-ap-wechat-notes')?.value||'').trim()||null;
-      const {error}=await sb.from('applicants').update({admin_notes,wechat_notes}).eq('id',apid);
+      const {error}=await sb.from('applicants').update({admin_notes}).eq('id',apid);
       if(!error){
         const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
-        if(ap){ap.admin_notes=admin_notes;ap.wechat_notes=wechat_notes;}
+        if(ap){ap.admin_notes=admin_notes;}
         toast('管理备注已保存');
         render();
       } else toast('保存失败：'+(error?.message||''),false);
@@ -4850,7 +5005,6 @@ function bind(){
     const conversion_testimony=document.getElementById('edit-ap-conv-testimony')?.value || '';
     const ministry_experience=document.getElementById('edit-ap-ministry')?.value || '';
     const admin_notes=document.getElementById('edit-ap-admin-notes')?.value || '';
-    const wechat_notes=document.getElementById('edit-ap-wechat-notes')?.value || '';
     let exam_lang=document.getElementById('edit-ap-exam-lang')?.value || 'zh';
     if(exam_lang!=='en'&&exam_lang!=='id') exam_lang='zh';
 
@@ -4867,7 +5021,6 @@ function bind(){
       conversion_testimony: conversion_testimony||null,
       ministry_experience: ministry_experience||null,
       admin_notes: admin_notes||null,
-      wechat_notes: wechat_notes||null,
     };
 
     const {error}=await sb.from('applicants').update(payload).eq('id',apid);
@@ -4931,6 +5084,32 @@ function bind(){
     }]);
     if(!error){toast('面试记录已保存');A.showRecordForm=false;await loadAdminData();render();}
     else toast('保存失败',false);
+  });
+
+  // ── Set stage (staff) ──
+  root.querySelectorAll('[data-action=save-ap-stage]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      if(A.role!=='admin'&&A.role!=='teacher') return;
+      const apid=el.dataset.apid;
+      if(!apid) return;
+      const wrap=el.closest('.staff-stage-edit');
+      const sel=wrap?.querySelector('.staff-ap-stage-select');
+      const next=sel?.value;
+      if(!next) return;
+      const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+      if(!ap) return;
+      if(String(ap.stage||'')===next){
+        toast('阶段未变化');
+        return;
+      }
+      const label=(STAFF_STAGE_OPTIONS.find(s=>s.id===next)||{}).label||next;
+      const {error}=await sb.from('applicants').update({stage:next}).eq('id',apid);
+      if(!error){
+        ap.stage=next;
+        toast('阶段已更新为：'+label);
+        render();
+      }else toast('保存失败：'+(error?.message||''),false);
+    });
   });
 
   // ── Advance / Reject ──
