@@ -3048,6 +3048,20 @@ function maritalStatZh(v){
 function relStatusZh(v){
   return {single2:'单身',dating:'正在交往',engaged:'已订婚',married2:'已婚'}[String(v)]||(String(v||'').trim()||'—');
 }
+function ageFromDob(dobLike){
+  if(!dobLike) return null;
+  const s=String(dobLike).slice(0,10);
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return null;
+  const y=+m[1], mo=+m[2], d=+m[3];
+  if(!y||mo<1||mo>12||d<1||d>31) return null;
+  const now=new Date();
+  let age=now.getFullYear()-y;
+  const curM=now.getMonth()+1, curD=now.getDate();
+  if(curM<mo || (curM===mo && curD<d)) age--;
+  if(age<0||age>130) return null;
+  return age;
+}
 function formatScholarshipHumanZh(sch){
   const rows=[];
   const pick=(...ks)=>{for(const k of ks){const v=sch[k];if(v!=null&&String(v).trim()!=='') return String(v).trim();}return '';};
@@ -4050,6 +4064,8 @@ function renderBriefingModal(ap){
   const surBriefSecs=filterSurveySectionsForBriefing(surHumanSecs,surB);
   const valB=s=>esc(s==null?'':String(s));
   const convDate=ap.conversion_time?String(ap.conversion_time).slice(0,10):'';
+  const dobDate=ap.date_of_birth?String(ap.date_of_birth).slice(0,10):'';
+  const age=ageFromDob(dobDate);
   const curLang=getApplicantExamLang(ap);
   const visaF=parseVisaFiles(ap);
   const visaSpec=visaMaterialsSpecOk(visaF);
@@ -4101,6 +4117,8 @@ function renderBriefingModal(ap){
             <div><div class="t12 fw6 c-gray6 mb1">宗派</div><input id="brief-ap-denom" class="inp" style="width:100%" value="${valB(ap.denomination)}" placeholder="宗派"></div>
             <div><div class="t12 fw6 c-gray6 mb1">语言能力</div><input id="brief-ap-language" class="inp" style="width:100%" value="${valB(ap.language_proficiency)}" placeholder="语言能力"></div>
             <div><div class="t12 fw6 c-gray6 mb1">婚姻状况</div><input id="brief-ap-marital" class="inp" style="width:100%" value="${valB(ap.marital_status)}" placeholder="婚姻状况"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">出生日期</div><input id="brief-ap-dob" class="inp" type="date" style="width:100%" value="${valB(dobDate)}"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">年龄</div><input class="inp" style="width:100%" value="${age!=null?esc(String(age)+'岁'):'—'}" disabled></div>
             <div><div class="t12 fw6 c-gray6 mb1">归主时间</div><input id="brief-ap-conversion-time" class="inp" type="date" style="width:100%" value="${valB(convDate)}"></div>
           </div>
           <div class="row g2 mt3" style="justify-content:flex-end"><button type="button" class="btn btn-primary" data-action="save-brief-basic" data-apid="${ap.id}">保存基本资料</button></div>
@@ -4109,6 +4127,7 @@ function renderBriefingModal(ap){
         <div class="info-row"><span class="c-gray5">邮箱</span><span>${esc(ap.email||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">性别</span><span>${esc(ap.gender||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">籍贯</span><span>${esc(ap.hometown||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">出生日期 / 年龄</span><span>${dobDate?esc(dobDate):'—'}${age!=null?`（${esc(String(age))}岁）`:''}</span></div>
         <div class="info-row"><span class="c-gray5">学历</span><span>${esc(ap.education||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">教会</span><span>${esc(ap.church_name||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">宗派</span><span>${esc(ap.denomination||'—')}</span></div>
@@ -4733,6 +4752,7 @@ function bind(){
       let exam_lang=document.getElementById('brief-ap-exam-lang')?.value||'zh';
       if(exam_lang!=='en'&&exam_lang!=='id') exam_lang='zh';
       const conversion_time_raw=document.getElementById('brief-ap-conversion-time')?.value||'';
+      const dob_raw=document.getElementById('brief-ap-dob')?.value||'';
       const payload={
         exam_lang,
         phone:(document.getElementById('brief-ap-phone')?.value||'').trim()||null,
@@ -4745,6 +4765,7 @@ function bind(){
         language_proficiency:(document.getElementById('brief-ap-language')?.value||'')||null,
         marital_status:(document.getElementById('brief-ap-marital')?.value||'')||null,
         conversion_time: conversion_time_raw ? new Date(conversion_time_raw).toISOString() : null,
+        date_of_birth: dob_raw ? dob_raw : null,
       };
       const {error}=await sb.from('applicants').update(payload).eq('id',apid);
       if(!error){
