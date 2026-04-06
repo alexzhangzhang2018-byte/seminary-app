@@ -3001,6 +3001,8 @@ function computeSurveyAlertFromSurveyJson(sur){
   const drugDet=String(sur.drug_detail||sur.drug_detail_line||sur.substance_detail||'').trim();
   const risky=/毒|吸毒|毒品|罂粟|大麻|冰|海洛因|heroin|cocaine|meth|opioid|注射|滥用/i.test(drugDet);
   if(drug||risky) return {alert:true,reason:drugDet?('物质/成瘾相关：'+drugDet.slice(0,120)):'入学调查披露吸毒/物质史，请留意'};
+  const alcohol=String(sur.alcohol_hist||sur.alcohol_history||'').toLowerCase()==='yes';
+  if(alcohol) return {alert:true,reason:'入学调查披露饮酒/酗酒相关情况，请留意'};
   const mh=String(sur.mental_illness_history||sur.mental_hist||sur.mental_health||'').toLowerCase()==='yes';
   const md=String(sur.mental_illness_name||sur.mental_name||sur.mental_detail||'').trim();
   if(mh&&md.length>1) return {alert:true,reason:'精神疾病史：'+md.slice(0,120)};
@@ -4062,6 +4064,20 @@ function renderBriefingModal(ap){
   const schHumanRows=formatScholarshipHumanZh(schB);
   const surHumanSecs=formatSurveyHumanSectionsZh(surB);
   const surBriefSecs=filterSurveySectionsForBriefing(surHumanSecs,surB);
+  const hasSurvey=(()=>{try{
+    if(!surB) return false;
+    if(surB._saved_at) return true;
+    const keys=Object.keys(surB||{});
+    for(const k of keys){
+      if(k==='_saved_at'||k==='_v'||k==='_meta'||k==='_debug') continue;
+      if(String(k||'').startsWith('_')) continue;
+      const v=surB[k];
+      if(v==null) continue;
+      if(typeof v==='string' && v.trim()==='') continue;
+      return true;
+    }
+    return false;
+  }catch(_){return false;}})();
   const valB=s=>esc(s==null?'':String(s));
   const convDate=ap.conversion_time?String(ap.conversion_time).slice(0,10):'';
   const dobDate=ap.date_of_birth?String(ap.date_of_birth).slice(0,10):'';
@@ -4199,12 +4215,16 @@ function renderBriefingModal(ap){
       </div>
 
       <div class="fw7 c-gray6 t11 mb2">7. 入学调查</div>
-      <div class="card p4 mb4">
+      ${hasSurvey?`<div class="card p4 mb4">
         ${ap.mat_survey_alert?`<div class="b1 bc-red200 bg-red50 r8 p3 mb3 t12" style="color:#991b1b"><strong>⚠ 调查表需教务留意</strong>：${esc(ap.mat_survey_alert_reason||'—')}</div>`:''}
-        ${canStaff?`<div id="brief-enrollment-survey-root" class="mms-survey-root" style="font-size:13px;line-height:1.65;max-height:min(70vh,720px);overflow-y:auto;padding-right:4px">${renderEnrollmentSurveyMMS(surBdisp,surveyTzh,{hideConfidential:true})}</div>
-        <button type="button" class="btn btn-primary btn-sm mt3" data-action="save-brief-survey" data-apid="${ap.id}">保存入学调查表</button>`:(surB._saved_at?(surBriefSecs.length?renderBriefStaffSections(surBriefSecs):'<div class="t13 c-gray4 mb2">调查表已保存（无需要特别留意的条目）。</div>'):'<div class="t13 c-gray4 mb2">尚未提交入学调查表。</div>')}
+        ${surBriefSecs.length?renderBriefStaffSections(surBriefSecs):'<div class="t13 c-gray4 mb2">调查表已保存（无需要特别留意的条目）。</div>'}
+        ${canStaff?`<details class="mt3">
+          <summary class="t12 c-indigo6 fw6" style="cursor:pointer;user-select:none">编辑入学调查表</summary>
+          <div class="mt3" id="brief-enrollment-survey-root" class="mms-survey-root" style="font-size:13px;line-height:1.65;max-height:min(70vh,720px);overflow-y:auto;padding-right:4px">${renderEnrollmentSurveyMMS(surBdisp,surveyTzh,{hideConfidential:true})}</div>
+          <button type="button" class="btn btn-primary btn-sm mt3" data-action="save-brief-survey" data-apid="${ap.id}">保存入学调查表</button>
+        </details>`:''}
         ${isAd?`<details class="mb2 mt3"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">原始 JSON · 入学调查（调试）</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(surB)}</pre></details>`:''}
-      </div>
+      </div>`:''}
 
       <div class="fw7 c-gray6 t11 mb2">奖助学金表（电子表）</div>
       <div class="card p4 mb4">
@@ -4218,7 +4238,7 @@ function renderBriefingModal(ap){
         ${ap.materials_submitted_at?`<div class="t11 c-gray4 mt2">资料提交时间：${esc(String(ap.materials_submitted_at).slice(0,19).replace('T',' '))}</div>`:''}
       </div>
 
-      <div class="fw7 c-gray6 t11 mb2">7. 学生签材料</div>
+      <div class="fw7 c-gray6 t11 mb2">8. 学生签材料</div>
       <div class="card p4 mb4" style="${showVisaInner?'border:1px solid #a5b4fc;background:#fafbff':''}">
         ${showVisaInner?`${visaSpec.ok?`<div class="t12 fw6 c-green7 mb2">✓ ${esc(apLine('三份材料已齐','All three files received','Tiga berkas lengkap'))}</div>`:`<div class="t12 fw6 c-amber7 mb2">△ ${esc(apLine('尚未交齐：','Still missing: ','Belum: '))}${esc(visaSpec.issues.join('、'))}</div>`}
         ${visaF._saved_at?`<div class="t11 c-gray5 mb2">${esc(apLine('最后保存：','Last saved: ','Terakhir: '))}${esc(String(visaF._saved_at).slice(0,19).replace('T',' '))}</div>`:''}
