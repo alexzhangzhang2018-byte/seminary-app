@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>神学院招生系统 · Seminary Admissions</title>
+<title>MMS招生系统 · MMS Admissions</title>
 <script src="vendor/supabase.js"></script>
 <script src="vendor/jszip.min.js"></script>
 <script src="exam-locale.js"></script>
@@ -111,27 +111,28 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 .exam-lang-section-h{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e5e7eb}
 .exam-lang-section-h span{font-size:14px;font-weight:700;color:#374151}
 .exam-lang-section-h .tag{font-size:11px}
-.week-cal-wrap{overflow-x:visible;border:1px solid #cbd5e1;border-radius:14px;background:#f1f5f9;max-width:100%}
-.week-cal-columns{width:100%;min-width:0;user-select:none;background:#fff;border-radius:12px;overflow:hidden}
-.week-cal-columns-hdr{display:grid;grid-template-columns:28px repeat(6,minmax(0,1fr));border-bottom:2px solid #e2e8f0;background:#f8fafc}
-.week-cal-hdr-corner{border-right:1px solid #e2e8f0}
-.week-cal-columns-hdr-cell{font-size:10px;font-weight:700;color:#475569;text-align:center;padding:6px 2px 5px;line-height:1.2;border-right:1px solid #e2e8f0}
+.week-cal-wrap{overflow-x:visible;border:1px solid #d4e4ed;border-radius:16px;background:#f7f4ef;max-width:100%}
+.week-cal-columns{width:100%;min-width:0;user-select:none;background:#fefdfb;border-radius:14px;overflow:hidden;border:1px solid #e8e4dc}
+.week-cal-columns-hdr{display:grid;grid-template-columns:28px repeat(6,minmax(0,1fr));border-bottom:1px solid #e5e7eb;background:#faf8f5}
+.week-cal-hdr-corner{border-right:1px solid #e5e7eb}
+.week-cal-columns-hdr-cell{font-size:11px;font-weight:700;color:#334155;text-align:center;padding:8px 2px 6px;line-height:1.2;border-right:1px solid #e5e7eb}
 .week-cal-columns-hdr-cell:last-child{border-right:none}
 .week-cal-columns-body{display:grid;grid-template-columns:28px repeat(6,minmax(0,1fr))}
-.week-cal-gutter{position:relative;height:min(52vh,520px);min-height:380px;border-right:1px solid #e2e8f0;background:#f8fafc}
-.week-cal-day-col{position:relative;height:min(52vh,520px);min-height:380px;border-right:1px solid #e5e7eb;background:#fafafa;min-width:0}
+.week-cal-gutter{position:relative;height:min(52vh,520px);min-height:380px;border-right:1px solid #e5e7eb;background:#faf8f5}
+.week-cal-day-col{position:relative;height:min(52vh,520px);min-height:380px;border-right:1px solid #e8e4dc;background:#fefdfb;min-width:0}
 .week-cal-day-col:last-child{border-right:none}
 .week-cal-gutter-tick{position:absolute;right:1px;transform:translateY(-50%);font-size:8px;font-weight:700;color:#64748b;line-height:1;white-space:nowrap}
 .week-cal-gutter-tick--end{transform:translateY(-100%);padding-bottom:2px}
-.week-cal-col-pref{position:absolute;left:2px;right:2px;box-sizing:border-box;background:rgba(187,247,208,.6);border-left:3px solid #16a34a;border-radius:8px;z-index:1;display:flex;align-items:flex-start;justify-content:center;padding:5px 3px;overflow:hidden;pointer-events:none}
+.week-cal-col-pref{position:absolute;left:2px;right:2px;box-sizing:border-box;background:#bbf7d0;border:none;border-radius:0;z-index:1;display:flex;align-items:flex-start;justify-content:center;padding:6px 4px;overflow:hidden;pointer-events:none}
 .week-cal-col-pref-txt{font-size:9px;font-weight:800;color:#14532d;line-height:1.2;text-align:center;word-break:break-word}
-.week-cal-col-busy{position:absolute;left:3px;right:3px;box-sizing:border-box;background:linear-gradient(180deg,#94a3b8,#64748b);border-radius:8px;z-index:2;display:flex;align-items:flex-start;justify-content:center;padding:6px 4px;overflow:hidden;box-shadow:0 2px 8px rgba(30,41,59,.2);pointer-events:none}
-.week-cal-col-busy-txt{font-size:10px;font-weight:800;color:#fff;line-height:1.25;text-align:center;word-break:break-word;text-shadow:0 1px 2px rgba(0,0,0,.25)}
-.week-cal-col-free{position:absolute;left:3px;right:3px;box-sizing:border-box;background:repeating-linear-gradient(-45deg,rgba(14,165,233,.14),rgba(14,165,233,.14) 5px,rgba(255,255,255,.5) 5px,rgba(255,255,255,.5) 10px);border:2px dashed #0ea5e9;border-radius:8px;z-index:3;display:flex;align-items:center;justify-content:center;padding:3px;font-size:8px;font-weight:800;color:#0369a1;text-align:center;line-height:1.15;pointer-events:none;box-shadow:0 1px 4px rgba(14,165,233,.15)}
-.week-cal-col-iv{position:absolute;left:3px;right:3px;box-sizing:border-box;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:9px;font-weight:800;padding:4px 5px;z-index:4;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.15;overflow:hidden;word-break:break-word;box-shadow:0 2px 12px rgba(79,70,229,.4);border:1px solid rgba(255,255,255,.2);pointer-events:none}
-.week-cal-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:#475569;font-weight:500}
-.week-cal-legend i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:6px;vertical-align:-3px;border:1px solid rgba(0,0,0,.06)}
-.week-cal-keyline{font-size:11px;color:#64748b;line-height:1.55;margin-top:8px;padding:10px 12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
+.week-cal-col-busy{position:absolute;left:2px;right:2px;box-sizing:border-box;background:#c6dbe7;border:none;border-radius:0;z-index:2;display:flex;align-items:flex-start;justify-content:center;padding:6px 4px;overflow:hidden;pointer-events:none}
+.week-cal-col-pe{position:absolute;left:2px;right:2px;box-sizing:border-box;background:#bfead1;border:none;border-radius:0;z-index:2;display:flex;align-items:flex-start;justify-content:center;padding:6px 4px;overflow:hidden;pointer-events:none}
+.week-cal-col-pioneer{position:absolute;left:2px;right:2px;box-sizing:border-box;background:#fff3bf;border:none;border-radius:0;z-index:2;display:flex;align-items:flex-start;justify-content:center;padding:6px 4px;overflow:hidden;pointer-events:none}
+.week-cal-col-block-txt{font-size:10px;font-weight:800;color:#0f172a;line-height:1.25;text-align:center;word-break:break-word}
+.week-cal-col-free{position:absolute;left:2px;right:2px;box-sizing:border-box;background:#bae6fd;border:none;border-radius:0;z-index:3;display:flex;align-items:center;justify-content:center;padding:3px;font-size:8px;font-weight:800;color:#0369a1;text-align:center;line-height:1.15;pointer-events:none}
+.week-cal-col-iv{position:absolute;left:2px;right:2px;box-sizing:border-box;background:#6366f1;color:#fff;border:none;border-radius:0;font-size:9px;font-weight:800;padding:4px 5px;z-index:4;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.15;overflow:hidden;word-break:break-word;pointer-events:none}
+.week-cal-legend{display:flex;flex-wrap:wrap;gap:12px 16px;margin-top:12px;font-size:12px;color:#475569;font-weight:500;line-height:1.4}
+.week-cal-legend i{display:inline-block;width:14px;height:14px;border:none;border-radius:0;margin-right:6px;vertical-align:-3px;flex-shrink:0}
 .kanban-card{background:#fff;border-radius:12px;border:1px solid #f3f4f6;padding:12px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:all .15s}
 .kanban-card:hover{border-color:#c7d2fe;box-shadow:0 4px 10px rgba(79,70,229,.1);transform:translateY(-1px)}
 
@@ -236,6 +237,16 @@ function getApplicantExamLang(ap){
   if(x==='en'||x==='id') return x;
   return 'zh';
 }
+/** 资料页奖助/入学调查表文案：与界面语言一致（当前 appLang 优先，其次 ui_lang），可与笔试语言不同 */
+function getApplicantUiLang(ap){
+  if(A.role==='applicant'){
+    const cur=String(A.appLang||'zh').toLowerCase();
+    if(cur==='en'||cur==='id') return cur;
+  }
+  const x=String(ap?.ui_lang||'').toLowerCase();
+  if(x==='en'||x==='id') return x;
+  return 'zh';
+}
 /** 申请人看板步骤：印尼语班（笔试语言 id）不含「签证」一站 */
 function applicantPipelineStages(ap){
   if(ap&&getApplicantExamLang(ap)==='id') return STAGES.filter(s=>s.id!=='visa');
@@ -287,30 +298,34 @@ function compareExamPageApplicants(a,b){
   if(sa!==sb) return sb-sa;
   return String(fullName(a)).localeCompare(String(fullName(b)),'zh');
 }
-/** 课表：不可面试/上课时段（与教务表一致）。dow 0=周日 … 6=周六；日历仅显示周一至周六列 */
-const STAFF_CURRICULUM_BUSY = [
-  {dow:0,s:0,e:1440,tag:'主日聚会'},
-  {dow:1,s:10*60,e:12*60,tag:'班会'},
-  {dow:1,s:14*60,e:17*60,tag:'圣经课程'},
-  {dow:1,s:19*60,e:21*60,tag:'祷告会'},
-  {dow:2,s:7*60,e:8*60,tag:'早灵修'},
-  {dow:2,s:8*60+30,e:12*60,tag:'圣经课程'},
-  {dow:2,s:14*60,e:17*60,tag:'圣经课程'},
-  {dow:3,s:7*60,e:8*60,tag:'早灵修'},
-  {dow:3,s:8*60+30,e:12*60,tag:'体育课'},
-  {dow:3,s:14*60,e:17*60,tag:'圣经课程'},
-  {dow:4,s:7*60,e:8*60,tag:'早灵修'},
-  {dow:4,s:8*60+30,e:11*60,tag:'圣经课程'},
-  {dow:4,s:11*60,e:13*60,tag:'周间敬拜'},
-  {dow:4,s:14*60,e:17*60,tag:'开拓（传福音）'},
-  {dow:5,s:7*60,e:7*60+30,tag:'祷告'},
-  {dow:5,s:8*60,e:11*60,tag:'圣经课程/牧养课程'},
-  {dow:5,s:14*60,e:17*60,tag:'开拓（传福音）'},
+/** 课表固定块（与教务表一致）。dow 0=周日 … 6=周六；日历列仅为周一至周六。kind: busy=浅蓝课表，pe=浅绿体育，pioneer=浅黄开拓 */
+const STAFF_CURRICULUM_BLOCKS = [
+  {dow:0,s:0,e:1440,tag:'主日聚会',kind:'busy'},
+  {dow:1,s:10*60,e:12*60,tag:'班会',kind:'busy'},
+  {dow:1,s:14*60,e:17*60,tag:'圣经课程',kind:'busy'},
+  {dow:1,s:19*60,e:21*60,tag:'祷告会',kind:'busy'},
+  {dow:2,s:7*60,e:8*60,tag:'早灵修',kind:'busy'},
+  {dow:2,s:8*60+30,e:12*60,tag:'圣经课程',kind:'busy'},
+  {dow:2,s:14*60,e:17*60,tag:'圣经课程',kind:'busy'},
+  {dow:3,s:7*60,e:8*60,tag:'早灵修',kind:'busy'},
+  {dow:3,s:8*60+30,e:12*60,tag:'体育课',kind:'pe'},
+  {dow:3,s:14*60,e:17*60,tag:'圣经课程',kind:'busy'},
+  {dow:3,s:19*60,e:21*60,tag:'查经',kind:'busy'},
+  {dow:4,s:7*60,e:8*60,tag:'早灵修',kind:'busy'},
+  {dow:4,s:8*60+30,e:11*60,tag:'圣经课程',kind:'busy'},
+  {dow:4,s:11*60,e:13*60,tag:'周间敬拜',kind:'busy'},
+  {dow:4,s:14*60,e:17*60,tag:'开拓（传福音）',kind:'pioneer'},
+  {dow:5,s:7*60,e:7*60+30,tag:'祷告',kind:'busy'},
+  {dow:5,s:8*60,e:11*60,tag:'圣经课程/牧养课程',kind:'busy'},
+  {dow:5,s:14*60,e:17*60,tag:'开拓（传福音）',kind:'pioneer'},
 ];
-/** 暂定的「优先可排面试」时段（浅绿底）；周六无固定课表，可优先开放面试 */
+/** 「优先可排面试」时段（浅绿扁平）；周一至周五增加 17:00–19:00；周六仍为 8:00–18:00（已含晚间） */
 const STAFF_INTERVIEW_PREF_WINDOWS = [
-  {dow:1,segs:[[7*60,10*60],[12*60,14*60]]},
-  {dow:3,segs:[[7*60,8*60+30],[12*60,14*60]]},
+  {dow:1,segs:[[7*60,10*60],[12*60,14*60],[17*60,19*60]]},
+  {dow:2,segs:[[17*60,19*60]]},
+  {dow:3,segs:[[7*60,8*60+30],[12*60,14*60],[17*60,19*60]]},
+  {dow:4,segs:[[17*60,19*60]]},
+  {dow:5,segs:[[17*60,19*60]]},
   {dow:6,segs:[[8*60,18*60]]},
 ];
 const WEEK_CAL_START_MIN = 7*60;
@@ -1244,10 +1259,13 @@ function buildTeacherDayColHtml(dt, openSlots, booked){
       if(st) parts.push(`<div class="week-cal-col-pref" style="${st}"><span class="week-cal-col-pref-txt">可约面试</span></div>`);
     }
   }
-  for(const b of STAFF_CURRICULUM_BUSY){
+  for(const b of STAFF_CURRICULUM_BLOCKS){
     if(b.dow!==dow) continue;
     const st=calSegStyle(b.s,b.e);
-    if(st) parts.push(`<div class="week-cal-col-busy" style="${st}"><span class="week-cal-col-busy-txt">${esc(b.tag)}</span></div>`);
+    if(!st) continue;
+    const k=b.kind||'busy';
+    const cls=k==='pe'?'week-cal-col-pe':k==='pioneer'?'week-cal-col-pioneer':'week-cal-col-busy';
+    parts.push(`<div class="${cls}" style="${st}"><span class="week-cal-col-block-txt">${esc(b.tag)}</span></div>`);
   }
   for(const s of openSlots){
     if(String(s.slot_date)!==ymd) continue;
@@ -1314,13 +1332,12 @@ function renderTeacherWeekCalendar(uid){
       ${buildTeacherWeekCalInnerHtml(daysNext,uid)}
     </div>
     <div class="week-cal-legend">
-      <span><i style="background:linear-gradient(180deg,#94a3b8,#64748b)"></i><strong>深灰块</strong>＝课表/固定活动（不可排面试）</span>
-      <span><i style="background:linear-gradient(90deg,#6ee7b7,#34d399);border:1px solid #059669"></i><strong>绿区</strong>＝优先可开放给申请人预约的时段</span>
-      <span><i style="background:repeating-linear-gradient(-45deg,#bae6fd,#bae6fd 3px,#fff 3px,#fff 6px);border:2px dashed #0ea5e9"></i><strong>蓝斜线「空档」</strong>＝您已上传、尚未被约走的面试空位</span>
-      <span><i style="background:linear-gradient(135deg,#4f46e5,#7c3aed)"></i><strong>紫条</strong>＝已确认的面试预约</span>
-    </div>
-    <div class="week-cal-keyline">
-      <strong>课表整块标注（无需悬停）：</strong>灰色块为固定安排，同一时段显示为<strong>一整条</strong>，块内直接写事项名——含<strong>周一 10:00–12:00 班会</strong>、圣经课程、早灵修、体育课、祷告会、周间敬拜、开拓（传福音）等。<strong>绿区</strong>为建议优先开放给申请人预约的时段：<strong>周一 7:00–10:00、12:00–14:00</strong>；<strong>周三 7:00–8:30、12:00–14:00</strong>；<strong>周六 8:00–18:00</strong>（周六无课表占用）。日历为<strong>周一至周六</strong>（本周/下周），宽度自适应无需横向滑动。
+      <span><i style="background:#c6dbe7"></i><strong>浅蓝</strong>＝课表/固定安排</span>
+      <span><i style="background:#bfead1"></i><strong>浅绿</strong>＝体育课</span>
+      <span><i style="background:#fff3bf"></i><strong>浅黄</strong>＝开拓（传福音）</span>
+      <span><i style="background:#bbf7d0"></i><strong>绿色区</strong>＝建议优先开放预约（含工作日 17:00–19:00）</span>
+      <span><i style="background:#bae6fd"></i><strong>浅蓝空档</strong>＝已上传、尚未被约的面试位</span>
+      <span><i style="background:#6366f1"></i><strong>紫色</strong>＝已确认预约</span>
     </div>
   </div>`;
 }
@@ -1484,11 +1501,171 @@ function toast(msg,ok=true){
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
+// ── 申请人：本地会话 + 笔试草稿（刷新免重复登录、答题进度可恢复）────────────────
+const APPLICANT_SESSION_KEY='seminary_portal_applicant_v1';
+function applicantExamDraftKey(id){ return 'seminary_portal_exam_draft_'+String(id); }
+let __examDraftSaveTimer=null;
+
+function persistApplicantBrowserSession(applicantRow,nameHint,last4Hint){
+  if(!applicantRow?.id) return;
+  try{
+    localStorage.setItem(APPLICANT_SESSION_KEY,JSON.stringify({
+      applicantId:applicantRow.id,
+      full_name:String(nameHint||applicantRow.full_name||'').trim(),
+      phone_last4:String(last4Hint||applicantRow.phone_last4||'').trim(),
+      appLang:A.appLang||'zh',
+      ts:Date.now(),
+    }));
+  }catch(_){}
+}
+
+function clearApplicantBrowserSession(){
+  try{
+    let id=null;
+    const raw=localStorage.getItem(APPLICANT_SESSION_KEY);
+    if(raw){ try{ id=JSON.parse(raw).applicantId; }catch(_){} }
+    localStorage.removeItem(APPLICANT_SESSION_KEY);
+    if(id) localStorage.removeItem(applicantExamDraftKey(id));
+  }catch(_){}
+}
+
+function saveApplicantExamDraft(){
+  if(A.role!=='applicant'||!A.applicant?.id) return;
+  if((A.applicant.stage||'')!=='exam') return;
+  if(!A.examStarted||A.examSubmitted) return;
+  try{
+    localStorage.setItem(applicantExamDraftKey(A.applicant.id),JSON.stringify({
+      examAnswers:A.examAnswers||{},
+      essayText:A.essayText||'',
+      examStarted:!!A.examStarted,
+      examSubmitted:!!A.examSubmitted,
+      examTime:A.examTime,
+      examLang:A.examLang,
+      savedAt:Date.now(),
+    }));
+  }catch(_){}
+}
+
+function loadApplicantExamDraft(applicantId){
+  try{
+    const raw=localStorage.getItem(applicantExamDraftKey(applicantId));
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(_){ return null; }
+}
+
+function clearApplicantExamDraft(applicantId){
+  try{ localStorage.removeItem(applicantExamDraftKey(applicantId)); }catch(_){}
+}
+
+function scheduleApplicantExamDraftSave(){
+  if(A.role!=='applicant'||!A.examStarted||A.examSubmitted) return;
+  clearTimeout(__examDraftSaveTimer);
+  __examDraftSaveTimer=setTimeout(()=>saveApplicantExamDraft(),500);
+}
+
+function mergeStoredExamDraftIfExamStage(applicantRow){
+  if(!applicantRow?.id||(applicantRow.stage||'')!=='exam'){
+    if(applicantRow?.id) clearApplicantExamDraft(applicantRow.id);
+    return;
+  }
+  const d=loadApplicantExamDraft(applicantRow.id);
+  if(!d||d.examSubmitted) return;
+  if(!d.examStarted) return;
+  A.examStarted=true;
+  A.examSubmitted=false;
+  if(d.examAnswers&&typeof d.examAnswers==='object') A.examAnswers=d.examAnswers;
+  if(d.essayText!=null) A.essayText=d.essayText;
+  if(typeof d.examTime==='number'&&d.examTime>=0){
+    const cap=A.examTotalTime||9000;
+    A.examTime=Math.min(d.examTime,cap);
+  }
+  if(d.examLang) A.examLang=d.examLang;
+}
+
+function installApplicantDraftLifecycleHooks(){
+  if(globalThis.__seminaryDraftHooks) return;
+  globalThis.__seminaryDraftHooks=true;
+  window.addEventListener('beforeunload',()=>{ saveApplicantExamDraft(); });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden') saveApplicantExamDraft();
+  });
+}
+
+async function finalizeApplicantHydration(data){
+  A.applicantBookedInterviewSlot=null;
+  if(data.interview_slot_id){
+    const {data:bsl}=await sb.from('interview_slots').select('*').eq('id',data.interview_slot_id).maybeSingle();
+    if(bsl) A.applicantBookedInterviewSlot=bsl;
+  }
+  if(data.stage==='interview'&&!data.interview_slot_id){
+    await loadPublicSlots();
+  }
+  try{ await ensureExamQuestionsLoaded(); }catch(_){}
+  if(applicantStagePoller){ clearInterval(applicantStagePoller); applicantStagePoller=null; }
+  applicantStagePoller=setInterval(async()=>{
+    if(A.role!=='applicant'||!A.applicant?.id) return;
+    try{
+      const {data:latest}=await sb.from('applicants').select('*').eq('id',A.applicant.id).maybeSingle();
+      if(latest&&latest.stage&&latest.stage!==A.applicant.stage){
+        A.applicant=latest;
+        A.applicantBookedInterviewSlot=null;
+        if(latest.interview_slot_id){
+          const {data:bsl2}=await sb.from('interview_slots').select('*').eq('id',latest.interview_slot_id).maybeSingle();
+          if(bsl2) A.applicantBookedInterviewSlot=bsl2;
+        }
+        if((latest.stage||'')!=='exam') clearApplicantExamDraft(latest.id);
+        A.examStarted=false;
+        A.examSubmitted=false;
+        A.examAnswers={};
+        A.essayText='';
+        A.appLang=latest.ui_lang||A.appLang||'zh';
+        A.examLang=latest.exam_lang||A.examLang||'zh';
+        if(latest.stage==='interview'&&!latest.interview_slot_id){
+          await loadPublicSlots();
+        }
+        render();
+      }
+    }catch(_){}
+  },6000);
+  installApplicantDraftLifecycleHooks();
+  render();
+}
+
+async function tryRestoreApplicantFromBrowser(){
+  if(!sb) return false;
+  let snap=null;
+  try{ snap=JSON.parse(localStorage.getItem(APPLICANT_SESSION_KEY)||''); }catch(_){ return false; }
+  if(!snap||!snap.applicantId) return false;
+  const {data,error}=await sb.from('applicants').select('*').eq('id',snap.applicantId).maybeSingle();
+  if(error||!data){ clearApplicantBrowserSession(); return false; }
+  if(String(data.full_name||'').trim()!==String(snap.full_name||'').trim()){ clearApplicantBrowserSession(); return false; }
+  if(String(data.phone_last4||'')!==String(snap.phone_last4||'')){ clearApplicantBrowserSession(); return false; }
+  A.role='applicant';
+  A.applicant=data;
+  const postExamStages=['interview','result','materials','visa','complete','rejected','waitlist'];
+  const postExam=postExamStages.includes(data.stage||'');
+  A.appLang=snap.appLang||data.ui_lang||'zh';
+  A.examLang=postExam?(data.exam_lang||A.examLang||'zh'):(data.exam_lang||A.examLang||A.appLang||'zh');
+  A.examStarted=false;
+  A.examSubmitted=false;
+  A.examAnswers={};
+  A.essayText='';
+  A.proctorFlags=0;
+  mergeStoredExamDraftIfExamStage(data);
+  await finalizeApplicantHydration(data);
+  return true;
+}
+
 function stopTimer(){if(examTimer){clearInterval(examTimer);examTimer=null;}}
+let __examTimerTicks=0;
 function startTimer(){
   stopTimer();
+  __examTimerTicks=0;
   examTimer=setInterval(()=>{
     A.examTime--;
+    __examTimerTicks++;
+    if(__examTimerTicks%12===0) saveApplicantExamDraft();
     const d=document.getElementById('timer-disp');
     const b=document.getElementById('timer-bar');
     const w=document.getElementById('timer-wrap');
@@ -1891,7 +2068,8 @@ async function submitExam(){
     A.applicant.exam_lang = EL;
     A.applicant.stage='interview';
     A.examSubmitted=true;
-    toast(apLine('答卷已提交，成绩：'+scoreScaled+' 分','Submitted. Score: '+scoreScaled,'Terkirim. Nilai: '+scoreScaled));
+    clearApplicantExamDraft(A.applicant.id);
+    toast(apLine('答卷已提交。教务将阅卷，分数由老师另行通知，请按提示预约面试。','Submitted. Staff will review your paper; scores are shared by the office — please book your interview as guided.','Terkirim. Staf akan menilai; nilai diberitahu kantor — lanjut pesan wawancara.'));
     await loadPublicSlots();
   } else toast(apLine('提交失败','Submit failed','Gagal mengirim'),false);
   render();
@@ -2014,6 +2192,22 @@ async function applicantPromoteToExam(){
   A.applicant={...A.applicant,stage:'exam'};
   A.examLang=A.examLang||A.applicant.exam_lang||A.appLang||'zh';
   if(A.applicant.id) persistApplicantExamLang(A.examLang);
+  persistApplicantBrowserSession(A.applicant,A.applicant.full_name,A.applicant.phone_last4);
+  render();
+}
+
+/** 预录取环节：申请人自行进入「上传资料」 */
+async function applicantAdvanceFromResultToMaterials(){
+  if(!sb||!A.applicant?.id||A.role!=='applicant'){toast(apLine('无法操作，请重新登录','Please log in again.','Harap masuk lagi.'),false);return;}
+  if((A.applicant.stage||'')!=='result'){render();return;}
+  const {error}=await sb.from('applicants').update({stage:'materials'}).eq('id',A.applicant.id).eq('stage','result');
+  if(error){
+    toast(apLine('暂时无法进入下一环节，请刷新后重试或联系教务。','Could not continue — refresh or contact the office.','Tidak bisa melanjutkan — muat ulang atau hubungi kantor.'),false);
+    return;
+  }
+  A.applicant={...A.applicant,stage:'materials'};
+  toast(apLine('已进入上传资料环节','Now on document upload','Masuk tahap unggah berkas'));
+  persistApplicantBrowserSession(A.applicant,A.applicant.full_name,A.applicant.phone_last4);
   render();
 }
 
@@ -2036,46 +2230,14 @@ async function loginApplicant(name,last4){
     if(!data.ui_lang||data.ui_lang!==A.appLang) persistApplicantAppLang(A.appLang);
     if(!postExam&&(!data.exam_lang||data.exam_lang!==A.examLang)) persistApplicantExamLang(A.examLang);
   }
-  A.applicantBookedInterviewSlot=null;
-  if(data.interview_slot_id){
-    const {data: bsl} = await sb.from('interview_slots').select('*').eq('id', data.interview_slot_id).maybeSingle();
-    if(bsl) A.applicantBookedInterviewSlot = bsl;
-  }
-
-  if(data.stage==='interview' && !data.interview_slot_id){
-    await loadPublicSlots();
-  }
-
-  try{ await ensureExamQuestionsLoaded(); }catch(_){}
-
-  // 轮询申请人状态变化：当后台把阶段推进到 exam 时自动进入笔试准备页面
-  if(applicantStagePoller){clearInterval(applicantStagePoller);applicantStagePoller=null;}
-  applicantStagePoller=setInterval(async()=>{
-    if(A.role!=='applicant' || !A.applicant?.id) return;
-    try{
-      const {data:latest}=await sb.from('applicants').select('*').eq('id',A.applicant.id).maybeSingle();
-      if(latest && latest.stage && latest.stage!==A.applicant.stage){
-        A.applicant=latest;
-        A.applicantBookedInterviewSlot=null;
-        if(latest.interview_slot_id){
-          const {data: bsl} = await sb.from('interview_slots').select('*').eq('id', latest.interview_slot_id).maybeSingle();
-          if(bsl) A.applicantBookedInterviewSlot = bsl;
-        }
-        // 重置笔试状态，避免从旧阶段残留
-        A.examStarted=false;
-        A.examSubmitted=false;
-        A.examAnswers={};
-        A.essayText='';
-        A.appLang = latest.ui_lang || A.appLang || 'zh';
-        A.examLang = latest.exam_lang || A.examLang || 'zh';
-        if(latest.stage==='interview' && !latest.interview_slot_id){
-          await loadPublicSlots();
-        }
-        render();
-      }
-    }catch(_){}
-  },6000);
-  render();
+  persistApplicantBrowserSession(data,trimName,last4.trim());
+  A.examStarted=false;
+  A.examSubmitted=false;
+  A.examAnswers={};
+  A.essayText='';
+  A.proctorFlags=0;
+  mergeStoredExamDraftIfExamStage(data);
+  await finalizeApplicantHydration(data);
 }
 
 /** 上传资料阶段：已提交且教务已批复奖助后，进入签证或（印尼语班）完成环节 */
@@ -2156,6 +2318,7 @@ async function loginStaff(email,password){
 }
 
 async function logout(){
+  clearApplicantBrowserSession();
   await sb.auth.signOut();
   if(applicantStagePoller){clearInterval(applicantStagePoller);applicantStagePoller=null;}
   if(interviewSlotsPoller){clearInterval(interviewSlotsPoller);interviewSlotsPoller=null;}
@@ -2212,17 +2375,24 @@ function renderLogin(){
   if(A.loginMode==='applicant') return renderApplicantLogin();
   if(A.loginMode==='staff')     return renderStaffLogin();
   return `<div class="app bg-login col center" style="min-height:100vh;padding:24px 16px">
-    <div class="tc mb8"><div class="t48 mb3">🏫</div><div class="t24 fw8 c-gray8">神学院招生系统 · <span class="t20 fw6">Seminary Admissions Portal</span></div><div class="t12 c-gray4 mt2">请选择登录身份 · Select your role</div></div>
+    <div class="tc mb8" style="max-width:28rem;margin-left:auto;margin-right:auto;padding:0 8px">
+      <div class="t48 mb3">🏫</div>
+      <div class="col g2" style="align-items:center">
+        <div class="t22 fw8 c-gray8">MMS招生系统</div>
+        <div class="t18 fw6 c-gray7">MMS Admissions</div>
+        <div class="t16 fw6 c-gray6">Sistem Pendaftaran MMS</div>
+      </div>
+      <div class="t12 c-gray4 mt3 lh16">请选择登录身份 · Please select your role · Silakan pilih peran Anda</div>
+    </div>
     <div class="login-card">
-      <div class="tc t12 c-gray4 mb4">请选择登录身份 · Select role</div>
       <button class="login-btn" id="btn-login-applicant">
         <div class="login-icon">🙋</div>
-        <div><div class="fw7 c-gray8 t14">申请人 Applicant</div><div class="t11 c-gray4 mt1">查看进度 · 参加考试 · 预约面试 · Track · Exam · Interview</div></div>
+        <div><div class="fw7 c-gray8 t14" style="line-height:1.35">申请人 · Applicant · Pelamar</div><div class="t11 c-gray4 mt1 lh16">查看进度 · 参加考试 · 预约面试 · Track · Exam · Interview · Lacak progres · Ujian · Wawancara</div></div>
         <div class="ml-auto c-indigo4 t18">→</div>
       </button>
       <button class="login-btn" id="btn-login-staff">
         <div class="login-icon">👨‍🏫</div>
-        <div><div class="fw7 c-gray8 t14">老师 / 管理员 · Staff / Admin</div><div class="t11 c-gray4 mt1">查看档案 · 填写记录 · 管理流程 · Records & Pipeline</div></div>
+        <div><div class="fw7 c-gray8 t14" style="line-height:1.35">老师 / 管理员 · Staff / Admin · Staf / Admin</div><div class="t11 c-gray4 mt1 lh16">查看档案 · 填写记录 · 管理流程 · Records &amp; Pipeline · Arsip · Catatan · Alur kerja</div></div>
         <div class="ml-auto c-indigo4 t18">→</div>
       </button>
     </div>
@@ -2347,12 +2517,11 @@ function renderApplicant(){
             <button class="btn ${A.examLang==='en'?'btn-primary':'btn-outline'} btn-sm" data-action="set-exam-lang" data-lang="en">English</button>
             <button class="btn ${A.examLang==='id'?'btn-primary':'btn-outline'} btn-sm" data-action="set-exam-lang" data-lang="id">Bahasa Indonesia</button>
           </div>
-          <div class="t12 c-gray5 mt2">${esc(apLine('例如：界面选中文仍可在此选英文试卷；面试排班将按此处所选语言匹配老师。','e.g. Chinese UI with an English paper is allowed; interview slots follow the paper language here.','Mis. antarmuka bahasa Tionghoa tetap bisa pilih ujian bahasa Inggris; jadwal wawancara mengikuti bahasa lembar di sini.'))}</div>
         </div>
 
         <div class="b1 bc-amber200 bg-amber50 r12 p4 t12 tl mb4" style="color:#92400e;max-width:520px">
           ⚠️ ${esc(blockReason)}
-          <br><span class="t12">${esc(apLine('考试过程中切换窗口/切屏会被记录，并在成绩备注中显示。','Window/tab switches are logged on your result.','Pindah jendela/tab dicatat di catatan hasil.'))}</span>
+          <br><span class="t12">${esc(apLine('考试过程中请尽量避免切换窗口或离开本页。','Please avoid switching windows or leaving this page during the exam.','Hindari pindah jendela atau meninggalkan halaman saat ujian.'))}</span>
         </div>
 
         <details class="card p4 tl mb5" style="max-width:520px">
@@ -2365,7 +2534,9 @@ function renderApplicant(){
     }
     else if(A.examSubmitted) content=`<div class="col center py12 px4 tc maxw-md mx-auto">
       <div class="t48 mb3">🎉</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('答卷已提交！','Exam submitted','Jawaban ujian terkirim'))}</div>
-      <div class="b1 bc-indigo200 bg-indigo50 r16 p5 mb6"><div style="font-size:48px;font-weight:800;color:#4f46e5">${ap.exam_score||'—'}</div><div class="t11 c-indigo4 mt1">${esc(apLine('满分 100 · 暂估分','Max 100 · provisional','Maks 100 · nilai sementara'))}</div></div>
+      <div class="card p5 mb6 tl" style="max-width:420px">
+        <div class="t13 c-gray6 lh16">${esc(apLine('试卷将由教务老师阅卷，您无需在此查看分数；请按后续通知或点击下方继续预约面试。','Your paper will be reviewed by staff — scores are not shown here. Follow further notices or continue to book your interview.','Lembar Anda akan dinilai staf — nilai tidak ditampilkan di sini. Ikuti pemberitahuan atau lanjut pesan wawancara.'))}</div>
+      </div>
       <button class="btn btn-primary" id="btn-go-interview">${esc(apLine('前往预约面试 →','Book interview →','Pesan wawancara →'))}</button>
     </div>`;
     else content=renderExamDoing();
@@ -2376,7 +2547,8 @@ function renderApplicant(){
   }
   else if(stage==='result') content=`<div class="col center py12 px4 tc maxw-md mx-auto">
     <div class="t48 mb3">⏳</div><div class="t22 fw7 c-gray8 mb2">${esc(apLine('预录取审核中','Pre-admission in progress','Pra-penerimaan sedang diproses'))}</div>
-    <div class="t13 c-gray5">${esc(apLine('感谢你参与面试。教务将综合笔试、面试结果发出预录取意向，请留意后续通知。','Thank you for your interview. The office will review your exam and interview for pre-admission.','Terima kasih atas wawancara. Kantor akan meninjau ujian dan wawancara untuk pra-penerimaan.'))}</div>
+    <div class="t13 c-gray5 mb6">${esc(apLine('感谢你参与面试。教务将综合笔试、面试结果发出预录取意向，请留意后续通知。','Thank you for your interview. The office will review your exam and interview for pre-admission.','Terima kasih atas wawancara. Kantor akan meninjau ujian dan wawancara untuk pra-penerimaan.'))}</div>
+    <button type="button" class="btn btn-primary btn-full" id="btn-result-to-materials" style="max-width:22rem">${esc(apLine('进入上传资料环节 →','Continue to document upload →','Lanjut ke unggah berkas →'))}</button>
   </div>`;
   else if(stage==='materials') content=renderMaterials();
   else if(stage==='visa') content=getApplicantExamLang(ap)==='id'?renderCompleteStage(ap):renderVisaStage(ap);
@@ -2453,10 +2625,10 @@ function renderExamDoing(){
     if(EL==='en' && q.prompt_en) return q.prompt_en;
     if(EL==='id' && q.prompt_id) return q.prompt_id;
     if(EL==='en'){
-      return 'This question could not be loaded in English. Ensure exam-plain-bundled.js is present and refresh the page, or open the site over http(s) so docx_plain_en.txt can load.';
+      return 'This item is temporarily unavailable in English. Please switch paper language to 中文 or refresh and try again.';
     }
     if(EL==='id'){
-      return 'Soal bahasa Indonesia tidak dapat dimuat. Pastikan exam-plain-bundled.js ada dan muat ulang halaman, atau buka situs lewat http(s) agar docx_plain_id.txt dapat diunduh.';
+      return 'Soal bahasa Indonesia belum tersedia. Silakan pilih bahasa lembar 中文 atau muat ulang halaman.';
     }
     return q.prompt||'';
   }
@@ -2845,6 +3017,10 @@ function haveZh(v){
   if(!s) return '';
   return ynZh(v);
 }
+/** 入学调查「史」类字段为 yes=有 时才展示时长/用量/戒断等跟进项 */
+function surveyHistHasYes(v){
+  return String(v==null?'':v).toLowerCase().trim()==='yes';
+}
 function netHrsZh(v){
   return ({u2:'2小时以内',h25:'2–5小时',h58:'5–8小时',o8:'8小时以上'})[String(v)]||(String(v||'').trim()||'—');
 }
@@ -2921,21 +3097,29 @@ function formatSurveyHumanSectionsZh(sur){
   });
   sec('3. 生活习惯',r=>{
     const sm=surveyPick(sur,'smoke_hist');if(sm!==undefined) r.push(['吸烟史',haveZh(sm)]);
-    if(sur.smoke_years!=null&&String(sur.smoke_years).trim()!=='') r.push(['烟龄（年）',String(sur.smoke_years).trim()]);
-    if(sur.smoke_per_day!=null&&String(sur.smoke_per_day).trim()!=='') r.push(['每天约（支）',String(sur.smoke_per_day).trim()]);
-    const sq=surveyPick(sur,'smoke_quit');if(sq!==undefined) r.push(['吸烟已戒断',ynZh(sq)]);
+    if(surveyHistHasYes(sm)){
+      if(sur.smoke_years!=null&&String(sur.smoke_years).trim()!=='') r.push(['烟龄（年）',String(sur.smoke_years).trim()]);
+      if(sur.smoke_per_day!=null&&String(sur.smoke_per_day).trim()!=='') r.push(['每天约（支）',String(sur.smoke_per_day).trim()]);
+      const sq=surveyPick(sur,'smoke_quit');if(sq!==undefined) r.push(['吸烟已戒断',ynZh(sq)]);
+    }
     const ah=surveyPick(sur,'alcohol_hist');if(ah!==undefined) r.push(['饮酒史',haveZh(ah)]);
-    if(sur.alcohol_years!=null&&String(sur.alcohol_years).trim()!=='') r.push(['酒龄（年）',String(sur.alcohol_years).trim()]);
-    if(sur.alcohol_ml!=null&&String(sur.alcohol_ml).trim()!=='') r.push(['每天约（ml）',String(sur.alcohol_ml).trim()]);
-    const aq=surveyPick(sur,'alcohol_quit');if(aq!==undefined) r.push(['饮酒已戒断',ynZh(aq)]);
+    if(surveyHistHasYes(ah)){
+      if(sur.alcohol_years!=null&&String(sur.alcohol_years).trim()!=='') r.push(['酒龄（年）',String(sur.alcohol_years).trim()]);
+      if(sur.alcohol_ml!=null&&String(sur.alcohol_ml).trim()!=='') r.push(['每天约（ml）',String(sur.alcohol_ml).trim()]);
+      const aq=surveyPick(sur,'alcohol_quit');if(aq!==undefined) r.push(['饮酒已戒断',ynZh(aq)]);
+    }
     const dh=surveyPick(sur,'drug_hist','drug_history');if(dh!==undefined) r.push(['吸毒史',haveZh(dh)]);
-    if(sur.drug_years!=null&&String(sur.drug_years).trim()!=='') r.push(['吸毒时间（年）',String(sur.drug_years).trim()]);
-    const dq=surveyPick(sur,'drug_quit');if(dq!==undefined) r.push(['吸毒已戒断',ynZh(dq)]);
+    if(surveyHistHasYes(dh)){
+      if(sur.drug_years!=null&&String(sur.drug_years).trim()!=='') r.push(['吸毒时间（年）',String(sur.drug_years).trim()]);
+      const dq=surveyPick(sur,'drug_quit');if(dq!==undefined) r.push(['吸毒已戒断',ynZh(dq)]);
+    }
     const hab=String(sur.habit_substance_explain||sur.drug_detail_line||'').trim();
     if(hab) r.push(['吸烟/饮酒/吸毒说明',briefTrunc(hab,400)]);
     const gh=surveyPick(sur,'gamble_hist');if(gh!==undefined) r.push(['赌博情况',haveZh(gh)]);
-    if(sur.gamble_years!=null&&String(sur.gamble_years).trim()!=='') r.push(['参与赌博时间（年）',String(sur.gamble_years).trim()]);
-    const gs=surveyPick(sur,'gamble_stopped');if(gs!==undefined) r.push(['赌博已停止',ynZh(gs)]);
+    if(surveyHistHasYes(gh)){
+      if(sur.gamble_years!=null&&String(sur.gamble_years).trim()!=='') r.push(['参与赌博时间（年）',String(sur.gamble_years).trim()]);
+      const gs=surveyPick(sur,'gamble_stopped');if(gs!==undefined) r.push(['赌博已停止',ynZh(gs)]);
+    }
     if(sur.net_hrs!=null&&String(sur.net_hrs).trim()!=='') r.push(['日均上网时长（非学习工作）',netHrsZh(sur.net_hrs)]);
     const na=surveyPick(sur,'net_addict','internet_addiction');if(na!==undefined) r.push(['网络成瘾倾向',ynZh(na)]);
     const nf=surveyPick(sur,'net_affect','internet_affects_life');if(nf!==undefined) r.push(['网络影响作息/学习/生活',ynZh(nf)]);
@@ -3015,14 +3199,15 @@ function svYNrow(label,key,sur){
   return `<div class="mb3"><span class="fw6 c-gray6">${esc(label)}</span>
     <span class="row g2 ml2" style="display:inline-flex;flex-wrap:wrap;align-items:center">${mkSvRad(key,'yes',cur)}${esc(apLine('是','Yes','Ya'))} ${mkSvRad(key,'no',cur)}${esc(apLine('否','No','Tidak'))}</span></div>`;
 }
-function collectEnrollmentSurveyFromDom(prev){
+function collectEnrollmentSurveyFromDom(prev,rootEl){
+  const root=rootEl||document;
   const sur={...prev};
-  document.querySelectorAll('input[type=radio][data-sv]').forEach(el=>{
+  root.querySelectorAll('input[type=radio][data-sv]').forEach(el=>{
     if(el.checked) sur[el.dataset.sv]=el.value;
   });
-  document.querySelectorAll('[data-sv-inp]').forEach(el=>{const k=el.dataset.svInp;if(k) sur[k]=(el.value||'').trim();});
-  document.querySelectorAll('[data-sv-ta]').forEach(el=>{const k=el.dataset.svTa;if(k) sur[k]=(el.value||'').trim();});
-  document.querySelectorAll('input[type=checkbox][data-sv-chk]').forEach(el=>{const k=el.dataset.svChk;if(k) sur[k]=el.checked?'yes':'no';});
+  root.querySelectorAll('[data-sv-inp]').forEach(el=>{const k=el.dataset.svInp;if(k) sur[k]=(el.value||'').trim();});
+  root.querySelectorAll('[data-sv-ta]').forEach(el=>{const k=el.dataset.svTa;if(k) sur[k]=(el.value||'').trim();});
+  root.querySelectorAll('input[type=checkbox][data-sv-chk]').forEach(el=>{const k=el.dataset.svChk;if(k) sur[k]=el.checked?'yes':'no';});
   if(sur.mental_hist!=null){ sur.mental_illness_history=sur.mental_hist; sur.mental_health=sur.mental_hist; }
   if((sur.mental_name||'').trim()) sur.mental_illness_name=sur.mental_name;
   if(sur.drug_hist!=null){ sur.drug_history=sur.drug_hist; sur.substance_history=sur.drug_hist; }
@@ -3038,6 +3223,40 @@ function collectEnrollmentSurveyFromDom(prev){
   if(sur.net_affect!=null) sur.internet_affects_life=sur.net_affect;
   sur._saved_at=new Date().toISOString();
   return sur;
+}
+/** 入学调查表：根据单选项显示/隐藏跟进题（与 formatSurveyHumanSectionsZh 的 yes=有 一致） */
+function wireEnrollmentSurveyConditionals(root){
+  if(!root) return;
+  const v=key=>{
+    const el=root.querySelector(`input[name="sv-${key}"]:checked`);
+    return el?el.value:null;
+  };
+  const ynYes=key=>v(key)==='yes';
+  const haveYes=key=>v(key)==='yes';
+  const upd=()=>{
+    root.querySelectorAll('.sv-cond-smoke').forEach(el=>{el.style.display=haveYes('smoke_hist')?'':'none';});
+    root.querySelectorAll('.sv-cond-alcohol').forEach(el=>{el.style.display=haveYes('alcohol_hist')?'':'none';});
+    root.querySelectorAll('.sv-cond-drug').forEach(el=>{el.style.display=haveYes('drug_hist')?'':'none';});
+    root.querySelectorAll('.sv-cond-gamble').forEach(el=>{el.style.display=haveYes('gamble_hist')?'':'none';});
+    const habit=haveYes('smoke_hist')||haveYes('alcohol_hist')||haveYes('drug_hist');
+    root.querySelectorAll('.sv-cond-habit-explain').forEach(el=>{el.style.display=habit?'':'none';});
+    root.querySelectorAll('.sv-cond-daily-bible').forEach(el=>{el.style.display=ynYes('daily_bible_yn')?'':'none';});
+    root.querySelectorAll('.sv-cond-phy-major').forEach(el=>{el.style.display=ynYes('phy_major_illness')?'':'none';});
+    root.querySelectorAll('.sv-cond-phy-treat').forEach(el=>{el.style.display=ynYes('phy_receiving_treatment')?'':'none';});
+    root.querySelectorAll('.sv-cond-phy-surgery').forEach(el=>{el.style.display=ynYes('phy_surgery_yn')?'':'none';});
+    root.querySelectorAll('.sv-cond-mental-detail').forEach(el=>{el.style.display=ynYes('mental_hist')?'':'none';});
+    root.querySelectorAll('.sv-cond-mental-treat').forEach(el=>{el.style.display=ynYes('mental_receiving')?'':'none';});
+    root.querySelectorAll('.sv-cond-net-explain').forEach(el=>{el.style.display=ynYes('net_addict')||ynYes('net_affect')?'':'none';});
+    const sex4=ynYes('premarital_sex')||ynYes('extramarital_sex')||ynYes('homo_tendency')||ynYes('homo_act');
+    root.querySelectorAll('.sv-cond-sex-explain').forEach(el=>{el.style.display=sex4?'':'none';});
+    root.querySelectorAll('.sv-cond-finance-explain').forEach(el=>{el.style.display=ynYes('debt_pressure')||ynYes('eco_affect')?'':'none';});
+    const faithAny=ynYes('faith_persecute')||ynYes('faith_still_pressure')||ynYes('faith_family_tension');
+    root.querySelectorAll('.sv-cond-faith-explain').forEach(el=>{el.style.display=faithAny?'':'none';});
+  };
+  root.querySelectorAll('input[type=radio][name^="sv-"]').forEach(el=>{
+    el.addEventListener('change',upd);
+  });
+  upd();
 }
 function mkSvRadMulti(key,val,cur){
   return `<input type="radio" name="sv-${key}" data-sv="${key}" value="${val}" ${String(cur||'')===val?'checked':''} style="accent-color:#4f46e5">`;
@@ -3117,7 +3336,8 @@ function renderVisaStage(ap){
     <div class="t11 c-gray5 mt2">${esc(L('进入后可见来印尼攻略、学院官网与 Hora 学校招生联系方式。','Next page: travel guide, website, and Hora School contact.','Halaman berikut: panduan, situs, kontak Hora.'))}</div></div>`:''}
   </div>`;
 }
-function renderEnrollmentSurveyMMS(sur,T){
+function renderEnrollmentSurveyMMS(sur,T,opts){
+  opts=opts||{};
   const sec=(title,body)=>`<div class="mb4 mms-survey-sec"><div class="fw7 t13 c-gray8 mb2" style="line-height:1.5">${esc(title)}</div>${body}</div>`;
   const inpN=(k,w='3.5rem')=>`<input class="inp" style="width:${w};min-height:36px;display:inline-block;vertical-align:middle;box-sizing:border-box;padding:6px 8px" data-sv-inp="${k}" value="${esc(sur[k]||'')}" placeholder="">`;
   const inp=(k)=>`<input class="inp" style="width:100%;max-width:100%;box-sizing:border-box" data-sv-inp="${k}" value="${esc(sur[k]||'')}" placeholder="">`;
@@ -3130,43 +3350,68 @@ function renderEnrollmentSurveyMMS(sur,T){
   const curNet=sur.net_hrs||'';
   const habitVal=String(sur.habit_substance_explain||sur.drug_detail_line||'');
   const conf=T('本调查表仅供教牧团队用于入学评估，所有信息将严格保密。','This survey is for pastoral evaluation only. All information will be kept confidential.','Formulir ini hanya digunakan untuk evaluasi penerimaan. Semua informasi dijaga kerahasiaannya.');
+  const confBlock=opts.hideConfidential?'':`<div class="t12 c-gray6 lh16 mb4" style="border-left:3px solid #6366f1;padding-left:12px">${esc(conf)}</div>`;
   return `
-  <div class="t12 c-gray6 lh16 mb4" style="border-left:3px solid #6366f1;padding-left:12px">${esc(conf)}</div>
+  ${confBlock}
   ${sec(`1. ${T('灵性背景','Spiritual Background','Latar Belakang Rohani')}`,`
     <div class="mb2">${T('圣经整体读过','Bible read through','Sudah membaca seluruh Alkitab')}： ${inpN('bible_read_times')} ${T('遍','times','kali')}</div>
     <div class="mb2">${T('是否每日读经','Daily Bible reading','Membaca Alkitab setiap hari')}： ${ynYN('daily_bible_yn')}</div>
+    <div class="sv-cond sv-cond-daily-bible" style="display:none">
     <div class="mb2">${T('若是，每天','If yes, per day','Jika ya per hari')}： ${inpN('daily_bible_chapters')} ${T('章','chapters','pasal')}</div>
+    </div>
     <div class="mb2">${T('是否每周参加主日','Weekly Sunday worship','Ibadah Minggu rutin')}：${ynYN('weekly_sunday_yn')}</div>
     <div class="mb2">${T('是否有灵异经验（方言、医治等）','Spiritual experiences (tongues, healing, etc.)','Pengalaman rohani')}：${ynYN('spiritual_exp_yn')}</div>
   `)}
   ${sec(`2. ${T('健康状况','Health Condition','Kondisi Kesehatan')}`,`
     <div class="fw6 mb2">1. ${T('身体健康状况','Physical Health','Kesehatan Fisik')}</div>
     <div class="mb2">${T('重大疾病史','Major illness history','Riwayat penyakit serius')}： ${ynYN('phy_major_illness')}</div>
+    <div class="sv-cond sv-cond-phy-major" style="display:none">
     <div class="mb2">${T('若有，疾病名称','If yes, name of illness','Jika ya, nama penyakit')}：${inp('phy_illness_name')}${T('病史：','Duration: ','Riwayat: ')}${inpN('phy_illness_years')}${T('年。',' years.',' tahun.')}</div>
+    </div>
     <div class="mb2">${T('是否正在接受治疗','Are you currently receiving treatment?','Apakah sedang menjalani pengobatan?')}：${ynYN('phy_receiving_treatment')}</div>
+    <div class="sv-cond sv-cond-phy-treat" style="display:none">
     <div class="mb2">${T('具体方案','Type of treatment','Jenis')}： <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="phy_treat_med" ${sur.phy_treat_med==='yes'?'checked':''} style="accent-color:#4f46e5">${T('药物治疗','Medication','Obat-obatan')}</label> <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="phy_treat_phys" ${sur.phy_treat_phys==='yes'?'checked':''} style="accent-color:#4f46e5">${T('物理疗法','Physical therapy','Terapi fisik')}</label></div>
+    </div>
     <div class="mb2">${T('手术史','Surgical history','Riwayat operasi')}：${ynYN('phy_surgery_yn')}</div>
+    <div class="sv-cond sv-cond-phy-surgery" style="display:none">
     <div class="mb3">${T('若有手术史，手术时间','If yes, date of surgery','Jika ya, waktu operasi')}：${inp('phy_surgery_date')}${T('手术名称：','Type: ','Jenis: ')}${inp('phy_surgery_name')}</div>
+    </div>
     <div class="fw6 mb2">2. ${T('精神健康状况','Mental Health','Kesehatan Mental')}</div>
     <div class="mb2">${T('精神类疾病史','Mental illness history','Riwayat gangguan mental')}：${ynYN('mental_hist')}</div>
+    <div class="sv-cond sv-cond-mental-detail" style="display:none">
     <div class="mb2">${T('若有，疾病名称','If yes, illness name','Jika ya, nama')}：${inp('mental_name')}${T('病史：','Duration: ','Riwayat: ')}${inpN('mental_years')}${T('年。',' years.',' tahun.')}</div>
+    </div>
     <div class="mb2">${T('是否正在接受治疗','Currently receiving treatment?','Sedang pengobatan?')}： ${ynYN('mental_receiving')}</div>
+    <div class="sv-cond sv-cond-mental-treat" style="display:none">
     <div class="mb2">${T('具体方案','Treatment type','Jenis')}： <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="mental_plan_med" ${sur.mental_plan_med==='yes'?'checked':''} style="accent-color:#4f46e5">${T('药物治疗','Medication','Obat')}</label> <label class="row g2" style="align-items:center;gap:6px"><input type="checkbox" data-sv-chk="mental_plan_phys" ${sur.mental_plan_phys==='yes'?'checked':''} style="accent-color:#4f46e5">${T('物理疗法','Physical therapy','Terapi fisik')}</label></div>
+    </div>
   `)}
   ${sec(`3. ${T('生活习惯（一般状况）','Lifestyle (general)','Kebiasaan')}`,`
     <div class="mb2">${T('吸烟史','Smoking history','Riwayat merokok')}： ${ynHave('smoke_hist')}</div>
-    <div class="mb2">${T('若有，烟龄','If yes, years smoking','Jika ya, lama')} ${inpN('smoke_years')}${T('年，每天',' yrs, per day',' thn/hari')} ${inpN('smoke_per_day','3rem')} ${T('根。现在是否已戒断：','/day. Quit now?',' batang. Berhenti?')} ${ynYN('smoke_quit')}</div>
+    <div class="sv-cond sv-cond-smoke" style="display:none">
+    <div class="mb2">${T('若有，烟龄','If yes, years smoking','Jika ya, lama')} ${inpN('smoke_years')}${T('年，每天约',' yrs, approx',' thn, kira-kira')} ${inpN('smoke_per_day','3rem')} ${T('支。是否已戒断：','/day. Quit?',' batang. Berhenti?')} ${ynYN('smoke_quit')}</div>
+    </div>
     <div class="mb2">${T('饮酒史','Alcohol history','Riwayat alkohol')}： ${ynHave('alcohol_hist')}</div>
-    <div class="mb2">${T('若有，酒龄','If yes, years drinking','Jika ya, lama')} ${inpN('alcohol_years')}${T('年，每天饮酒',' yrs, daily',' thn, minum')} ${inpN('alcohol_ml','3.5rem')} ml。${T('现在是否已戒断：','Quit now?','Berhenti?')} ${ynYN('alcohol_quit')}</div>
+    <div class="sv-cond sv-cond-alcohol" style="display:none">
+    <div class="mb2">${T('若有，酒龄','If yes, years drinking','Jika ya, lama')} ${inpN('alcohol_years')}${T('年；',' yrs; ',' thn; ')}${T('饮酒量（约 ml/天）','Amount (ml/day approx)','ml/hari')} ${inpN('alcohol_ml','3.5rem')}。${T('是否已戒酒：','Quit alcohol?','Berhenti minum?')} ${ynYN('alcohol_quit')}</div>
+    </div>
     <div class="mb2">${T('吸毒史','Drug use history','Narkoba')}： ${ynHave('drug_hist')}</div>
-    <div class="mb2">${T('若有，吸毒时间','If yes, years of use','Jika ya, lama')} ${inpN('drug_years')}${T('年。现在是否已戒断：',' yrs. Quit now?',' thn. Berhenti?')} ${ynYN('drug_quit')}</div>
-    <div class="mb2"><span class="fw6">${T('简要说明（吸烟/饮酒/吸毒任一项为「有」时必填）','Brief note (required if smoking/alcohol/drugs is Yes)','Catatan (wajib jika Ya)')}</span><textarea class="textarea" id="mat-sv-habit-explain" style="width:100%;max-width:100%;box-sizing:border-box" rows="3" data-sv-ta="habit_substance_explain" placeholder="">${esc(habitVal)}</textarea></div>
+    <div class="sv-cond sv-cond-drug" style="display:none">
+    <div class="mb2">${T('若有，时长','If yes, duration','Jika ya, lama')} ${inpN('drug_years')}${T('年。是否已戒断：',' yrs. Quit?',' thn. Berhenti?')} ${ynYN('drug_quit')}</div>
+    </div>
+    <div class="sv-cond sv-cond-habit-explain" style="display:none">
+    <div class="mb2"><span class="fw6">${T('简要说明（吸烟/饮酒/吸毒任一项为「有」时必填）','Brief note (required if smoking/alcohol/drugs is Yes)','Catatan (wajib jika Ya)')}</span><textarea class="textarea" style="width:100%;max-width:100%;box-sizing:border-box" rows="3" data-sv-ta="habit_substance_explain" placeholder="">${esc(habitVal)}</textarea></div>
+    </div>
     <div class="mb2">${T('赌博情况','Gambling','Judi')}： ${ynHave('gamble_hist')}</div>
+    <div class="sv-cond sv-cond-gamble" style="display:none">
     <div class="mb2">${T('若有，参与时间','If yes, years involved','Jika ya, lama')} ${inpN('gamble_years')}${T('年。目前是否已停止：',' yrs. Stopped?',' thn. Berhenti?')} ${ynYN('gamble_stopped')}</div>
+    </div>
     <div class="mb2">${T('平均每日网络使用时长（不含学习或工作需要）','Average daily internet use (excluding study/work)','Rata-rata internet/hari')}：<span class="row g2 wrap" style="display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center">${mkSvRadMulti('net_hrs','u2',curNet)}${T('2小时以内','Within 2 hours','Di bawah 2 jam')} ${mkSvRadMulti('net_hrs','h25',curNet)}${T('2–5小时','2–5 hours','2–5 jam')} ${mkSvRadMulti('net_hrs','h58',curNet)}${T('5–8小时','5–8 hours','5–8 jam')} ${mkSvRadMulti('net_hrs','o8',curNet)}${T('8小时以上','Over 8 hours','Lebih dari 8 jam')}</span></div>
     <div class="mb2">${T('是否存在网络成瘾情况（如沉迷游戏、短视频等）','Internet addiction (games, short video, etc.)','Kecanduan internet')}： ${ynYN('net_addict')}</div>
     <div class="mb2">${T('是否长期因网络使用影响作息、学习或生活','Internet affecting routine, study or life','Gangguan kehidupan karena internet')}： ${ynYN('net_affect')}</div>
+    <div class="sv-cond sv-cond-net-explain" style="display:none">
     <div class="mb2">${T('若以上两项任一项为「是」，请简要说明（时间及情况）','If either above is Yes, explain (time & situation)','Jika ya, jelaskan')}：${ta('net_explain',2)}</div>
+    </div>
   `)}
   ${sec(`4. ${T('婚姻与性关系状况','Marriage & sexuality','Pernikahan & seksualitas')}`,`
     <div class="mb2">${T('婚姻状况','Marital status','Status perkawinan')}：${mkSvRadMulti('marital_stat','single',curMar)}${T('未婚','Single','Belum nikah')} ${mkSvRadMulti('marital_stat','married',curMar)}${T('已婚','Married','Menikah')} ${mkSvRadMulti('marital_stat','divorced',curMar)}${T('离异','Divorced','Cerai')} ${mkSvRadMulti('marital_stat','widowed',curMar)}${T('丧偶','Widowed','Janda/duda')}</div>
@@ -3175,20 +3420,26 @@ function renderEnrollmentSurveyMMS(sur,T){
     <div class="mb2">${T('是否有过婚外性关系','Extramarital sex','Seks luar nikah')}： ${ynYN('extramarital_sex')}</div>
     <div class="mb2">${T('是否存在同性恋倾向','Homosexual tendency','Cenderung homoseksual')}： ${ynYN('homo_tendency')}</div>
     <div class="mb2">${T('是否存在同性性行为','Same-sex sexual behavior','Perilaku seks sesama jenis')}： ${ynYN('homo_act')}</div>
+    <div class="sv-cond sv-cond-sex-explain" style="display:none">
     <div class="mb2">${T('若以上四项任一项为「是」，请简要说明（时间及情况）','If any of four above is Yes, explain','Jika ya, jelaskan')}：${ta('sex_explain_four',2)}</div>
+    </div>
     <div class="mb2">${T('目前情感关系状况','Current relationship status','Status hubungan')}： ${mkSvRadMulti('rel_status','single2',curRel)}${T('单身','Single','Sendiri')} ${mkSvRadMulti('rel_status','dating',curRel)}${T('正在交往','Dating','Pacaran')} ${mkSvRadMulti('rel_status','engaged',curRel)}${T('已订婚','Engaged','Bertunangan')} ${mkSvRadMulti('rel_status','married2',curRel)}${T('已婚','Married','Menikah')}</div>
     <div class="mb2">${T('是否愿意在入学后遵守圣经教导，持守圣洁的婚姻与性关系','Willing to uphold biblical marriage & purity after enrollment','Bersedia menjaga kemurnian')}： ${ynYN('willing_holiness')}</div>
   `)}
   ${sec(`5. ${T('财务状况','Financial situation','Keuangan')}`,`
     <div class="mb2">${T('是否存在较大债务压力','Significant debt pressure','Tekanan utang')}： ${ynYN('debt_pressure')}</div>
     <div class="mb2">${T('是否曾因经济问题影响学习或服侍','Economy affecting study/ministry','Ekonomi mempengaruhi studi')}： ${ynYN('eco_affect')}</div>
+    <div class="sv-cond sv-cond-finance-explain" style="display:none">
     <div class="mb2">${T('若以上两项任一项为「是」，请简要说明（时间及情况）','If either is Yes, explain','Jika ya, jelaskan')}：${ta('finance_explain',2)}</div>
+    </div>
   `)}
   ${sec(`6. ${T('信仰经历补充','Faith experience supplement','Pengalaman iman')}`,`
     <div class="mb2">${T('是否曾因信仰遭遇逼迫','Persecution for faith','Penganiayaan karena iman')}： ${ynYN('faith_persecute')}</div>
     <div class="mb2">${T('目前是否仍处于相关压力或限制中','Still under related pressure','Masih tekanan')}： ${ynYN('faith_still_pressure')}</div>
     <div class="mb2">${T('是否有因信仰带来的家庭或社会关系张力','Family/social tension from faith','Ketegangan sosial')}： ${ynYN('faith_family_tension')}</div>
+    <div class="sv-cond sv-cond-faith-explain" style="display:none">
     <div class="mb2">${T('若有，请简要说明','If yes, briefly explain','Jika ya, jelaskan')}：${ta('faith_explain',3)}</div>
+    </div>
   `)}
   `;
 }
@@ -3206,7 +3457,7 @@ function renderMaterials(){
   const pasUpName=sch.pastor_letter_upload_filename||'';
   const sponName=sch.sponsor_proof_filename||'';
   const gType=sch.guarantee_type||'deposit';
-  const mmsT=(zh,en,id)=>{const L=getApplicantExamLang(ap);return L==='en'?en:L==='id'?id:zh;};
+  const mmsT=(zh,en,id)=>{const L=getApplicantUiLang(ap);return L==='en'?en:L==='id'?id:zh;};
   const L=apLine;
   const schSaved=!!sch._saved_at;
   const surSaved=!!sur._saved_at;
@@ -3286,7 +3537,7 @@ function renderMaterials(){
     </div>
     <div class="card p4 mb4 mms-form-card" style="font-size:13px;line-height:1.65">
       <div class="fw7 c-gray8 t14 mb3">${esc(mmsT('1. 入学调查表','1. Admission survey','1. Survei penerimaan'))}</div>
-      ${renderEnrollmentSurveyMMS(surDisp,mmsT)}
+      <div id="mat-enrollment-survey-root">${renderEnrollmentSurveyMMS(surDisp,mmsT)}</div>
       <button type="button" class="btn btn-outline btn-sm mt3" id="btn-save-mat-sv">${esc(mmsT('保存本表','Save','Simpan'))}</button>
     </div>
     ${submitted
@@ -3713,37 +3964,59 @@ function renderApDetailModal(ap){
 // ── Briefing Modal (teacher + admin) ─────────────────────────
 function renderBriefingModal(ap){
   const isAd=A.role==='admin';
+  const canStaff=A.role==='admin'||A.role==='teacher';
   const rec=A.allRecords.find(r=>r.applicant_id===ap.id);
   const ivSl=resolveSlotForApplicant(ap);
   const sc=ap.exam_score;
   const scoreColor=sc==null?'#9ca3af':sc>=85?'#16a34a':sc>=70?'#d97706':'#dc2626';
-  const guessBrief=guessExamLangFromApplicantName(ap);
   const schB=parseApplicantJsonCol(ap.scholarship_form_json,{});
   const surB=parseApplicantJsonCol(ap.enrollment_survey_json,{});
-  const showMatStaff=(A.role==='admin'||A.role==='teacher')&&(schB._saved_at||surB._saved_at||ap.materials_submitted_at);
+  const surBdisp={...surB,sv_full_name_cn:surB.sv_full_name_cn||fullName(ap)};
+  const surveyTzh=zh=>zh;
   const jBrief=j=>{try{return esc(JSON.stringify(j,null,2));}catch(_){return '{}';}
   };
   const schHumanRows=formatScholarshipHumanZh(schB);
   const surHumanSecs=formatSurveyHumanSectionsZh(surB);
+  const valB=s=>esc(s==null?'':String(s));
+  const convDate=ap.conversion_time?String(ap.conversion_time).slice(0,10):'';
+  const curLang=getApplicantExamLang(ap);
+  const visaF=parseVisaFiles(ap);
+  const visaSpec=visaMaterialsSpecOk(visaF);
+  const showVisaInner=STAGE_IDX[ap.stage]>=STAGE_IDX['visa']||visaF._saved_at;
+  const vlnk=(d,fn,lab)=>d&&fn?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(fn)}">⬇ ${esc(lab)} · ${esc(fn)}</a></div>`:'';
   return `<div class="modal-overlay" data-action="close-briefing">
     <div class="modal-lg" onclick="event.stopPropagation()">
       <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18 row g2 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','调查表·需留意'):''}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
       <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-briefing">✕</button></div>
 
-      <div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">基本信息</div>
+      <div class="fw7 c-gray6 t11 mb2">1. 基本资料</div>
       <div class="card p4 mb4">
         <div class="info-row"><span class="c-gray5">姓名</span><span class="fw6">${esc(fullName(ap))}</span></div>
-        <div class="info-row"><span class="c-gray5">电话</span><span>${esc(ap.phone||'—')}</span></div>
+        ${canStaff?`<div class="col g3 mt2">
+          <div><div class="t12 fw6 c-gray6 mb1">电话</div><input id="brief-ap-phone" class="inp" style="width:100%" value="${valB(ap.phone)}" placeholder="手机"></div>
+          <div><div class="t12 fw6 c-gray6 mb1">邮箱</div><input id="brief-ap-email" class="inp" style="width:100%" value="${valB(ap.email)}" placeholder="邮箱"></div>
+          <div><div class="t12 fw6 c-gray6 mb1">笔试/面试语言</div>
+            <select id="brief-ap-exam-lang" class="sel" style="width:100%">
+              <option value="zh" ${curLang==='zh'?'selected':''}>中文</option>
+              <option value="en" ${curLang==='en'?'selected':''}>English</option>
+              <option value="id" ${curLang==='id'?'selected':''}>Bahasa Indonesia</option>
+            </select></div>
+          <div><div class="t12 fw6 c-gray6 mb1">性别</div>
+            <select id="brief-ap-gender" class="sel" style="width:100%">
+              <option value="">未填写</option>
+              <option value="男" ${ap.gender==='男'?'selected':''}>男</option>
+              <option value="女" ${ap.gender==='女'?'selected':''}>女</option>
+            </select></div>
+          <div><div class="t12 fw6 c-gray6 mb1">籍贯</div><input id="brief-ap-hometown" class="inp" style="width:100%" value="${valB(ap.hometown)}" placeholder="籍贯"></div>
+          <div><div class="t12 fw6 c-gray6 mb1">学历</div><input id="brief-ap-education" class="inp" style="width:100%" value="${valB(ap.education)}" placeholder="学历"></div>
+          <div><div class="t12 fw6 c-gray6 mb1">教会</div><input id="brief-ap-church" class="inp" style="width:100%" value="${valB(ap.church_name)}" placeholder="教会"></div>
+          <div><div class="t12 fw6 c-gray6 mb1">宗派</div><input id="brief-ap-denom" class="inp" style="width:100%" value="${valB(ap.denomination)}" placeholder="宗派"></div>
+          <div><div class="t12 fw6 c-gray6 mb1">语言能力</div><input id="brief-ap-language" class="inp" style="width:100%" value="${valB(ap.language_proficiency)}" placeholder="语言能力"></div>
+          <div><div class="t12 fw6 c-gray6 mb1">婚姻状况</div><input id="brief-ap-marital" class="inp" style="width:100%" value="${valB(ap.marital_status)}" placeholder="婚姻状况"></div>
+          <div><div class="t12 fw6 c-gray6 mb1">归主时间</div><input id="brief-ap-conversion-time" class="inp" type="date" style="width:100%" value="${valB(convDate)}"></div>
+          <div class="row g2" style="align-items:flex-end"><button type="button" class="btn btn-primary" data-action="save-brief-basic" data-apid="${ap.id}">保存基本资料</button></div>
+        </div>`:`<div class="info-row"><span class="c-gray5">电话</span><span>${esc(ap.phone||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">邮箱</span><span>${esc(ap.email||'—')}</span></div>
-        ${(A.role==='admin'||A.role==='teacher')?`<div class="info-row" style="align-items:center;flex-wrap:wrap;gap:8px"><span class="c-gray5">笔试/面试语言</span><span class="row g2" style="flex-wrap:wrap;align-items:center">
-          <select id="brief-ap-exam-lang" class="sel" style="min-width:140px">
-            <option value="zh" ${getApplicantExamLang(ap)==='zh'?'selected':''}>中文</option>
-            <option value="en" ${getApplicantExamLang(ap)==='en'?'selected':''}>English</option>
-            <option value="id" ${getApplicantExamLang(ap)==='id'?'selected':''}>Bahasa Indonesia</option>
-          </select>
-          <button type="button" class="btn btn-primary btn-sm" id="btn-save-brief-exam-lang" data-apid="${ap.id}">保存语言</button>
-        </span></div>
-        <div class="t11 c-gray4 mb2" style="margin-top:-6px">系统推测：${guessBrief?examLangLabelShort(guessBrief):'—'}（拉丁字母名多为 English，可手动改正）</div>`:''}
         <div class="info-row"><span class="c-gray5">性别</span><span>${esc(ap.gender||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">籍贯</span><span>${esc(ap.hometown||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">学历</span><span>${esc(ap.education||'—')}</span></div>
@@ -3751,92 +4024,94 @@ function renderBriefingModal(ap){
         <div class="info-row"><span class="c-gray5">宗派</span><span>${esc(ap.denomination||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">语言能力</span><span>${esc(ap.language_proficiency||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">婚姻状况</span><span>${esc(ap.marital_status||'—')}</span></div>
-        <div class="info-row"><span class="c-gray5">归主时间</span><span>${esc(ap.conversion_time||'—')}</span></div>
+        <div class="info-row"><span class="c-gray5">归主时间</span><span>${esc(ap.conversion_time||'—')}</span></div>`}
       </div>
 
-      ${ap.interview_slot_id && ap.stage!=='complete' ? `<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">面试预约 · Interview appointment</div>
+      ${ap.interview_slot_id && ap.stage!=='complete' ? `<div class="fw7 c-gray6 t11 mb2">面试预约</div>
       <div class="card p4 mb4" style="border:1px solid #c7d2fe;background:#f8faff">
-        <div class="info-row"><span class="c-gray5">预约时间 · Scheduled time</span><span class="fw6 c-indigo6">${esc(formatInterviewSlotLine(ap))}</span></div>
-        ${ivSl?`<div class="info-row"><span class="c-gray5">负责老师 · Teacher</span><span>${esc(ivSl.teacher_name||'—')}</span></div>
-        <div class="t12 c-gray6 mt2">Zoom：${esc(ivSl.zoom_id||'847 5014 4631')} &nbsp;/&nbsp; 密码 Passcode：${esc(ivSl.zoom_password||'156903')}</div>`:''}
+        <div class="info-row"><span class="c-gray5">预约时间</span><span class="fw6 c-indigo6">${esc(formatInterviewSlotLine(ap))}</span></div>
+        ${ivSl?`<div class="info-row"><span class="c-gray5">负责老师</span><span>${esc(ivSl.teacher_name||'—')}</span></div>
+        <div class="t12 c-gray6 mt2">Zoom：${esc(ivSl.zoom_id||'847 5014 4631')} &nbsp;/&nbsp; 密码：${esc(ivSl.zoom_password||'156903')}</div>`:''}
       </div>`:''}
 
-      <div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">笔试成绩</div>
+      <div class="fw7 c-gray6 t11 mb2">2. 得救见证</div>
+      <div class="card p4 mb4">
+        ${canStaff?`<textarea id="brief-ap-conv-testimony" class="textarea" rows="5" style="width:100%" placeholder="可填写得救经过…">${valB(ap.conversion_testimony)}</textarea>
+        <button type="button" class="btn btn-primary mt2" data-action="save-brief-testimony" data-apid="${ap.id}">保存得救见证</button>`:(ap.conversion_testimony?`<div class="t13 c-gray7 lh16">${esc(ap.conversion_testimony)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+      </div>
+
+      <div class="fw7 c-gray6 t11 mb2">3. 事工经历</div>
+      <div class="card p4 mb4">
+        ${canStaff?`<textarea id="brief-ap-ministry" class="textarea" rows="5" style="width:100%" placeholder="可填写事工/服事经历…">${valB(ap.ministry_experience)}</textarea>
+        <button type="button" class="btn btn-primary mt2" data-action="save-brief-ministry" data-apid="${ap.id}">保存事工经历</button>`:(ap.ministry_experience?`<div class="t13 c-gray7 lh16">${esc(ap.ministry_experience)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+      </div>
+
+      <div class="fw7 c-gray6 t11 mb2">4. 笔试成绩</div>
       <div class="card p4 mb4">
         ${sc!=null?`<div class="row g4"><div class="tc"><div style="font-size:40px;font-weight:800;color:${scoreColor}">${sc}</div><div class="t11 c-gray4">满分 100</div></div>
-        <div class="flex1 t12 c-gray5 mt2">${sc>=85?'✓ 成绩优秀，推荐面试':sc>=70?'△ 成绩一般，重点考察':'！成绩偏低，需综合评估'}</div></div>`:'<div class="t13 c-gray4">尚未完成笔试</div>'}
-      </div>
-      ${(A.role==='admin'||A.role==='teacher') && STAGE_IDX[ap.stage]>=STAGE_IDX['exam']?`<div class="card p4 mb4 bg-gray50 b1 bc-indigo200">
-        <div class="row g2 mb2" style="align-items:center;flex-wrap:wrap">
-          <div class="t12 fw6 c-gray6">笔试成绩（档案内修改）</div>
+        <div class="flex1 t12 c-gray5 mt2">${sc>=85?'✓ 成绩优秀，推荐面试':sc>=70?'△ 成绩一般，重点考察':'！成绩偏低，需综合评估'}</div></div>`:'<div class="t13 c-gray4 mb2">尚未录入或未完成笔试</div>'}
+        ${canStaff && STAGE_IDX[ap.stage]>=STAGE_IDX['exam']?`<div class="row g2 mt3 mb2" style="align-items:center;flex-wrap:wrap;border-top:1px solid #e5e7eb;padding-top:12px">
+          <div class="t12 fw6 c-gray6">档案内修改分数</div>
           <input id="manual-score-${ap.id}" type="number" min="0" max="100" class="inp" style="width:120px" value="${ap.exam_score??''}" placeholder="0-100">
           <button class="btn btn-primary btn-sm" data-action="save-manual-score" data-apid="${ap.id}">${sc!=null?'保存':'录入'}</button>
-        </div>
-        <div class="t11 c-gray4">同步至申请人端「笔试成绩」展示。</div>
-      </div>`:''}
+        </div>`:''}
+        <div class="t12 fw6 c-gray6 mt3 mb1">笔试过程（旧约·新约·切屏）</div>
+        ${ap.exam_essay?`<div class="t13 c-gray7 lh16 bg-gray50 r8 p3" style="white-space:pre-wrap">${esc(formatExamEssayForDisplay(ap.exam_essay))}</div>`:'<div class="t13 c-gray4">暂无笔试过程记录</div>'}
+      </div>
 
-      ${showMatStaff?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">入学资料 · 电子表</div>
+      <div class="fw7 c-gray6 t11 mb2">5. 面试记录</div>
+      <div class="card p4 mb4">
+        ${rec?`<div class="row g2 mb2"><span class="fw6 c-gray7">${esc(rec.recorded_by_name)}</span><span class="t11 c-gray4">${esc(rec.interview_date?.slice(0,10)||'')}</span>
+        ${rec.recommendation?`<span class="ml-auto rec-badge" style="background:${REC_STYLE[rec.recommendation]?.bg||'#f3f4f6'};color:${REC_STYLE[rec.recommendation]?.color||'#6b7280'}">${REC_STYLE[rec.recommendation]?.label||''}</span>`:''}
+        </div>
+        ${rec.content?`<div class="t13 c-gray7 lh16 bg-gray50 r8 p3">${esc(rec.content)}</div>`:''}`:'<div class="t13 c-gray4 mb2">暂无面试记录，可在下方「填写面试记录」添加。</div>'}
+        <div class="b1 bc-indigo200 bg-indigo50 r8 p3 mt3">
+          <div class="fw6 c-indigo6 t12 mb1">Zoom 面试</div>
+          <div class="t12 c-gray6">会议号：${esc(ivSl?.zoom_id||'847 5014 4631')} &nbsp;/&nbsp; 密码：${esc(ivSl?.zoom_password||'156903')}</div>
+        </div>
+      </div>
+
+      <div class="fw7 c-gray6 t11 mb2">6. 入学调查</div>
       <div class="card p4 mb4">
         ${ap.mat_survey_alert?`<div class="b1 bc-red200 bg-red50 r8 p3 mb3 t12" style="color:#991b1b"><strong>⚠ 调查表需教务留意</strong>：${esc(ap.mat_survey_alert_reason||'—')}</div>`:''}
-        <div class="t12 fw6 c-gray6 mb1">奖助学金表（可读摘要）</div>
-        <div class="b1 bc-gray100 r8 p2 mb3">${renderBriefStaffRows(schHumanRows)}</div>
+        ${canStaff?`<div id="brief-enrollment-survey-root" class="mms-survey-root" style="font-size:13px;line-height:1.65;max-height:min(70vh,720px);overflow-y:auto;padding-right:4px">${renderEnrollmentSurveyMMS(surBdisp,surveyTzh,{hideConfidential:true})}</div>
+        <button type="button" class="btn btn-primary btn-sm mt3" data-action="save-brief-survey" data-apid="${ap.id}">保存入学调查表</button>`:(surB._saved_at?(surHumanSecs.length?renderBriefStaffSections(surHumanSecs):'<div class="t13 c-gray4 mb2">调查表已保存，摘要暂无可用字段。</div>'):'<div class="t13 c-gray4 mb2">尚未提交入学调查表。</div>')}
+        ${isAd?`<details class="mb2 mt3"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">原始 JSON · 入学调查（调试）</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(surB)}</pre></details>`:''}
+      </div>
+
+      <div class="fw7 c-gray6 t11 mb2">奖助学金表（电子表）</div>
+      <div class="card p4 mb4">
+        ${schB._saved_at?`<div class="b1 bc-gray100 r8 p2 mb3">${renderBriefStaffRows(schHumanRows)}</div>`:'<div class="t13 c-gray4 mb3">尚未提交奖助学金表。</div>'}
         ${(()=>{const fd=schB.financial_proof_data||schB.income_proof_data||ap.mat_financial_proof_data;const fn=schB.financial_proof_filename||schB.income_proof_filename||ap.mat_financial_proof_filename;return fd&&fn?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(fd)}" download="${esc(fn)}">⬇ 收入/资产证明 · ${esc(fn)}</a></div>`:'';})()}
         ${(()=>{const d=schB.applicant_signature_data,f=schB.applicant_signature_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 申请人电子签 · ${esc(f)}</a></div>`:'';})()}
         ${(()=>{const d=schB.pastor_letter_upload_data,f=schB.pastor_letter_upload_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 牧师担保信扫描件 · ${esc(f)}</a></div>`:'';})()}
         ${(()=>{const d=schB.sponsor_proof_data,f=schB.sponsor_proof_filename;return d&&f?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(f)}">⬇ 他人资助证明 · ${esc(f)}</a></div>`:'';})()}
-        <div class="t12 fw6 c-gray6 mb1">入学调查（可读摘要）</div>
-        ${surHumanSecs.length?renderBriefStaffSections(surHumanSecs):'<div class="t11 c-gray5 mb3">尚无已保存的调查表内容。</div>'}
-        <details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">原始 JSON · 奖学金表（调试用）</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(schB)}</pre></details>
-        <details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">原始 JSON · 入学调查（调试用）</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(surB)}</pre></details>
+        ${isAd?`<details class="mb2"><summary class="t12 c-indigo6 fw6" style="cursor:pointer">原始 JSON · 奖学金表（调试）</summary><pre class="t11 bg-gray50 p2 r8 ovy" style="max-height:160px;white-space:pre-wrap">${jBrief(schB)}</pre></details>`:''}
         ${ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved))?`<div class="t13 fw6 c-green7">已批复奖学金额度：${esc(String(ap.scholarship_amount_approved))}</div>`:''}
         ${ap.materials_submitted_at?`<div class="t11 c-gray4 mt2">资料提交时间：${esc(String(ap.materials_submitted_at).slice(0,19).replace('T',' '))}</div>`:''}
-      </div>`:''}
+      </div>
 
-      ${(()=>{
-        const visaF=parseVisaFiles(ap);
-        const visaSpec=visaMaterialsSpecOk(visaF);
-        const showVisaStaff=(A.role==='admin'||A.role==='teacher')&&(STAGE_IDX[ap.stage]>=STAGE_IDX['visa']||visaF._saved_at);
-        if(!showVisaStaff) return '';
-        const vlnk=(d,fn,lab)=>d&&fn?`<div class="mb2"><a class="btn btn-outline btn-sm" href="${String(d)}" download="${esc(fn)}">⬇ ${esc(lab)} · ${esc(fn)}</a></div>`:'';
-        return `<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">学生签材料 · Visa pack</div>
-      <div class="card p4 mb4" style="border:1px solid #a5b4fc;background:#fafbff">
-        ${visaSpec.ok?`<div class="t12 fw6 c-green7 mb2">✓ ${esc(apLine('三份材料已齐','All three files received','Tiga berkas lengkap'))}</div>`:`<div class="t12 fw6 c-amber7 mb2">△ ${esc(apLine('尚未交齐：','Still missing: ','Belum: '))}${esc(visaSpec.issues.join('、'))}</div>`}
+      <div class="fw7 c-gray6 t11 mb2">7. 学生签材料</div>
+      <div class="card p4 mb4" style="${showVisaInner?'border:1px solid #a5b4fc;background:#fafbff':''}">
+        ${showVisaInner?`${visaSpec.ok?`<div class="t12 fw6 c-green7 mb2">✓ ${esc(apLine('三份材料已齐','All three files received','Tiga berkas lengkap'))}</div>`:`<div class="t12 fw6 c-amber7 mb2">△ ${esc(apLine('尚未交齐：','Still missing: ','Belum: '))}${esc(visaSpec.issues.join('、'))}</div>`}
         ${visaF._saved_at?`<div class="t11 c-gray5 mb2">${esc(apLine('最后保存：','Last saved: ','Terakhir: '))}${esc(String(visaF._saved_at).slice(0,19).replace('T',' '))}</div>`:''}
         ${vlnk(visaF.passport_data,visaF.passport_filename,apLine('护照扫描','Passport','Paspor'))}
         ${vlnk(visaF.photo_data,visaF.photo_filename,apLine('红底证件照','Photo','Foto'))}
         ${vlnk(visaF.cv_data,visaF.cv_filename,apLine('学生 CV','Student CV','CV'))}
-        ${isAd&&visaSpec.ok?`<button type="button" class="btn btn-primary btn-sm mt2" data-action="dl-visa-zip" data-apid="${ap.id}">⬇ ${esc(apLine('一键打包 ZIP（文件名：【姓名-学生签材料】）','Download ZIP (【Name-student visa】)','Unduh ZIP'))}</button>`:(isAd?`<div class="t11 c-gray4 mt2">${esc(apLine('三份齐全后管理员可一键打包','ZIP when all three are saved','ZIP setelah lengkap'))}</div>`:'')}
-      </div>`;
-      })()}
+        ${isAd&&visaSpec.ok?`<button type="button" class="btn btn-primary btn-sm mt2" data-action="dl-visa-zip" data-apid="${ap.id}">⬇ ${esc(apLine('一键打包 ZIP（文件名：【姓名-学生签材料】）','Download ZIP (【Name-student visa】)','Unduh ZIP'))}</button>`:(isAd?`<div class="t11 c-gray4 mt2">${esc(apLine('三份齐全后管理员可一键打包','ZIP when all three are saved','ZIP setelah lengkap'))}</div>`:'')}`:'<div class="t13 c-gray4">尚未进入签证环节或未上传材料。</div>'}
+      </div>
 
-      ${ap.exam_essay?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">笔试备注（旧约·新约·切换屏幕）· Exam note (OT / NT / screen switches)</div>
-      <div class="card p4 mb4"><div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(formatExamEssayForDisplay(ap.exam_essay))}</div></div>`:''}
-
-      ${ap.conversion_testimony?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">得救见证</div>
-      <div class="card p4 mb4"><div class="t13 c-gray7 lh16">${esc(ap.conversion_testimony)}</div></div>`:''}
-
-      ${ap.ministry_experience?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">事工经历</div>
-      <div class="card p4 mb4"><div class="t13 c-gray7 lh16">${esc(ap.ministry_experience)}</div></div>`:''}
-
-      ${ap.admin_notes||ap.wechat_notes?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">管理备注</div>
+      ${isAd?`<div class="fw7 c-gray6 t11 mb2">管理备注</div>
+      <div class="card p4 mb4 bg-amber50 b1 bc-amber200">
+        <textarea id="brief-ap-admin-notes" class="textarea" rows="3" style="width:100%" placeholder="管理员内部备注…">${valB(ap.admin_notes)}</textarea>
+        <div class="t12 fw6 c-gray6 mb1 mt2">微信备注</div>
+        <textarea id="brief-ap-wechat-notes" class="textarea" rows="2" style="width:100%">${valB(ap.wechat_notes)}</textarea>
+        <button type="button" class="btn btn-primary mt2" data-action="save-brief-admin-notes" data-apid="${ap.id}">保存管理备注</button>
+      </div>`:(ap.admin_notes||ap.wechat_notes?`<div class="fw7 c-gray6 t11 mb2">管理备注</div>
       <div class="card p4 mb4 bg-amber50 b1 bc-amber200">
         ${ap.admin_notes?`<div class="t13 c-gray7 lh16 mb2">${esc(ap.admin_notes)}</div>`:''}
         ${ap.wechat_notes?`<div class="t12 c-gray5">📱 微信备注：${esc(ap.wechat_notes)}</div>`:''}
-      </div>`:''}
-
-      ${rec?`<div class="fw7 c-gray6 t11 mb2" style="text-transform:uppercase;letter-spacing:.5px">面试记录</div>
-      <div class="card p4 mb4">
-        <div class="row g2 mb2"><span class="fw6 c-gray7">${esc(rec.recorded_by_name)}</span><span class="t11 c-gray4">${esc(rec.interview_date?.slice(0,10)||'')}</span>
-        ${rec.recommendation?`<span class="ml-auto rec-badge" style="background:${REC_STYLE[rec.recommendation]?.bg||'#f3f4f6'};color:${REC_STYLE[rec.recommendation]?.color||'#6b7280'}">${REC_STYLE[rec.recommendation]?.label||''}</span>`:''}
-        </div>
-        ${rec.content?`<div class="t13 c-gray7 lh16 bg-gray50 r8 p3">${esc(rec.content)}</div>`:''}
-      </div>`:''}
-
-      <div class="b1 bc-indigo200 bg-indigo50 r12 p4">
-        <div class="fw6 c-indigo6 t13 mb1">💻 Zoom 面试信息 · Zoom</div>
-        <div class="t12 c-gray6">会议号：${esc(ivSl?.zoom_id||'847 5014 4631')} &nbsp;/&nbsp; 密码：${esc(ivSl?.zoom_password||'156903')}</div>
-        ${!ivSl?'<div class="t11 c-gray4 mt1">（未匹配到时段表中的 Zoom 时使用默认会议号 · Default if slot has no Zoom）</div>':''}
-      </div>
+      </div>`:'')}
 
       <div class="row g2 mt5">
         ${isAd && STAGE_IDX[ap.stage] < STAGE_IDX['complete'] ? `<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>` : ''}
@@ -3848,7 +4123,7 @@ function renderBriefingModal(ap){
       </div>
 
       <div class="row g2 mt3">
-        <button class="btn btn-outline btn-full" data-action="edit-ap-info" data-apid="${ap.id}">添加/编辑申请人信息</button>
+        <button class="btn btn-outline btn-full" data-action="edit-ap-info" data-apid="${ap.id}">打开完整编辑表单</button>
       </div>`:''}
     </div>
   </div>`;
@@ -4014,6 +4289,10 @@ function bind(){
     el.addEventListener('click',()=>{
       A.examLang = el.dataset.lang || 'zh';
       persistApplicantExamLang(A.examLang);
+      if(A.role==='applicant'&&A.applicant?.id){
+        persistApplicantBrowserSession(A.applicant,A.applicant.full_name,A.applicant.phone_last4);
+      }
+      scheduleApplicantExamDraftSave();
       render();
     });
   });
@@ -4021,6 +4300,9 @@ function bind(){
     el.addEventListener('click',()=>{
       A.appLang = el.dataset.lang || 'zh';
       persistApplicantAppLang(A.appLang);
+      if(A.role==='applicant'&&A.applicant?.id){
+        persistApplicantBrowserSession(A.applicant,A.applicant.full_name,A.applicant.phone_last4);
+      }
       render();
     });
   });
@@ -4050,6 +4332,7 @@ function bind(){
     A.essayText='';
     A.proctorFlags=0;
     A.examTime=remainSec;
+    saveApplicantExamDraft();
 
     // Basic proctoring: detect tab switch / blur / visibility change
     try{
@@ -4058,6 +4341,7 @@ function bind(){
         const flag = ()=>{
           if(A.role!=='applicant' || A.applicant?.stage!=='exam' || !A.examStarted || A.examSubmitted) return;
           A.proctorFlags=(A.proctorFlags||0)+1;
+          saveApplicantExamDraft();
           toast(apLine('检测到切屏/切换窗口（已记录 '+A.proctorFlags+' 次）','Tab/window switch detected ('+A.proctorFlags+').','Pindah jendela/tab tercatat ('+A.proctorFlags+').'),false);
           render();
         };
@@ -4078,12 +4362,14 @@ function bind(){
     el.addEventListener('change',e=>{
       const qid=+el.dataset.qid;
       A.examAnswers[qid]=+el.value;
+      scheduleApplicantExamDraftSave();
     });
   });
   root.querySelectorAll('input[data-kind="truefalse"]').forEach(el=>{
     el.addEventListener('change',e=>{
       const qid=+el.dataset.qid;
       A.examAnswers[qid]=el.value==='1';
+      scheduleApplicantExamDraftSave();
     });
   });
   root.querySelectorAll('input[data-kind="fill"]').forEach(el=>{
@@ -4092,6 +4378,7 @@ function bind(){
       const bi=+el.dataset.blank;
       if(!Array.isArray(A.examAnswers[qid])) A.examAnswers[qid]=[];
       A.examAnswers[qid][bi]=el.value;
+      scheduleApplicantExamDraftSave();
     });
   });
   root.querySelectorAll('select[data-kind="match"]').forEach(el=>{
@@ -4101,18 +4388,21 @@ function bind(){
       const ri=parseInt(el.value,10);
       if(!Array.isArray(A.examAnswers[qid])) A.examAnswers[qid]=[];
       A.examAnswers[qid][li]=ri;
+      scheduleApplicantExamDraftSave();
     });
   });
   root.querySelectorAll('input[data-kind="order"]').forEach(el=>{
     el.addEventListener('input',e=>{
       const qid=+el.dataset.qid;
       A.examAnswers[qid]=String(el.value||'').toUpperCase().replace(/[^A-Z]/g,'');
+      scheduleApplicantExamDraftSave();
     });
   });
   root.querySelectorAll('textarea[data-kind="dictation"]').forEach(el=>{
     el.addEventListener('input',e=>{
       const qid=+el.dataset.qid;
       A.examAnswers[qid]=el.value;
+      scheduleApplicantExamDraftSave();
     });
   });
 
@@ -4183,10 +4473,11 @@ function bind(){
   document.getElementById('btn-save-mat-sv')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
     const prev=parseApplicantJsonCol(A.applicant.enrollment_survey_json,{});
-    const sur=collectEnrollmentSurveyFromDom(prev);
+    const rootSv=document.getElementById('mat-enrollment-survey-root');
+    const sur=collectEnrollmentSurveyFromDom(prev,rootSv||document);
     const needHabit=String(sur.smoke_hist)==='yes'||String(sur.alcohol_hist)==='yes'||String(sur.drug_hist)==='yes';
     if(needHabit&&!String(sur.habit_substance_explain||'').trim()){
-      const L=getApplicantExamLang(A.applicant);
+      const L=getApplicantUiLang(A.applicant);
       const msg=L==='en'?'Brief explanation is required because you answered Yes to smoking, alcohol, or drug history.':L==='id'?'Wajib mengisi penjelasan singkat jika riwayat rokok/alkohol/narkoba = Ya.':'吸烟史、饮酒史或吸毒史任一项为「有」时，请填写简要说明。';
       toast(msg,false);
       return;
@@ -4251,6 +4542,7 @@ function bind(){
     else toast(apLine('提交失败','Submit failed','Gagal'),false);
   });
   document.getElementById('btn-materials-next-stage')?.addEventListener('click',()=>applicantAdvanceFromMaterialsToVisaOrComplete());
+  document.getElementById('btn-result-to-materials')?.addEventListener('click',()=>applicantAdvanceFromResultToMaterials());
   document.getElementById('btn-applicant-complete-after-visa')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
     const ap=A.applicant;
@@ -4325,19 +4617,105 @@ function bind(){
     el.addEventListener('click',()=>{A.briefingId=null;render();});
   });
 
-  document.getElementById('btn-save-brief-exam-lang')?.addEventListener('click',async()=>{
-    if(A.role!=='admin'&&A.role!=='teacher') return;
-    const apid=document.getElementById('btn-save-brief-exam-lang')?.dataset?.apid;
-    if(!apid) return;
-    let L=document.getElementById('brief-ap-exam-lang')?.value||'zh';
-    if(L!=='en'&&L!=='id') L='zh';
-    const {error}=await sb.from('applicants').update({exam_lang:L}).eq('id',apid);
-    if(!error){
+  root.querySelectorAll('[data-action=save-brief-basic]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      if(A.role!=='admin'&&A.role!=='teacher') return;
+      const apid=el.dataset.apid;
+      if(!apid) return;
+      let exam_lang=document.getElementById('brief-ap-exam-lang')?.value||'zh';
+      if(exam_lang!=='en'&&exam_lang!=='id') exam_lang='zh';
+      const conversion_time_raw=document.getElementById('brief-ap-conversion-time')?.value||'';
+      const payload={
+        exam_lang,
+        phone:(document.getElementById('brief-ap-phone')?.value||'').trim()||null,
+        email:(document.getElementById('brief-ap-email')?.value||'').trim()||null,
+        gender:(document.getElementById('brief-ap-gender')?.value||'')||null,
+        hometown:(document.getElementById('brief-ap-hometown')?.value||'')||null,
+        education:(document.getElementById('brief-ap-education')?.value||'')||null,
+        church_name:(document.getElementById('brief-ap-church')?.value||'')||null,
+        denomination:(document.getElementById('brief-ap-denom')?.value||'')||null,
+        language_proficiency:(document.getElementById('brief-ap-language')?.value||'')||null,
+        marital_status:(document.getElementById('brief-ap-marital')?.value||'')||null,
+        conversion_time: conversion_time_raw ? new Date(conversion_time_raw).toISOString() : null,
+      };
+      const {error}=await sb.from('applicants').update(payload).eq('id',apid);
+      if(!error){
+        const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+        if(ap) Object.assign(ap,payload);
+        toast('基本资料已保存');
+        render();
+      } else toast('保存失败：'+(error?.message||''),false);
+    });
+  });
+  root.querySelectorAll('[data-action=save-brief-testimony]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      if(A.role!=='admin'&&A.role!=='teacher') return;
+      const apid=el.dataset.apid;
+      if(!apid) return;
+      const conversion_testimony=(document.getElementById('brief-ap-conv-testimony')?.value||'').trim()||null;
+      const {error}=await sb.from('applicants').update({conversion_testimony}).eq('id',apid);
+      if(!error){
+        const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+        if(ap) ap.conversion_testimony=conversion_testimony;
+        toast('得救见证已保存');
+        render();
+      } else toast('保存失败：'+(error?.message||''),false);
+    });
+  });
+  root.querySelectorAll('[data-action=save-brief-ministry]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      if(A.role!=='admin'&&A.role!=='teacher') return;
+      const apid=el.dataset.apid;
+      if(!apid) return;
+      const ministry_experience=(document.getElementById('brief-ap-ministry')?.value||'').trim()||null;
+      const {error}=await sb.from('applicants').update({ministry_experience}).eq('id',apid);
+      if(!error){
+        const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+        if(ap) ap.ministry_experience=ministry_experience;
+        toast('事工经历已保存');
+        render();
+      } else toast('保存失败：'+(error?.message||''),false);
+    });
+  });
+  root.querySelectorAll('[data-action=save-brief-survey]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      if(A.role!=='admin'&&A.role!=='teacher') return;
+      const apid=el.dataset.apid;
+      if(!apid||!sb) return;
+      const rootSv=document.getElementById('brief-enrollment-survey-root');
       const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
-      if(ap) ap.exam_lang=L;
-      toast('笔试/面试语言已更新');
-      render();
-    } else toast('保存失败：'+(error?.message||''),false);
+      if(!ap) return;
+      const prev=parseApplicantJsonCol(ap.enrollment_survey_json,{});
+      const sur=collectEnrollmentSurveyFromDom(prev,rootSv||document);
+      const needHabit=String(sur.smoke_hist)==='yes'||String(sur.alcohol_hist)==='yes'||String(sur.drug_hist)==='yes';
+      if(needHabit&&!String(sur.habit_substance_explain||'').trim()){
+        toast('吸烟史、饮酒史或吸毒史任一项为「有」时，请填写简要说明。',false);
+        return;
+      }
+      const al=computeSurveyAlertFromSurveyJson(sur);
+      const {error}=await sb.from('applicants').update({enrollment_survey_json:sur,mat_survey_alert:al.alert,mat_survey_alert_reason:al.reason||null}).eq('id',apid);
+      if(!error){
+        Object.assign(ap,{enrollment_survey_json:sur,mat_survey_alert:al.alert,mat_survey_alert_reason:al.reason||null});
+        toast('入学调查表已保存');
+        render();
+      } else toast('保存失败：'+(error?.message||''),false);
+    });
+  });
+  root.querySelectorAll('[data-action=save-brief-admin-notes]').forEach(el=>{
+    el.addEventListener('click',async()=>{
+      if(A.role!=='admin') return;
+      const apid=el.dataset.apid;
+      if(!apid) return;
+      const admin_notes=(document.getElementById('brief-ap-admin-notes')?.value||'').trim()||null;
+      const wechat_notes=(document.getElementById('brief-ap-wechat-notes')?.value||'').trim()||null;
+      const {error}=await sb.from('applicants').update({admin_notes,wechat_notes}).eq('id',apid);
+      if(!error){
+        const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+        if(ap){ap.admin_notes=admin_notes;ap.wechat_notes=wechat_notes;}
+        toast('管理备注已保存');
+        render();
+      } else toast('保存失败：'+(error?.message||''),false);
+    });
   });
 
   // ── Manual score entry ──
@@ -4703,6 +5081,9 @@ function bind(){
       } else toast('删除失败',false);
     });
   });
+
+  wireEnrollmentSurveyConditionals(document.getElementById('mat-enrollment-survey-root'));
+  wireEnrollmentSurveyConditionals(document.getElementById('brief-enrollment-survey-root'));
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -4715,13 +5096,6 @@ async function init(){
   }
   // 先用内嵌中文题库；ensureExamQuestionsLoaded 会再合并多语言
   A.examQuestions = (EXAM_Qs && EXAM_Qs.length) ? EXAM_Qs : [];
-  // 立刻替换初始转圈：先渲染登录壳，再在后台恢复 session（避免 getSession / profiles 挂起时整页一直转圈）
-  try{
-    render();
-  }catch(e){
-    console.error('首屏 render 失败', e);
-    document.getElementById('root').innerHTML='<div class="p6 tc c-gray6" style="margin-top:48px;font-family:system-ui">页面渲染出错，请刷新或按 F12 查看控制台。</div>';
-  }
   try{
     let session=null;
     try{
@@ -4763,6 +5137,10 @@ async function init(){
           A.adminDataLoading=false;
         }
       }
+    }else{
+      try{
+        await tryRestoreApplicantFromBrowser();
+      }catch(e){ console.warn('tryRestoreApplicantFromBrowser', e); }
     }
   }catch(e){
     console.warn('init 数据恢复', e);
