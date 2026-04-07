@@ -3918,11 +3918,9 @@ function renderScholarshipReview(){
   const row=ap=>{
     const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
     const v=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''?String(ap.scholarship_amount_approved):'';
-    const stLab=(STAGES.find(s=>s.id===ap.stage)||{}).label||ap.stage;
     return `<tr>
       <td><div class="row g1 wrap" style="align-items:center"><span class="fw6">${esc(fullName(ap))}</span>${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>
         <div class="t11 c-gray4">${esc(ap.phone||'')}</div></td>
-      <td class="t11 c-gray6" style="white-space:nowrap">${esc(stLab)}</td>
       <td>${ap.exam_score!=null?esc(String(ap.exam_score)):'—'}</td>
       <td class="t11 c-gray6" style="max-width:220px;word-break:break-word">${esc(String(sch.requested_amount||sch.amount_requested||sch.family_support||sch.total_self_funded||'—').slice(0,120))}</td>
       <td><input type="number" class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px" step="1" placeholder="额度" value="${esc(v)}"></td>
@@ -3935,8 +3933,8 @@ function renderScholarshipReview(){
     <div class="fw7 c-gray8 t16">奖学金批复</div>
     <div class="t12 c-gray5 lh16">列表包含当前处于<strong>上传资料、签证、完成</strong>三个阶段的全部申请人（无需先点「提交审核」也会出现）。请结合笔试、面试与家庭经济情况填写<strong>批复额度</strong>（数字）后保存；保存后会在<strong>档案 · 基本资料</strong>与申请人端展示该金额。若入学调查表中披露物质使用/成瘾史等，姓名旁会标「需留意」。</div>
     <div class="card" style="overflow:auto">
-      <table class="tbl"><thead><tr><th>申请人</th><th>当前阶段</th><th>笔试</th><th>申请额度</th><th>批复额度</th><th>备注</th><th>操作</th></tr></thead>
-      <tbody>${list.length?list.map(row).join(''):`<tr><td colspan="7" class="t13 c-gray4 tc" style="padding:24px">暂无处于「上传资料 / 签证 / 完成」环节的申请人</td></tr>`}</tbody></table>
+      <table class="tbl"><thead><tr><th>申请人</th><th>笔试</th><th>申请额度</th><th>批复额度</th><th>备注</th><th>操作</th></tr></thead>
+      <tbody>${list.length?list.map(row).join(''):`<tr><td colspan="6" class="t13 c-gray4 tc" style="padding:24px">暂无处于「上传资料 / 签证 / 完成」环节的申请人</td></tr>`}</tbody></table>
     </div>
   </div>`;
 }
@@ -4093,11 +4091,8 @@ function renderExams(){
   const rowHtml=(ap)=>{
     const done=ap.exam_score!=null,waiting=!done&&STAGE_IDX[ap.stage]>=STAGE_IDX['exam'];
     const ss=done?{bg:'#dcfce7',c:'#15803d',t:'已完成'}:waiting?{bg:'#fef3c7',c:'#92400e',t:'待笔试'}:{bg:'#f3f4f6',c:'#6b7280',t:'未开始'};
-    const lang=getApplicantExamLang(ap);
-    const langTag=lang==='zh'?{bg:'#e0e7ff',c:'#4338ca'}:lang==='id'?{bg:'#ccfbf1',c:'#0f766e'}:{bg:'#fef3c7',c:'#92400e'};
     return `<tr>
         <td><div class="row g2">${mkAv(initials(ap),'sm')}<span class="fw5 c-gray8">${esc(fullName(ap))}</span></div></td>
-        <td>${mkTag(langTag.bg,langTag.c,examLangLabelShort(lang))}</td>
         <td>${mkTag(ss.bg,ss.c,ss.t)}</td>
         <td>${done?`<span style="font-size:17px;font-weight:800;color:${ap.exam_score>=80?'#16a34a':ap.exam_score>=60?'#d97706':'#dc2626'}">${ap.exam_score}</span>`:'<span class="c-gray4">—</span>'}</td>
         <td>
@@ -4115,8 +4110,8 @@ function renderExams(){
         <span class="tag" style="background:${tag};color:#fff">${list.length} 人</span>
       </div>
       <div class="card" style="overflow:hidden">
-        <table class="tbl"><thead><tr><th>姓名</th><th>笔试语言</th><th>状态</th><th>成绩</th><th>档案</th></tr></thead><tbody>
-        ${list.length?list.map(rowHtml).join(''):`<tr><td colspan="5" class="t13 c-gray4 tc" style="padding:28px">暂无</td></tr>`}
+        <table class="tbl"><thead><tr><th>姓名</th><th>状态</th><th>成绩</th><th>档案</th></tr></thead><tbody>
+        ${list.length?list.map(rowHtml).join(''):`<tr><td colspan="4" class="t13 c-gray4 tc" style="padding:28px">暂无</td></tr>`}
         </tbody></table>
       </div>
     </div>`;
