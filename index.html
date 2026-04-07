@@ -210,22 +210,17 @@ html{overflow-x:hidden}
   input,textarea,select{font-size:16px}
 }
 
-/* 考试页面：手机端字体放大，阅读更舒适 */
-@media(max-width:767px){
-  /* 题目正文 */
-  #exam-main .card p{font-size:15px;line-height:1.7}
-  /* 填空/判断/选项提示文字 */
-  #exam-main .t13{font-size:15px}
-  /* 单选题选项 */
-  #exam-main .radio-opt{font-size:15px;padding:12px 14px;gap:12px}
-  /* 填空 textarea */
-  #exam-main .textarea{font-size:15px;min-height:120px}
-  /* 卡片内边距更宽松 */
+/* 考试页面：全平台字体 17px，手机电脑统一，阅读舒适 */
+#exam-main .card p{font-size:17px;line-height:1.7}
+#exam-main .t13{font-size:17px;line-height:1.7}
+#exam-main .radio-opt{font-size:17px;padding:12px 14px;gap:12px}
+#exam-main .textarea{font-size:17px;min-height:120px;line-height:1.7}
+#exam-main .card.p5{padding:20px 16px}
+#timer-disp{font-size:17px !important}
+#timer-wrap{font-size:15px}
+/* 手机端卡片内边距稍紧凑 */
+@media(max-width:480px){
   #exam-main .card.p5{padding:18px 14px}
-  /* 计时器数字放大 */
-  #timer-disp{font-size:17px !important}
-  /* 考试计时器整体稍大 */
-  #timer-wrap{font-size:14px}
 }
 
 /* 步骤导航栏：手机端紧凑化 */
@@ -2274,20 +2269,6 @@ async function confirmInterview(){
   A.applicant.interview_slot_id=A.ivSelected.id;
   A.applicantBookedInterviewSlot = A.ivSelected;
   toast(apLine('面试预约成功！','Interview booked!','Wawancara berhasil dipesan!'));
-  // 预约成功后自动打开管理员 WhatsApp 通知链接
-  try{
-    const _sl=A.ivSelected;
-    const _apName=fullName(A.applicant);
-    const _slotDesc=_sl?_sl.slot_date+' '+(_sl.slot_time||'').slice(0,5):'';
-    const _zid=_sl?.zoom_id||'847 5014 4631';
-    const _zpw=_sl?.zoom_password||'156903';
-    const _adminMsg=A.appLang==='en'
-      ?`[Interview booked] Applicant: ${_apName} | Time: ${_slotDesc} | Zoom: ${_zid} PW: ${_zpw}`
-      :A.appLang==='id'
-        ?`[Wawancara dipesan] Pelamar: ${_apName} | Waktu: ${_slotDesc} | Zoom: ${_zid} PW: ${_zpw}`
-        :`【面试预约提醒】\n申请人：${_apName}\n时间：${_slotDesc}\nZoom：${_zid} 密码：${_zpw}`;
-    window.open(`https://wa.me/6285283251074?text=${encodeURIComponent(_adminMsg)}`,'_blank','noopener,noreferrer');
-  }catch(_){}
   try{
     await sb.from('notification_log').insert([
       {applicant_id:A.applicant.id,type:'iv_scheduled',recipient:'applicant',content:`面试时间：${A.ivSelected.slot_date} ${A.ivSelected.slot_time}`},
@@ -3375,14 +3356,8 @@ function renderIvConfirmed(){
       <div class="t12 c-gray5">${esc(apLine('Zoom ID','Zoom ID','Zoom ID'))}：${zoomId}&nbsp;/&nbsp;${esc(apLine('密码','Passcode','Kode'))}：${zoomPw}</div>
     </div></div>
     <div class="t12 c-gray5 mb5 lh16">${esc(apLine('请按上述时间准时参加面试；如有变动，教务会通过您预留的联系方式与您沟通。','Please join on time. The office will contact you if anything changes.','Harap tepat waktu. Kantor akan menghubungi jika ada perubahan.'))}</div>
-    <div class="col g3">
-      <a class="btn btn-primary btn-full" href="${adminWaUrl}" target="_blank" rel="noreferrer">📱 ${esc(apLine('WhatsApp 通知管理员（张琦 Alex）','Notify admin (Zhang Qi Alex) via WhatsApp','WhatsApp ke Admin (Zhang Qi Alex)'))}</a>
-      ${teacherWaUrl
-        ? `<a class="btn btn-success btn-full" href="${teacherWaUrl}" target="_blank" rel="noreferrer">📱 ${esc(apLine(`WhatsApp 通知面试老师（${teacherName}）`,`Notify interviewer (${teacherName}) via WhatsApp`,`WhatsApp ke pewawancara (${teacherName})`))}
-</a>`
-        : (teacherName
-          ? `<div class="b1 bc-amber200 bg-amber50 r10 p3 t12 lh16" style="color:#92400e">⚠️ ${esc(apLine(`面试老师（${teacherName}）尚未在系统中设置 WhatsApp 号码，请联系教务手动通知。`,`Interviewer (${teacherName}) has no WhatsApp number set — please notify them manually.`,`Pewawancara (${teacherName}) belum mengatur nomor WhatsApp — hubungi secara manual.`))}</div>`
-          : '')}
+    <div class="b1 bc-indigo100 bg-indigo50 r10 p3 t12 lh16 c-indigo6">
+      ${esc(apLine('预约已确认，教务会协调通知面试老师。如有疑问请联系张琦 Alex。','Your booking is confirmed. The office will notify the interviewer. Contact Zhang Qi (Alex) if needed.','Booking dikonfirmasi. Kantor akan menghubungi pewawancara. Hubungi Zhang Qi (Alex) jika perlu.'))}
     </div>
   </div>`;
 }
@@ -4093,18 +4068,29 @@ function renderSchedule(){
       <div class="fw7 c-gray8 t14 mb3">已预约面试（${booked.length}人）· 按时间近→远</div>
       ${booked.map(ap=>{
         const sl = resolveSlotForApplicant(ap);
+        const slotDesc = sl ? (sl.slot_date+' '+(sl.slot_time||'').slice(0,5)) : '';
+        const zId = sl?.zoom_id||'847 5014 4631';
+        const zPw = sl?.zoom_password||'156903';
+        const tProf = sl?.teacher_id ? (A.teacherProfiles||[]).find(p=>String(p.id)===String(sl.teacher_id)) : null;
+        const tWa = String(tProf?.whatsapp||sl?.teacher_whatsapp||'').replace(/\D/g,'');
+        const tName = tProf?.display_name || sl?.teacher_name || '';
+        const tMsg = `【面试通知】${tName}老师好，申请人${fullName(ap)}已预约您的面试：${slotDesc}\nZoom：${zId} 密码：${zPw}`;
+        const tWaUrl = tWa ? `https://wa.me/${tWa}?text=${encodeURIComponent(tMsg)}` : '';
         return `<div class="card p4 mb3">
         <div class="row g3">
           <div class="bg-indigo50 r10 px3 py2 tc shrink0">
             <div class="t11 c-indigo4 fw6">${esc(sl?.slot_date||'—')}</div>
             <div class="t18 fw8 c-indigo6">${esc((sl?.slot_time||'').slice(0,5)||'—')}</div>
           </div>
-          <div class="flex1 row g2">${mkAv(initials(ap),'sm')}<span class="fw6 c-gray8">${esc(fullName(ap))}</span>${stageTag(ap.stage)}</div>
-          <div class="row g1">
+          <div class="flex1 col g1"><div class="row g2">${mkAv(initials(ap),'sm')}<span class="fw6 c-gray8">${esc(fullName(ap))}</span>${stageTag(ap.stage)}</div>
+          ${tName?`<div class="t11 c-gray5">👤 ${esc(tName)} · Zoom ${esc(zId)} / ${esc(zPw)}</div>`:''}
+          </div>
+          <div class="col g1">
             <button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">📋 档案</button>
+            ${tWaUrl?`<a class="btn btn-success btn-xs" href="${tWaUrl}" target="_blank" rel="noreferrer" style="text-decoration:none">📱 WA 老师</a>`
+              :(tName?`<span class="t10 c-amber6" style="font-size:10px">⚠️ 老师未设WA</span>`:'')}
           </div>
         </div>
-        ${sl?.teacher_name?`<div class="t11 c-gray5 mt2">${esc(sl.teacher_name)} · Zoom ${esc(sl.zoom_id||'')} / ${esc(sl.zoom_password||'')}</div>`:''}
       </div>`;
       }).join('')}
     </div>
@@ -4166,6 +4152,20 @@ function renderApDetailModal(ap){
         ${ap.interview_slot_id&&ap.stage!=='complete'?`<div class="info-row"><span>面试预约</span><span class="fw6 c-indigo6">${esc(formatInterviewSlotLine(ap))}</span></div>`:''}
         ${rec?`<div class="info-row"><span>面试评价</span>${mkTag(REC_STYLE[rec.recommendation]?.bg||'#f3f4f6',REC_STYLE[rec.recommendation]?.color||'#6b7280',REC_STYLE[rec.recommendation]?.label||'已填写')}</div>`:''}
       </div>
+      ${(()=>{
+        if(!ap.interview_slot_id) return '';
+        const sl2 = resolveSlotForApplicant(ap);
+        if(!sl2) return '';
+        const sd2 = sl2.slot_date+' '+(sl2.slot_time||'').slice(0,5);
+        const zi2 = sl2.zoom_id||'847 5014 4631'; const zp2 = sl2.zoom_password||'156903';
+        const tp2 = sl2.teacher_id ? (A.teacherProfiles||[]).find(p=>String(p.id)===String(sl2.teacher_id)) : null;
+        const tw2 = String(tp2?.whatsapp||'').replace(/\D/g,'');
+        const tn2 = tp2?.display_name || sl2.teacher_name || '';
+        if(!tw2 && !tn2) return '';
+        const tm2 = `【面试通知】${tn2}老师好，申请人${fullName(ap)}已预约您的面试：${sd2}\nZoom：${zi2} 密码：${zp2}`;
+        if(!tw2) return `<div class="b1 bc-amber200 bg-amber50 r8 p2 t11 mb2" style="color:#92400e">⚠️ ${esc(tn2)} 老师尚未设置 WhatsApp 号码</div>`;
+        return `<a class="btn btn-success btn-full mb3" href="https://wa.me/${tw2}?text=${encodeURIComponent(tm2)}" target="_blank" rel="noreferrer" style="text-decoration:none">📱 WhatsApp 通知 ${esc(tn2)} 老师</a>`;
+      })()}
       ${canStaff?`<div class="staff-stage-edit mb3" data-apid="${ap.id}">
         <div class="t12 fw6 c-gray6 mb1">招生阶段（可前进或回退）</div>
         <div class="row g2" style="align-items:center">
