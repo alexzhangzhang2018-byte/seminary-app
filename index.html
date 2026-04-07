@@ -202,9 +202,30 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 
 /* ══ 手机适配 Mobile responsive ══ */
 
+/* 防止整页横向滚动（图2问题修复） */
+html{overflow-x:hidden}
+
 /* 防止 iOS 点击 input 时自动放大（font-size < 16px 会触发） */
 @media(max-width:767px){
   input,textarea,select{font-size:16px}
+}
+
+/* 考试页面：手机端字体放大，阅读更舒适 */
+@media(max-width:767px){
+  /* 题目正文 */
+  #exam-main .card p{font-size:15px;line-height:1.7}
+  /* 填空/判断/选项提示文字 */
+  #exam-main .t13{font-size:15px}
+  /* 单选题选项 */
+  #exam-main .radio-opt{font-size:15px;padding:12px 14px;gap:12px}
+  /* 填空 textarea */
+  #exam-main .textarea{font-size:15px;min-height:120px}
+  /* 卡片内边距更宽松 */
+  #exam-main .card.p5{padding:18px 14px}
+  /* 计时器数字放大 */
+  #timer-disp{font-size:17px !important}
+  /* 考试计时器整体稍大 */
+  #timer-wrap{font-size:14px}
 }
 
 /* 步骤导航栏：手机端紧凑化 */
@@ -1768,7 +1789,7 @@ function startTimer(){
 function mergeTeacherProfilesFromSlots(slots, baseList){
   const map=new Map();
   (baseList||[]).forEach(p=>{
-    if(p&&p.id!=null) map.set(String(p.id),{id:p.id,display_name:p.display_name,interview_langs:p.interview_langs});
+    if(p&&p.id!=null) map.set(String(p.id),{id:p.id,display_name:p.display_name,interview_langs:p.interview_langs,whatsapp:p.whatsapp||''});
   });
   (slots||[]).forEach(s=>{
     if(!s||s.teacher_id==null) return;
@@ -1829,13 +1850,13 @@ async function loadAdminData(){
     try{
       const r=await sb.rpc('list_teachers_for_admin');
       if(!r.error && Array.isArray(r.data) && r.data.length){
-        tprof=r.data.map(row=>({id:row.id,display_name:row.display_name,interview_langs:row.interview_langs}));
+        tprof=r.data.map(row=>({id:row.id,display_name:row.display_name,interview_langs:row.interview_langs,whatsapp:row.whatsapp||''}));
       }
     }catch(e){ console.warn('list_teachers_for_admin', e); }
   }
   if(!tprof.length){
-    const {data:q}=await sb.from('profiles').select('id,display_name,interview_langs,role').in('role',['teacher','admin']).order('display_name');
-    tprof=(q||[]).filter(p=>p.role==='teacher').map(p=>({id:p.id,display_name:p.display_name,interview_langs:p.interview_langs}));
+    const {data:q}=await sb.from('profiles').select('id,display_name,interview_langs,role,whatsapp').in('role',['teacher','admin']).order('display_name');
+    tprof=(q||[]).filter(p=>p.role==='teacher').map(p=>({id:p.id,display_name:p.display_name,interview_langs:p.interview_langs,whatsapp:p.whatsapp||''}));
   }
   A.teacherProfiles = mergeTeacherProfilesFromSlots(A.allSlots, tprof);
 }
@@ -1863,7 +1884,7 @@ async function loadPublicSlots(){
   const [{data: slotRows}, {data: bookedAps}, {data: tprof}] = await Promise.all([
     sb.from('interview_slots').select('*').order('slot_date').order('slot_time'),
     sb.from('applicants').select('interview_slot_id').not('interview_slot_id', 'is', null),
-    sb.from('profiles').select('id,display_name,interview_langs').eq('role','teacher'),
+    sb.from('profiles').select('id,display_name,interview_langs,whatsapp').eq('role','teacher'),
   ]);
   const teacherList = tprof||[];
   const profileById = new Map(teacherList.map(p=>[String(p.id),p]));
@@ -2253,6 +2274,20 @@ async function confirmInterview(){
   A.applicant.interview_slot_id=A.ivSelected.id;
   A.applicantBookedInterviewSlot = A.ivSelected;
   toast(apLine('面试预约成功！','Interview booked!','Wawancara berhasil dipesan!'));
+  // 预约成功后自动打开管理员 WhatsApp 通知链接
+  try{
+    const _sl=A.ivSelected;
+    const _apName=fullName(A.applicant);
+    const _slotDesc=_sl?_sl.slot_date+' '+(_sl.slot_time||'').slice(0,5):'';
+    const _zid=_sl?.zoom_id||'847 5014 4631';
+    const _zpw=_sl?.zoom_password||'156903';
+    const _adminMsg=A.appLang==='en'
+      ?`[Interview booked] Applicant: ${_apName} | Time: ${_slotDesc} | Zoom: ${_zid} PW: ${_zpw}`
+      :A.appLang==='id'
+        ?`[Wawancara dipesan] Pelamar: ${_apName} | Waktu: ${_slotDesc} | Zoom: ${_zid} PW: ${_zpw}`
+        :`【面试预约提醒】\n申请人：${_apName}\n时间：${_slotDesc}\nZoom：${_zid} 密码：${_zpw}`;
+    window.open(`https://wa.me/6285283251074?text=${encodeURIComponent(_adminMsg)}`,'_blank','noopener,noreferrer');
+  }catch(_){}
   try{
     await sb.from('notification_log').insert([
       {applicant_id:A.applicant.id,type:'iv_scheduled',recipient:'applicant',content:`面试时间：${A.ivSelected.slot_date} ${A.ivSelected.slot_time}`},
@@ -2917,7 +2952,7 @@ function renderExamDoing(){
       ? `Pergantian jendela/tab: ${pf} kali`
       : `切屏 ${pf} 次 · ${pf===1?'1 switch':'switches'}`;
 
-  return `<div class="maxw-2xl mx-auto px4" style="padding-bottom:64px">
+  return `<div id="exam-main" class="maxw-2xl mx-auto px4" style="padding-bottom:64px">
     <div id="timer-wrap" class="row g3 r12 p3 mb4" style="position:sticky;top:64px;z-index:10;background:#eef2ff;border:1px solid #e0e7ff">
       <span>⏱</span>
       <div class="timer-bar-outer"><div id="timer-bar" class="timer-bar-inner" style="width:0%;background:linear-gradient(90deg,#4f46e5,#818cf8)"></div></div>
@@ -3306,18 +3341,49 @@ function materialsMissingCount(ap){
 }
 function renderIvConfirmed(){
   const sl=A.ivSelected || resolveSlotForApplicant(A.applicant);
-  const waNumber = '6285283251074'; // +62 85283251074
-  const waText = encodeURIComponent(`【面试预约提醒】\n申请人：${fullName(A.applicant)}\n时间：${sl?sl.slot_date+' '+(sl.slot_time||'').slice(0,5):''}\nZoom：${sl?.zoom_id||'847 5014 4631'} 密码：${sl?.zoom_password||'156903'}`);
+  const ADMIN_WA = '6285283251074'; // Alex 管理员 +62 85283251074
+  const apName = fullName(A.applicant);
+  const slotDesc = sl ? sl.slot_date+' '+(sl.slot_time||'').slice(0,5) : '';
+  const zoomId = sl?.zoom_id||'847 5014 4631';
+  const zoomPw = sl?.zoom_password||'156903';
+
+  // 生成管理员 WA 消息
+  const adminMsgZh = `【面试预约提醒】\n申请人：${apName}\n时间：${slotDesc}\nZoom：${zoomId} 密码：${zoomPw}`;
+  const adminMsgEn = `[Interview booked] Applicant: ${apName} | Time: ${slotDesc} | Zoom: ${zoomId} PW: ${zoomPw}`;
+  const adminMsgId = `[Wawancara dipesan] Pelamar: ${apName} | Waktu: ${slotDesc} | Zoom: ${zoomId} PW: ${zoomPw}`;
+  const adminMsg = A.appLang==='en' ? adminMsgEn : A.appLang==='id' ? adminMsgId : adminMsgZh;
+  const adminWaUrl = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(adminMsg)}`;
+
+  // 查找面试老师 WhatsApp
+  const teacherProfile = sl?.teacher_id
+    ? (A.teacherProfiles||[]).find(p=>String(p.id)===String(sl.teacher_id))
+    : null;
+  const teacherWa = String(teacherProfile?.whatsapp||'').replace(/\D/g,'');
+  const teacherName = teacherProfile?.display_name || sl?.teacher_name || '';
+  const teacherMsgZh = `【面试预约通知】\n${teacherName} 老师好，申请人 ${apName} 已预约您的面试时间：${slotDesc}\nZoom：${zoomId} 密码：${zoomPw}`;
+  const teacherMsgEn = `[Interview notice] Hi ${teacherName}, ${apName} has booked your slot: ${slotDesc} | Zoom: ${zoomId} PW: ${zoomPw}`;
+  const teacherMsgId = `[Pemberitahuan wawancara] Halo ${teacherName}, ${apName} telah memesan slot Anda: ${slotDesc} | Zoom: ${zoomId} PW: ${zoomPw}`;
+  const teacherMsg = A.appLang==='en' ? teacherMsgEn : A.appLang==='id' ? teacherMsgId : teacherMsgZh;
+  const teacherWaUrl = teacherWa ? `https://wa.me/${teacherWa}?text=${encodeURIComponent(teacherMsg)}` : '';
+
   return `<div class="maxw-lg mx-auto px4" style="padding:20px 16px 64px">
     <div class="tc mb6"><div class="t48 mb2">📅</div><div class="t22 fw7 c-gray8 mb1">${esc(apLine('面试预约成功！','Interview booked!','Wawancara berhasil dipesan!'))}</div>
     <div class="b1 bc-indigo200 bg-indigo50 r14 px6 py4 mt3" style="display:inline-block;text-align:left">
       <div class="t11 c-indigo4 mb1">${esc(apLine('面试时间','Time','Waktu'))}</div>
       <div class="t20 fw8 c-indigo6 mb3">${sl?esc(sl.slot_date)+' '+esc(sl.slot_time?.slice(0,5)||''):esc(apLine('已预约','Booked','Terjadwal'))}</div>
-      <div class="t12 c-gray5">${esc(apLine('Zoom ID','Zoom ID','Zoom ID'))}：${sl?.zoom_id||'847 5014 4631'}&nbsp;/&nbsp;${esc(apLine('密码','Passcode','Kode'))}：${sl?.zoom_password||'156903'}</div>
+      ${teacherName?`<div class="t12 c-gray6 mb2">👤 ${esc(teacherName)}</div>`:''}
+      <div class="t12 c-gray5">${esc(apLine('Zoom ID','Zoom ID','Zoom ID'))}：${zoomId}&nbsp;/&nbsp;${esc(apLine('密码','Passcode','Kode'))}：${zoomPw}</div>
     </div></div>
-    <div class="t12 c-gray5 mb4 lh16">${esc(apLine('请按上述时间准时参加面试；如有变动，教务会通过您预留的联系方式与您沟通。','Please join on time. The office will contact you if anything changes.','Harap tepat waktu. Kantor akan menghubungi jika ada perubahan.'))}</div>
-    <a class="btn btn-primary btn-full mb2" href="https://wa.me/${waNumber}?text=${waText}" target="_blank" rel="noreferrer">${esc(apLine('通过 WhatsApp 提醒管理员','Notify admin via WhatsApp','Ingatkan admin lewat WhatsApp'))}</a>
-    <div class="t11 c-gray4 tc lh16">${esc(apLine('预约成功后会尝试服务端推送（需部署 Edge Function「interview-notify」并配置 NOTIFY_WEBHOOK_URL，可用 Make 转发 WhatsApp）；也可点上方按钮手动提醒。','Server push after booking needs interview-notify + NOTIFY_WEBHOOK_URL (e.g. Make → WhatsApp); or use the button above.','Notifikasi server perlu interview-notify + NOTIFY_WEBHOOK_URL; atau gunakan tombol di atas.'))}</div>
+    <div class="t12 c-gray5 mb5 lh16">${esc(apLine('请按上述时间准时参加面试；如有变动，教务会通过您预留的联系方式与您沟通。','Please join on time. The office will contact you if anything changes.','Harap tepat waktu. Kantor akan menghubungi jika ada perubahan.'))}</div>
+    <div class="col g3">
+      <a class="btn btn-primary btn-full" href="${adminWaUrl}" target="_blank" rel="noreferrer">📱 ${esc(apLine('WhatsApp 通知管理员（张琦 Alex）','Notify admin (Zhang Qi Alex) via WhatsApp','WhatsApp ke Admin (Zhang Qi Alex)'))}</a>
+      ${teacherWaUrl
+        ? `<a class="btn btn-success btn-full" href="${teacherWaUrl}" target="_blank" rel="noreferrer">📱 ${esc(apLine(`WhatsApp 通知面试老师（${teacherName}）`,`Notify interviewer (${teacherName}) via WhatsApp`,`WhatsApp ke pewawancara (${teacherName})`))}
+</a>`
+        : (teacherName
+          ? `<div class="b1 bc-amber200 bg-amber50 r10 p3 t12 lh16" style="color:#92400e">⚠️ ${esc(apLine(`面试老师（${teacherName}）尚未在系统中设置 WhatsApp 号码，请联系教务手动通知。`,`Interviewer (${teacherName}) has no WhatsApp number set — please notify them manually.`,`Pewawancara (${teacherName}) belum mengatur nomor WhatsApp — hubungi secara manual.`))}</div>`
+          : '')}
+    </div>
   </div>`;
 }
 
@@ -3739,7 +3805,13 @@ function renderStaffMe(){
     <div class="card p5">
       <div class="fw7 c-gray8 t14 mb1">账号</div>
       <div class="t12 c-gray5 mb2">${esc(prof?.display_name||'用户')} · ${esc(A.user?.email||'')}</div>
-      <div class="t12 c-gray6 mb4">可参与面试语言：${esc(langs)}</div>
+      <div class="t12 c-gray6 mb3">可参与面试语言：${esc(langs)}</div>
+      <div class="fw6 c-gray7 t13 mb1">📱 我的 WhatsApp 号码</div>
+      <div class="t11 c-gray4 mb2 lh16">申请人预约面试后，系统会生成一键 WhatsApp 通知链接发给申请人。请填写国际格式号码（不含 +，如 <code>628512345678</code>）。</div>
+      <div class="row g2 mb4">
+        <input id="me-wa-input" class="inp flex1" placeholder="如 628512345678" value="${esc(prof?.whatsapp||'')}">
+        <button class="btn btn-primary btn-sm" id="btn-me-save-wa">保存</button>
+      </div>
       <div class="fw7 c-gray8 t14 mb2">本周面试一览（日历）</div>
       ${renderTeacherWeekCalendar(uid)}
     </div>
@@ -5339,6 +5411,18 @@ function bind(){
   });
   document.getElementById('btn-me-add-slots')?.addEventListener('click',async()=>{
     await teacherAddSlotRange('me-slot-date','me-slot-start','me-slot-end','me-slot-interval');
+  });
+  document.getElementById('btn-me-save-wa')?.addEventListener('click',async()=>{
+    if(!sb||!A.user?.id){toast('请重新登录',false);return;}
+    const wa=(document.getElementById('me-wa-input')?.value||'').trim().replace(/\D/g,'');
+    if(wa && !/^\d{7,15}$/.test(wa)){toast('号码格式有误，请填写纯数字国际格式（7-15位），如 628512345678',false);return;}
+    const {error}=await sb.from('profiles').update({whatsapp:wa}).eq('id',A.user.id);
+    if(error){toast('保存失败：'+error.message,false);return;}
+    if(A.profile) A.profile.whatsapp=wa;
+    // 同步到 teacherProfiles 缓存
+    const tp=A.teacherProfiles?.find(p=>String(p.id)===String(A.user.id));
+    if(tp) tp.whatsapp=wa;
+    toast('WhatsApp 号码已保存 ✓');
   });
   document.getElementById('btn-me-change-pw')?.addEventListener('click',async()=>{
     const p1=(document.getElementById('me-pw-new')?.value||'').trim();
