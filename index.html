@@ -6,6 +6,7 @@
 <title>MMS招生系统 · MMS Admissions</title>
 <script src="vendor/supabase.js"></script>
 <script src="vendor/jszip.min.js"></script>
+<script>try{if(typeof JSZip!=='undefined'&&(typeof window.JSZip==='undefined'||!window.JSZip))window.JSZip=JSZip;}catch(_){}</script>
 <script src="exam-locale.js"></script>
 <script src="exam-plain-bundled.js"></script>
 <style>
@@ -3114,12 +3115,51 @@ function validateVisaPickFile(file,kind){
 function sanitizeZipNamePart(s){
   return String(s||'').replace(/[/\\?%*:|"<>]/g,'_').replace(/\s+/g,' ').trim()||'未命名';
 }
+/** JSZip：优先 window（已修补 vendor/jszip 避免 AMD 吞掉全局变量） */
+function getJSZipConstructor(){
+  try{
+    if(typeof window!=='undefined'&&window.JSZip)return window.JSZip;
+    if(typeof JSZip!=='undefined')return JSZip;
+  }catch(_){}
+  return null;
+}
+/** 用浏览器直接生成可编辑的 CV 空白模板（不依赖服务器上的 PDF 文件） */
+function downloadStudentCvTemplate(){
+  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>MMS Student CV</title></head><body>'+
+    '<h2>MMS Seminary — Student CV (visa application)</h2>'+
+    '<p><strong>重要 / Important</strong><br>'+
+    '请用<strong>英文</strong>填写本表；姓名须与护照上的<strong>拼音（Pinyin）</strong>完全一致（拼写、顺序、空格与护照一致）。<br>'+
+    'Fill this form in <strong>English</strong>. Your name must match the <strong>pinyin</strong> on your passport exactly (spelling, order, spacing).</p>'+
+    '<table border="1" cellspacing="0" cellpadding="8" style="border-collapse:collapse;width:100%">'+
+    '<tr><td width="32%">Full name (pinyin, as on passport)</td><td>&nbsp;</td></tr>'+
+    '<tr><td>Date of birth</td><td>&nbsp;</td></tr>'+
+    '<tr><td>Nationality</td><td>&nbsp;</td></tr>'+
+    '<tr><td>Phone / Email</td><td>&nbsp;</td></tr>'+
+    '<tr><td>Education (institutions, degrees, years)</td><td>&nbsp;</td></tr>'+
+    '<tr><td>Work experience</td><td>&nbsp;</td></tr>'+
+    '<tr><td>Church &amp; ministry experience</td><td>&nbsp;</td></tr>'+
+    '<tr><td>Reason for applying to MMS</td><td>&nbsp;</td></tr>'+
+    '</table>'+
+    '<p style="margin-top:12px;font-size:12px;color:#555">After filling in, save as PDF or Word and upload in the visa section.</p>'+
+    '</body></html>';
+  const blob=new Blob(['\ufeff',html],{type:'application/msword'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='MMS-Student-CV-template.doc';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+  toast(apLine('模板已开始下载（可用 Word 打开填写）','Template downloaded (open in Word)','Template diunduh'));
+}
 async function downloadVisaMaterialsZip(ap){
-  if(typeof JSZip==='undefined'){toast(apLine('打包组件未加载','ZIP library missing','ZIP tidak dimuat'),false);return;}
+  const ZipLib=getJSZipConstructor();
+  if(!ZipLib){toast(apLine('打包组件未加载，请强制刷新页面（Ctrl+F5）后重试','ZIP library missing — hard refresh (Ctrl+F5) and retry.','ZIP tidak dimuat — muat ulang paksa'),false);return;}
   const vf=parseVisaFiles(ap);
   const spec=visaMaterialsSpecOk(vf);
   if(!spec.ok){toast(apLine('三份材料未齐，无法打包','Incomplete visa files','Berkas belum lengkap'),false);return;}
-  const zip=new JSZip();
+  const zip=new ZipLib();
   const add=(innerName,data)=>{
     const m=String(data).match(/^data:([^;]+);base64,(.+)$/);
     if(!m) return false;
@@ -3554,7 +3594,7 @@ function renderVisaMatFilesCard(ap){
   const cur=(label,data,fn)=>data?`<div class="t11 c-gray5 mt1">${esc(L('已保存：','Saved: ','Tersimpan: '))}${esc(fn||label)}</div>`:'';
   return `<div class="card p4 mb4">
     <div class="fw7 c-gray8 t14 mb2">${esc(L('学生签证材料（三项必传）','Student visa materials (3 required)','Materi visa (3 wajib)'))}</div>
-    <div class="t12 c-gray5 mb3 lh16">${esc(L('请上传护照扫描件、红底证件照（4×6），以及填写完毕的学生 CV。单文件请勿超过约 2.5MB。','Upload passport scan, red-background photo (4×6), and completed student CV. Max ~2.5MB each.','Unggah paspor, foto merah 4×6, dan CV. Maks ~2.5MB.'))}</div>
+    <div class="t12 c-gray5 mb3 lh16">${esc(L('请上传护照扫描件、红底证件照（4×6），以及填写完毕的学生 CV。CV 须用英文填写；姓名须与护照上的拼音完全一致。单文件请勿超过约 2.5MB。','Upload passport scan, red-background photo (4×6), and your CV in English; name must match passport pinyin exactly. Max ~2.5MB each.','Unggah paspor, foto merah 4×6, dan CV dalam bahasa Inggris; nama harus sama dengan pinyin di paspor. Maks ~2.5MB.'))}</div>
     ${st}
     <div class="col g4 mb3">
       <div class="b1 bc-gray200 r10 p3">
@@ -3569,7 +3609,8 @@ function renderVisaMatFilesCard(ap){
       </div>
       <div class="b1 bc-gray200 r10 p3">
         <div class="fw6 c-gray7 t12 mb2">3 · ${esc(L('学生 CV（先下载模板填写后再上传）','Student CV (download template, fill, upload)','CV (unduh template, isi, unggah)'))}</div>
-        <div class="mb2"><a class="btn btn-outline btn-sm" href="assets/forms/student-CV-template.pdf" download="student-CV-template.pdf">⬇ ${esc(L('下载 CV 空白模板','Download CV template','Unduh template CV'))}</a></div>
+        <div class="t11 c-gray6 lh16 mb2">${esc(L('须英文填写；姓名与护照拼音一致。','Must be in English; name must match passport pinyin.','Bahasa Inggris; nama = pinyin paspor.'))}</div>
+        <div class="mb2"><button type="button" class="btn btn-outline btn-sm" data-action="dl-student-cv-template">⬇ ${esc(L('下载 CV 空白模板','Download CV template','Unduh template CV'))}</button></div>
         <input type="file" id="visa-file-cv" accept=".pdf,.doc,.docx,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="t12" style="max-width:100%">
         ${cur('cv',vf.cv_data,vf.cv_filename)}
       </div>
@@ -4466,6 +4507,7 @@ function renderBriefingModal(ap){
         ${vlnk(visaF.passport_data,visaF.passport_filename,apLine('护照扫描','Passport','Paspor'))}
         ${vlnk(visaF.photo_data,visaF.photo_filename,apLine('红底证件照','Photo','Foto'))}
         ${vlnk(visaF.cv_data,visaF.cv_filename,apLine('学生 CV','Student CV','CV'))}
+        <div class="t11 c-gray5 mt2 lh16">${esc(apLine('学生 CV 须英文填写，姓名与护照拼音一致。','CV must be in English; name must match passport pinyin.','CV bahasa Inggris; nama = pinyin paspor.'))}</div>
         ${isAd&&visaSpec.ok?`<button type="button" class="btn btn-primary btn-sm mt2" data-action="dl-visa-zip" data-apid="${ap.id}">⬇ ${esc(apLine('一键打包 ZIP（文件名：【姓名-学生签材料】）','Download ZIP (【Name-student visa】)','Unduh ZIP'))}</button>`:(isAd?`<div class="t11 c-gray4 mt2">${esc(apLine('三份齐全后管理员可一键打包','ZIP when all three are saved','ZIP setelah lengkap'))}</div>`:'')}`:'<div class="t13 c-gray4">尚未进入签证环节或未上传材料。</div>'}
       </div>
 
@@ -5133,6 +5175,10 @@ function bind(){
         render();
       } else toast('保存失败：'+(error?.message||''),false);
     });
+  });
+
+  root.querySelectorAll('[data-action=dl-student-cv-template]').forEach(el=>{
+    el.addEventListener('click',e=>{e.preventDefault();downloadStudentCvTemplate();});
   });
 
   // ── Manual score entry ──
