@@ -3580,7 +3580,7 @@ function renderVisaMatFilesCard(ap){
       <div class="b1 bc-gray200 r10 p3">
         <div class="fw6 c-gray7 t12 mb2">3 · ${esc(L('学生 CV（先下载模板填写后再上传）','Student CV (download template, fill, upload)','CV (unduh template, isi, unggah)'))}</div>
         <div class="t11 c-gray6 lh16 mb2">${esc(L('须英文填写；姓名与护照拼音一致。','Must be in English; name must match passport pinyin.','Bahasa Inggris; nama = pinyin paspor.'))}</div>
-        <div class="mb2"><a class="btn btn-outline btn-sm" href="assets/forms/student-CV-template.pdf" download="MMS-student-CV-template.pdf" target="_blank" rel="noopener">⬇ ${esc(L('下载 CV 空白模板','Download CV template','Unduh template CV'))}</a></div>
+        <div class="mb2"><a class="btn btn-outline btn-sm" href="/assets/forms/student-CV-template.pdf" download="MMS-student-CV-template.pdf" target="_blank" rel="noopener">⬇ ${esc(L('下载 CV 空白模板','Download CV template','Unduh template CV'))}</a></div>
         <input type="file" id="visa-file-cv" accept=".pdf,.doc,.docx,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="t12" style="max-width:100%">
         ${cur('cv',vf.cv_data,vf.cv_filename)}
       </div>
