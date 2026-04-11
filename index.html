@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MMS招生系统 · MMS Admissions</title>
-<script src="vendor/supabase.js"></script>
-<script src="vendor/jszip.min.js"></script>
+<script src="/vendor/supabase.js"></script>
+<script src="/vendor/jszip.min.js"></script>
 <script>try{if(typeof JSZip!=='undefined'&&(typeof window.JSZip==='undefined'||!window.JSZip))window.JSZip=JSZip;}catch(_){}</script>
 <script src="exam-locale.js"></script>
 <script src="exam-plain-bundled.js"></script>
@@ -3123,9 +3123,47 @@ function getJSZipConstructor(){
   }catch(_){}
   return null;
 }
+/** 本地 vendor/jszip 若 404，则从 CDN 补载（避免仓库里漏传 vendor/） */
+let __jsZipLoadPromise=null;
+async function ensureJSZipConstructor(){
+  const existing=getJSZipConstructor();
+  if(existing) return existing;
+  if(!__jsZipLoadPromise){
+    __jsZipLoadPromise=new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.async=true;
+      s.crossOrigin='anonymous';
+      s.src='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+      s.onload=()=>{
+        try{
+          if(typeof JSZip!=='undefined'&&(typeof window.JSZip==='undefined'||!window.JSZip))window.JSZip=JSZip;
+        }catch(_){}
+        const Z=getJSZipConstructor();
+        if(Z) resolve(Z);
+        else reject(new Error('jszip'));
+      };
+      s.onerror=()=>reject(new Error('jszip-net'));
+      document.head.appendChild(s);
+    });
+  }
+  try{
+    return await __jsZipLoadPromise;
+  }catch(e){
+    __jsZipLoadPromise=null;
+    throw e;
+  }
+}
 async function downloadVisaMaterialsZip(ap){
-  const ZipLib=getJSZipConstructor();
-  if(!ZipLib){toast(apLine('打包组件未加载，请强制刷新页面（Ctrl+F5）后重试','ZIP library missing — hard refresh (Ctrl+F5) and retry.','ZIP tidak dimuat — muat ulang paksa'),false);return;}
+  let ZipLib;
+  try{
+    ZipLib=await ensureJSZipConstructor();
+  }catch(_){
+    ZipLib=null;
+  }
+  if(!ZipLib){
+    toast(apLine('打包组件未加载：请确认仓库中已部署 vendor/jszip.min.js，或检查网络后刷新重试','ZIP failed to load — ensure vendor/jszip.min.js is deployed, check network, refresh.','Gagal memuat ZIP — pastikan vendor/jszip.min.js ada, cek jaringan.'),false);
+    return;
+  }
   const vf=parseVisaFiles(ap);
   const spec=visaMaterialsSpecOk(vf);
   if(!spec.ok){toast(apLine('三份材料未齐，无法打包','Incomplete visa files','Berkas belum lengkap'),false);return;}
