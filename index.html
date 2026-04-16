@@ -1201,6 +1201,8 @@ const A = {
   allRecords: [],
   examQuestions: [],  // admin-managed exam questions
   teacherProfiles: [], // role=teacher，排班下拉与语言匹配用
+  staffLastSyncError: null,
+  staffLastSyncAt: null,
 };
 let examTimer = null;
 let applicantStagePoller = null;
@@ -1908,6 +1910,8 @@ async function loadAdminData(){
   else A.allRecords = prevRecs;
 
   if(!apRes.ok && (A.role==='admin' || A.role==='teacher')){
+    A.staffLastSyncError = formatSbError(apRes.error||apRes);
+    A.staffLastSyncAt = new Date().toISOString();
     // 若没有任何缓存（首次登录/无痕/清过数据），这里会表现为“0 卡片”
     // 这时自动做几次退避重试，提升弱网情况下的可用性
     const hadCache = prevApplicants && prevApplicants.length > 0;
@@ -1916,6 +1920,9 @@ async function loadAdminData(){
       : '同步招生数据失败：当前无本地缓存，将自动重试（请检查网络）'
     , false);
     if(!hadCache) scheduleStaffAdminDataRetry_();
+  } else if(apRes.ok){
+    A.staffLastSyncError = null;
+    A.staffLastSyncAt = new Date().toISOString();
   }
   if(apRes.ok) saveStaffCache();
 
@@ -2087,8 +2094,12 @@ async function refreshStaffApplicantsOnce(opts){
     const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
     if(listQ?.error || !Array.isArray(listQ?.data)){
       console.warn('refreshStaffApplicantsOnce failed', listQ?.error);
+      A.staffLastSyncError = formatSbError(listQ?.error||'refresh_failed');
+      A.staffLastSyncAt = new Date().toISOString();
       return; // 保留现有缓存，避免列表被清空
     }
+    A.staffLastSyncError = null;
+    A.staffLastSyncAt = new Date().toISOString();
     const rows = listQ.data;
     // 仅在确实有变化时更新，减少 render 抖动
     const prev = A.allApplicants || [];
@@ -3275,6 +3286,42 @@ function validateVisaPickFile(file,kind){
 function sanitizeZipNamePart(s){
   return String(s||'').replace(/[/\\?%*:|"<>]/g,'_').replace(/\s+/g,' ').trim()||'未命名';
 }
+
+function formatSbError(err){
+  if(!err) return '';
+  try{
+    const e=err;
+    const parts=[];
+    if(e.status!=null) parts.push('status='+e.status);
+    if(e.code) parts.push('code='+e.code);
+    if(e.error) parts.push('error='+e.error);
+    if(e.message) parts.push('msg='+e.message);
+    if(e.details) parts.push('details='+String(e.details).slice(0,120));
+    if(e.hint) parts.push('hint='+String(e.hint).slice(0,120));
+    const s=parts.join(' ');
+    return s || String(e);
+  }catch(_){
+    return String(err);
+  }
+}
+
+async function runStaffDiagnostics(){
+  if(!sb){toast('Supabase 未初始化：请确认 /vendor/supabase.js 加载成功', false);return;}
+  try{
+    const sessRes = await sb.auth.getSession();
+    const has = !!sessRes?.data?.session;
+    const role = A.role || '(none)';
+    const q = await sb.from('applicants').select('id,created_at').order('created_at',{ascending:false}).limit(1);
+    if(q?.error){
+      toast('诊断失败：'+(has?`已登录(${role})`:`无会话(${role})`)+'；'+formatSbError(q.error), false);
+      return;
+    }
+    const top = (q.data && q.data[0]) ? String(q.data[0].created_at||'') : '(empty)';
+    toast('诊断 OK：'+(has?`已登录(${role})`:`无会话(${role})`)+'；applicants 可读；最新 created_at='+top);
+  }catch(e){
+    toast('诊断异常：'+formatSbError(e), false);
+  }
+}
 /** JSZip：优先 window（已修补 vendor/jszip 避免 AMD 吞掉全局变量） */
 function getJSZipConstructor(){
   try{
@@ -4190,8 +4237,9 @@ function renderAdmin(){
   return `<div style="min-height:100vh;background:#f4f5ff;display:flex;flex-direction:column">
     <div class="header">
       <div class="row g3"><span class="t20">🏫</span><span class="fw7 c-gray8">招生工作台</span>${roleTag}</div>
-      <div class="row g2">${mkAv(avLetter,'sm',isAd?'av-indigo':'av-violet')}<span class="t12 c-gray6">${esc(A.profile?.display_name||A.user?.email||'')}</span><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
+      <div class="row g2">${mkAv(avLetter,'sm',isAd?'av-indigo':'av-violet')}<span class="t12 c-gray6">${esc(A.profile?.display_name||A.user?.email||'')}</span><button class="btn btn-ghost btn-sm" id="btn-staff-diag">诊断</button><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
     </div>
+    ${(!boot && A.staffLastSyncError)?`<div class="px6" style="padding-top:10px"><div class="b1 bc-rose200 bg-rose50 r12 px4 py3 t12" style="color:#b91c1c">同步异常：${esc(String(A.staffLastSyncError).slice(0,220))}</div></div>`:''}
     <div class="stats">${stats.map(s=>`<div class="stat-card"><div class="t28 fw8" style="color:${s.color}">${s.value}</div><div class="t11 c-gray4 mt1">${s.label}</div></div>`).join('')}</div>
     <div class="tabbar"${boot?' style="opacity:.55;pointer-events:none"':''}>${tabs.map(t=>`<button class="tab${A.adminTab===t.id?' active':''}" data-admin-tab="${t.id}">${t.icon} ${t.label}</button>`).join('')}</div>
     <div class="flex1 ovy px6 py4" style="padding-bottom:40px">${content}</div>
@@ -4855,6 +4903,7 @@ function bind(){
     await loginStaff(email,pw);
   });
   document.getElementById('btn-logout')?.addEventListener('click',logout);
+  document.getElementById('btn-staff-diag')?.addEventListener('click',runStaffDiagnostics);
 
   // ── Exam ──
   root.querySelectorAll('[data-action=set-exam-lang]').forEach(el=>{
