@@ -1206,6 +1206,8 @@ let examTimer = null;
 let applicantStagePoller = null;
 let interviewSlotsPoller = null;
 let staffApplicantsPoller = null;
+let staffAdminDataRetryTimer = null;
+let staffAdminDataRetryCount = 0;
 
 // ══════════════════════════════════════════════════════════════
 // HELPERS
@@ -1906,7 +1908,14 @@ async function loadAdminData(){
   else A.allRecords = prevRecs;
 
   if(!apRes.ok && (A.role==='admin' || A.role==='teacher')){
-    toast('同步招生数据失败：已保留上次缓存，请稍后刷新重试', false);
+    // 若没有任何缓存（首次登录/无痕/清过数据），这里会表现为“0 卡片”
+    // 这时自动做几次退避重试，提升弱网情况下的可用性
+    const hadCache = prevApplicants && prevApplicants.length > 0;
+    toast(hadCache
+      ? '同步招生数据失败：已保留上次缓存，请稍后刷新重试'
+      : '同步招生数据失败：当前无本地缓存，将自动重试（请检查网络）'
+    , false);
+    if(!hadCache) scheduleStaffAdminDataRetry_();
   }
   if(apRes.ok) saveStaffCache();
 
@@ -1924,6 +1933,30 @@ async function loadAdminData(){
     tprof=(q||[]).filter(p=>p.role==='teacher').map(p=>({id:p.id,display_name:p.display_name,interview_langs:p.interview_langs,whatsapp:p.whatsapp||''}));
   }
   A.teacherProfiles = mergeTeacherProfilesFromSlots(A.allSlots, tprof);
+}
+
+function scheduleStaffAdminDataRetry_(){
+  if(typeof window==='undefined') return;
+  if(A.role!=='admin' && A.role!=='teacher') return;
+  if(staffAdminDataRetryTimer) return;
+  if(staffAdminDataRetryCount >= 4) return;
+  const delay = [1500, 3000, 6000, 12000][staffAdminDataRetryCount] || 12000;
+  staffAdminDataRetryCount++;
+  staffAdminDataRetryTimer = setTimeout(async ()=>{
+    staffAdminDataRetryTimer = null;
+    // 若用户已退出/切换角色，不再重试
+    if(A.role!=='admin' && A.role!=='teacher') return;
+    try{
+      A.adminDataLoading = true;
+      render();
+      await loadAdminData();
+    }catch(e){
+      console.warn('scheduleStaffAdminDataRetry_', e);
+    }finally{
+      A.adminDataLoading = false;
+      render();
+    }
+  }, delay);
 }
 
 /** 管理员删除申请人（需 Supabase 已执行 migrations/20260417100000_delete_applicant_by_admin_rpc.sql） */
@@ -2626,6 +2659,8 @@ async function logout(){
   await sb.auth.signOut();
   if(applicantStagePoller){clearInterval(applicantStagePoller);applicantStagePoller=null;}
   if(interviewSlotsPoller){clearInterval(interviewSlotsPoller);interviewSlotsPoller=null;}
+  if(staffAdminDataRetryTimer){clearTimeout(staffAdminDataRetryTimer);staffAdminDataRetryTimer=null;}
+  staffAdminDataRetryCount = 0;
   Object.assign(A,{
     role:null,user:null,profile:null,applicant:null,
     adminTab:'pipeline',
