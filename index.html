@@ -1205,6 +1205,7 @@ const A = {
 let examTimer = null;
 let applicantStagePoller = null;
 let interviewSlotsPoller = null;
+let staffApplicantsPoller = null;
 
 // ══════════════════════════════════════════════════════════════
 // HELPERS
@@ -1600,6 +1601,41 @@ function toast(msg,ok=true){
 
 // ── 申请人：本地会话 + 笔试草稿（刷新免重复登录、答题进度可恢复）────────────────
 const APPLICANT_SESSION_KEY='seminary_portal_applicant_v1';
+const STAFF_CACHE_KEY='seminary_portal_staff_cache_v1';
+
+function loadStaffCache(){
+  try{
+    const raw=localStorage.getItem(STAFF_CACHE_KEY);
+    if(!raw) return null;
+    const o=JSON.parse(raw);
+    if(!o||!Array.isArray(o.allApplicants)) return null;
+    return o;
+  }catch(_){ return null; }
+}
+function saveStaffCache(){
+  try{
+    if(!Array.isArray(A.allApplicants)) return;
+    // 只缓存轻字段，避免 localStorage 过大（JSON 表/长文本不缓存）
+    const lite = A.allApplicants.map(ap=>({
+      id: ap.id,
+      created_at: ap.created_at,
+      first_name: ap.first_name,
+      last_name: ap.last_name,
+      full_name: ap.full_name,
+      phone: ap.phone,
+      phone_last4: ap.phone_last4,
+      email: ap.email,
+      stage: ap.stage,
+      exam_lang: ap.exam_lang,
+      ui_lang: ap.ui_lang,
+      exam_score: ap.exam_score,
+      interview_slot_id: ap.interview_slot_id,
+      sheet_import_unseen: ap.sheet_import_unseen,
+      google_sheet_row: ap.google_sheet_row,
+    }));
+    localStorage.setItem(STAFF_CACHE_KEY, JSON.stringify({ts:Date.now(), allApplicants: lite}));
+  }catch(_){}
+}
 function applicantExamDraftKey(id){ return 'seminary_portal_exam_draft_'+String(id); }
 let __examDraftSaveTimer=null;
 
@@ -1824,22 +1860,55 @@ async function acknowledgeApplicantSheetImport(apid){
 }
 
 async function loadAdminData(){
-  const [apRes,{data:slots},{data:recs}] = await Promise.all([
+  const prevApplicants = Array.isArray(A.allApplicants) ? A.allApplicants : [];
+  const prevSlots = Array.isArray(A.allSlots) ? A.allSlots : [];
+  const prevRecs = Array.isArray(A.allRecords) ? A.allRecords : [];
+
+  const [apRes, slotsRes, recsRes] = await Promise.all([
     (async()=>{
-      const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
-      if(listQ.error){
-        console.warn('applicants 瘦身列查询失败，回退 select(*)', listQ.error);
-        const fb=await sb.from('applicants').select('*').order('created_at',{ascending:false});
-        return {data:fb.data||[]};
+      try{
+        const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
+        if(listQ?.error){
+          console.warn('loadAdminData applicants failed', listQ.error);
+          return {ok:false,error:listQ.error};
+        }
+        if(!Array.isArray(listQ?.data)){
+          return {ok:false,error:new Error('bad_applicants_payload')};
+        }
+        return {ok:true,data:listQ.data};
+      }catch(e){
+        console.warn('loadAdminData applicants exception', e);
+        return {ok:false,error:e};
       }
-      return {data:listQ.data||[]};
     })(),
-    sb.from('interview_slots').select('*').order('slot_date').order('slot_time'),
-    sb.from('interview_records').select('*').order('created_at',{ascending:false}),
+    (async()=>{
+      try{
+        const r=await sb.from('interview_slots').select('*').order('slot_date').order('slot_time');
+        if(r?.error){ console.warn('loadAdminData slots failed', r.error); return {ok:false,error:r.error}; }
+        return {ok:true,data:Array.isArray(r?.data)?r.data:[]};
+      }catch(e){ console.warn('loadAdminData slots exception', e); return {ok:false,error:e}; }
+    })(),
+    (async()=>{
+      try{
+        const r=await sb.from('interview_records').select('*').order('created_at',{ascending:false});
+        if(r?.error){ console.warn('loadAdminData recs failed', r.error); return {ok:false,error:r.error}; }
+        return {ok:true,data:Array.isArray(r?.data)?r.data:[]};
+      }catch(e){ console.warn('loadAdminData recs exception', e); return {ok:false,error:e}; }
+    })(),
   ]);
-  A.allApplicants = apRes.data||[];
-  A.allSlots      = slots||[];
-  A.allRecords    = recs||[];
+
+  // 重要：若某类数据拉取失败，则保留上一份缓存，避免界面瞬间变成 0 张卡片
+  if(apRes.ok) A.allApplicants = apRes.data;
+  else A.allApplicants = prevApplicants;
+  if(slotsRes.ok) A.allSlots = slotsRes.data;
+  else A.allSlots = prevSlots;
+  if(recsRes.ok) A.allRecords = recsRes.data;
+  else A.allRecords = prevRecs;
+
+  if(!apRes.ok && (A.role==='admin' || A.role==='teacher')){
+    toast('同步招生数据失败：已保留上次缓存，请稍后刷新重试', false);
+  }
+  if(apRes.ok) saveStaffCache();
 
   let tprof=[];
   if(A.role==='admin'){
@@ -1973,6 +2042,57 @@ function syncInterviewSlotPoll(){
   } else if(interviewSlotsPoller){
     clearInterval(interviewSlotsPoller);
     interviewSlotsPoller = null;
+  }
+}
+
+/** 管理端/教师端：定时刷新 applicants，避免需要手动刷新页面才看到新申请人 */
+async function refreshStaffApplicantsOnce(opts){
+  opts = opts || {};
+  if(!sb || (A.role!=='admin' && A.role!=='teacher')) return;
+  if(typeof document!=='undefined' && document.hidden && !opts.force) return;
+  try{
+    const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
+    if(listQ?.error || !Array.isArray(listQ?.data)){
+      console.warn('refreshStaffApplicantsOnce failed', listQ?.error);
+      return; // 保留现有缓存，避免列表被清空
+    }
+    const rows = listQ.data;
+    // 仅在确实有变化时更新，减少 render 抖动
+    const prev = A.allApplicants || [];
+    const prevTop = prev[0]?.created_at ? String(prev[0].created_at) : '';
+    const nextTop = rows[0]?.created_at ? String(rows[0].created_at) : '';
+    const changed = prev.length !== rows.length || prevTop !== nextTop;
+    if(changed){
+      A.allApplicants = rows;
+      if(A.selectedApId && !A.allApplicants.some(a=>String(a.id)===String(A.selectedApId))){
+        A.selectedApId = null;
+      }
+      render();
+    }
+  }catch(e){
+    // 静默失败：避免刷屏影响工作台使用
+    console.warn('refreshStaffApplicantsOnce', e);
+  }
+}
+
+function syncStaffApplicantsPoll(){
+  const need = (A.role==='admin' || A.role==='teacher');
+  if(need){
+    if(!staffApplicantsPoller){
+      // 60 秒刷新一次；窗口重新聚焦/恢复可见时强制刷新
+      staffApplicantsPoller = setInterval(()=>{ refreshStaffApplicantsOnce({force:false}); }, 60000);
+      try{
+        window.addEventListener('focus', ()=>{ refreshStaffApplicantsOnce({force:true}); });
+        document.addEventListener('visibilitychange', ()=>{
+          if(!document.hidden) refreshStaffApplicantsOnce({force:true});
+        });
+      }catch(_){}
+      // 登录后立即补拉一次，减少等待
+      refreshStaffApplicantsOnce({force:true});
+    }
+  } else if(staffApplicantsPoller){
+    clearInterval(staffApplicantsPoller);
+    staffApplicantsPoller = null;
   }
 }
 
@@ -2484,6 +2604,11 @@ async function loginStaff(email,password){
   const {data:prof}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
   A.profile=prof;
   A.role=prof?.role||'teacher';
+  // 先用本地缓存秒开（网络慢时避免长时间空白/0 卡片）
+  const cache = loadStaffCache();
+  if(cache && Array.isArray(cache.allApplicants) && cache.allApplicants.length){
+    A.allApplicants = cache.allApplicants;
+  }
   A.adminDataLoading=true;
   render();
   try{
@@ -4672,6 +4797,7 @@ function render(){
   }
   if(A.role==='applicant'&&A.applicant?.stage==='exam'&&A.examStarted&&!A.examSubmitted) startTimer();
   syncInterviewSlotPoll();
+  syncStaffApplicantsPoll();
 }
 
 function bind(){
