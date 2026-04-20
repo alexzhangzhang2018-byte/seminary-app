@@ -2561,26 +2561,86 @@ async function loginApplicant(name,last4){
   if(!sb){toast('未连接数据库，请检查网络后刷新',false);return;}
   // 必须先清掉教师/管理员的 JWT，否则请求走 authenticated，RLS 无对应 UPDATE 策略会导致保存/推进阶段等全部失败
   try{ await sb.auth.signOut(); }catch(_){}
-  const trimName=name.trim();
-  const {data,error}=await sb.from('applicants').select('*').eq('full_name',trimName).eq('phone_last4',last4.trim()).maybeSingle();
-  if(error||!data){toast(apLine('姓名或手机后四位不正确','Name or last 4 phone digits incorrect.','Nama atau 4 digit HP salah.'),false);return;}
-  A.role='applicant';A.applicant=data;
-  const postExamStages=['interview','result','materials','visa','complete','rejected','waitlist'];
-  const postExam=postExamStages.includes(data.stage||'');
-  A.appLang=(A.appLang||data.ui_lang||'zh');
-  A.examLang=postExam?(data.exam_lang||A.examLang||'zh'):(data.exam_lang||A.examLang||A.appLang||'zh');
-  if(data.id){
-    if(!data.ui_lang||data.ui_lang!==A.appLang) persistApplicantAppLang(A.appLang);
-    if(!postExam&&(!data.exam_lang||data.exam_lang!==A.examLang)) persistApplicantExamLang(A.examLang);
+  const trimName=String(name||'').trim();
+  const last4s=String(last4||'').trim();
+  const norm = s => String(s||'')
+    .trim()
+    .replace(/\s+/g,'')
+    .replace(/[（(].*?[）)]/g,'') // 去掉括号备注（如“张三(微信)”）
+    .toLowerCase();
+  // 优先走数据库侧的安全登录 RPC（避免放开 anon 直接 SELECT applicants 造成信息泄露）
+  // 若 RPC 未部署，则回退旧逻辑（依赖 anon SELECT applicants 的 RLS 策略）。
+  try{
+    const rpc = await sb.rpc('login_applicant_by_name_last4',{p_name:trimName,p_last4:last4s});
+    if(rpc && !rpc.error && rpc.data){
+      A.role='applicant';A.applicant=rpc.data;
+      const postExamStages=['interview','result','materials','visa','complete','rejected','waitlist'];
+      const postExam=postExamStages.includes(rpc.data.stage||'');
+      A.appLang=(A.appLang||rpc.data.ui_lang||'zh');
+      A.examLang=postExam?(rpc.data.exam_lang||A.examLang||'zh'):(rpc.data.exam_lang||A.examLang||A.appLang||'zh');
+      if(rpc.data.id){
+        if(!rpc.data.ui_lang||rpc.data.ui_lang!==A.appLang) persistApplicantAppLang(A.appLang);
+        if(!postExam&&(!rpc.data.exam_lang||rpc.data.exam_lang!==A.examLang)) persistApplicantExamLang(A.examLang);
+      }
+      persistApplicantBrowserSession(rpc.data,trimName,last4s);
+      A.examStarted=false;
+      A.examSubmitted=false;
+      A.examAnswers={};
+      A.essayText='';
+      A.proctorFlags=0;
+      mergeStoredExamDraftIfExamStage(rpc.data);
+      await finalizeApplicantHydration(rpc.data);
+      return;
+    }
+    // 若 RPC 返回空（没匹配到），继续走旧逻辑（方便灰度/兼容）
+  }catch(e){
+    console.warn('login_applicant_by_name_last4 rpc failed', e);
   }
-  persistApplicantBrowserSession(data,trimName,last4.trim());
+  // 先按 phone_last4 拉候选，再本地匹配姓名（避免 full_name 字段差异/空格导致无法登录）
+  const {data:list,error:listErr}=await sb
+    .from('applicants')
+    .select('*')
+    .eq('phone_last4', last4s)
+    .order('created_at',{ascending:false})
+    .limit(20);
+  if(listErr){
+    toast(apLine('登录失败：网络或数据库异常，请稍后重试','Login failed: network/database error, retry later.','Gagal login: jaringan/database, coba lagi.'),false);
+    console.warn('loginApplicant listErr', listErr);
+    return;
+  }
+  const candidates = Array.isArray(list) ? list : [];
+  const want = norm(trimName);
+  const pick = candidates.find(ap=>{
+    const fn = norm(ap.full_name);
+    const f1 = norm((ap.first_name||'')+(ap.last_name||''));
+    const f2 = norm((ap.last_name||'')+(ap.first_name||''));
+    return want && (want===fn || want===f1 || want===f2);
+  });
+  if(!pick){
+    // 友好提示：后四位可能填错
+    const hint = candidates.length
+      ? apLine('提示：该手机号后四位下存在记录，但姓名不匹配。请核对表格里“phone”列的后四位，或联系教务。','Hint: we found records with that last-4 digits but name does not match. Please re-check the phone last-4 digits in the form, or contact the office.','Petunjuk: ada data dengan 4 digit ini tapi nama tidak cocok. Cek lagi 4 digit HP atau hubungi admin.')
+      : apLine('姓名或手机后四位不正确','Name or last 4 phone digits incorrect.','Nama atau 4 digit HP salah.');
+    toast(hint,false);
+    return;
+  }
+  A.role='applicant';A.applicant=pick;
+  const postExamStages=['interview','result','materials','visa','complete','rejected','waitlist'];
+  const postExam=postExamStages.includes(pick.stage||'');
+  A.appLang=(A.appLang||pick.ui_lang||'zh');
+  A.examLang=postExam?(pick.exam_lang||A.examLang||'zh'):(pick.exam_lang||A.examLang||A.appLang||'zh');
+  if(pick.id){
+    if(!pick.ui_lang||pick.ui_lang!==A.appLang) persistApplicantAppLang(A.appLang);
+    if(!postExam&&(!pick.exam_lang||pick.exam_lang!==A.examLang)) persistApplicantExamLang(A.examLang);
+  }
+  persistApplicantBrowserSession(pick,trimName,last4s);
   A.examStarted=false;
   A.examSubmitted=false;
   A.examAnswers={};
   A.essayText='';
   A.proctorFlags=0;
-  mergeStoredExamDraftIfExamStage(data);
-  await finalizeApplicantHydration(data);
+  mergeStoredExamDraftIfExamStage(pick);
+  await finalizeApplicantHydration(pick);
 }
 
 /** 上传资料阶段：已提交且教务已批复奖助后，进入签证或（印尼语班）完成环节 */
