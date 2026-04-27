@@ -2353,15 +2353,45 @@ async function submitExam(){
     `切换屏幕次数：${A.proctorFlags||0} 次`,
   ].join('\n');
 
-  const {error} = await sb.from('applicants').update({
-    exam_score:scoreScaled,
-    exam_essay:examEssayWithRemark,
-    exam_answers:EA,
-    exam_completed_at:new Date().toISOString(),
-    stage:'interview',
-    exam_lang: EL,
-  }).eq('id',A.applicant.id);
-  if(!error){
+  // 优先走安全 RPC：避免因收紧 RLS 导致 anon update applicants 失败而“交卷无成绩”
+  // RPC 需在 Supabase SQL Editor 执行：submit_exam_for_applicant（SECURITY DEFINER, row_security=off, grant anon）
+  let ok=false;
+  let errMsg='';
+  try{
+    const rpc = await sb.rpc('submit_exam_for_applicant',{
+      p_applicant_id: A.applicant.id,
+      p_exam_score: scoreScaled,
+      p_exam_essay: examEssayWithRemark,
+      p_exam_answers: EA,
+      p_exam_lang: EL,
+      p_proctor_flags: (A.proctorFlags||0),
+    });
+    if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
+      ok=true;
+    } else if(rpc?.error){
+      errMsg = rpc.error.message || String(rpc.error);
+    }
+  }catch(e){
+    errMsg = String(e?.message||e||'');
+  }
+  if(!ok){
+    // 兼容：若 RPC 未部署，则回退旧 update（依赖 anon UPDATE applicants）
+    try{
+      const {error} = await sb.from('applicants').update({
+        exam_score:scoreScaled,
+        exam_essay:examEssayWithRemark,
+        exam_answers:EA,
+        exam_completed_at:new Date().toISOString(),
+        stage:'interview',
+        exam_lang: EL,
+      }).eq('id',A.applicant.id);
+      if(!error) ok=true;
+      else errMsg = error.message || String(error);
+    }catch(e){
+      errMsg = errMsg || String(e?.message||e||'');
+    }
+  }
+  if(ok){
     A.applicant.exam_score=scoreScaled;
     A.applicant.exam_essay=examEssayWithRemark;
     A.applicant.exam_lang = EL;
@@ -2370,7 +2400,9 @@ async function submitExam(){
     clearApplicantExamDraft(A.applicant.id);
     toast(apLine('答卷已提交。教务将阅卷，分数由老师另行通知，请按提示预约面试。','Submitted. Staff will review your paper; scores are shared by the office — please book your interview as guided.','Terkirim. Staf akan menilai; nilai diberitahu kantor — lanjut pesan wawancara.'));
     await loadPublicSlots();
-  } else toast(apLine('提交失败','Submit failed','Gagal mengirim'),false);
+  } else {
+    toast(apLine('提交失败：','Submit failed: ','Gagal mengirim: ')+(errMsg||''),false);
+  }
   render();
 }
 
@@ -3378,6 +3410,22 @@ async function runStaffDiagnostics(){
     }
     const top = (q.data && q.data[0]) ? String(q.data[0].created_at||'') : '(empty)';
     toast('诊断 OK：'+(has?`已登录(${role})`:`无会话(${role})`)+'；applicants 可读；最新 created_at='+top);
+    // 若诊断 OK 但看板仍显示 0，通常是前端刷新节奏问题；这里强制立即拉一次最新列表
+    try{
+      if(A.role==='admin' || A.role==='teacher'){
+        await refreshStaffApplicantsOnce({force:true});
+        // 仍为空时，补跑一次全量加载（含 slots/records），提高恢复概率
+        if(!A.adminDataLoading && (!Array.isArray(A.allApplicants) || A.allApplicants.length===0)){
+          A.adminDataLoading=true;
+          render();
+          await loadAdminData();
+          A.adminDataLoading=false;
+          render();
+        }
+      }
+    }catch(e){
+      console.warn('runStaffDiagnostics refresh', e);
+    }
   }catch(e){
     toast('诊断异常：'+formatSbError(e), false);
   }
