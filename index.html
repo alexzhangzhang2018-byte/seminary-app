@@ -2351,6 +2351,8 @@ async function submitExam(){
   // RPC 需在 Supabase SQL Editor 执行：submit_exam_for_applicant（SECURITY DEFINER, row_security=off, grant anon）
   let ok=false;
   let errMsg='';
+  let usedRpc=false;
+  let rpcPayload=null;
   try{
     const rpc = await sb.rpc('submit_exam_for_applicant',{
       p_applicant_id: A.applicant.id,
@@ -2360,6 +2362,8 @@ async function submitExam(){
       p_exam_lang: EL,
       p_proctor_flags: (A.proctorFlags||0),
     });
+    usedRpc = true;
+    rpcPayload = rpc?.data || null;
     if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
       ok=true;
     } else if(rpc?.error){
@@ -2386,32 +2390,45 @@ async function submitExam(){
     }
   }
   if(ok){
-    // 强校验：立刻回读该行，确认确实写入成功（防止“假成功”）
-    try{
-      const {data:chk, error:chkErr} = await sb
-        .from('applicants')
-        .select('stage,exam_score,exam_essay,exam_completed_at,exam_lang')
-        .eq('id', A.applicant.id)
-        .maybeSingle();
-      if(chkErr){
-        ok=false;
-        errMsg = chkErr.message || String(chkErr);
-      } else if(!chk || chk.exam_completed_at==null || chk.exam_score==null || String(chk.stage||'')!=='interview'){
-        ok=false;
-        errMsg = '写入未生效（请硬刷新后重试）';
-      } else {
-        A.applicant.exam_score=chk.exam_score;
-        A.applicant.exam_essay=chk.exam_essay||examEssayWithRemark;
-        A.applicant.exam_lang = chk.exam_lang || EL;
-        A.applicant.stage=chk.stage||'interview';
+    // 注意：若你收紧了 applicants 的 anon SELECT（用于防信息泄露），这里不能再用回读校验。
+    // 只要 RPC 返回 ok，即视为写入成功；并在本地直接推进到面试阶段。
+    // （建议把 RPC 升级为返回写入后的 stage/exam_score/exam_completed_at，用于可验证回显。）
+    if(usedRpc){
+      A.applicant.exam_score=scoreScaled;
+      A.applicant.exam_essay=examEssayWithRemark;
+      A.applicant.exam_lang = EL;
+      A.applicant.stage='interview';
+      A.examSubmitted=true;
+      clearApplicantExamDraft(A.applicant.id);
+      toast(apLine('答卷已提交。教务将阅卷，分数由老师另行通知，请按提示预约面试。','Submitted. Staff will review your paper; scores are shared by the office — please book your interview as guided.','Terkirim. Staf akan menilai; nilai diberitahu kantor — lanjut pesan wawancara.'));
+      await loadPublicSlots();
+    } else {
+      // fallback update 路径：尽量回读确认；若因 RLS 无法回读，则直接提示成功并让用户重新登录查看阶段
+      try{
+        const {data:chk, error:chkErr} = await sb
+          .from('applicants')
+          .select('stage,exam_score,exam_completed_at')
+          .eq('id', A.applicant.id)
+          .maybeSingle();
+        if(!chkErr && chk && chk.exam_completed_at!=null && chk.exam_score!=null){
+          A.applicant.stage=chk.stage||'interview';
+          A.applicant.exam_score=chk.exam_score;
+          A.examSubmitted=true;
+          clearApplicantExamDraft(A.applicant.id);
+          toast(apLine('答卷已提交。','Submitted.','Terkirim.'));
+          await loadPublicSlots();
+        } else {
+          A.examSubmitted=true;
+          clearApplicantExamDraft(A.applicant.id);
+          toast(apLine('答卷已提交（若未跳转，请退出重登或稍后刷新）。','Submitted (if not advanced, log out/in or refresh later).','Terkirim (jika belum lanjut, masuk lagi atau muat ulang).'));
+          await loadPublicSlots();
+        }
+      }catch(_){
         A.examSubmitted=true;
         clearApplicantExamDraft(A.applicant.id);
-        toast(apLine('答卷已提交。教务将阅卷，分数由老师另行通知，请按提示预约面试。','Submitted. Staff will review your paper; scores are shared by the office — please book your interview as guided.','Terkirim. Staf akan menilai; nilai diberitahu kantor — lanjut pesan wawancara.'));
+        toast(apLine('答卷已提交（若未跳转，请退出重登或稍后刷新）。','Submitted (if not advanced, log out/in or refresh later).','Terkirim (jika belum lanjut, masuk lagi atau muat ulang).'));
         await loadPublicSlots();
       }
-    }catch(e){
-      ok=false;
-      errMsg = String(e?.message||e||'');
     }
   } else {
     toast(apLine('提交失败：','Submit failed: ','Gagal mengirim: ')+(errMsg||''),false);
