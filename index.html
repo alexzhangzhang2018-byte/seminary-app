@@ -2392,15 +2392,37 @@ async function submitExam(){
     }
   }
   if(ok){
-    A.applicant.exam_score=scoreScaled;
-    A.applicant.exam_essay=examEssayWithRemark;
-    A.applicant.exam_lang = EL;
-    A.applicant.stage='interview';
-    A.examSubmitted=true;
-    clearApplicantExamDraft(A.applicant.id);
-    toast(apLine('答卷已提交。教务将阅卷，分数由老师另行通知，请按提示预约面试。','Submitted. Staff will review your paper; scores are shared by the office — please book your interview as guided.','Terkirim. Staf akan menilai; nilai diberitahu kantor — lanjut pesan wawancara.'));
-    await loadPublicSlots();
+    // 强校验：立刻回读该行，确认确实写入成功（防止“假成功”）
+    try{
+      const {data:chk, error:chkErr} = await sb
+        .from('applicants')
+        .select('stage,exam_score,exam_essay,exam_completed_at,exam_lang')
+        .eq('id', A.applicant.id)
+        .maybeSingle();
+      if(chkErr){
+        ok=false;
+        errMsg = chkErr.message || String(chkErr);
+      } else if(!chk || chk.exam_completed_at==null || chk.exam_score==null || String(chk.stage||'')!=='interview'){
+        ok=false;
+        errMsg = '写入未生效（请硬刷新后重试）';
+      } else {
+        A.applicant.exam_score=chk.exam_score;
+        A.applicant.exam_essay=chk.exam_essay||examEssayWithRemark;
+        A.applicant.exam_lang = chk.exam_lang || EL;
+        A.applicant.stage=chk.stage||'interview';
+        A.examSubmitted=true;
+        clearApplicantExamDraft(A.applicant.id);
+        toast(apLine('答卷已提交。教务将阅卷，分数由老师另行通知，请按提示预约面试。','Submitted. Staff will review your paper; scores are shared by the office — please book your interview as guided.','Terkirim. Staf akan menilai; nilai diberitahu kantor — lanjut pesan wawancara.'));
+        await loadPublicSlots();
+      }
+    }catch(e){
+      ok=false;
+      errMsg = String(e?.message||e||'');
+    }
   } else {
+    toast(apLine('提交失败：','Submit failed: ','Gagal mengirim: ')+(errMsg||''),false);
+  }
+  if(!ok){
     toast(apLine('提交失败：','Submit failed: ','Gagal mengirim: ')+(errMsg||''),false);
   }
   render();
