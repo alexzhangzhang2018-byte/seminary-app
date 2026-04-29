@@ -5500,7 +5500,27 @@ function bind(){
     const vf=parseVisaFiles(ap);
     if(!visaMaterialsSpecOk(vf).ok){toast(apLine('请先保存并确保三份签证材料齐全','Save all three visa files first','Lengkapi tiga berkas visa'),false);return;}
     if(!confirm(apLine('确认进入「完成」环节？之后可查看来印尼攻略与联络方式。','Proceed to the final step for travel info and contacts?','Lanjut ke tahap terakhir untuk panduan perjalanan?'))) return;
-    const {data:updRows,error}=await sb.from('applicants').update({stage:'complete'}).eq('id',ap.id).eq('stage','visa').select('id');
+    let updRows=null;
+    let error=null;
+    try{
+      const rpc=await sb.rpc('advance_applicant_stage_for_self',{
+        p_applicant_id:ap.id,
+        p_from_stage:'visa',
+        p_to_stage:'complete'
+      });
+      if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
+        updRows=[{id:rpc.data.id}];
+      }else if(rpc?.error){
+        error=rpc.error;
+      }
+    }catch(e){
+      error={message:String(e?.message||e||'')};
+    }
+    if(!updRows){
+      const fb=await sb.from('applicants').update({stage:'complete'}).eq('id',ap.id).eq('stage','visa').select('id');
+      updRows=fb.data||null;
+      error=fb.error||error;
+    }
     if(error){
       toast(apLine('操作失败','Failed','Gagal')+(error.message?': '+error.message:''),false);
       return;
