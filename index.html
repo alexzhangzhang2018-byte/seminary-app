@@ -2592,9 +2592,30 @@ async function confirmInterview(){
 async function applicantPromoteToExam(){
   if(!sb||!A.applicant?.id){toast(apLine('无法操作，请重新登录','Please log in again.','Harap masuk lagi.'),false);return;}
   if((A.applicant.stage||'')!=='apply'){render();return;}
-  const {error}=await sb.from('applicants').update({stage:'exam'}).eq('id',A.applicant.id).eq('stage','apply');
+  let error=null;
+  let ok=false;
+  try{
+    const rpc=await sb.rpc('advance_applicant_stage_for_self',{
+      p_applicant_id:A.applicant.id,
+      p_from_stage:'apply',
+      p_to_stage:'exam'
+    });
+    if(rpc && !rpc.error && rpc.data && rpc.data.ok===true) ok=true;
+    else if(rpc?.error) error=rpc.error;
+  }catch(e){
+    error={message:String(e?.message||e||'')};
+  }
+  if(!ok){
+    const fb=await sb.from('applicants').update({stage:'exam'}).eq('id',A.applicant.id).eq('stage','apply').select('id');
+    if(!fb.error && Array.isArray(fb.data) && fb.data.length) ok=true;
+    else error=fb.error||error;
+  }
   if(error){
     toast(apLine('暂时无法进入笔试，请联系教务。','Unable to open exam — contact the office.','Tidak bisa membuka ujian — hubungi kantor.'),false);
+    return;
+  }
+  if(!ok){
+    toast(apLine('未能进入笔试，请刷新后重试。','Could not enter exam. Refresh and retry.','Tidak bisa masuk ujian. Muat ulang.'),false);
     return;
   }
   A.applicant={...A.applicant,stage:'exam'};
@@ -2608,9 +2629,30 @@ async function applicantPromoteToExam(){
 async function applicantAdvanceFromResultToMaterials(){
   if(!sb||!A.applicant?.id||A.role!=='applicant'){toast(apLine('无法操作，请重新登录','Please log in again.','Harap masuk lagi.'),false);return;}
   if((A.applicant.stage||'')!=='result'){render();return;}
-  const {error}=await sb.from('applicants').update({stage:'materials'}).eq('id',A.applicant.id).eq('stage','result');
+  let error=null;
+  let ok=false;
+  try{
+    const rpc=await sb.rpc('advance_applicant_stage_for_self',{
+      p_applicant_id:A.applicant.id,
+      p_from_stage:'result',
+      p_to_stage:'materials'
+    });
+    if(rpc && !rpc.error && rpc.data && rpc.data.ok===true) ok=true;
+    else if(rpc?.error) error=rpc.error;
+  }catch(e){
+    error={message:String(e?.message||e||'')};
+  }
+  if(!ok){
+    const fb=await sb.from('applicants').update({stage:'materials'}).eq('id',A.applicant.id).eq('stage','result').select('id');
+    if(!fb.error && Array.isArray(fb.data) && fb.data.length) ok=true;
+    else error=fb.error||error;
+  }
   if(error){
     toast(apLine('暂时无法进入下一环节，请刷新后重试或联系教务。','Could not continue — refresh or contact the office.','Tidak bisa melanjutkan — muat ulang atau hubungi kantor.'),false);
+    return;
+  }
+  if(!ok){
+    toast(apLine('未能进入上传资料环节，请刷新后重试。','Could not enter materials stage. Refresh and retry.','Tidak bisa masuk tahap berkas. Muat ulang.'),false);
     return;
   }
   A.applicant={...A.applicant,stage:'materials'};
@@ -2723,7 +2765,27 @@ async function applicantAdvanceFromMaterialsToVisaOrComplete(){
     ? apLine('确认已与家人沟通并可承担剩余费用？将进入「完成」环节（印尼语班无需签证材料）。','Confirm and proceed to the final step (Indonesian track has no visa upload)?','Konfirmasi lanjut ke tahap selesai (jalur Indonesia tanpa unggah visa)?')
     : apLine('确认已与家人沟通并可承担剩余费用？将进入「签证」环节。','Confirm you can cover remaining costs and proceed to Visa?','Konfirmasi lanjut ke visa?');
   if(!confirm(cmsg)) return;
-  const {data:updRows,error}=await sb.from('applicants').update({stage:nextStage}).eq('id',ap.id).eq('stage','materials').select('id');
+  let updRows=null;
+  let error=null;
+  try{
+    const rpc=await sb.rpc('advance_applicant_stage_for_self',{
+      p_applicant_id:ap.id,
+      p_from_stage:'materials',
+      p_to_stage:nextStage
+    });
+    if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
+      updRows=[{id:rpc.data.id}];
+    }else if(rpc?.error){
+      error=rpc.error;
+    }
+  }catch(e){
+    error={message:String(e?.message||e||'')};
+  }
+  if(!updRows){
+    const fb=await sb.from('applicants').update({stage:nextStage}).eq('id',ap.id).eq('stage','materials').select('id');
+    updRows=fb.data||null;
+    error=fb.error||error;
+  }
   if(error){
     toast(apLine('操作失败','Failed','Gagal')+(error.message?': '+error.message:''),false);
     return;
@@ -3993,7 +4055,7 @@ function renderEnrollmentSurveyMMS(sur,T,opts){
   const inpN=(k,w='3.5rem')=>`<input class="inp" style="width:${w};min-height:36px;display:inline-block;vertical-align:middle;box-sizing:border-box;padding:6px 8px" data-sv-inp="${k}" value="${esc(sur[k]||'')}" placeholder="">`;
   const inp=(k)=>`<input class="inp" style="width:100%;max-width:100%;box-sizing:border-box" data-sv-inp="${k}" value="${esc(sur[k]||'')}" placeholder="">`;
   const ta=(k,rows)=>`<textarea class="textarea" style="width:100%;max-width:100%;box-sizing:border-box" rows="${rows}" data-sv-ta="${k}" placeholder="">${esc(sur[k]||'')}</textarea>`;
-  const yn=(k,yLab,nLab)=>{const v=sur[k]!=null?String(sur[k]):'';const cur=v==='yes'?'yes':'no';return`<span class="row g2 wrap" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px">${mkSvRad(k,'yes',cur)}${esc(yLab)} ${mkSvRad(k,'no',cur)}${esc(nLab)}</span>`;};
+  const yn=(k,yLab,nLab,defaultVal='no')=>{const v=sur[k]!=null?String(sur[k]):'';const cur=v==='yes'?'yes':(v==='no'?'no':defaultVal);return`<span class="row g2 wrap" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px">${mkSvRad(k,'yes',cur)}${esc(yLab)} ${mkSvRad(k,'no',cur)}${esc(nLab)}</span>`;};
   const ynYN=(k)=>yn(k,T('是','Yes','Ya'),T('否','No','Tidak'));
   const ynHave=(k)=>yn(k,T('有','Yes','Ada'),T('无','No','Tidak'));
   const curMar=sur.marital_stat||'';
@@ -4075,7 +4137,7 @@ function renderEnrollmentSurveyMMS(sur,T,opts){
     <div class="mb2">${T('若以上四项任一项为「是」，请简要说明（时间及情况）','If any of four above is Yes, explain','Jika ya, jelaskan')}：${ta('sex_explain_four',2)}</div>
     </div>
     <div class="mb2">${T('目前情感关系状况','Current relationship status','Status hubungan')}： ${mkSvRadMulti('rel_status','single2',curRel)}${T('单身','Single','Sendiri')} ${mkSvRadMulti('rel_status','dating',curRel)}${T('正在交往','Dating','Pacaran')} ${mkSvRadMulti('rel_status','engaged',curRel)}${T('已订婚','Engaged','Bertunangan')} ${mkSvRadMulti('rel_status','married2',curRel)}${T('已婚','Married','Menikah')}</div>
-    <div class="mb2">${T('是否愿意在入学后遵守圣经教导，持守圣洁的婚姻与性关系','Willing to uphold biblical marriage & purity after enrollment','Bersedia menjaga kemurnian')}： ${ynYN('willing_holiness')}</div>
+    <div class="mb2">${T('是否愿意在入学后遵守圣经教导，持守圣洁的婚姻与性关系','Willing to uphold biblical marriage & purity after enrollment','Bersedia menjaga kemurnian')}： ${yn('willing_holiness',T('是','Yes','Ya'),T('否','No','Tidak'),'yes')}</div>
   `)}
   ${sec(`5. ${T('财务状况','Financial situation','Keuangan')}`,`
     <div class="mb2">${T('是否存在较大债务压力','Significant debt pressure','Tekanan utang')}： ${ynYN('debt_pressure')}</div>
@@ -5224,13 +5286,40 @@ function bind(){
       sponsor_proof_filename:spN||null,
       _saved_at:new Date().toISOString()
     };
-    const {error}=await sb.from('applicants').update({scholarship_form_json:sch}).eq('id',A.applicant.id);
-    if(!error){
-      Object.assign(A.applicant,{scholarship_form_json:sch});
+    let updSchRows=null;
+    let error=null;
+    try{
+      const rpc=await sb.rpc('save_materials_for_applicant',{
+        p_applicant_id:A.applicant.id,
+        p_scholarship_form_json:sch
+      });
+      if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
+        updSchRows=[{id:rpc.data.id,scholarship_form_json:sch}];
+      }else if(rpc?.error){
+        error=rpc.error;
+      }
+    }catch(e){
+      error={message:String(e?.message||e||'')};
+    }
+    if(!updSchRows){
+      const fb=await sb.from('applicants').update({scholarship_form_json:sch}).eq('id',A.applicant.id).select('id,scholarship_form_json');
+      updSchRows=fb.data||null;
+      error=fb.error||error;
+    }
+    if(error){
+      toast(apLine('保存失败','Save failed','Gagal simpan')+(error.message?': '+error.message:''),false);
+      return;
+    }
+    if(!updSchRows||!updSchRows.length){
+      toast(apLine('保存未生效，请刷新后重试','Save did not persist; refresh and retry','Simpan belum tersimpan; muat ulang'),false);
+      return;
+    }
+    {
+      const row=updSchRows[0]||{};
+      Object.assign(A.applicant,{scholarship_form_json:row.scholarship_form_json??sch});
       toast(apLine('奖助学金申请表已保存','Scholarship form saved','Tersimpan'));
       render();
     }
-    else toast(apLine('保存失败','Save failed','Gagal simpan')+(error.message?': '+error.message:''),false);
   });
   document.getElementById('btn-save-mat-sv')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
@@ -5245,9 +5334,51 @@ function bind(){
       return;
     }
     const al=computeSurveyAlertFromSurveyJson(sur);
-    const {error}=await sb.from('applicants').update({enrollment_survey_json:sur,mat_survey_alert:al.alert,mat_survey_alert_reason:al.reason||null}).eq('id',A.applicant.id);
-    if(!error){Object.assign(A.applicant,{enrollment_survey_json:sur,mat_survey_alert:al.alert,mat_survey_alert_reason:al.reason||null});toast(apLine('入学调查表已保存','Survey saved','Tersimpan'));render();}
-    else toast(apLine('保存失败','Save failed','Gagal')+(error.message?': '+error.message:''),false);
+    let updSurRows=null;
+    let error=null;
+    try{
+      const rpc=await sb.rpc('save_materials_for_applicant',{
+        p_applicant_id:A.applicant.id,
+        p_enrollment_survey_json:sur,
+        p_mat_survey_alert:al.alert,
+        p_mat_survey_alert_reason:al.reason||null
+      });
+      if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
+        updSurRows=[{
+          id:rpc.data.id,
+          enrollment_survey_json:sur,
+          mat_survey_alert:al.alert,
+          mat_survey_alert_reason:al.reason||null
+        }];
+      }else if(rpc?.error){
+        error=rpc.error;
+      }
+    }catch(e){
+      error={message:String(e?.message||e||'')};
+    }
+    if(!updSurRows){
+      const fb=await sb.from('applicants').update({enrollment_survey_json:sur,mat_survey_alert:al.alert,mat_survey_alert_reason:al.reason||null}).eq('id',A.applicant.id).select('id,enrollment_survey_json,mat_survey_alert,mat_survey_alert_reason');
+      updSurRows=fb.data||null;
+      error=fb.error||error;
+    }
+    if(error){
+      toast(apLine('保存失败','Save failed','Gagal')+(error.message?': '+error.message:''),false);
+      return;
+    }
+    if(!updSurRows||!updSurRows.length){
+      toast(apLine('保存未生效，请刷新后重试','Save did not persist; refresh and retry','Simpan belum tersimpan; muat ulang'),false);
+      return;
+    }
+    {
+      const row=updSurRows[0]||{};
+      Object.assign(A.applicant,{
+        enrollment_survey_json:row.enrollment_survey_json??sur,
+        mat_survey_alert:row.mat_survey_alert??al.alert,
+        mat_survey_alert_reason:row.mat_survey_alert_reason??(al.reason||null)
+      });
+      toast(apLine('入学调查表已保存','Survey saved','Tersimpan'));
+      render();
+    }
   });
   root.querySelectorAll('input[name="mat-sch-guarantee"]').forEach(r=>{
     r.addEventListener('change',()=>{
@@ -5285,23 +5416,79 @@ function bind(){
       _saved_at:new Date().toISOString()
     };
     const spec=visaMaterialsSpecOk(vf);
-    const {error}=await sb.from('applicants').update({visa_files_json:vf}).eq('id',A.applicant.id);
-    if(!error){
-      Object.assign(A.applicant,{visa_files_json:vf});
+    let updVisaRows=null;
+    let error=null;
+    try{
+      const rpc=await sb.rpc('save_materials_for_applicant',{
+        p_applicant_id:A.applicant.id,
+        p_visa_files_json:vf
+      });
+      if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
+        updVisaRows=[{id:rpc.data.id,visa_files_json:vf}];
+      }else if(rpc?.error){
+        error=rpc.error;
+      }
+    }catch(e){
+      error={message:String(e?.message||e||'')};
+    }
+    if(!updVisaRows){
+      const fb=await sb.from('applicants').update({visa_files_json:vf}).eq('id',A.applicant.id).select('id,visa_files_json');
+      updVisaRows=fb.data||null;
+      error=fb.error||error;
+    }
+    if(error){
+      toast(apLine('保存失败','Save failed','Gagal')+(error.message?': '+error.message:''),false);
+      return;
+    }
+    if(!updVisaRows||!updVisaRows.length){
+      toast(apLine('保存未生效，请刷新后重试','Save did not persist; refresh and retry','Simpan belum tersimpan; muat ulang'),false);
+      return;
+    }
+    {
+      const row=updVisaRows[0]||{};
+      Object.assign(A.applicant,{visa_files_json:row.visa_files_json??vf});
       if(spec.ok) toast(apLine('签证材料已保存，三份已齐','Visa files saved (all 3)','Berkas visa lengkap'));
       else toast(apLine('已保存。尚未交齐：','Saved. Still missing: ','Tersimpan. Kurang: ')+spec.issues.join('、'));
       render();
     }
-    else toast(apLine('保存失败','Save failed','Gagal')+(error.message?': '+error.message:''),false);
   });
   document.getElementById('btn-materials-submit-review')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
     if(A.applicant.materials_submitted_at){toast(apLine('已提交过，请等待教务审核','Already submitted','Sudah dikirim'),false);return;}
     const miss=materialsMissingCount(A.applicant);
     if(miss>0){toast(apLine('尚有 '+miss+' 项必填未完成',''+miss+' item(s) missing',miss+' wajib'),false);return;}
-    const {error}=await sb.from('applicants').update({materials_submitted_at:new Date().toISOString()}).eq('id',A.applicant.id);
-    if(!error){A.applicant.materials_submitted_at=new Date().toISOString();toast(apLine('已提交审核，请等待奖学金批复','Submitted; pending scholarship review','Terkirim'));render();}
-    else toast(apLine('提交失败','Submit failed','Gagal'),false);
+    const submitAt=new Date().toISOString();
+    let updMatRows=null;
+    let error=null;
+    try{
+      const rpc=await sb.rpc('save_materials_for_applicant',{
+        p_applicant_id:A.applicant.id,
+        p_materials_submitted_at:submitAt
+      });
+      if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
+        updMatRows=[{id:rpc.data.id,materials_submitted_at:rpc.data.materials_submitted_at||submitAt}];
+      }else if(rpc?.error){
+        error=rpc.error;
+      }
+    }catch(e){
+      error={message:String(e?.message||e||'')};
+    }
+    if(!updMatRows){
+      const fb=await sb.from('applicants').update({materials_submitted_at:submitAt}).eq('id',A.applicant.id).select('id,materials_submitted_at');
+      updMatRows=fb.data||null;
+      error=fb.error||error;
+    }
+    if(error){
+      toast(apLine('提交失败','Submit failed','Gagal')+(error.message?': '+error.message:''),false);
+      return;
+    }
+    if(!updMatRows||!updMatRows.length){
+      toast(apLine('提交未生效，请刷新后重试','Submit did not persist; refresh and retry','Kirim belum tersimpan; muat ulang'),false);
+      return;
+    }
+    A.applicant.materials_submitted_at=(updMatRows[0]&&updMatRows[0].materials_submitted_at)||submitAt;
+    toast(apLine('已提交审核，请等待奖学金批复','Submitted; pending scholarship review','Terkirim'));
+    render();
   });
   document.getElementById('btn-materials-next-stage')?.addEventListener('click',()=>applicantAdvanceFromMaterialsToVisaOrComplete());
   document.getElementById('btn-result-to-materials')?.addEventListener('click',()=>applicantAdvanceFromResultToMaterials());
