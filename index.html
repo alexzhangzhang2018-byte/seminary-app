@@ -1863,6 +1863,32 @@ async function acknowledgeApplicantSheetImport(apid){
   if(!error) ap.sheet_import_unseen=false;
 }
 
+/** 教务端拉取申请人列表：优先 RPC（避开 RLS 导致「无 error 但 data=[]」），失败再走 REST 列裁剪查询 */
+async function fetchApplicantsListForStaff_(){
+  try{
+    const rpc=await sb.rpc('list_applicants_for_staff');
+    if(!rpc.error&&Array.isArray(rpc.data)){
+      return {ok:true,data:rpc.data,via:'rpc'};
+    }
+  }catch(e){
+    console.warn('fetchApplicantsListForStaff_ rpc', e);
+  }
+  try{
+    const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
+    if(listQ?.error){
+      console.warn('fetchApplicantsListForStaff_ rest failed', listQ.error);
+      return {ok:false,error:listQ.error,via:'rest'};
+    }
+    if(!Array.isArray(listQ?.data)){
+      return {ok:false,error:new Error('bad_applicants_payload'),via:'rest'};
+    }
+    return {ok:true,data:listQ.data,via:'rest'};
+  }catch(e){
+    console.warn('fetchApplicantsListForStaff_ rest exception', e);
+    return {ok:false,error:e,via:'rest'};
+  }
+}
+
 async function loadAdminData(){
   const prevApplicants = Array.isArray(A.allApplicants) ? A.allApplicants : [];
   const prevSlots = Array.isArray(A.allSlots) ? A.allSlots : [];
@@ -1871,15 +1897,7 @@ async function loadAdminData(){
   const [apRes, slotsRes, recsRes] = await Promise.all([
     (async()=>{
       try{
-        const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
-        if(listQ?.error){
-          console.warn('loadAdminData applicants failed', listQ.error);
-          return {ok:false,error:listQ.error};
-        }
-        if(!Array.isArray(listQ?.data)){
-          return {ok:false,error:new Error('bad_applicants_payload')};
-        }
-        return {ok:true,data:listQ.data};
+        return await fetchApplicantsListForStaff_();
       }catch(e){
         console.warn('loadAdminData applicants exception', e);
         return {ok:false,error:e};
@@ -1902,8 +1920,23 @@ async function loadAdminData(){
   ]);
 
   // 重要：若某类数据拉取失败，则保留上一份缓存，避免界面瞬间变成 0 张卡片
-  if(apRes.ok) A.allApplicants = apRes.data;
-  else A.allApplicants = prevApplicants;
+  const suspiciousEmptyApplicants = apRes.ok && Array.isArray(apRes.data) && apRes.data.length === 0 && prevApplicants.length > 0;
+  if(apRes.ok && !suspiciousEmptyApplicants){
+    A.allApplicants = apRes.data;
+  }else if(apRes.ok && suspiciousEmptyApplicants){
+    // REST 在 RLS 收紧时常见：HTTP 200 + data=[]，会把看板清空；此处保留上一份并提示
+    A.allApplicants = prevApplicants;
+    if(A.role==='admin' || A.role==='teacher'){
+      A.staffLastSyncError = (apRes.via === 'rest')
+        ? '申请人列表返回 0 条（已保留本地上一份数据）。多为 Supabase RLS 未放行教师/管理员 SELECT。请在 SQL Editor 执行迁移 20260503120000_list_applicants_for_staff_rpc.sql，或调整 applicants 的 SELECT 策略。'
+        : '申请人列表返回 0 条（已保留本地上一份数据）。请刷新或检查数据库。';
+      A.staffLastSyncAt = new Date().toISOString();
+      toast('同步异常：列表为空但本地曾有数据，已保留上次缓存', false);
+      scheduleStaffAdminDataRetry_();
+    }
+  }else{
+    A.allApplicants = prevApplicants;
+  }
   if(slotsRes.ok) A.allSlots = slotsRes.data;
   else A.allSlots = prevSlots;
   if(recsRes.ok) A.allRecords = recsRes.data;
@@ -1920,11 +1953,11 @@ async function loadAdminData(){
       : '同步招生数据失败：当前无本地缓存，将自动重试（请检查网络）'
     , false);
     if(!hadCache) scheduleStaffAdminDataRetry_();
-  } else if(apRes.ok){
+  } else if(apRes.ok && !suspiciousEmptyApplicants){
     A.staffLastSyncError = null;
     A.staffLastSyncAt = new Date().toISOString();
   }
-  if(apRes.ok) saveStaffCache();
+  if(apRes.ok && !suspiciousEmptyApplicants) saveStaffCache();
 
   let tprof=[];
   if(A.role==='admin'){
@@ -2091,18 +2124,26 @@ async function refreshStaffApplicantsOnce(opts){
   if(!sb || (A.role!=='admin' && A.role!=='teacher')) return;
   if(typeof document!=='undefined' && document.hidden && !opts.force) return;
   try{
-    const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
-    if(listQ?.error || !Array.isArray(listQ?.data)){
-      console.warn('refreshStaffApplicantsOnce failed', listQ?.error);
-      A.staffLastSyncError = formatSbError(listQ?.error||'refresh_failed');
+    const listRes=await fetchApplicantsListForStaff_();
+    if(!listRes.ok || !Array.isArray(listRes.data)){
+      console.warn('refreshStaffApplicantsOnce failed', listRes?.error);
+      A.staffLastSyncError = formatSbError(listRes?.error||'refresh_failed');
       A.staffLastSyncAt = new Date().toISOString();
       return; // 保留现有缓存，避免列表被清空
     }
+    const rows=listRes.data;
+    const prev=A.allApplicants||[];
+    if(rows.length===0 && prev.length>0){
+      A.staffLastSyncError = (listRes.via === 'rest')
+        ? '定时刷新：申请人列表返回 0 条（已保留当前列表）。请部署 list_applicants_for_staff RPC 或检查 RLS。'
+        : '定时刷新：申请人列表返回 0 条（已保留当前列表）。';
+      A.staffLastSyncAt = new Date().toISOString();
+      render();
+      return;
+    }
     A.staffLastSyncError = null;
     A.staffLastSyncAt = new Date().toISOString();
-    const rows = listQ.data;
     // 仅在确实有变化时更新，减少 render 抖动
-    const prev = A.allApplicants || [];
     const prevTop = prev[0]?.created_at ? String(prev[0].created_at) : '';
     const nextTop = rows[0]?.created_at ? String(rows[0].created_at) : '';
     const changed = prev.length !== rows.length || prevTop !== nextTop;
@@ -2111,6 +2152,7 @@ async function refreshStaffApplicantsOnce(opts){
       if(A.selectedApId && !A.allApplicants.some(a=>String(a.id)===String(A.selectedApId))){
         A.selectedApId = null;
       }
+      saveStaffCache();
       render();
     }
   }catch(e){
@@ -3499,12 +3541,20 @@ async function runStaffDiagnostics(){
     const has = !!sessRes?.data?.session;
     const role = A.role || '(none)';
     const q = await sb.from('applicants').select('id,created_at').order('created_at',{ascending:false}).limit(1);
+    let rpcCount=null,rpcErr=null;
+    try{
+      const r=await sb.rpc('list_applicants_for_staff');
+      if(r?.error) rpcErr=formatSbError(r.error);
+      else if(Array.isArray(r?.data)) rpcCount=r.data.length;
+    }catch(e){ rpcErr=formatSbError(e); }
     if(q?.error){
-      toast('诊断失败：'+(has?`已登录(${role})`:`无会话(${role})`)+'；'+formatSbError(q.error), false);
+      toast('诊断失败：'+(has?`已登录(${role})`:`无会话(${role})`)+'；REST '+formatSbError(q.error)+(rpcCount!=null?`；RPC 列表 ${rpcCount} 条`:rpcErr?`；RPC ${rpcErr}`:''), false);
       return;
     }
     const top = (q.data && q.data[0]) ? String(q.data[0].created_at||'') : '(empty)';
-    toast('诊断 OK：'+(has?`已登录(${role})`:`无会话(${role})`)+'；applicants 可读；最新 created_at='+top);
+    const restEmpty=!q.data||!q.data.length;
+    const hint=(restEmpty&&rpcCount!=null&&rpcCount>0)?'（REST 样例 0 条但 RPC 有数据→多为 RLS，请执行 20260503120000 迁移）':'';
+    toast('诊断：'+(has?`已登录(${role})`:`无会话(${role})`)+`；REST 样例 latest=${top}`+(rpcCount!=null?`；RPC 列表 ${rpcCount} 条`:rpcErr?`；RPC ${rpcErr}`:'')+hint);
     // 若诊断 OK 但看板仍显示 0，通常是前端刷新节奏问题；这里强制立即拉一次最新列表
     try{
       if(A.role==='admin' || A.role==='teacher'){
