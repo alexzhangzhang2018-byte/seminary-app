@@ -1863,30 +1863,60 @@ async function acknowledgeApplicantSheetImport(apid){
   if(!error) ap.sheet_import_unseen=false;
 }
 
-/** 教务端拉取申请人列表：优先 RPC（避开 RLS 导致「无 error 但 data=[]」），失败再走 REST 列裁剪查询 */
+/** PostgREST 对 setof / 单行 RPC 的 data 形态不一：统一成数组 */
+function normalizeApplicantListRpcData(data){
+  if(data==null) return [];
+  if(Array.isArray(data)) return data;
+  if(typeof data==='object'){
+    if(data.id!=null) return [data];
+    const keys=Object.keys(data);
+    if(keys.length && keys.every(k=>/^\d+$/.test(k)))
+      return keys.sort((a,b)=>Number(a)-Number(b)).map(k=>data[k]).filter(Boolean);
+  }
+  return [];
+}
+
+/**
+ * 同时尝试 RPC 与 REST，取「条数更多」的一份作为真相（修复：仅走 RPC 时若权限子查询不匹配会恒为 []；仅走 REST 时 RLS 又常为 []）。
+ */
 async function fetchApplicantsListForStaff_(){
+  let rpcErr=null,rpcRows=[];
   try{
     const rpc=await sb.rpc('list_applicants_for_staff');
-    if(!rpc.error&&Array.isArray(rpc.data)){
-      return {ok:true,data:rpc.data,via:'rpc'};
-    }
+    if(rpc?.error) rpcErr=rpc.error;
+    else rpcRows=normalizeApplicantListRpcData(rpc.data);
   }catch(e){
+    rpcErr=e;
     console.warn('fetchApplicantsListForStaff_ rpc', e);
   }
+  let restErr=null,restRows=[];
   try{
     const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
     if(listQ?.error){
+      restErr=listQ.error;
       console.warn('fetchApplicantsListForStaff_ rest failed', listQ.error);
-      return {ok:false,error:listQ.error,via:'rest'};
+    }else if(Array.isArray(listQ?.data)){
+      restRows=listQ.data;
+    }else{
+      restErr=new Error('bad_applicants_payload');
     }
-    if(!Array.isArray(listQ?.data)){
-      return {ok:false,error:new Error('bad_applicants_payload'),via:'rest'};
-    }
-    return {ok:true,data:listQ.data,via:'rest'};
   }catch(e){
+    restErr=e;
     console.warn('fetchApplicantsListForStaff_ rest exception', e);
-    return {ok:false,error:e,via:'rest'};
   }
+  const pickBest=(rpc,rest)=>{
+    if(!rpc.length&&!rest.length) return {rows:[],via:'both_empty'};
+    if(rpc.length>=rest.length&&rpc.length) return {rows:rpc,via:'rpc'};
+    if(rest.length) return {rows:rest,via:'rest'};
+    return {rows:rpc.length?rpc:rest,via:rpc.length?'rpc':'rest'};
+  };
+  if(rpcRows.length||restRows.length){
+    const {rows,via}=pickBest(rpcRows,restRows);
+    return {ok:true,data:rows,via,_rpcN:rpcRows.length,_restN:restRows.length};
+  }
+  if(restErr) return {ok:false,error:restErr,via:'rest',rpcError:rpcErr};
+  if(rpcErr) return {ok:false,error:rpcErr,via:'rpc'};
+  return {ok:true,data:[],via:'both_empty',_rpcN:0,_restN:0};
 }
 
 async function loadAdminData(){
@@ -1958,6 +1988,12 @@ async function loadAdminData(){
     A.staffLastSyncAt = new Date().toISOString();
   }
   if(apRes.ok && !suspiciousEmptyApplicants) saveStaffCache();
+
+  // 无本地缓存且双通道都成功返回 0 条：多为未部署 RPC、profiles.role 不匹配或库表真为空
+  if(apRes.ok && Array.isArray(apRes.data) && apRes.data.length === 0 && prevApplicants.length === 0 && (A.role === 'admin' || A.role === 'teacher') && apRes.via === 'both_empty'){
+    A.staffLastSyncError = '未读到任何申请人（RPC 与 REST 均为 0 条）。请①在 Supabase SQL Editor 执行迁移 list_applicants_for_staff（含 20260503130000 的 v2）；②在表 public.profiles 中确认当前登录账号的 id 与 auth.users 一致，且 role 为 admin 或 teacher；③在 public.applicants 确认确有数据。';
+    A.staffLastSyncAt = new Date().toISOString();
+  }
 
   let tprof=[];
   if(A.role==='admin'){
