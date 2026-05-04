@@ -328,6 +328,28 @@ const STAFF_STAGE_OPTIONS = [
   {id:'waitlist',label:'候补 · Waitlist'},
 ];
 
+/** profiles.staff_portal_mode === 'visa_ops'：签证/入学对接；无面试排班/时段维护；可打包学生签 ZIP；不可改招生阶段、不写面试记录、不手动添加申请人 */
+function isVisaOpsStaff(){
+  return String(A.profile?.staff_portal_mode||'').toLowerCase()==='visa_ops';
+}
+function staffCanEditApplicantStage(){
+  return (A.role==='admin'||A.role==='teacher')&&!isVisaOpsStaff();
+}
+function staffCanDownloadVisaZip(){
+  return A.role==='admin'||isVisaOpsStaff();
+}
+function staffAdminTabDefs(){
+  const all=[
+    {id:'pipeline',label:'申请人看板',icon:'📊'},
+    {id:'exams',label:'笔试成绩',icon:'📝'},
+    {id:'schedule',label:'面试排班',icon:'📅'},
+    {id:'docs',label:'材料审核',icon:'📄'},
+    {id:'scholarship',label:'奖学金批复',icon:'💰'},
+    {id:'me',label:'我的',icon:'👤'},
+  ];
+  return isVisaOpsStaff()?all.filter(t=>t.id!=='schedule'):all;
+}
+
 /** 申请人笔试/面试语言归一 */
 function getApplicantExamLang(ap){
   const x=String(ap?.exam_lang||'zh').toLowerCase();
@@ -4526,6 +4548,16 @@ function renderStaffMe(){
     ${pwCard}
   </div>`;
   }
+  if(isVisaOpsStaff()){
+    return `<div class="col g4 maxw-2xl">
+    <div class="card p5">
+      <div class="fw7 c-gray8 t14 mb1">账号（签证 / 入学对接）</div>
+      <div class="t12 c-gray5 mb3">${esc(prof?.display_name||'用户')} · ${esc(A.user?.email||'')}</div>
+      <div class="b1 bc-indigo100 bg-indigo50 r10 p3 t12 c-indigo6 lh16">本账号可查看招生看板、档案与材料、奖学金批复，并在学生签三份材料齐全后<strong>一键打包 ZIP</strong>；不包含面试时段维护与面试排班入口。</div>
+    </div>
+    ${pwCard}
+  </div>`;
+  }
   return `<div class="col g4 maxw-2xl">
     <div class="card p5">
       <div class="fw7 c-gray8 t14 mb1">账号</div>
@@ -4608,20 +4640,16 @@ function renderScholarshipReview(){
 }
 
 function renderAdmin(){
-  const validStaffTabs=new Set(['pipeline','exams','schedule','docs','scholarship','me']);
+  const tabDefs=staffAdminTabDefs();
+  const validStaffTabs=new Set(tabDefs.map(t=>t.id));
   if(!validStaffTabs.has(A.adminTab)) A.adminTab='pipeline';
+  if(isVisaOpsStaff()&&A.adminTab==='schedule') A.adminTab='pipeline';
   const isAd=A.role==='admin';
-  const roleLabel=isAd?'管理员':'教师';
-  const roleTag=isAd?mkTag('#eef2ff','#4f46e5',roleLabel):mkTag('#ede9fe','#6d28d9',roleLabel);
+  const visaOps=isVisaOpsStaff();
+  const roleLabel=isAd?'管理员':(visaOps?'签证/入学同工':'教师');
+  const roleTag=isAd?mkTag('#eef2ff','#4f46e5',roleLabel):visaOps?mkTag('#ecfeff','#0e7490',roleLabel):mkTag('#ede9fe','#6d28d9',roleLabel);
   const avLetter=(A.profile?.display_name||A.user?.email||'?')[0];
-  const tabs=[
-    {id:'pipeline',label:'申请人看板',icon:'📊'},
-    {id:'exams',label:'笔试成绩',icon:'📝'},
-    {id:'schedule',label:'面试排班',icon:'📅'},
-    {id:'docs',label:'材料审核',icon:'📄'},
-    {id:'scholarship',label:'奖学金批复',icon:'💰'},
-    {id:'me',label:'我的',icon:'👤'},
-  ];
+  const tabs=tabDefs;
   const boot=A.adminDataLoading;
   const stats=[
     {label:'总申请人',value:boot?'—':A.allApplicants.length,color:'#4f46e5'},
@@ -4665,7 +4693,7 @@ function renderAdmin(){
 
 function renderPipeline(){
   const isAd=A.role==='admin';
-  const canAddAp=isAd||A.role==='teacher';
+  const canAddAp=isAd||(A.role==='teacher'&&!isVisaOpsStaff());
   const cardHtml=(ap)=>`<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
             ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
             ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
@@ -4885,6 +4913,7 @@ function renderApDetailModal(ap){
   const rec=A.allRecords.find(r=>r.applicant_id===ap.id);
   const isAd=A.role==='admin';
   const canStaff=isAd||A.role==='teacher';
+  const canEditStage=staffCanEditApplicantStage();
   const schApprOk=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved));
   return `<div class="modal-overlay" id="ap-modal" data-action="close-modal">
     <div class="modal-sm" onclick="event.stopPropagation()">
@@ -4912,7 +4941,7 @@ function renderApDetailModal(ap){
         if(!tw2) return `<div class="b1 bc-amber200 bg-amber50 r8 p2 t11 mb2" style="color:#92400e">⚠️ ${esc(tn2)} 老师尚未设置 WhatsApp 号码</div>`;
         return `<a class="btn btn-success btn-full mb3" href="https://wa.me/${tw2}?text=${encodeURIComponent(tm2)}" target="_blank" rel="noreferrer" style="text-decoration:none">📱 WhatsApp 通知 ${esc(tn2)} 老师</a>`;
       })()}
-      ${canStaff?`<div class="staff-stage-edit mb3" data-apid="${ap.id}">
+      ${canStaff&&canEditStage?`<div class="staff-stage-edit mb3" data-apid="${ap.id}">
         <div class="t12 fw6 c-gray6 mb1">招生阶段（可前进或回退）</div>
         <div class="row g2" style="align-items:center">
           <select class="sel staff-ap-stage-select" style="flex:1;min-width:0">
@@ -4941,6 +4970,7 @@ function renderApDetailModal(ap){
 function renderBriefingModal(ap){
   const isAd=A.role==='admin';
   const canStaff=A.role==='admin'||A.role==='teacher';
+  const canEditStage=staffCanEditApplicantStage();
   const rec=A.allRecords.find(r=>r.applicant_id===ap.id);
   const ivSl=resolveSlotForApplicant(ap);
   const sc=ap.exam_score;
@@ -4986,7 +5016,7 @@ function renderBriefingModal(ap){
       <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18 row g2 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','调查表·需留意'):''}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
       <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-briefing">✕</button></div>
 
-      ${canStaff?`<div class="staff-stage-edit card p3 mb4" data-apid="${ap.id}">
+      ${canStaff&&canEditStage?`<div class="staff-stage-edit card p3 mb4" data-apid="${ap.id}">
         <div class="fw7 c-gray6 t11 mb2">招生流程阶段</div>
         <div class="row g2 wrap" style="align-items:center">
           <select class="sel staff-ap-stage-select" style="min-width:220px;flex:1">
@@ -5136,7 +5166,7 @@ function renderBriefingModal(ap){
         ${vlnk(visaF.photo_data,visaF.photo_filename,apLine('红底证件照','Photo','Foto'))}
         ${vlnk(visaF.cv_data,visaF.cv_filename,apLine('学生 CV','Student CV','CV'))}
         <div class="t11 c-gray5 mt2 lh16">${esc(apLine('学生 CV 须英文填写，姓名与护照拼音一致。','CV must be in English; name must match passport pinyin.','CV bahasa Inggris; nama = pinyin paspor.'))}</div>
-        ${isAd&&visaSpec.ok?`<button type="button" class="btn btn-primary btn-sm mt2" data-action="dl-visa-zip" data-apid="${ap.id}">⬇ ${esc(apLine('一键打包 ZIP（文件名：【姓名-学生签材料】）','Download ZIP (【Name-student visa】)','Unduh ZIP'))}</button>`:(isAd?`<div class="t11 c-gray4 mt2">${esc(apLine('三份齐全后管理员可一键打包','ZIP when all three are saved','ZIP setelah lengkap'))}</div>`:'')}`:'<div class="t13 c-gray4">尚未进入签证环节或未上传材料。</div>'}
+        ${staffCanDownloadVisaZip()&&visaSpec.ok?`<button type="button" class="btn btn-primary btn-sm mt2" data-action="dl-visa-zip" data-apid="${ap.id}">⬇ ${esc(apLine('一键打包 ZIP（文件名：【姓名-学生签材料】）','Download ZIP (【Name-student visa】)','Unduh ZIP'))}</button>`:(staffCanDownloadVisaZip()?`<div class="t11 c-gray4 mt2">${esc(apLine('三份齐全后可一键打包','ZIP when all three are saved','ZIP setelah lengkap'))}</div>`:'')}`:'<div class="t13 c-gray4">尚未进入签证环节或未上传材料。</div>'}
       </div>
 
       ${isAd?`<div class="fw7 c-gray6 t11 mb2">管理备注</div>
@@ -5150,7 +5180,7 @@ function renderBriefingModal(ap){
 
       <div class="row g2 mt5">
         ${isAd && STAGE_IDX[ap.stage] < STAGE_IDX['complete'] ? `<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>` : ''}
-        <button class="btn btn-outline btn-full" data-action="write-record" data-apid="${ap.id}" ${STAGE_IDX[ap.stage] < STAGE_IDX['interview']?'disabled':''}>填写面试记录</button>
+        ${canEditStage?`<button class="btn btn-outline btn-full" data-action="write-record" data-apid="${ap.id}" ${STAGE_IDX[ap.stage] < STAGE_IDX['interview']?'disabled':''}>填写面试记录</button>`:''}
       </div>
       ${isAd?`<div class="row g2 mt3">
         <button class="btn btn-danger btn-full" data-action="reject-ap" data-apid="${ap.id}">标记拒绝</button>
@@ -5773,7 +5803,14 @@ function bind(){
 
   // ── Admin tab ──
   root.querySelectorAll('[data-admin-tab]').forEach(el=>{
-    el.addEventListener('click',()=>{A.adminTab=el.dataset.adminTab;A.selectedApId=null;render();});
+    el.addEventListener('click',()=>{
+      const tab=el.dataset.adminTab;
+      if(isVisaOpsStaff()&&tab==='schedule'){
+        toast(apLine('当前账号不包含面试排班功能','This account has no interview scheduling tab','Akun ini tanpa jadwal wawancara'),false);
+        return;
+      }
+      A.adminTab=tab;A.selectedApId=null;render();
+    });
   });
   // ── Select / close applicant ──
   root.querySelectorAll('[data-action=select-ap]').forEach(el=>{
@@ -5955,7 +5992,7 @@ function bind(){
   // ── Manual score entry ──
   root.querySelectorAll('[data-action=dl-visa-zip]').forEach(el=>{
     el.addEventListener('click',async()=>{
-      if(A.role!=='admin'){toast(apLine('仅管理员可打包下载','Admin only','Hanya admin'),false);return;}
+      if(!staffCanDownloadVisaZip()){toast(apLine('无权限打包下载','No permission to download ZIP','Tidak ada izin ZIP'),false);return;}
       const apid=el.dataset.apid;
       const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
       if(!ap) return;
@@ -5965,6 +6002,7 @@ function bind(){
 
   root.querySelectorAll('[data-action=save-manual-score]').forEach(el=>{
     el.addEventListener('click',async()=>{
+      if(isVisaOpsStaff()){toast(apLine('当前账号不可录入笔试成绩','This account cannot enter exam scores','Akun ini tidak mengisi nilai'),false);return;}
       if(A.role!=='admin'&&A.role!=='teacher'){toast('仅管理员或教师可录入成绩',false);return;}
       const apid=el.dataset.apid;
       const scoreVal=document.getElementById('manual-score-'+apid)?.value;
@@ -5983,6 +6021,7 @@ function bind(){
   root.querySelectorAll('[data-action=show-add-ap-modal]').forEach(el=>{
     el.addEventListener('click',e=>{
       e.stopPropagation();
+      if(isVisaOpsStaff()){toast(apLine('当前账号不可手动添加申请人','This account cannot add applicants manually','Akun ini tidak menambah pelamar'),false);return;}
       if(A.role!=='admin'&&A.role!=='teacher') return;
       A.showAddApModal=true;render();
     });
@@ -5991,6 +6030,7 @@ function bind(){
     el.addEventListener('click',()=>{A.showAddApModal=false;render();});
   });
   document.getElementById('btn-save-add-ap')?.addEventListener('click',async()=>{
+    if(isVisaOpsStaff()) return;
     if(A.role!=='admin'&&A.role!=='teacher') return;
     const name=(document.getElementById('add-ap-name')?.value||'').trim();
     const phone=(document.getElementById('add-ap-phone')?.value||'').trim();
@@ -6144,12 +6184,16 @@ function bind(){
 
   // ── Record form ──
   root.querySelectorAll('[data-action=write-record]').forEach(el=>{
-    el.addEventListener('click',()=>{A.selectedApId=el.dataset.apid;A.showRecordForm=true;A.briefingId=null;render();});
+    el.addEventListener('click',()=>{
+      if(!staffCanEditApplicantStage()){toast(apLine('当前账号不可填写面试记录','This account cannot add interview records','Akun ini tidak mengisi catatan'),false);return;}
+      A.selectedApId=el.dataset.apid;A.showRecordForm=true;A.briefingId=null;render();
+    });
   });
   root.querySelectorAll('[data-action=close-record-form]').forEach(el=>{
     el.addEventListener('click',()=>{A.showRecordForm=false;render();});
   });
   document.getElementById('btn-save-record')?.addEventListener('click',async()=>{
+    if(!staffCanEditApplicantStage()) return;
     const content=document.getElementById('rec-content')?.value;
     const spiritual=document.getElementById('rec-spiritual')?.value;
     const rec=document.querySelector('input[name=rec-recommendation]:checked')?.value;
@@ -6168,7 +6212,7 @@ function bind(){
   // ── Set stage (staff) ──
   root.querySelectorAll('[data-action=save-ap-stage]').forEach(el=>{
     el.addEventListener('click',async()=>{
-      if(A.role!=='admin'&&A.role!=='teacher') return;
+      if(!staffCanEditApplicantStage()) return;
       const apid=el.dataset.apid;
       if(!apid) return;
       const wrap=el.closest('.staff-stage-edit');
