@@ -1853,6 +1853,22 @@ const APPLICANTS_STAFF_LIST_COLS_MIN =
   'id,created_at,first_name,last_name,full_name,phone,phone_last4,email,stage,exam_lang,ui_lang,exam_score,exam_essay,interview_slot_id,materials_submitted_at,'+
   'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,admin_notes';
 
+// 首屏极简列表（渲染看板足够）：避免一次性拉回大 JSON 导致页面卡顿
+const APPLICANTS_STAFF_LIST_COLS_LITE =
+  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row';
+
+function mergeApplicantsById_(prev, next){
+  const map=new Map();
+  (prev||[]).forEach(r=>{ if(r&&r.id!=null) map.set(String(r.id), r); });
+  (next||[]).forEach(r=>{
+    if(!r||r.id==null) return;
+    const k=String(r.id);
+    const base=map.get(k)||{};
+    map.set(k, {...base, ...r});
+  });
+  return [...map.values()];
+}
+
 async function mergeApplicantHeavyFields(apid){
   if(!sb||apid==null||apid==='') return;
   const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
@@ -1905,9 +1921,12 @@ async function tryStaffApplicantsRpc_(fnName){
 
 /**
  * 同时尝试 RPC（v1 优先）与 REST，取「条数更多」的一份；REST 全列失败时回退最小列集。
+ * opts.lite=true 时优先拉极简列表（首屏更快），后台再补全。
  */
-async function fetchApplicantsListForStaff_(){
-  const r1=await tryStaffApplicantsRpc_('list_applicants_for_staff_v1');
+async function fetchApplicantsListForStaff_(opts){
+  opts = opts || {};
+  const lite = !!opts.lite;
+  const r1=await tryStaffApplicantsRpc_(lite?'list_applicants_for_staff_lite_v1':'list_applicants_for_staff_v1');
   const r0=await tryStaffApplicantsRpc_('list_applicants_for_staff');
   let rpcRows=[];
   let rpcErr=r1.err||r0.err||null;
@@ -1925,11 +1944,11 @@ async function fetchApplicantsListForStaff_(){
     return {err:null,rows:listQ.data};
   };
   try{
-    const full=await restTry(APPLICANTS_STAFF_LIST_COLS);
+    const full=await restTry(lite?APPLICANTS_STAFF_LIST_COLS_LITE:APPLICANTS_STAFF_LIST_COLS);
     if(!full.err && full.rows.length){
       restRows=full.rows;
     }else{
-      const min=await restTry(APPLICANTS_STAFF_LIST_COLS_MIN);
+      const min=await restTry(lite?APPLICANTS_STAFF_LIST_COLS_LITE:APPLICANTS_STAFF_LIST_COLS_MIN);
       if(!min.err && min.rows.length){
         restRows=min.rows;
       }else if(!full.err && full.rows.length===0 && !min.err && min.rows.length===0){
@@ -1969,7 +1988,7 @@ async function loadAdminData(opts){
   // ── Phase 1: applicants first (unblocks the Kanban) ──
   let apRes = {ok:false,error:new Error('no_fetch')};
   try{
-    apRes = await fetchApplicantsListForStaff_();
+    apRes = await fetchApplicantsListForStaff_({lite: fast});
   }catch(e){
     console.warn('loadAdminData applicants exception', e);
     apRes = {ok:false,error:e};
@@ -1978,6 +1997,7 @@ async function loadAdminData(opts){
   // 重要：若某类数据拉取失败，则保留上一份缓存，避免界面瞬间变成 0 张卡片
   const suspiciousEmptyApplicants = apRes.ok && Array.isArray(apRes.data) && apRes.data.length === 0 && prevApplicants.length > 0;
   if(apRes.ok && !suspiciousEmptyApplicants){
+    // fast 模式下为极简列表；后续会在后台再补全字段
     A.allApplicants = apRes.data;
   }else if(apRes.ok && suspiciousEmptyApplicants){
     // REST 在 RLS 收紧时常见：HTTP 200 + data=[]，会把看板清空；此处保留上一份并提示
@@ -2041,6 +2061,13 @@ async function loadAdminData(opts){
     // 不阻塞首屏：后台更新 slots/records 并刷新 teacherProfiles 合并
     (async()=>{
       try{
+        // 先补全 applicants（全字段/更全列），避免后续切 tab 还要再等
+        try{
+          const full = await fetchApplicantsListForStaff_({lite:false});
+          if(full?.ok && Array.isArray(full.data) && full.data.length){
+            A.allApplicants = mergeApplicantsById_(A.allApplicants, full.data);
+          }
+        }catch(e){ console.warn('loadAdminData phase2 applicants full', e); }
         const [slotsRes, recsRes] = await Promise.all([
           (async()=>{
             try{
