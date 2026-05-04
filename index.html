@@ -4622,7 +4622,7 @@ function renderAdmin(){
   return `<div style="min-height:100vh;background:#f4f5ff;display:flex;flex-direction:column">
     <div class="header">
       <div class="row g3"><span class="t20">🏫</span><span class="fw7 c-gray8">招生工作台</span>${roleTag}</div>
-      <div class="row g2">${mkAv(avLetter,'sm',isAd?'av-indigo':'av-violet')}<span class="t12 c-gray6">${esc(A.profile?.display_name||A.user?.email||'')}</span><button class="btn btn-ghost btn-sm" id="btn-staff-diag">诊断</button><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
+      <div class="row g2">${mkAv(avLetter,'sm',isAd?'av-indigo':'av-violet')}<span class="t12 c-gray6">${esc(A.profile?.display_name||A.user?.email||'')}</span><button class="btn btn-ghost btn-sm" id="btn-staff-diag" onclick="try{runStaffDiagnostics()}catch(e){alert('诊断异常：'+(e&&e.message?e.message:String(e)))}}">诊断</button><button class="btn btn-ghost btn-sm" id="btn-logout">退出</button></div>
     </div>
     ${(!boot && A.staffLastSyncError)?`<div class="px6" style="padding-top:10px"><div class="b1 bc-rose200 bg-rose50 r12 px4 py3 t12" style="color:#b91c1c">同步异常：${esc(String(A.staffLastSyncError).slice(0,220))}</div></div>`:''}
     <div class="stats">${stats.map(s=>`<div class="stat-card"><div class="t28 fw8" style="color:${s.color}">${s.value}</div><div class="t11 c-gray4 mt1">${s.label}</div></div>`).join('')}</div>
