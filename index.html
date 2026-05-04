@@ -1605,7 +1605,8 @@ function toast(msg,ok=true){
 
 // ── 申请人：本地会话 + 笔试草稿（刷新免重复登录、答题进度可恢复）────────────────
 const APPLICANT_SESSION_KEY='seminary_portal_applicant_v1';
-const STAFF_CACHE_KEY='seminary_portal_staff_cache_v1';
+// v2：避免历史空缓存/旧结构把看板锁死在 0（升级 key 直接让旧缓存自动失效）
+const STAFF_CACHE_KEY='seminary_portal_staff_cache_v2';
 
 function loadStaffCache(){
   try{
@@ -1619,6 +1620,8 @@ function loadStaffCache(){
 function saveStaffCache(){
   try{
     if(!Array.isArray(A.allApplicants)) return;
+    // 关键：绝不把「空列表」写入缓存（否则弱网/RLS/旧版本导致一次空，就会长时间显示 0）
+    if(A.allApplicants.length===0) return;
     // 只缓存轻字段，避免 localStorage 过大（JSON 表/长文本不缓存）
     const lite = A.allApplicants.map(ap=>({
       id: ap.id,
@@ -2023,7 +2026,8 @@ async function loadAdminData(){
     A.staffLastSyncError = null;
     A.staffLastSyncAt = new Date().toISOString();
   }
-  if(apRes.ok && !suspiciousEmptyApplicants) saveStaffCache();
+  // 关键：只在拿到非空列表时更新缓存，避免把空列表固化到普通窗口
+  if(apRes.ok && !suspiciousEmptyApplicants && Array.isArray(A.allApplicants) && A.allApplicants.length>0) saveStaffCache();
 
   // 无本地缓存且双通道都成功返回 0 条：多为未部署 RPC、profiles.role 不匹配或库表真为空
   if(apRes.ok && Array.isArray(apRes.data) && apRes.data.length === 0 && prevApplicants.length === 0 && (A.role === 'admin' || A.role === 'teacher') && apRes.via === 'both_empty'){
