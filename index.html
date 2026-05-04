@@ -1177,6 +1177,7 @@ const A = {
   editApInfoId: null,
   loginMode: null,   // 'applicant' | 'staff'
   adminDataLoading: false, // 职员登录/恢复会话：先出工作台壳，再异步拉 applicants/slots/records
+  staffCacheCount: 0, // 管理端本地缓存条数（用于“秒开”提示）
 
   // Applicant exam state
   examStarted: false,
@@ -2965,6 +2966,7 @@ async function loginStaff(email,password){
   const cache = loadStaffCache();
   if(cache && Array.isArray(cache.allApplicants) && cache.allApplicants.length){
     A.allApplicants = cache.allApplicants;
+    A.staffCacheCount = cache.allApplicants.length;
   }
   A.adminDataLoading=true;
   render();
@@ -4560,11 +4562,20 @@ function renderAdmin(){
   ];
   let content='';
   if(boot){
-    content=`<div class="card p8 tc" style="max-width:420px;margin:32px auto">
-      <div class="t15 fw6 c-gray7 mb2">正在同步招生数据…</div>
-      <div class="t12 c-gray5 lh16">网络较慢时可能要几秒，数据就绪后看板会自动出现。</div>
-    </div>`;
-  }else if(A.adminTab==='pipeline') content=renderPipeline();
+    // 若已有缓存，先展示缓存列表（秒开），并提示后台仍在同步
+    if(A.adminTab==='pipeline' && Array.isArray(A.allApplicants) && A.allApplicants.length){
+      content=`<div class="b1 bc-indigo100 bg-indigo50 r12 px4 py3 t12 mb4" style="color:#4338ca">
+        已显示本地缓存 <strong>${A.allApplicants.length}</strong> 条，正在后台同步最新数据…
+      </div>${renderPipeline(true)}`;
+    } else {
+      const n = A.staffCacheCount || 0;
+      const hint = n ? `已发现本地缓存 ${n} 条，正在加载…` : '网络较慢时可能要几秒，数据就绪后看板会自动出现。';
+      content=`<div class="card p8 tc" style="max-width:420px;margin:32px auto">
+        <div class="t15 fw6 c-gray7 mb2">正在同步招生数据…</div>
+        <div class="t12 c-gray5 lh16">${esc(hint)}</div>
+      </div>`;
+    }
+  }else if(A.adminTab==='pipeline') content=renderPipeline(false);
   else if(A.adminTab==='exams') content=renderExams();
   else if(A.adminTab==='schedule') content=renderSchedule();
   else if(A.adminTab==='docs') content=renderDocs();
@@ -4592,23 +4603,75 @@ function renderAdmin(){
   </div>`;
 }
 
-function renderPipeline(){
+function renderPipeline(loadingFromCache=false){
   const isAd=A.role==='admin';
   const canAddAp=isAd||A.role==='teacher';
+  // 看板卡片：只显示姓名/电话/阶段（首屏更快、更清晰）
+  const stageLabel = ap => {
+    const s = String(ap?.stage||'');
+    const zh = {apply:'报名',exam:'笔试',interview:'面试',result:'预录取',materials:'上传资料',visa:'签证',complete:'完成',rejected:'拒绝',waitlist:'候补'};
+    return zh[s] || s || '—';
+  };
   const cardHtml=(ap)=>`<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
             ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
             ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
-            <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
-            <div class="t11 c-gray5 mb1">${esc(examLangLabelShort(getApplicantExamLang(ap)))}</div>
+            <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div class="flex1">
+              <div class="fw6 c-gray8 t13 row g2 wrap" style="align-items:center">
+                <span>${esc(fullName(ap))}</span>
+                <span class="tag" style="background:#eef2ff;color:#4f46e5">${esc(stageLabel(ap))}</span>
+              </div>
+            </div></div>
             ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
-            ${ap.interview_slot_id&&ap.stage!=='complete'?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
           </div>`;
   const emptyHtml=`<div style="font-size:11px;color:#d1d5db;text-align:center;padding:16px 0;border:2px dashed #f3f4f6;border-radius:12px">暂无</div>`;
+  const stageRank = s => {
+    const map={apply:0,exam:1,interview:2,result:3,materials:4,visa:5,complete:6,rejected:9,waitlist:8};
+    return map[String(s||'')] ?? 99;
+  };
+  const archiveList = (A.allApplicants||[]).slice().sort((a,b)=>{
+    const la=getApplicantExamLang(a), lb=getApplicantExamLang(b);
+    const langOrder={zh:0,en:1,id:2};
+    const oa=langOrder[la]??9, ob=langOrder[lb]??9;
+    if(oa!==ob) return oa-ob;
+    const sa=stageRank(a.stage), sb=stageRank(b.stage);
+    if(sa!==sb) return sa-sb;
+    const na=String(fullName(a)||''), nb=String(fullName(b)||'');
+    const c=na.localeCompare(nb,'zh');
+    if(c!==0) return c;
+    return String(a.created_at||'').localeCompare(String(b.created_at||'')) * -1;
+  });
+  const renderArchive = ()=>{
+    const by={zh:[],en:[],id:[]};
+    archiveList.forEach(ap=>{const L=getApplicantExamLang(ap); (by[L]||by.zh).push(ap);});
+    const sec=(L,label)=>`<div class="mb3">
+      <div class="fw7 t12 c-gray7 mb2">${esc(label)} <span class="tag" style="background:#f3f4f6;color:#6b7280">${(by[L]||[]).length}</span></div>
+      <div class="col g2">
+        ${(by[L]||[]).map(ap=>`<div class="b1 bc-gray100 bg-white r10 px3 py2 row g2" style="align-items:flex-start">
+          <div class="flex1">
+            <div class="fw6 t12 c-gray8">${esc(fullName(ap))}</div>
+            <div class="t11 c-gray5">${ap.phone?`📞 ${esc(ap.phone)}`:'—'} · ${esc(stageLabel(ap))}</div>
+          </div>
+          <button class="btn btn-outline btn-xs" data-action="view-briefing" data-apid="${ap.id}">档案</button>
+        </div>`).join('') || `<div class="t12 c-gray4">暂无</div>`}
+      </div>
+    </div>`;
+    return `<div class="card p4" style="position:sticky;top:12px;max-height:calc(100vh - 220px);overflow:auto">
+      <div class="fw8 c-gray8 t13 mb2">申请人档案（按语言/阶段）</div>
+      <div class="t11 c-gray5 lh16 mb3">仅列表：姓名/电话/阶段。点「档案」查看完整信息。</div>
+      ${sec('zh','中文')}
+      ${sec('en','English')}
+      ${sec('id','Bahasa Indonesia')}
+    </div>`;
+  };
+
   return `<div>
     ${canAddAp?`<div class="row g2 mb4">
       <button class="btn btn-primary btn-sm" data-action="show-add-ap-modal">➕ 手动添加申请人</button>
+      ${loadingFromCache?`<span class="t11 c-gray5" style="align-self:center">（当前为缓存视图，同步完成后自动更新）</span>`:''}
     </div>`:''}
-    <div class="kanban">
+    <div class="row g4" style="align-items:flex-start">
+      <div class="flex1" style="min-width:720px">
+        <div class="kanban">
     ${STAGES.map(sg=>{
       const aps=A.allApplicants.filter(a=>a.stage===sg.id);
       const colClass=sg.id==='interview'?'kanban-col kanban-col-interview':'kanban-col';
@@ -4640,6 +4703,11 @@ function renderPipeline(){
         ${inner}
       </div>`;
     }).join('')}
+        </div>
+      </div>
+      <div style="width:340px;min-width:300px">
+        ${renderArchive()}
+      </div>
     </div>
   </div>`;
 }
