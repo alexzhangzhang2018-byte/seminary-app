@@ -338,6 +338,10 @@ function staffCanEditApplicantStage(){
 function staffCanDownloadVisaZip(){
   return A.role==='admin'||isVisaOpsStaff();
 }
+/** 奖学金批复页：可编辑批复额度与备注（签证/入学同工只读） */
+function staffCanEditScholarshipApproval(){
+  return (A.role==='admin'||A.role==='teacher')&&!isVisaOpsStaff();
+}
 function staffAdminTabDefs(){
   const all=[
     {id:'pipeline',label:'申请人看板',icon:'📊'},
@@ -1629,7 +1633,7 @@ function toast(msg,ok=true){
 // ── 申请人：本地会话 + 笔试草稿（刷新免重复登录、答题进度可恢复）────────────────
 const APPLICANT_SESSION_KEY='seminary_portal_applicant_v1';
 // v2：避免历史空缓存/旧结构把看板锁死在 0（升级 key 直接让旧缓存自动失效）
-const STAFF_CACHE_KEY='seminary_portal_staff_cache_v2';
+const STAFF_CACHE_KEY='seminary_portal_staff_cache_v3';
 
 function loadStaffCache(){
   try{
@@ -1660,8 +1664,15 @@ function saveStaffCache(){
       ui_lang: ap.ui_lang,
       exam_score: ap.exam_score,
       interview_slot_id: ap.interview_slot_id,
+      materials_submitted_at: ap.materials_submitted_at,
       sheet_import_unseen: ap.sheet_import_unseen,
       google_sheet_row: ap.google_sheet_row,
+      mat_survey_alert: ap.mat_survey_alert,
+      mat_survey_alert_reason: ap.mat_survey_alert_reason,
+      scholarship_form_json: ap.scholarship_form_json,
+      scholarship_amount_approved: ap.scholarship_amount_approved,
+      scholarship_approved_at: ap.scholarship_approved_at,
+      scholarship_review_note: ap.scholarship_review_note,
     }));
     localStorage.setItem(STAFF_CACHE_KEY, JSON.stringify({ts:Date.now(), allApplicants: lite}));
   }catch(_){}
@@ -1877,7 +1888,8 @@ const APPLICANTS_STAFF_LIST_COLS_MIN =
 
 // 首屏极简列表（渲染看板足够）：避免一次性拉回大 JSON 导致页面卡顿
 const APPLICANTS_STAFF_LIST_COLS_LITE =
-  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row';
+  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row,'+
+  'mat_survey_alert,mat_survey_alert_reason,scholarship_form_json,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note';
 
 function mergeApplicantsById_(prev, next){
   const map=new Map();
@@ -4608,6 +4620,7 @@ function renderStaffMe(){
 
 function renderScholarshipReview(){
   const stageOrder={materials:0,visa:1,complete:2};
+  const canEdit=staffCanEditScholarshipApproval();
   const list=(A.allApplicants||[]).filter(a=>['materials','visa','complete'].includes(a.stage)).sort((a,b)=>{
     const oa=stageOrder[a.stage]??9,ob=stageOrder[b.stage]??9;
     if(oa!==ob) return oa-ob;
@@ -4618,20 +4631,32 @@ function renderScholarshipReview(){
   const row=ap=>{
     const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
     const v=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''?String(ap.scholarship_amount_approved):'';
+    const reqDisp=String(sch.requested_amount||sch.amount_requested||sch.family_support||sch.total_self_funded||'—').slice(0,120);
+    const apprAt=ap.scholarship_approved_at?`<div class="t11 c-gray4 mt1">批复时间：${esc(String(ap.scholarship_approved_at).slice(0,19).replace('T',' '))}</div>`:'';
+    const amtCell=canEdit
+      ?`<input type="number" class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px" step="1" placeholder="额度" value="${esc(v)}">`
+      :`<div class="t13 fw6 c-gray8">${v?esc(v):'<span class="c-gray4">—</span>'}</div>${apprAt}`;
+    const noteCell=canEdit
+      ?`<input type="text" class="inp sch-note-inp" data-apid="${ap.id}" style="width:140px" placeholder="批复备注" value="${esc(ap.scholarship_review_note||'')}">`
+      :`<div class="t12 c-gray7" style="max-width:200px;word-break:break-word">${ap.scholarship_review_note?esc(ap.scholarship_review_note):'<span class="c-gray4">—</span>'}</div>`;
+    const actions=(canEdit?`<button type="button" class="btn btn-primary btn-sm btn-save-sch-amt" data-apid="${ap.id}">保存</button>`:'')+
+      `<button type="button" class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${ap.id}">档案</button>`;
     return `<tr>
       <td><div class="row g1 wrap" style="align-items:center"><span class="fw6">${esc(fullName(ap))}</span>${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>
         <div class="t11 c-gray4">${esc(ap.phone||'')}</div></td>
       <td>${ap.exam_score!=null?esc(String(ap.exam_score)):'—'}</td>
-      <td class="t11 c-gray6" style="max-width:220px;word-break:break-word">${esc(String(sch.requested_amount||sch.amount_requested||sch.family_support||sch.total_self_funded||'—').slice(0,120))}</td>
-      <td><input type="number" class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px" step="1" placeholder="额度" value="${esc(v)}"></td>
-      <td><input type="text" class="inp sch-note-inp" data-apid="${ap.id}" style="width:140px" placeholder="批复备注" value="${esc(ap.scholarship_review_note||'')}"></td>
-      <td class="row g1 wrap"><button type="button" class="btn btn-primary btn-sm btn-save-sch-amt" data-apid="${ap.id}">保存</button>
-        <button type="button" class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${ap.id}">档案</button></td>
+      <td class="t11 c-gray6" style="max-width:220px;word-break:break-word">${esc(reqDisp)}</td>
+      <td>${amtCell}</td>
+      <td>${noteCell}</td>
+      <td class="row g1 wrap">${actions}</td>
     </tr>`;
   };
+  const hint=canEdit
+    ? '列表包含当前处于<strong>上传资料、签证、完成</strong>三个阶段的全部申请人（无需先点「提交审核」也会出现）。请结合笔试、面试与家庭经济情况填写<strong>批复额度</strong>（数字）后保存；保存后会在<strong>档案 · 基本资料</strong>与申请人端展示该金额。若入学调查表中披露物质使用/成瘾史等，姓名旁会标「需留意」。'
+    : '列表包含当前处于<strong>上传资料、签证、完成</strong>三个阶段的申请人。以下为<strong>只读</strong>：可查看申请侧填写的额度相关信息与教务已保存的<strong>批复额度、批复备注</strong>；如需修改请使用教务账号。';
   return `<div class="maxw-3xl col g4">
     <div class="fw7 c-gray8 t16">奖学金批复</div>
-    <div class="t12 c-gray5 lh16">列表包含当前处于<strong>上传资料、签证、完成</strong>三个阶段的全部申请人（无需先点「提交审核」也会出现）。请结合笔试、面试与家庭经济情况填写<strong>批复额度</strong>（数字）后保存；保存后会在<strong>档案 · 基本资料</strong>与申请人端展示该金额。若入学调查表中披露物质使用/成瘾史等，姓名旁会标「需留意」。</div>
+    <div class="t12 c-gray5 lh16">${hint}</div>
     <div class="card" style="overflow:auto">
       <table class="tbl"><thead><tr><th>申请人</th><th>笔试</th><th>申请额度</th><th>批复额度</th><th>备注</th><th>操作</th></tr></thead>
       <tbody>${list.length?list.map(row).join(''):`<tr><td colspan="6" class="t13 c-gray4 tc" style="padding:24px">暂无处于「上传资料 / 签证 / 完成」环节的申请人</td></tr>`}</tbody></table>
@@ -5779,6 +5804,7 @@ function bind(){
   });
   root.querySelectorAll('.btn-save-sch-amt').forEach(btn=>{
     btn.addEventListener('click',async()=>{
+      if(!staffCanEditScholarshipApproval()){toast(apLine('当前账号无修改奖学金批复权限','No permission to edit scholarship approval','Tidak bisa mengubah persetujuan'),false);return;}
       if((A.role!=='admin'&&A.role!=='teacher')||!sb) return;
       const id=btn.dataset.apid;
       const inp=document.querySelector('.sch-amt-inp[data-apid="'+id+'"]');
