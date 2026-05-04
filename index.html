@@ -1942,10 +1942,16 @@ async function mergeApplicantHeavyFields(apid){
   if(!sb||apid==null||apid==='') return;
   const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
   if(!ap) return;
-  const {data,error}=await sb.from('applicants').select('visa_files_json,mat_financial_proof_data').eq('id',apid).maybeSingle();
+  // 列表 RPC 会裁剪奖助表内大字段；打开档案时按单行补全，便于教务下载收入/资产证明等 data URL
+  const {data,error}=await sb.from('applicants').select('visa_files_json,mat_financial_proof_data,scholarship_form_json').eq('id',apid).maybeSingle();
   if(error||!data) return;
   if(data.visa_files_json!==undefined) ap.visa_files_json=data.visa_files_json;
   if(data.mat_financial_proof_data!==undefined) ap.mat_financial_proof_data=data.mat_financial_proof_data;
+  if(data.scholarship_form_json!=null){
+    const prev=parseApplicantJsonCol(ap.scholarship_form_json,{});
+    const incoming=parseApplicantJsonCol(data.scholarship_form_json,{});
+    ap.scholarship_form_json=Object.assign({},prev,incoming);
+  }
 }
 
 /** 表格新导入小红点：教务点开详情或档案后清除 */
