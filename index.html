@@ -1235,6 +1235,8 @@ let examTimer = null;
 let applicantStagePoller = null;
 let interviewSlotsPoller = null;
 let staffApplicantsPoller = null;
+/** 窗口聚焦触发的教务列表强制刷新节流（毫秒时间戳，0 表示尚未刷新过） */
+let __staffFocusRefreshMs = 0;
 let staffAdminDataRetryTimer = null;
 let staffAdminDataRetryCount = 0;
 
@@ -1633,7 +1635,7 @@ function toast(msg,ok=true){
 // ── 申请人：本地会话 + 笔试草稿（刷新免重复登录、答题进度可恢复）────────────────
 const APPLICANT_SESSION_KEY='seminary_portal_applicant_v1';
 // v2：避免历史空缓存/旧结构把看板锁死在 0（升级 key 直接让旧缓存自动失效）
-const STAFF_CACHE_KEY='seminary_portal_staff_cache_v3';
+const STAFF_CACHE_KEY='seminary_portal_staff_cache_v4';
 
 function loadStaffCache(){
   try{
@@ -1669,7 +1671,6 @@ function saveStaffCache(){
       google_sheet_row: ap.google_sheet_row,
       mat_survey_alert: ap.mat_survey_alert,
       mat_survey_alert_reason: ap.mat_survey_alert_reason,
-      scholarship_form_json: ap.scholarship_form_json,
       scholarship_amount_approved: ap.scholarship_amount_approved,
       scholarship_approved_at: ap.scholarship_approved_at,
       scholarship_review_note: ap.scholarship_review_note,
@@ -1769,7 +1770,7 @@ function installApplicantDraftLifecycleHooks(){
 async function finalizeApplicantHydration(data){
   A.applicantBookedInterviewSlot=null;
   if(data.interview_slot_id){
-    const {data:bsl}=await sb.from('interview_slots').select('*').eq('id',data.interview_slot_id).maybeSingle();
+    const {data:bsl}=await sb.from('interview_slots').select(INTERVIEW_SLOTS_PUBLIC_COLS).eq('id',data.interview_slot_id).maybeSingle();
     if(bsl) A.applicantBookedInterviewSlot=bsl;
   }
   if(data.stage==='interview'&&!data.interview_slot_id){
@@ -1780,12 +1781,12 @@ async function finalizeApplicantHydration(data){
   applicantStagePoller=setInterval(async()=>{
     if(A.role!=='applicant'||!A.applicant?.id) return;
     try{
-      const {data:latest}=await sb.from('applicants').select('*').eq('id',A.applicant.id).maybeSingle();
+      const {data:latest}=await sb.from('applicants').select(APPLICANT_SELF_POLL_COLS).eq('id',A.applicant.id).maybeSingle();
       if(latest&&latest.stage&&latest.stage!==A.applicant.stage){
-        A.applicant=latest;
+        A.applicant={...A.applicant,...latest};
         A.applicantBookedInterviewSlot=null;
         if(latest.interview_slot_id){
-          const {data:bsl2}=await sb.from('interview_slots').select('*').eq('id',latest.interview_slot_id).maybeSingle();
+          const {data:bsl2}=await sb.from('interview_slots').select(INTERVIEW_SLOTS_PUBLIC_COLS).eq('id',latest.interview_slot_id).maybeSingle();
           if(bsl2) A.applicantBookedInterviewSlot=bsl2;
         }
         if((latest.stage||'')!=='exam') clearApplicantExamDraft(latest.id);
@@ -1801,7 +1802,7 @@ async function finalizeApplicantHydration(data){
         render();
       }
     }catch(_){}
-  },6000);
+  },10000);
   installApplicantDraftLifecycleHooks();
   render();
 }
@@ -1886,10 +1887,36 @@ const APPLICANTS_STAFF_LIST_COLS_MIN =
   'id,created_at,first_name,last_name,full_name,phone,phone_last4,email,stage,exam_lang,ui_lang,exam_score,exam_essay,interview_slot_id,materials_submitted_at,'+
   'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,admin_notes';
 
-// 首屏极简列表（渲染看板足够）：避免一次性拉回大 JSON 导致页面卡顿
+// 首屏极简列表：不含 scholarship_form_json（大 JSON 仍走 v1 / phase2）；含批复标量便于顶栏与奖学金页摘要
 const APPLICANTS_STAFF_LIST_COLS_LITE =
   'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row,'+
-  'mat_survey_alert,mat_survey_alert_reason,scholarship_form_json,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note';
+  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note';
+/** lite 主查询失败时回退（与历史版本一致，列最少） */
+const APPLICANTS_STAFF_LIST_COLS_LITE_FALLBACK =
+  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row';
+
+/** 面试时段列表：避免 select * 拉取无用列（预约页 / 教务排班会频繁查） */
+const INTERVIEW_SLOTS_PUBLIC_COLS =
+  'id,teacher_id,teacher_name,slot_date,slot_time,applicant_id,is_booked,zoom_id,zoom_password';
+/** 教务端面试记录列表：不含大字段扩展列 */
+const INTERVIEW_RECORDS_STAFF_COLS =
+  'id,applicant_id,recorded_by_id,recorded_by_name,interview_date,recommendation,recommendation_note,content,spiritual_assessment,created_at';
+/** 申请人端阶段轮询：仅拉阶段相关列，减轻库负载 */
+const APPLICANT_SELF_POLL_COLS = 'id,stage,interview_slot_id,exam_lang,ui_lang,phone_last4,full_name';
+
+async function waitForStaffJwt_(maxWaitMs){
+  if(!sb) return false;
+  const cap=Math.max(120,Math.min(Number(maxWaitMs)||2000,6000));
+  const t0=Date.now();
+  while(Date.now()-t0<cap){
+    try{
+      const {data}=await sb.auth.getSession();
+      if(data?.session?.access_token) return true;
+    }catch(_){}
+    await new Promise(r=>setTimeout(r,50));
+  }
+  return false;
+}
 
 function mergeApplicantsById_(prev, next){
   const map=new Map();
@@ -1901,6 +1928,14 @@ function mergeApplicantsById_(prev, next){
     map.set(k, {...base, ...r});
   });
   return [...map.values()];
+}
+/** 教务列表轻量签名：用于定时 lite 刷新判断是否需 re-render */
+function staffApplicantsListSig_(list){
+  try{
+    return (list||[]).map(a=>`${a.id}\t${a.stage||''}\t${a.exam_score??''}\t${a.scholarship_amount_approved??''}\t${String(a.materials_submitted_at||'').slice(0,19)}`).join('\n');
+  }catch(_){
+    return String((list||[]).length);
+  }
 }
 
 async function mergeApplicantHeavyFields(apid){
@@ -1960,7 +1995,11 @@ async function tryStaffApplicantsRpc_(fnName){
 async function fetchApplicantsListForStaff_(opts){
   opts = opts || {};
   const lite = !!opts.lite;
-  const r1=await tryStaffApplicantsRpc_(lite?'list_applicants_for_staff_lite_v1':'list_applicants_for_staff_v1');
+  let r1=await tryStaffApplicantsRpc_(lite?'list_applicants_for_staff_lite_v1':'list_applicants_for_staff_v1');
+  if(lite && r1.err){
+    console.warn('list_applicants_for_staff_lite_v1 failed, fallback v1', r1.err);
+    r1=await tryStaffApplicantsRpc_('list_applicants_for_staff_v1');
+  }
   const r0=await tryStaffApplicantsRpc_('list_applicants_for_staff');
   let rpcRows=[];
   let rpcErr=r1.err||r0.err||null;
@@ -1978,11 +2017,15 @@ async function fetchApplicantsListForStaff_(opts){
     return {err:null,rows:listQ.data};
   };
   try{
-    const full=await restTry(lite?APPLICANTS_STAFF_LIST_COLS_LITE:APPLICANTS_STAFF_LIST_COLS);
+    let full=await restTry(lite?APPLICANTS_STAFF_LIST_COLS_LITE:APPLICANTS_STAFF_LIST_COLS);
+    if(lite && full.err){
+      console.warn('REST lite primary failed, fallback minimal cols', full.err);
+      full=await restTry(APPLICANTS_STAFF_LIST_COLS_LITE_FALLBACK);
+    }
     if(!full.err && full.rows.length){
       restRows=full.rows;
     }else{
-      const min=await restTry(lite?APPLICANTS_STAFF_LIST_COLS_LITE:APPLICANTS_STAFF_LIST_COLS_MIN);
+      const min=await restTry(APPLICANTS_STAFF_LIST_COLS_MIN);
       if(!min.err && min.rows.length){
         restRows=min.rows;
       }else if(!full.err && full.rows.length===0 && !min.err && min.rows.length===0){
@@ -2019,10 +2062,19 @@ async function loadAdminData(opts){
   const prevSlots = Array.isArray(A.allSlots) ? A.allSlots : [];
   const prevRecs = Array.isArray(A.allRecords) ? A.allRecords : [];
 
+  if(A.role==='admin'||A.role==='teacher'){
+    await waitForStaffJwt_(2200);
+  }
+
   // ── Phase 1: applicants first (unblocks the Kanban) ──
   let apRes = {ok:false,error:new Error('no_fetch')};
   try{
     apRes = await fetchApplicantsListForStaff_({lite: fast});
+    if(apRes.ok && Array.isArray(apRes.data) && apRes.data.length===0 && (A.role==='admin'||A.role==='teacher')){
+      await new Promise(r=>setTimeout(r,120));
+      const retry=await fetchApplicantsListForStaff_({lite: fast});
+      if(retry.ok && Array.isArray(retry.data) && retry.data.length) apRes=retry;
+    }
   }catch(e){
     console.warn('loadAdminData applicants exception', e);
     apRes = {ok:false,error:e};
@@ -2094,6 +2146,7 @@ async function loadAdminData(opts){
   if(fast){
     // 不阻塞首屏：后台更新 slots/records 并刷新 teacherProfiles 合并
     (async()=>{
+      await new Promise(r=>setTimeout(r, 900));
       try{
         // 先补全 applicants（全字段/更全列），避免后续切 tab 还要再等
         try{
@@ -2105,14 +2158,14 @@ async function loadAdminData(opts){
         const [slotsRes, recsRes] = await Promise.all([
           (async()=>{
             try{
-              const r=await sb.from('interview_slots').select('*').order('slot_date').order('slot_time');
+              const r=await sb.from('interview_slots').select(INTERVIEW_SLOTS_PUBLIC_COLS).order('slot_date').order('slot_time');
               if(r?.error){ console.warn('loadAdminData slots failed', r.error); return {ok:false,error:r.error}; }
               return {ok:true,data:Array.isArray(r?.data)?r.data:[]};
             }catch(e){ console.warn('loadAdminData slots exception', e); return {ok:false,error:e}; }
           })(),
           (async()=>{
             try{
-              const r=await sb.from('interview_records').select('*').order('created_at',{ascending:false});
+              const r=await sb.from('interview_records').select(INTERVIEW_RECORDS_STAFF_COLS).order('created_at',{ascending:false});
               if(r?.error){ console.warn('loadAdminData recs failed', r.error); return {ok:false,error:r.error}; }
               return {ok:true,data:Array.isArray(r?.data)?r.data:[]};
             }catch(e){ console.warn('loadAdminData recs exception', e); return {ok:false,error:e}; }
@@ -2135,14 +2188,14 @@ async function loadAdminData(opts){
   const [slotsRes, recsRes] = await Promise.all([
     (async()=>{
       try{
-        const r=await sb.from('interview_slots').select('*').order('slot_date').order('slot_time');
+        const r=await sb.from('interview_slots').select(INTERVIEW_SLOTS_PUBLIC_COLS).order('slot_date').order('slot_time');
         if(r?.error){ console.warn('loadAdminData slots failed', r.error); return {ok:false,error:r.error}; }
         return {ok:true,data:Array.isArray(r?.data)?r.data:[]};
       }catch(e){ console.warn('loadAdminData slots exception', e); return {ok:false,error:e}; }
     })(),
     (async()=>{
       try{
-        const r=await sb.from('interview_records').select('*').order('created_at',{ascending:false});
+        const r=await sb.from('interview_records').select(INTERVIEW_RECORDS_STAFF_COLS).order('created_at',{ascending:false});
         if(r?.error){ console.warn('loadAdminData recs failed', r.error); return {ok:false,error:r.error}; }
         return {ok:true,data:Array.isArray(r?.data)?r.data:[]};
       }catch(e){ console.warn('loadAdminData recs exception', e); return {ok:false,error:e}; }
@@ -2200,7 +2253,7 @@ async function loadPublicSlots(){
   const now = Date.now();
   const needLang = (A.applicant?.exam_lang || A.examLang || 'zh');
   const [{data: slotRows}, {data: bookedAps}, {data: tprof}] = await Promise.all([
-    sb.from('interview_slots').select('*').order('slot_date').order('slot_time'),
+    sb.from('interview_slots').select(INTERVIEW_SLOTS_PUBLIC_COLS).order('slot_date').order('slot_time'),
     sb.from('applicants').select('interview_slot_id').not('interview_slot_id', 'is', null),
     sb.from('profiles').select('id,display_name,interview_langs,whatsapp').eq('role','teacher'),
   ]);
@@ -2304,7 +2357,7 @@ async function refreshStaffApplicantsOnce(opts){
   if(!sb || (A.role!=='admin' && A.role!=='teacher')) return;
   if(typeof document!=='undefined' && document.hidden && !opts.force) return;
   try{
-    const listRes=await fetchApplicantsListForStaff_();
+    const listRes=await fetchApplicantsListForStaff_({lite:true});
     if(!listRes.ok || !Array.isArray(listRes.data)){
       console.warn('refreshStaffApplicantsOnce failed', listRes?.error);
       A.staffLastSyncError = formatSbError(listRes?.error||'refresh_failed');
@@ -2323,12 +2376,14 @@ async function refreshStaffApplicantsOnce(opts){
     }
     A.staffLastSyncError = null;
     A.staffLastSyncAt = new Date().toISOString();
-    // 仅在确实有变化时更新，减少 render 抖动
+    const merged=mergeApplicantsById_(prev, rows);
+    const prevSig=staffApplicantsListSig_(prev);
+    const nextSig=staffApplicantsListSig_(merged);
     const prevTop = prev[0]?.created_at ? String(prev[0].created_at) : '';
-    const nextTop = rows[0]?.created_at ? String(rows[0].created_at) : '';
-    const changed = prev.length !== rows.length || prevTop !== nextTop;
+    const nextTop = merged[0]?.created_at ? String(merged[0].created_at) : '';
+    const changed = prev.length !== merged.length || prevTop !== nextTop || prevSig !== nextSig;
     if(changed){
-      A.allApplicants = rows;
+      A.allApplicants = merged;
       if(A.selectedApId && !A.allApplicants.some(a=>String(a.id)===String(A.selectedApId))){
         A.selectedApId = null;
       }
@@ -2345,12 +2400,18 @@ function syncStaffApplicantsPoll(){
   const need = (A.role==='admin' || A.role==='teacher');
   if(need){
     if(!staffApplicantsPoller){
-      // 60 秒刷新一次；窗口重新聚焦/恢复可见时强制刷新
-      staffApplicantsPoller = setInterval(()=>{ refreshStaffApplicantsOnce({force:false}); }, 60000);
+      // 2 分钟刷新一次（减轻数据库与网关压力）；聚焦/回到前台有节流
+      staffApplicantsPoller = setInterval(()=>{ refreshStaffApplicantsOnce({force:false}); }, 120000);
       try{
-        window.addEventListener('focus', ()=>{ refreshStaffApplicantsOnce({force:true}); });
+        const onStaffFocusRefresh = ()=>{
+          const t=Date.now();
+          if(__staffFocusRefreshMs!==0 && t-__staffFocusRefreshMs<38000) return;
+          __staffFocusRefreshMs=t;
+          refreshStaffApplicantsOnce({force:true});
+        };
+        window.addEventListener('focus', onStaffFocusRefresh);
         document.addEventListener('visibilitychange', ()=>{
-          if(!document.hidden) refreshStaffApplicantsOnce({force:true});
+          if(!document.hidden) onStaffFocusRefresh();
         });
       }catch(_){}
       // 登录后立即补拉一次，减少等待
@@ -3088,6 +3149,8 @@ async function logout(){
   await sb.auth.signOut();
   if(applicantStagePoller){clearInterval(applicantStagePoller);applicantStagePoller=null;}
   if(interviewSlotsPoller){clearInterval(interviewSlotsPoller);interviewSlotsPoller=null;}
+  if(staffApplicantsPoller){clearInterval(staffApplicantsPoller);staffApplicantsPoller=null;}
+  __staffFocusRefreshMs=0;
   if(staffAdminDataRetryTimer){clearTimeout(staffAdminDataRetryTimer);staffAdminDataRetryTimer=null;}
   staffAdminDataRetryCount = 0;
   Object.assign(A,{
