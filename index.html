@@ -1844,6 +1844,11 @@ const APPLICANTS_STAFF_LIST_COLS =
   'gender,hometown,education,church_name,denomination,language_proficiency,marital_status,conversion_time,date_of_birth,'+
   'sheet_import_unseen,google_sheet_row';
 
+/** 列裁剪查询失败时回退（缺列 / 旧库），至少让看板有卡片 */
+const APPLICANTS_STAFF_LIST_COLS_MIN =
+  'id,created_at,first_name,last_name,full_name,phone,phone_last4,email,stage,exam_lang,ui_lang,exam_score,exam_essay,interview_slot_id,materials_submitted_at,'+
+  'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,admin_notes';
+
 async function mergeApplicantHeavyFields(apid){
   if(!sb||apid==null||apid==='') return;
   const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
@@ -1863,9 +1868,17 @@ async function acknowledgeApplicantSheetImport(apid){
   if(!error) ap.sheet_import_unseen=false;
 }
 
-/** PostgREST 对 setof / 单行 RPC 的 data 形态不一：统一成数组 */
+/** PostgREST 对 setof / jsonb / 单行 RPC 的 data 形态不一：统一成数组 */
 function normalizeApplicantListRpcData(data){
   if(data==null) return [];
+  if(typeof data==='string'){
+    try{
+      const p=JSON.parse(data);
+      return normalizeApplicantListRpcData(p);
+    }catch(_){
+      return [];
+    }
+  }
   if(Array.isArray(data)) return data;
   if(typeof data==='object'){
     if(data.id!=null) return [data];
@@ -1876,29 +1889,52 @@ function normalizeApplicantListRpcData(data){
   return [];
 }
 
+async function tryStaffApplicantsRpc_(fnName){
+  try{
+    const rpc=await sb.rpc(fnName);
+    if(rpc?.error) return {err:rpc.error,rows:[]};
+    return {err:null,rows:normalizeApplicantListRpcData(rpc.data)};
+  }catch(e){
+    return {err:e,rows:[]};
+  }
+}
+
 /**
- * 同时尝试 RPC 与 REST，取「条数更多」的一份作为真相（修复：仅走 RPC 时若权限子查询不匹配会恒为 []；仅走 REST 时 RLS 又常为 []）。
+ * 同时尝试 RPC（v1 优先）与 REST，取「条数更多」的一份；REST 全列失败时回退最小列集。
  */
 async function fetchApplicantsListForStaff_(){
-  let rpcErr=null,rpcRows=[];
-  try{
-    const rpc=await sb.rpc('list_applicants_for_staff');
-    if(rpc?.error) rpcErr=rpc.error;
-    else rpcRows=normalizeApplicantListRpcData(rpc.data);
-  }catch(e){
-    rpcErr=e;
-    console.warn('fetchApplicantsListForStaff_ rpc', e);
-  }
+  const r1=await tryStaffApplicantsRpc_('list_applicants_for_staff_v1');
+  const r0=await tryStaffApplicantsRpc_('list_applicants_for_staff');
+  let rpcRows=[];
+  let rpcErr=r1.err||r0.err||null;
+  if((r1.rows||[]).length>=(r0.rows||[]).length) rpcRows=r1.rows||[];
+  else rpcRows=r0.rows||[];
+  if(!rpcRows.length&&r1.err) rpcErr=r1.err;
+  else if(!rpcRows.length&&r0.err) rpcErr=r0.err;
+  else rpcErr=null;
+
   let restErr=null,restRows=[];
+  const restTry=async cols=>{
+    const listQ=await sb.from('applicants').select(cols).order('created_at',{ascending:false});
+    if(listQ?.error) return {err:listQ.error,rows:[]};
+    if(!Array.isArray(listQ?.data)) return {err:new Error('bad_applicants_payload'),rows:[]};
+    return {err:null,rows:listQ.data};
+  };
   try{
-    const listQ=await sb.from('applicants').select(APPLICANTS_STAFF_LIST_COLS).order('created_at',{ascending:false});
-    if(listQ?.error){
-      restErr=listQ.error;
-      console.warn('fetchApplicantsListForStaff_ rest failed', listQ.error);
-    }else if(Array.isArray(listQ?.data)){
-      restRows=listQ.data;
+    const full=await restTry(APPLICANTS_STAFF_LIST_COLS);
+    if(!full.err && full.rows.length){
+      restRows=full.rows;
     }else{
-      restErr=new Error('bad_applicants_payload');
+      const min=await restTry(APPLICANTS_STAFF_LIST_COLS_MIN);
+      if(!min.err && min.rows.length){
+        restRows=min.rows;
+      }else if(!full.err && full.rows.length===0 && !min.err && min.rows.length===0){
+        restRows=[];
+        restErr=null;
+      }else{
+        restRows=(full.rows&&full.rows.length)?full.rows:(min.rows||[]);
+        restErr=full.err||min.err||null;
+      }
     }
   }catch(e){
     restErr=e;
@@ -1991,7 +2027,7 @@ async function loadAdminData(){
 
   // 无本地缓存且双通道都成功返回 0 条：多为未部署 RPC、profiles.role 不匹配或库表真为空
   if(apRes.ok && Array.isArray(apRes.data) && apRes.data.length === 0 && prevApplicants.length === 0 && (A.role === 'admin' || A.role === 'teacher') && apRes.via === 'both_empty'){
-    A.staffLastSyncError = '未读到任何申请人（RPC 与 REST 均为 0 条）。请①在 Supabase SQL Editor 执行迁移 list_applicants_for_staff（含 20260503130000 的 v2）；②在表 public.profiles 中确认当前登录账号的 id 与 auth.users 一致，且 role 为 admin 或 teacher；③在 public.applicants 确认确有数据。';
+    A.staffLastSyncError = '未读到任何申请人（RPC 与 REST 均为 0 条）。请①在 Supabase SQL Editor 执行迁移：20260503130000（角色匹配）与 20260503140000（RPC 改为精简 jsonb，避免 43 行+大字段撑爆响应）；②确认 public.profiles 中当前账号 role 为 admin/teacher；③确认 public.applicants 有数据。';
     A.staffLastSyncAt = new Date().toISOString();
   }
 
@@ -2910,6 +2946,14 @@ async function loginStaff(email,password){
     return;
   }
   A.user=data.user;
+  // 确保后续 RPC/REST 请求带上 JWT（偶发 signIn 与首包 loadAdminData 竞态会导致 auth.uid() 为空 → 列表恒 0）
+  try{
+    for(let i=0;i<5;i++){
+      const {data:sw}=await sb.auth.getSession();
+      if(sw?.session) break;
+      await new Promise(r=>setTimeout(r,100));
+    }
+  }catch(_){}
   const {data:prof}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
   A.profile=prof;
   A.role=prof?.role||'teacher';
@@ -3577,20 +3621,24 @@ async function runStaffDiagnostics(){
     const has = !!sessRes?.data?.session;
     const role = A.role || '(none)';
     const q = await sb.from('applicants').select('id,created_at').order('created_at',{ascending:false}).limit(1);
-    let rpcCount=null,rpcErr=null;
+    let rpcCount=null,rpcV1=null,rpcErr=null;
     try{
+      const rv1=await sb.rpc('list_applicants_for_staff_v1');
+      if(!rv1?.error) rpcV1=normalizeApplicantListRpcData(rv1.data).length;
       const r=await sb.rpc('list_applicants_for_staff');
       if(r?.error) rpcErr=formatSbError(r.error);
-      else if(Array.isArray(r?.data)) rpcCount=r.data.length;
+      else rpcCount=normalizeApplicantListRpcData(r.data).length;
     }catch(e){ rpcErr=formatSbError(e); }
+    const rpcHint=[rpcV1!=null?`RPC_v1=${rpcV1}`:'',rpcCount!=null?`RPC=${rpcCount}`:'',rpcErr?`err=${rpcErr}`:''].filter(Boolean).join(' ');
     if(q?.error){
-      toast('诊断失败：'+(has?`已登录(${role})`:`无会话(${role})`)+'；REST '+formatSbError(q.error)+(rpcCount!=null?`；RPC 列表 ${rpcCount} 条`:rpcErr?`；RPC ${rpcErr}`:''), false);
+      toast('诊断失败：'+(has?`已登录(${role})`:`无会话(${role})`)+'；REST '+formatSbError(q.error)+(rpcHint?`；${rpcHint}`:''), false);
       return;
     }
     const top = (q.data && q.data[0]) ? String(q.data[0].created_at||'') : '(empty)';
     const restEmpty=!q.data||!q.data.length;
-    const hint=(restEmpty&&rpcCount!=null&&rpcCount>0)?'（REST 样例 0 条但 RPC 有数据→多为 RLS，请执行 20260503120000 迁移）':'';
-    toast('诊断：'+(has?`已登录(${role})`:`无会话(${role})`)+`；REST 样例 latest=${top}`+(rpcCount!=null?`；RPC 列表 ${rpcCount} 条`:rpcErr?`；RPC ${rpcErr}`:'')+hint);
+    const bestRpc=Math.max(rpcV1||0,rpcCount||0);
+    const hint=(restEmpty&&bestRpc>0)?'（REST 样例 0 但 RPC 有数据→多为 RLS；请执行 SQL 迁移 list_applicants_for_staff_v1 / jsonb 版）':'';
+    toast('诊断：'+(has?`已登录(${role})`:`无会话(${role})`)+`；REST 样例 latest=${top}`+(rpcHint?`；${rpcHint}`:'')+hint);
     // 若诊断 OK 但看板仍显示 0，通常是前端刷新节奏问题；这里强制立即拉一次最新列表
     try{
       if(A.role==='admin' || A.role==='teacher'){
