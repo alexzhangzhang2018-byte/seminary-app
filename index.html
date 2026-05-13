@@ -4197,12 +4197,11 @@ function materialsMissingCount(ap){
   else{
     if(!financialProofBytesOk(sch,ap)) miss++;
     if(!applicantSignatureBytesOk(sch)) miss++;
+    if(!pastorLetterUploadOk(sch)) miss++;
     if(campus==='np'){
       if(String(sch.np_fee_ack||'')!=='yes') miss++;
       const raw=String(sch.requested_amount||sch.amount_requested||'').trim();
       if(raw!=='0'&&raw!=='500'&&raw!=='1000') miss++;
-    }else{
-      if(!pastorLetterUploadOk(sch)) miss++;
     }
     if(sch.agree_terms!=='yes') miss++;
   }
@@ -4573,15 +4572,23 @@ function renderMaterials(){
       </div>
       <div class="t12 c-gray6 mb3 lh16" style="border-left:3px solid #e5e7eb;padding-left:10px">${esc(mmsT('*注意：尼泊尔校区学费已从标准 $3,000 优惠至 $1,000/年。所申请资助若获批准，将直接核减学费，不发放到个人。','*Note: Nepal campus tuition is already reduced from $3,000 to $1,000/year. If approved, aid is deducted from tuition, not paid to individuals.','*Catatan: Biaya kampus Nepal sudah dikurangi dari $3.000 ke $1.000/tahun. Jika disetujui, bantuan dipotong dari biaya, tidak dibayarkan tunai.'))}</div>
       <div class="fw7 mb2">3. ${mmsT('费用与资助说明确认','Fee & aid acknowledgement','Konfirmasi biaya & bantuan')}</div>
-      <div class="b1 bc-indigo100 bg-indigo50 r8 p3 mb3 lh16">${esc(mmsT('尼泊尔（加德满都）校区不适用印尼（雅加达）校区的 $300 押金或牧师担保信制度。','The Nepal (Kathmandu) campus does not use the Indonesia (Jakarta) campus USD 300 deposit or pastor guarantee letter.','Kampus Nepal (Kathmandu) tidak menggunakan deposit $300 atau surat jaminan pendeta kampus Indonesia (Jakarta).'))}</div>
+      <div class="b1 bc-indigo100 bg-indigo50 r8 p3 mb3 lh16">${esc(mmsT('尼泊尔（加德满都）校区不需要缴纳 $300 押金，但仍需提交牧师担保信。','The Nepal (Kathmandu) campus does not require the USD 300 deposit, but a pastor guarantee letter is still required.','Kampus Nepal (Kathmandu) tidak memerlukan deposit $300, tetapi surat jaminan pendeta tetap diperlukan.'))}</div>
       <div class="row g2 mb3" style="align-items:flex-start"><input type="checkbox" id="mat-np-fee-ack" ${sch.np_fee_ack==='yes'?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px;flex-shrink:0;margin-top:2px"><label for="mat-np-fee-ack" class="t12 lh16">${esc(mmsT('本人已阅读并理解上述费用与资助安排（以教务通知为准）','I have read and understand the fee and aid arrangement above (subject to office notice)','Saya telah membaca dan memahami pengaturan biaya & bantuan di atas (mengikuti pemberituan kantor)'))}</label></div>
-      <div class="fw7 mb2">4. ${mmsT('条款与承诺','Terms & conditions','Syarat & ketentuan')}</div>
+      <div class="fw7 mb2">4. ${mmsT('牧师担保信','Pastor guarantee letter','Surat jaminan pendeta')}</div>
+      <div class="b1 bc-indigo100 bg-indigo50 r8 p3 mb3">
+        <div class="t12 fw6 c-indigo6 mb2">${esc(mmsT('请下载模板，由主任牧师填写签字盖章后扫描上传。','Download the template, have the senior pastor sign/stamp, then upload the scan.','Unduh template, tanda tangan pendeta senior, lalu unggah scan.'))}</div>
+        <a class="btn btn-outline btn-sm mb2" href="assets/forms/MMS_牧师担保信.docx" download="MMS_牧师担保信.docx">${esc(mmsT('⬇ 下载牧师担保信模板（Word）','⬇ Download pastor guarantee template (Word)','⬇ Unduh template'))}</a>
+        <div class="t11 fw6 c-gray6 mb1">${esc(mmsT('已签字的牧师担保信扫描件（必填）','Signed pastor guarantee letter scan (required)','Scan surat jaminan pendeta (wajib)'))}</div>
+        <input type="file" id="mat-pastor-letter-file" accept="image/*,.pdf,application/pdf" class="t12">
+        ${pasUpName?`<div class="t11 c-gray4 mt1">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(pasUpName)}</div>`:''}
+      </div>
+      <div class="fw7 mb2">5. ${mmsT('条款与承诺','Terms & conditions','Syarat & ketentuan')}</div>
       <div class="b1 bc-gray100 r8 p3 mb3 lh16">
-        <div class="mb2">A. ${mmsT('完成学业：我承诺将在教务安排的南亚就读点完成相应学业要求。','Completion: I commit to fulfilling the study requirements at the South Asia site as arranged by the office.','Penyelesaian: Saya berkomitmen menyelesaikan studi sesuai pengaturan kantor di lokasi Asia Selatan.')}</div>
+        <div class="mb2">A. ${mmsT('完成学业：我承诺将在教务安排的尼泊尔校区完成相应学业要求。','Completion: I commit to fulfilling the study requirements at the Nepal campus as arranged by the office.','Penyelesaian: Saya berkomitmen menyelesaikan studi sesuai pengaturan kantor di kampus Nepal.')}</div>
         <div class="mb2">B. ${mmsT('退款政策：若我中途退学或被开除必须全额退还所获资助。','Repayment: If I withdraw or am expelled I must repay 100% of aid received.','Pengembalian: Jika mengundurkan diri atau dikeluarkan wajib mengembalikan 100% bantuan yang diterima.')}</div>
       </div>
       <div class="row g2 mb3" style="align-items:center"><input type="checkbox" id="mat-sch-agree-terms" ${sch.agree_terms==='yes'?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px"><label for="mat-sch-agree-terms" class="t12">${esc(mmsT('本人已阅读并同意上述条款与承诺','I have read and agree to the terms above','Saya setuju syarat di atas'))}</label></div>
-      <div class="fw7 mb2">5. ${mmsT('签署','Signature','Tanda tangan')}</div>
+      <div class="fw7 mb2">6. ${mmsT('签署','Signature','Tanda tangan')}</div>
       <div class="t12 c-gray6 mb2">${esc(mmsT('申请人电子签（请上传签名图片或 PDF，必填）','Applicant e-signature image or PDF (required)','Tanda tangan elektronik (wajib)'))}</div>
       <input type="file" id="mat-sig-file" accept="image/*,.pdf,application/pdf" class="t12 mb2">
       ${sigName?`<div class="t11 c-gray4 mb2">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(sigName)}</div>`:''}
@@ -5709,7 +5716,7 @@ function bind(){
       toast(apLine('请选择申请资助金额（$1,000 / $500 / $0）。','Please select a financial aid amount.','Pilih jumlah bantuan.'),false);
       return;
     }
-    const g=campusNp?'deposit':(document.querySelector('input[name="mat-sch-guarantee"]:checked')?.value||'deposit');
+    const g=campusNp?'pastor_letter':(document.querySelector('input[name="mat-sch-guarantee"]:checked')?.value||'deposit');
     const sch={...prev,
       family_support:(document.getElementById('mat-sch-fund-family')?.value||'').trim(),
       church_support:(document.getElementById('mat-sch-fund-church')?.value||'').trim(),
