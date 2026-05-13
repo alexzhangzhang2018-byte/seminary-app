@@ -4835,8 +4835,11 @@ function renderScholarshipReview(){
     const v=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''?String(ap.scholarship_amount_approved):'';
     const reqDisp=String(sch.requested_amount||sch.amount_requested||sch.family_support||sch.total_self_funded||'—').slice(0,120);
     const apprAt=ap.scholarship_approved_at?`<div class="t11 c-gray4 mt1">批复时间：${esc(String(ap.scholarship_approved_at).slice(0,19).replace('T',' '))}</div>`:'';
+    const isNpRow=getApplicantCampusCode(ap)==='np';
     const amtCell=canEdit
-      ?`<input type="number" class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px" step="1" placeholder="额度" value="${esc(v)}">`
+      ?(isNpRow
+        ?`<select class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px"><option value=""${v===''?' selected':''}> — </option><option value="1000"${v==='1000'?' selected':''}>1000</option><option value="500"${v==='500'?' selected':''}>500</option><option value="0"${v==='0'?' selected':''}>0</option></select>`
+        :`<input type="number" class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px" step="1" placeholder="额度" value="${esc(v)}">`)
       :`<div class="t13 fw6 c-gray8">${v?esc(v):'<span class="c-gray4">—</span>'}</div>${apprAt}`;
     const noteCell=canEdit
       ?`<input type="text" class="inp sch-note-inp" data-apid="${ap.id}" style="width:140px" placeholder="批复备注" value="${esc(ap.scholarship_review_note||'')}">`
