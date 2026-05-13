@@ -1376,7 +1376,21 @@ function sortSlotsForApplicantBooking(slots, needLang, profileById, allProfiles)
 const mkTag = (bg,color,text) => `<span class="tag" style="background:${bg};color:${color}">${esc(text)}</span>`;
 const mkAv  = (initials,size='md',cls='av-indigo') => `<div class="avatar av-${size} ${cls}">${esc(initials)}</div>`;
 const initials = ap => ap ? ((ap.first_name||'')[0]||(ap.full_name||'?')[0]) : '?';
-const fullName = ap => ap ? (ap.full_name || ap.first_name + ap.last_name || '未知') : '未知';
+const fullName = ap => {
+  if(!ap) return '未知';
+  if(ap.full_name) return ap.full_name;
+  const f=String(ap.first_name||'').trim();
+  const l=String(ap.last_name||'').trim();
+  if(f&&l) return /[\u4e00-\u9fff]/.test(f+l) ? l+f : f+' '+l;
+  return f||l||'未知';
+};
+const normLoginName = s => String(s||'')
+  .trim()
+  .replace(/\s+/g,'')
+  .replace(/[（(].*?[）)]/g,'')
+  .replace(/[·.\-_,，、]/g,'')
+  .normalize('NFKC')
+  .toLowerCase();
 
 /** 单日列：课表/可约底/空档/已约 各为整条绝对定位块 */
 function buildTeacherDayColHtml(dt, openSlots, booked){
@@ -1815,7 +1829,7 @@ async function tryRestoreApplicantFromBrowser(){
   if(!snap||!snap.applicantId) return false;
   const {data,error}=await sb.from('applicants').select('*').eq('id',snap.applicantId).maybeSingle();
   if(error||!data){ clearApplicantBrowserSession(); return false; }
-  if(String(data.full_name||'').trim()!==String(snap.full_name||'').trim()){ clearApplicantBrowserSession(); return false; }
+  if(normLoginName(data.full_name)!==normLoginName(snap.full_name)){ clearApplicantBrowserSession(); return false; }
   if(String(data.phone_last4||'')!==String(snap.phone_last4||'')){ clearApplicantBrowserSession(); return false; }
   A.role='applicant';
   A.applicant=data;
@@ -2960,15 +2974,12 @@ async function loginApplicant(name,last4){
   try{ await sb.auth.signOut(); }catch(_){}
   const trimName=String(name||'').trim();
   const last4s=String(last4||'').trim();
-  const norm = s => String(s||'')
-    .trim()
-    .replace(/\s+/g,'')
-    .replace(/[（(].*?[）)]/g,'') // 去掉括号备注（如“张三(微信)”）
-    .toLowerCase();
+  const norm=normLoginName;
+  const normName=norm(trimName);
   // 优先走数据库侧的安全登录 RPC（避免放开 anon 直接 SELECT applicants 造成信息泄露）
   // 若 RPC 未部署，则回退旧逻辑（依赖 anon SELECT applicants 的 RLS 策略）。
   try{
-    const rpc = await sb.rpc('login_applicant_by_name_last4',{p_name:trimName,p_last4:last4s});
+    const rpc = await sb.rpc('login_applicant_by_name_last4',{p_name:normName||trimName,p_last4:last4s});
     if(rpc && !rpc.error && rpc.data){
       A.role='applicant';A.applicant=rpc.data;
       const postExamStages=['interview','result','materials','visa','complete','rejected','waitlist'];
@@ -3007,11 +3018,30 @@ async function loginApplicant(name,last4){
   }
   const candidates = Array.isArray(list) ? list : [];
   const want = norm(trimName);
+  const fuzzyOk=(a,b)=>{
+    if(!a||!b) return false;
+    if(a===b) return true;
+    if(a.includes(b)||b.includes(a)) return true;
+    if(a.length<2||b.length<2) return false;
+    let d=0;const la=a.length,lb=b.length;
+    if(Math.abs(la-lb)>2) return false;
+    const prev=Array.from({length:lb+1},(_,i)=>i);
+    for(let i=1;i<=la;i++){
+      const cur=[i];
+      for(let j=1;j<=lb;j++){
+        cur[j]=a[i-1]===b[j-1]?prev[j-1]:1+Math.min(prev[j-1],prev[j],cur[j-1]);
+      }
+      prev.splice(0,prev.length,...cur);
+    }
+    d=prev[lb];
+    const maxL=Math.max(la,lb);
+    return maxL<=3?d<=1:d<=2;
+  };
   const pick = candidates.find(ap=>{
     const fn = norm(ap.full_name);
     const f1 = norm((ap.first_name||'')+(ap.last_name||''));
     const f2 = norm((ap.last_name||'')+(ap.first_name||''));
-    return want && (want===fn || want===f1 || want===f2);
+    return want && (fuzzyOk(want,fn) || fuzzyOk(want,f1) || fuzzyOk(want,f2));
   });
   if(!pick){
     // 友好提示：后四位可能填错
