@@ -4405,6 +4405,11 @@ function renderVisaStage(ap){
     <div class="b1 bc-indigo200 bg-indigo50 r12 p4 t13 c-indigo6 lh16">${esc(L('如有疑问请通过预留联系方式联系教务。','Contact the office if you have questions.','Hubungi kantor jika ada pertanyaan.'))}</div>
     ${canComplete?`<div class="mt4"><button type="button" class="btn btn-primary" id="btn-applicant-complete-after-visa">${esc(L('签证材料已齐，进入完成环节 →','Visa files complete — go to final step →','Berkas visa lengkap — lanjut ke selesai →'))}</button>
     <div class="t11 c-gray5 mt2">${esc(L('进入后可见来印尼攻略、学院官网与 Hora 学校招生联系方式。','Next page: travel guide, website, and Hora School contact.','Halaman berikut: panduan, situs, kontak Hora.'))}</div></div>`:''}
+    ${getApplicantCampusCode(ap)==='np'?`<div class="mt4 b1 bc-amber200 bg-amber50 r12 p4">
+      <div class="t13 fw6 mb2" style="color:#92400e">${esc(L('尼泊尔本地学生','Nepal local students','Siswa lokal Nepal'))}</div>
+      <div class="t12 c-gray6 mb3 lh16">${esc(L('如果您是尼泊尔本地居民，无需办理签证，可直接跳过此环节进入「完成」阶段。','If you are a Nepal local resident and do not need a visa, you may skip this step and go directly to the final stage.','Jika Anda penduduk lokal Nepal dan tidak memerlukan visa, Anda bisa langsung ke tahap akhir.'))}</div>
+      <button type="button" class="btn btn-outline btn-sm" id="btn-skip-visa-np">${esc(L('跳过签证，直接完成 →','Skip visa — go to final step →','Lewati visa — langkah akhir →'))}</button>
+    </div>`:''}
   </div>`;
 }
 function renderEnrollmentSurveyMMS(sur,T,opts){
@@ -5950,6 +5955,27 @@ function bind(){
   });
   document.getElementById('btn-materials-next-stage')?.addEventListener('click',()=>applicantAdvanceFromMaterialsToVisaOrComplete());
   document.getElementById('btn-result-to-materials')?.addEventListener('click',()=>applicantAdvanceFromResultToMaterials());
+  document.getElementById('btn-skip-visa-np')?.addEventListener('click',async()=>{
+    if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+    if(A.applicant.stage!=='visa') return;
+    if(getApplicantCampusCode(A.applicant)!=='np') return;
+    if(!confirm(apLine('确认您是尼泊尔本地居民、无需办理签证？将跳过签证环节直接进入「完成」阶段。','Confirm you are a Nepal local resident and do not need a visa? This will skip the visa step.','Konfirmasi Anda penduduk lokal Nepal dan tidak perlu visa?'))) return;
+    let ok=false,error=null;
+    try{
+      const rpc=await sb.rpc('advance_applicant_stage_for_self',{p_applicant_id:A.applicant.id,p_from_stage:'visa',p_to_stage:'complete'});
+      if(rpc&&!rpc.error&&rpc.data&&rpc.data.ok===true) ok=true;
+      else if(rpc?.error) error=rpc.error;
+    }catch(e){ error={message:String(e?.message||e||'')}; }
+    if(!ok){
+      const fb=await sb.from('applicants').update({stage:'complete'}).eq('id',A.applicant.id).eq('stage','visa').select('id');
+      if(!fb.error&&Array.isArray(fb.data)&&fb.data.length) ok=true;
+      else error=fb.error||error;
+    }
+    if(error||!ok){ toast(apLine('操作失败，请刷新重试','Failed — refresh and retry','Gagal — muat ulang')+(error?.message?': '+error.message:''),false); return; }
+    A.applicant.stage='complete';
+    toast(apLine('已跳过签证环节','Visa step skipped','Tahap visa dilewati'));
+    render();
+  });
   document.getElementById('btn-applicant-complete-after-visa')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
     const ap=A.applicant;
