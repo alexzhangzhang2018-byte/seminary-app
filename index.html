@@ -2980,24 +2980,27 @@ async function loginApplicant(name,last4){
   // 若 RPC 未部署，则回退旧逻辑（依赖 anon SELECT applicants 的 RLS 策略）。
   try{
     const rpc = await sb.rpc('login_applicant_by_name_last4',{p_name:normName||trimName,p_last4:last4s});
-    if(rpc && !rpc.error && rpc.data){
-      A.role='applicant';A.applicant=rpc.data;
+    const rpcRow = rpc && !rpc.error && rpc.data
+      ? (Array.isArray(rpc.data) ? rpc.data[0] : (rpc.data.id ? rpc.data : null))
+      : null;
+    if(rpcRow && rpcRow.id){
+      A.role='applicant';A.applicant=rpcRow;
       const postExamStages=['interview','result','materials','visa','complete','rejected','waitlist'];
-      const postExam=postExamStages.includes(rpc.data.stage||'');
-      A.appLang=(A.appLang||rpc.data.ui_lang||'zh');
-      A.examLang=postExam?(rpc.data.exam_lang||A.examLang||'zh'):(rpc.data.exam_lang||A.examLang||A.appLang||'zh');
-      if(rpc.data.id){
-        if(!rpc.data.ui_lang||rpc.data.ui_lang!==A.appLang) persistApplicantAppLang(A.appLang);
-        if(!postExam&&(!rpc.data.exam_lang||rpc.data.exam_lang!==A.examLang)) persistApplicantExamLang(A.examLang);
+      const postExam=postExamStages.includes(rpcRow.stage||'');
+      A.appLang=(A.appLang||rpcRow.ui_lang||'zh');
+      A.examLang=postExam?(rpcRow.exam_lang||A.examLang||'zh'):(rpcRow.exam_lang||A.examLang||A.appLang||'zh');
+      if(rpcRow.id){
+        if(!rpcRow.ui_lang||rpcRow.ui_lang!==A.appLang) persistApplicantAppLang(A.appLang);
+        if(!postExam&&(!rpcRow.exam_lang||rpcRow.exam_lang!==A.examLang)) persistApplicantExamLang(A.examLang);
       }
-      persistApplicantBrowserSession(rpc.data,trimName,last4s);
+      persistApplicantBrowserSession(rpcRow,trimName,last4s);
       A.examStarted=false;
       A.examSubmitted=false;
       A.examAnswers={};
       A.essayText='';
       A.proctorFlags=0;
-      mergeStoredExamDraftIfExamStage(rpc.data);
-      await finalizeApplicantHydration(rpc.data);
+      mergeStoredExamDraftIfExamStage(rpcRow);
+      await finalizeApplicantHydration(rpcRow);
       return;
     }
     // 若 RPC 返回空（没匹配到），继续走旧逻辑（方便灰度/兼容）
