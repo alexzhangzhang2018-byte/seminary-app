@@ -1635,7 +1635,7 @@ function toast(msg,ok=true){
 // ── 申请人：本地会话 + 笔试草稿（刷新免重复登录、答题进度可恢复）────────────────
 const APPLICANT_SESSION_KEY='seminary_portal_applicant_v1';
 // v2：避免历史空缓存/旧结构把看板锁死在 0（升级 key 直接让旧缓存自动失效）
-const STAFF_CACHE_KEY='seminary_portal_staff_cache_v4';
+const STAFF_CACHE_KEY='seminary_portal_staff_cache_v5';
 
 function loadStaffCache(){
   try{
@@ -1674,6 +1674,7 @@ function saveStaffCache(){
       scholarship_amount_approved: ap.scholarship_amount_approved,
       scholarship_approved_at: ap.scholarship_approved_at,
       scholarship_review_note: ap.scholarship_review_note,
+      campus_code: ap.campus_code,
     }));
     localStorage.setItem(STAFF_CACHE_KEY, JSON.stringify({ts:Date.now(), allApplicants: lite}));
   }catch(_){}
@@ -1880,17 +1881,17 @@ const APPLICANTS_STAFF_LIST_COLS =
   'scholarship_form_json,enrollment_survey_json,pastor_letter_json,mat_files_json,mat_financial_proof_filename,mat_survey_alert,mat_survey_alert_reason,'+
   'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,gospel_confession,conversion_testimony,ministry_experience,admin_notes,'+
   'gender,hometown,education,church_name,denomination,language_proficiency,marital_status,conversion_time,date_of_birth,'+
-  'sheet_import_unseen,google_sheet_row';
+  'sheet_import_unseen,google_sheet_row,campus_code';
 
 /** 列裁剪查询失败时回退（缺列 / 旧库），至少让看板有卡片 */
 const APPLICANTS_STAFF_LIST_COLS_MIN =
   'id,created_at,first_name,last_name,full_name,phone,phone_last4,email,stage,exam_lang,ui_lang,exam_score,exam_essay,interview_slot_id,materials_submitted_at,'+
-  'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,admin_notes';
+  'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,admin_notes,campus_code';
 
 // 首屏极简列表：不含 scholarship_form_json（大 JSON 仍走 v1 / phase2）；含批复标量便于顶栏与奖学金页摘要
 const APPLICANTS_STAFF_LIST_COLS_LITE =
   'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row,'+
-  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note';
+  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,campus_code';
 /** lite 主查询失败时回退（与历史版本一致，列最少） */
 const APPLICANTS_STAFF_LIST_COLS_LITE_FALLBACK =
   'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row';
@@ -1932,7 +1933,7 @@ function mergeApplicantsById_(prev, next){
 /** 教务列表轻量签名：用于定时 lite 刷新判断是否需 re-render */
 function staffApplicantsListSig_(list){
   try{
-    return (list||[]).map(a=>`${a.id}\t${a.stage||''}\t${a.exam_score??''}\t${a.scholarship_amount_approved??''}\t${String(a.materials_submitted_at||'').slice(0,19)}`).join('\n');
+    return (list||[]).map(a=>`${a.id}\t${getApplicantCampusCode(a)}\t${a.stage||''}\t${a.exam_score??''}\t${a.scholarship_amount_approved??''}\t${String(a.materials_submitted_at||'').slice(0,19)}`).join('\n');
   }catch(_){
     return String((list||[]).length);
   }
@@ -3926,6 +3927,12 @@ function pastorLetterUploadOk(sch){
   if(!sch||(sch.guarantee_type||'deposit')!=='pastor_letter') return true;
   return !!(sch.pastor_letter_upload_data&&String(sch.pastor_letter_upload_data).length>32);
 }
+/** 就读校区：id 印尼美晟；np 南亚-尼泊尔（加德满都） */
+function getApplicantCampusCode(ap){
+  const v=String(ap?.campus_code??'').trim().toLowerCase();
+  if(v==='np'||v==='nepal'||v==='kathmandu') return 'np';
+  return 'id';
+}
 function computeSurveyAlertFromSurveyJson(sur){
   const drug=String(sur.drug_history||sur.drug_hist||sur.substance_history||'').toLowerCase()==='yes';
   const drugDet=String(sur.drug_detail||sur.drug_detail_line||sur.substance_detail||'').trim();
@@ -4151,12 +4158,20 @@ function filterSurveySectionsForBriefing(sections,sur){
 function materialsMissingCount(ap){
   const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
   const sur=parseApplicantJsonCol(ap.enrollment_survey_json,{});
+  const campus=getApplicantCampusCode(ap);
   let miss=0;
   if(!sch._saved_at) miss++;
   else{
     if(!financialProofBytesOk(sch,ap)) miss++;
     if(!applicantSignatureBytesOk(sch)) miss++;
-    if(!pastorLetterUploadOk(sch)) miss++;
+    if(campus==='np'){
+      if(String(sch.np_fee_ack||'')!=='yes') miss++;
+      const raw=String(sch.requested_amount||sch.amount_requested||'').trim();
+      const ra=parseFloat(raw,10);
+      if(raw===''||isNaN(ra)||ra<0||ra>1000) miss++;
+    }else{
+      if(!pastorLetterUploadOk(sch)) miss++;
+    }
     if(sch.agree_terms!=='yes') miss++;
   }
   if(!sur._saved_at) miss++;
@@ -4477,6 +4492,8 @@ function renderMaterials(){
   const miss=materialsMissingCount(ap);
   const submitted=!!ap.materials_submitted_at;
   const appr=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved));
+  const campus=getApplicantCampusCode(ap);
+  const isNp=campus==='np';
   const finName=sch.financial_proof_filename||sch.income_proof_filename||ap.mat_financial_proof_filename||'';
   const sigName=sch.applicant_signature_filename||'';
   const pasUpName=sch.pastor_letter_upload_filename||'';
@@ -4491,19 +4508,58 @@ function renderMaterials(){
   if(appr) statusBanner=`<div class="b1 bc-green200 bg-green50 r12 p4 mb4 t13" style="color:#15803d">
     <div class="fw7 mb1">${esc(L('批复奖学金额度（最终）','Approved scholarship amount','Jumlah beasiswa yang disetujui'))}</div>
     <div class="t20 fw8">${esc(String(ap.scholarship_amount_approved))}</div>
-    <div class="t12 mt2 lh16">${esc(L('请确认您与家人可承担其余学费及在印生活费用。若经济确有困难无法承担，请直接联系教务。批复后请点页面下方「进入下一阶段」继续。','Please confirm you can cover remaining tuition and living costs. If not feasible, contact the office. Then use “Continue to next step” below.','Pastikan Anda sanggup menanggung sisa biaya. Jika tidak, hubungi kantor. Lanjutkan dengan tombol di bawah.'))}</div>
+    <div class="t12 mt2 lh16">${esc(L(isNp?'请确认您与家人可承担其余学费及在尼泊尔/当地就读期间的生活及相关费用。若经济确有困难无法承担，请直接联系教务。批复后请点页面下方「进入下一阶段」继续。':'请确认您与家人可承担其余学费及在印生活费用。若经济确有困难无法承担，请直接联系教务。批复后请点页面下方「进入下一阶段」继续。',isNp?'Please confirm you can cover remaining tuition and living/other costs while studying in Nepal or under local arrangements. If not feasible, contact the office. Then use “Continue to next step” below.':'Please confirm you can cover remaining tuition and living costs. If not feasible, contact the office. Then use “Continue to next step” below.',isNp?'Pastikan Anda sanggup menanggung sisa kuliah dan biaya hidup terkait selama studi di Nepal/pengaturan setempat. Jika tidak, hubungi kantor. Lanjutkan dengan tombol di bawah.':'Pastikan Anda sanggup menanggung sisa biaya. Jika tidak, hubungi kantor. Lanjutkan dengan tombol di bawah.'))}</div>
   </div>`;
   const mkRad=(name,val,cur)=>`<input type="radio" name="${name}" value="${val}" ${String(cur)===val?'checked':''} style="accent-color:#4f46e5">`;
-  const mmsSchTitle=mmsT('美村宣教学院奖助学金申请表\nMeicun Mission Seminary (MMS)','Scholarships and Financial Aid Application Form\nMeicun Mission Seminary (MMS)','Formulir Permohonan Bantuan Keuangan\nMeicun Mission Seminary (MMS)');
+  const mmsSchTitle=isNp
+    ? mmsT('南亚就读点奖助学金申请表\nMeicun Mission Seminary — South Asia (Kathmandu)','Scholarship application — South Asia study site (Kathmandu)','Formulir beasiswa — lokasi studi Asia Selatan (Kathmandu)')
+    : mmsT('美村宣教学院奖助学金申请表\nMeicun Mission Seminary (MMS)','Scholarships and Financial Aid Application Form\nMeicun Mission Seminary (MMS)','Formulir Permohonan Bantuan Keuangan\nMeicun Mission Seminary (MMS)');
   const incomeHelp=mmsT('收入/资产证明一般包括：\n1. 现金及银行类：银行存款证明；近 3–6 个月银行流水。\n2. 收入证明：工资证明/雇主开具的收入证明；自由职业者：收入说明+转账记录；教会/差会支持：奉献或资助说明信。\n3. 固定资产：房产证明（房产证/购房合同）；车辆证明。\n若由他人资助，请另上传一份相对正式的资助/承诺证明文件（选填项，有则必传）。','Proof of income/assets typically includes:\n(1) Cash/bank: deposit certificate; 3–6 month statements.\n(2) Income: salary letter; self-employed: statement + transfers; church support letters.\n(3) Assets: property/vehicle.\nIf funded by others, upload a formal sponsor document (optional; upload if applicable).','Bukti pendapatan/aset meliputi:\n1. Tunai/bank: deposit & rekening koran 3–6 bulan.\n2. Penghasilan: surat gaji; wiraswasta: keterangan+mutasi; gereja: surat dukungan.\n3. Aset: properti/kendaraan.\nJika disponsori, unggah dokumen resmi sponsor.');
-  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
-    <div class="t20 fw7 c-gray8 mb3">${esc(L('上传入学资料','Upload admission documents','Unggah dokumen penerimaan'))}</div>
-    <div class="card p4 mb4" style="border:1px solid #c7d2fe;background:#fafbff">
-      <div class="t13 fw7 c-indigo6 mb1">${esc(mmsT('请确认申请人姓名（与报名信息一致）','Confirm applicant name (as registered)','Konfirmasi nama'))}</div>
-      <div class="t16 fw8 c-gray8">${esc(fullName(ap))}</div>
-    </div>
-    ${statusBanner}
-    <div class="card p4 mb4 mms-form-card" style="font-size:13px;line-height:1.65;color:#374151">
+  const matSchInner=isNp?`
+      <div class="t14 fw7 c-gray8 mb3" style="white-space:pre-line">${esc(mmsSchTitle)}</div>
+      <div class="fw7 mb2">1. ${mmsT('费用说明（南亚就读点）','Fees (South Asia study site)','Biaya (lokasi Asia Selatan)')}</div>
+      <div class="b1 bc-gray200 r8 p3 mb3" style="background:#fff">
+        <div>${mmsT('本表适用于计划在加德满都会面点 / 南亚安排就读的申请人。具体学费、食宿及其他杂费以教务书面通知为准。','For applicants planning to study under the Kathmandu / South Asia arrangements. Tuition, board and other fees follow written notice from the office.','Untuk pelamar yang akan belajar di Kathmandu/Asia Selatan. Rincian biaya mengikuti pemberitahuan tertulis kantor.')}</div>
+        <div class="mt2">${mmsT('资助上限：','Maximum aid:','Batas bantuan:')} <strong>$1,000</strong> ${mmsT('（每学年；获批后用于核减应缴费用，不发放至个人账户）','(per academic year; if approved, credited against fees, not paid to individuals)','(per tahun ajaran; jika disetujui, dipotong dari biaya, tidak dibayarkan tunai)')}</div>
+      </div>
+      <div class="fw7 mb2">2. ${mmsT('申请额度与自筹说明','Requested amount & self-funding','Jumlah permohonan & sumber dana')}</div>
+      <div class="mb2">A. ${mmsT('自筹资金来源','Self-funding sources','Sumber dana mandiri')}</div>
+      <div class="col g2 mb2">
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('家庭支持：','Family support:','Dukungan keluarga:')}</span><span>$</span><input id="mat-sch-fund-family" class="inp" style="width:120px" value="${esc(sch.family_support||sch.funding_family||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('教会资助：','Church support:','Dukungan gereja:')}</span><span>$</span><input id="mat-sch-fund-church" class="inp" style="width:120px" value="${esc(sch.church_support||sch.funding_church||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('其他来源：','Other sources:','Sumber lain:')}</span><span>$</span><input id="mat-sch-fund-other" class="inp" style="width:120px" value="${esc(sch.other_sources||sch.funding_other||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('自筹总额：','Total self-funded:','Total mandiri:')}</span><span>$</span><input id="mat-sch-fund-total" class="inp" style="width:120px" value="${esc(sch.total_self_funded||sch.funding_total||'')}"></div>
+      </div>
+      <div class="t12 mb3" style="color:#b45309">${esc(mmsT('请附收入或资助证明（见下方上传，必填）。','Attach income/support proof below (required).','Lampirkan bukti (wajib di bawah).'))}</div>
+      <div class="mb2">B. ${mmsT('申请资助金额','Financial aid requested','Jumlah bantuan yang dimohon')}</div>
+      <div class="row g2 mb2" style="align-items:center;flex-wrap:wrap">${mmsT('申请金额：','Requested amount:','Jumlah:')} <span>$</span><input id="mat-sch-amount-req" class="inp" style="width:120px" value="${esc(sch.requested_amount||sch.amount_requested||'')}"> ${mmsT('（最高 $1,000）','(Max $1,000)','(Maks $1,000)')}</div>
+      <div class="t12 c-gray6 mb3 lh16" style="border-left:3px solid #e5e7eb;padding-left:10px">${esc(mmsT('*注意：所申请奖助学金若获批准，将直接核减相应费用，不发放到个人。','*Note: If approved, aid is deducted from fees and not paid to individuals.','*Catatan: Jika disetujui, biaya dikurangkan langsung, tidak dibayarkan ke pribadi.'))}</div>
+      <div class="fw7 mb2">3. ${mmsT('费用与资助说明确认','Fee & aid acknowledgement','Konfirmasi biaya & bantuan')}</div>
+      <div class="b1 bc-indigo100 bg-indigo50 r8 p3 mb3 lh16">${esc(mmsT('南亚就读点不适用印尼美晟校区的 $300 押金或牧师担保信制度。','The South Asia site does not use the Indonesia campus USD 300 deposit or pastor guarantee letter.','Lokasi Asia Selatan tidak menggunakan deposit $300 atau surat jaminan pendeta kampus Indonesia.'))}</div>
+      <div class="row g2 mb3" style="align-items:flex-start"><input type="checkbox" id="mat-np-fee-ack" ${sch.np_fee_ack==='yes'?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px;flex-shrink:0;margin-top:2px"><label for="mat-np-fee-ack" class="t12 lh16">${esc(mmsT('本人已阅读并理解上述费用与资助安排（以教务通知为准）','I have read and understand the fee and aid arrangement above (subject to office notice)','Saya telah membaca dan memahami pengaturan biaya & bantuan di atas (mengikuti pemberituan kantor)'))}</label></div>
+      <div class="fw7 mb2">4. ${mmsT('条款与承诺','Terms & conditions','Syarat & ketentuan')}</div>
+      <div class="b1 bc-gray100 r8 p3 mb3 lh16">
+        <div class="mb2">A. ${mmsT('完成学业：我承诺将在教务安排的南亚就读点完成相应学业要求。','Completion: I commit to fulfilling the study requirements at the South Asia site as arranged by the office.','Penyelesaian: Saya berkomitmen menyelesaikan studi sesuai pengaturan kantor di lokasi Asia Selatan.')}</div>
+        <div class="mb2">B. ${mmsT('退款政策：若我中途退学或被开除必须全额退还所获资助。','Repayment: If I withdraw or am expelled I must repay 100% of aid received.','Pengembalian: Jika mengundurkan diri atau dikeluarkan wajib mengembalikan 100% bantuan yang diterima.')}</div>
+      </div>
+      <div class="row g2 mb3" style="align-items:center"><input type="checkbox" id="mat-sch-agree-terms" ${sch.agree_terms==='yes'?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px"><label for="mat-sch-agree-terms" class="t12">${esc(mmsT('本人已阅读并同意上述条款与承诺','I have read and agree to the terms above','Saya setuju syarat di atas'))}</label></div>
+      <div class="fw7 mb2">5. ${mmsT('签署','Signature','Tanda tangan')}</div>
+      <div class="t12 c-gray6 mb2">${esc(mmsT('申请人电子签（请上传签名图片或 PDF，必填）','Applicant e-signature image or PDF (required)','Tanda tangan elektronik (wajib)'))}</div>
+      <input type="file" id="mat-sig-file" accept="image/*,.pdf,application/pdf" class="t12 mb2">
+      ${sigName?`<div class="t11 c-gray4 mb2">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(sigName)}</div>`:''}
+      <div class="row g2" style="align-items:center;flex-wrap:wrap"><span>${mmsT('日期：','Date:','Tanggal:')}</span><input id="mat-sch-sign-date" class="inp" type="date" style="width:auto" value="${esc((sch.applicant_sign_date||'').slice(0,10))}"></div>
+      <div class="mt4 pt3" style="border-top:1px solid #e5e7eb">
+        <div class="fw7 mb2">${esc(mmsT('收入/资产证明（必填上传）','Income / asset proof (required)','Bukti pendapatan/aset (wajib)'))}</div>
+        <div class="t12 c-gray6 mb3 lh16" style="white-space:pre-line">${esc(incomeHelp)}</div>
+        <div class="t11 fw6 mb1" style="color:#b91c1c">${esc(mmsT('主证明文件（必填）','Main proof file (required)','Berkas utama (wajib)'))}</div>
+        <input type="file" id="mat-fin-file" accept="image/*,.pdf,application/pdf" class="t12">
+        ${finName?`<div class="t11 c-gray4 mt1">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(finName)}</div>`:''}
+        <div class="t11 fw6 c-gray6 mt3 mb1">${esc(mmsT('他人资助/赞助证明（选填）','Sponsor proof (optional)','Bukti sponsor (opsional)'))}</div>
+        <input type="file" id="mat-sponsor-file" accept="image/*,.pdf,application/pdf" class="t12">
+        ${sponName?`<div class="t11 c-gray4 mt1">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(sponName)}</div>`:''}
+      </div>
+      <button type="button" class="btn btn-outline btn-sm mt3" id="btn-save-mat-sch">${esc(mmsT('保存本表','Save','Simpan'))}</button>
+  `:`
       <div class="t14 fw7 c-gray8 mb3" style="white-space:pre-line">${esc(mmsSchTitle)}</div>
       <div class="fw7 mb2">1. ${mmsT('费用明细（年度）','Annual expenses','Rincian biaya (tahunan)')}</div>
       <div class="b1 bc-gray200 r8 p3 mb3" style="background:#fff">
@@ -4558,7 +4614,17 @@ function renderMaterials(){
         <input type="file" id="mat-sponsor-file" accept="image/*,.pdf,application/pdf" class="t12">
         ${sponName?`<div class="t11 c-gray4 mt1">${esc(mmsT('已上传：','Uploaded:','Terunggah:'))} ${esc(sponName)}</div>`:''}
       </div>
-      <button type="button" class="btn btn-outline btn-sm mt3" id="btn-save-mat-sch">${schSaved?esc(mmsT('保存本表','Save','Simpan')):esc(mmsT('保存本表','Save','Simpan'))}</button>
+      <button type="button" class="btn btn-outline btn-sm mt3" id="btn-save-mat-sch">${esc(mmsT('保存本表','Save','Simpan'))}</button>
+  `;
+  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
+    <div class="t20 fw7 c-gray8 mb3">${esc(L('上传入学资料','Upload admission documents','Unggah dokumen penerimaan'))}</div>
+    <div class="card p4 mb4" style="border:1px solid #c7d2fe;background:#fafbff">
+      <div class="t13 fw7 c-indigo6 mb1">${esc(mmsT('请确认申请人姓名（与报名信息一致）','Confirm applicant name (as registered)','Konfirmasi nama'))}</div>
+      <div class="t16 fw8 c-gray8">${esc(fullName(ap))}</div>
+    </div>
+    ${statusBanner}
+    <div class="card p4 mb4 mms-form-card" style="font-size:13px;line-height:1.65;color:#374151">
+      ${matSchInner}
     </div>
     <div class="card p4 mb4 mms-form-card" style="font-size:13px;line-height:1.65">
       <div class="fw7 c-gray8 t14 mb3">${esc(mmsT('1. 入学调查表','1. Admission survey','1. Survei penerimaan'))}</div>
@@ -4569,7 +4635,7 @@ function renderMaterials(){
       ? `<button type="button" class="btn btn-primary btn-full mb3" id="btn-materials-next-stage">${esc(L('进入下一阶段 →','Continue to next step →','Lanjut ke tahap berikutnya →'))}</button>`
       : `<button type="button" class="btn btn-primary btn-full mb3" id="btn-materials-submit-review" ${miss>0?'disabled':''}>${esc(L('提交全部资料待教务审核','Submit all for office review','Kirim semua untuk ditinjau'))}</button>`}
     <div class="b1 r12 p3 t13 ${miss===0?'bg-green50 bc-green200':'bg-amber50 bc-amber200'}" style="color:${miss===0?'#15803d':'#92400e'}">
-      ${submitted?esc(L('✅ 已向教务提交，请等待批复。','✅ Submitted; pending review.','✅ Terkirim; menunggu.')):miss===0?esc(L('✅ 必填项已齐，可按上方按钮提交审核。','✅ Required items complete.','✅ Lengkap.')):esc(L(`⚠️ 尚有 ${miss} 项未完成：两表均需保存；奖助表须同意条款、上传收入/资产证明与电子签；若选牧师担保信须上传签字扫描件。`,`⚠️ ${miss} item(s) left.`,`⚠️ ${miss} wajib.`))}
+      ${submitted?esc(L('✅ 已向教务提交，请等待批复。','✅ Submitted; pending review.','✅ Terkirim; menunggu.')):miss===0?esc(L('✅ 必填项已齐，可按上方按钮提交审核。','✅ Required items complete.','✅ Lengkap.')):esc(L(isNp?`⚠️ 尚有 ${miss} 项未完成：两表均需保存；奖助表须勾选「费用与资助说明」确认与条款、申请金额须在 $0–$1,000、上传收入/资产证明与电子签。`:`⚠️ 尚有 ${miss} 项未完成：两表均需保存；奖助表须同意条款、上传收入/资产证明与电子签；若选牧师担保信须上传签字扫描件。`,isNp?`⚠️ ${miss} item(s) left: save both forms; scholarship needs fee acknowledgement, amount $0–$1,000, income proof & e-signature.`:`⚠️ ${miss} item(s) left.`,isNp?`⚠️ ${miss} wajib: simpan dua formulir; beasiswa butuh konfirmasi biaya, jumlah $0–$1.000, bukti & tanda tangan.`:`⚠️ ${miss} wajib.`))}
     </div>
   </div>`;
 }
@@ -4792,7 +4858,7 @@ function renderPipeline(){
             ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
             ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
             <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
-            <div class="t11 c-gray5 mb1">${esc(examLangLabelShort(getApplicantExamLang(ap)))}</div>
+            <div class="t11 c-gray5 mb1 row g1 wrap" style="align-items:center">${esc(examLangLabelShort(getApplicantExamLang(ap)))}${getApplicantCampusCode(ap)==='np'?mkTag('#ecfdf5','#047857','南亚·尼'):''}</div>
             ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
             ${ap.interview_slot_id&&ap.stage!=='complete'?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
           </div>`;
@@ -5141,6 +5207,11 @@ function renderBriefingModal(ap){
                 <option value="男" ${ap.gender==='男'?'selected':''}>男</option>
                 <option value="女" ${ap.gender==='女'?'selected':''}>女</option>
               </select></div>
+            <div><div class="t12 fw6 c-gray6 mb1">就读校区</div>
+              <select id="brief-ap-campus" class="sel" style="width:100%">
+                <option value="id" ${getApplicantCampusCode(ap)==='id'?'selected':''}>印尼美晟</option>
+                <option value="np" ${getApplicantCampusCode(ap)==='np'?'selected':''}>南亚（加德满都）</option>
+              </select></div>
             <div><div class="t12 fw6 c-gray6 mb1">籍贯</div><input id="brief-ap-hometown" class="inp" style="width:100%" value="${valB(ap.hometown)}" placeholder="籍贯"></div>
             <div><div class="t12 fw6 c-gray6 mb1">学历</div><input id="brief-ap-education" class="inp" style="width:100%" value="${valB(ap.education)}" placeholder="学历"></div>
             <div><div class="t12 fw6 c-gray6 mb1">教会</div><input id="brief-ap-church" class="inp" style="width:100%" value="${valB(ap.church_name)}" placeholder="教会"></div>
@@ -5152,7 +5223,7 @@ function renderBriefingModal(ap){
             <div><div class="t12 fw6 c-gray6 mb1">归主时间</div><input id="brief-ap-conversion-time" class="inp" type="date" style="width:100%" value="${valB(convDate)}"></div>
           </div>
           <div class="row g2 mt3" style="justify-content:flex-end"><button type="button" class="btn btn-primary" data-action="save-brief-basic" data-apid="${ap.id}">保存基本资料</button></div>
-        </div>`:`${schFinalLine}
+        </div>`:`<div class="info-row"><span class="c-gray5">就读校区</span><span>${getApplicantCampusCode(ap)==='np'?'南亚（加德满都）':'印尼美晟'}</span></div>
         <div class="info-row"><span class="c-gray5">电话</span><span>${esc(ap.phone||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">邮箱</span><span>${esc(ap.email||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">性别</span><span>${esc(ap.gender||'—')}</span></div>
@@ -5569,6 +5640,7 @@ function bind(){
   // ── Materials（电子表 + 财务证明 + 勾选） ──
   document.getElementById('btn-save-mat-sch')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
+    const campusNp=getApplicantCampusCode(A.applicant)==='np';
     const prev=parseApplicantJsonCol(A.applicant.scholarship_form_json,{});
     const readOpt=async(el,prevData,prevFn)=>{
       const f=el?.files?.[0];
@@ -5592,7 +5664,15 @@ function bind(){
       const rSp=await readOpt(document.getElementById('mat-sponsor-file'),spD,spN);
       spD=rSp.data;spN=rSp.fn;
     }catch(e){if(e.message!=='size')toast(apLine('读取文件失败','Read failed','Gagal baca'),false);return;}
-    const g=document.querySelector('input[name="mat-sch-guarantee"]:checked')?.value||'deposit';
+    const amtRaw=(document.getElementById('mat-sch-amount-req')?.value||'').trim();
+    const amtNum=parseFloat(amtRaw,10);
+    if(campusNp){
+      if(amtRaw===''||isNaN(amtNum)||amtNum<0||amtNum>1000){
+        toast(apLine('南亚就读点：申请资助金额请填写 0–1000 之间的数字。','South Asia site: enter requested aid between 0 and 1000.','Lokasi Asia Selatan: isi 0–1000.'),false);
+        return;
+      }
+    }
+    const g=campusNp?'deposit':(document.querySelector('input[name="mat-sch-guarantee"]:checked')?.value||'deposit');
     const sch={...prev,
       family_support:(document.getElementById('mat-sch-fund-family')?.value||'').trim(),
       church_support:(document.getElementById('mat-sch-fund-church')?.value||'').trim(),
@@ -5605,6 +5685,7 @@ function bind(){
       requested_amount:(document.getElementById('mat-sch-amount-req')?.value||'').trim(),
       amount_requested:(document.getElementById('mat-sch-amount-req')?.value||'').trim(),
       guarantee_type:g,
+      np_fee_ack:campusNp?(document.getElementById('mat-np-fee-ack')?.checked?'yes':'no'):(prev.np_fee_ack||''),
       agree_terms:document.getElementById('mat-sch-agree-terms')?.checked?'yes':'no',
       applicant_sign_date:(document.getElementById('mat-sch-sign-date')?.value||'').trim(),
       financial_proof_data:data,
@@ -5943,8 +6024,11 @@ function bind(){
       if(exam_lang!=='en'&&exam_lang!=='id') exam_lang='zh';
       const conversion_time_raw=document.getElementById('brief-ap-conversion-time')?.value||'';
       const dob_raw=document.getElementById('brief-ap-dob')?.value||'';
+      const campusSel=document.getElementById('brief-ap-campus')?.value||'id';
+      const campus_code=campusSel==='np'?'np':'id';
       const payload={
         exam_lang,
+        campus_code,
         phone:(document.getElementById('brief-ap-phone')?.value||'').trim()||null,
         email:(document.getElementById('brief-ap-email')?.value||'').trim()||null,
         gender:(document.getElementById('brief-ap-gender')?.value||'')||null,
