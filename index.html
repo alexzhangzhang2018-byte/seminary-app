@@ -4334,16 +4334,17 @@ function mkSvRadMulti(key,val,cur){
 function renderCompleteStage(ap){
   const L=apLine;
   const idPipe=getApplicantExamLang(ap)==='id';
-  const waitVisa=!idPipe?`<div class="t13 c-gray5 mb4 lh16">${esc(L('请耐心等待赴印尼学习签证办妥；签证下来后，即可按教务指引购买机票、安排行程。教务会通过您预留的联系方式与您联络。','Please wait for your Indonesian study visa. Once it is issued, book flights and plan travel as the office guides you.','Tunggu visa studi Indonesia; setelah keluar, beli tiket sesuai arahan kantor.'))}</div>`:`<div class="t13 c-gray5 mb4 lh16">${esc(L('请留意教务后续通知，并提前安排行程、住宿与生活准备。','Watch for notices from the office and plan travel, housing, and arrival early.','Ikuti pemberitahuan kantor dan siapkan perjalanan serta tempat tinggal.'))}</div>`;
-  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
-    <div class="col center tc mb5">
-      <div style="font-size:56px" class="mb3">🎓</div>
-      <div class="t22 fw7 c-gray8 mb2">${esc(L('恭喜！入学流程已完成','Congratulations — your admission steps are complete','Selamat! Semua langkah penerimaan selesai'))}</div>
-      <div class="t15 fw6 c-indigo6 lh18" style="max-width:26em;margin:0 auto">${esc(L('愿主带领您的脚步，期待与您在印尼相见！','May the Lord guide your steps — we look forward to seeing you in Indonesia!','Semoga Tuhan menuntun langkah Anda — kami rindu bertemu di Indonesia!'))}</div>
-    </div>
-    ${waitVisa}
-    <div class="card p4 mb4 col g3" style="border:1px solid #c7d2fe;background:#fafbff">
-      <div class="fw7 c-gray8 t14">${esc(L('行前与联络','Before you travel & contacts','Perjalanan & kontak'))}</div>
+  const isNpCampus=getApplicantCampusCode(ap)==='np';
+  const meetLine=isNpCampus
+    ? L('愿主带领您的脚步，期待与您在尼泊尔相见！','May the Lord guide your steps — we look forward to seeing you in Nepal!','Semoga Tuhan menuntun langkah Anda — kami rindu bertemu di Nepal!')
+    : L('愿主带领您的脚步，期待与您在印尼相见！','May the Lord guide your steps — we look forward to seeing you in Indonesia!','Semoga Tuhan menuntun langkah Anda — kami rindu bertemu di Indonesia!');
+  const waitVisa=isNpCampus?''
+    :(!idPipe?`<div class="t13 c-gray5 mb4 lh16">${esc(L('请耐心等待赴印尼学习签证办妥；签证下来后，即可按教务指引购买机票、安排行程。教务会通过您预留的联系方式与您联络。','Please wait for your Indonesian study visa. Once it is issued, book flights and plan travel as the office guides you.','Tunggu visa studi Indonesia; setelah keluar, beli tiket sesuai arahan kantor.'))}</div>`:`<div class="t13 c-gray5 mb4 lh16">${esc(L('请留意教务后续通知，并提前安排行程、住宿与生活准备。','Watch for notices from the office and plan travel, housing, and arrival early.','Ikuti pemberitahuan kantor dan siapkan perjalanan serta tempat tinggal.'))}</div>`);
+  const infoCards=isNpCampus?`
+      <div class="b1 bc-gray200 r10 p3 col g2">
+        <div class="fw6 t12 c-gray7">${esc(L('学院官网','Seminary website','Situs seminari'))}</div>
+        <a class="btn btn-primary btn-sm" style="align-self:flex-start" href="https://www.mmseminary.org/en" target="_blank" rel="noopener noreferrer">mmseminary.org →</a>
+      </div>`:`
       ${!idPipe?`<div class="b1 bc-gray200 r10 p3 col g2">
         <div class="fw6 t12 c-gray7">${esc(L('🇮🇩 印尼出行全流程攻略（Word）','🇮🇩 Indonesia travel guide (Word)','🇮🇩 Panduan perjalanan ke Indonesia (Word)'))}</div>
         <a class="btn btn-outline btn-sm" style="align-self:flex-start" href="assets/guides/indo-travel-guide-2026.docx" download="2026年印尼出行全流程攻略.docx">⬇ ${esc(L('下载攻略文档','Download the guide','Unduh panduan'))}</a>
@@ -4356,7 +4357,17 @@ function renderCompleteStage(ap){
         <div class="fw6 t12 c-gray7">${esc(L('子女就读 Hora 学校','Children enrolling at Hora School','Anak bersekolah di Hora'))}</div>
         <div class="t12 c-gray6 lh16">${esc(L('若孩子有与您一同前来、并准备就读我校 Hora 学校，请联系 Hora 学校招生办老师：','If your child will travel with you and enroll at our Hora School, please contact the Hora admissions office:','Jika anak ikut dan akan bersekolah di Hora, hubungi admin penerimaan Hora:'))}</div>
         <a class="t13 fw6" style="word-break:break-all" href="mailto:dorcaschenyx@gmail.com">dorcaschenyx@gmail.com</a>
-      </div>
+      </div>`;
+  return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
+    <div class="col center tc mb5">
+      <div style="font-size:56px" class="mb3">🎓</div>
+      <div class="t22 fw7 c-gray8 mb2">${esc(L('恭喜！入学流程已完成','Congratulations — your admission steps are complete','Selamat! Semua langkah penerimaan selesai'))}</div>
+      <div class="t15 fw6 c-indigo6 lh18" style="max-width:26em;margin:0 auto">${esc(meetLine)}</div>
+    </div>
+    ${waitVisa}
+    <div class="card p4 mb4 col g3" style="border:1px solid #c7d2fe;background:#fafbff">
+      <div class="fw7 c-gray8 t14">${esc(L('行前与联络','Before you travel & contacts','Perjalanan & kontak'))}</div>
+      ${infoCards}
     </div>
   </div>`;
 }
@@ -4398,9 +4409,13 @@ function renderVisaStage(ap){
   const L=apLine;
   const vf=parseVisaFiles(ap);
   const canComplete=visaMaterialsSpecOk(vf).ok;
+  const isNpCampus=getApplicantCampusCode(ap)==='np';
+  const visaDesc=isNpCampus
+    ? L('教务将联系您办理学习签证。请在此上传护照扫描件、红底证件照与学生 CV；保存后系统会校验是否交齐、格式是否合规。三项齐全并保存后，可进入「完成」环节。','The office will guide your study visa. Upload and save all three files; when complete, proceed to the final step.','Kantor membantu visa. Unggah tiga berkas; jika lengkap, lanjut ke langkah terakhir.')
+    : L('教务将联系您办理赴印尼学习签证。请在此上传护照扫描件、红底证件照与学生 CV；保存后系统会校验是否交齐、格式是否合规。三项齐全并保存后，可进入「完成」环节查看行前攻略与联络方式。','The office will guide your study visa. Upload and save all three files; when complete, proceed to the final step for travel info and contacts.','Kantor membantu visa. Unggah tiga berkas; jika lengkap, lanjut ke langkah terakhir untuk panduan perjalanan.');
   return `<div class="maxw-xl mx-auto px4" style="padding:16px 16px 64px">
     <div class="t20 fw7 c-gray8 mb1">${esc(L('签证手续办理','Visa process','Proses visa'))}</div>
-    <div class="t13 c-gray5 mb4 lh16">${esc(L('教务将联系您办理赴印尼学习签证。请在此上传护照扫描件、红底证件照与学生 CV；保存后系统会校验是否交齐、格式是否合规。三项齐全并保存后，可进入「完成」环节查看行前攻略与联络方式。','The office will guide your study visa. Upload and save all three files; when complete, proceed to the final step for travel info and contacts.','Kantor membantu visa. Unggah tiga berkas; jika lengkap, lanjut ke langkah terakhir untuk panduan perjalanan.'))}</div>
+    <div class="t13 c-gray5 mb4 lh16">${esc(visaDesc)}</div>
     ${renderVisaMatFilesCard(ap)}
     <div class="b1 bc-indigo200 bg-indigo50 r12 p4 t13 c-indigo6 lh16">${esc(L('如有疑问请通过预留联系方式联系教务。','Contact the office if you have questions.','Hubungi kantor jika ada pertanyaan.'))}</div>
     ${canComplete?`<div class="mt4"><button type="button" class="btn btn-primary" id="btn-applicant-complete-after-visa">${esc(L('签证材料已齐，进入完成环节 →','Visa files complete — go to final step →','Berkas visa lengkap — lanjut ke selesai →'))}</button>
@@ -4563,10 +4578,11 @@ function renderMaterials(){
       <div class="fw7 mb2">2. ${mmsT('申请额度与自筹说明','Requested amount & self-funding','Jumlah permohonan & sumber dana')}</div>
       <div class="mb2">A. ${mmsT('自筹资金来源','Self-funding sources','Sumber dana mandiri')}</div>
       <div class="col g2 mb2">
-        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('家庭支持：','Family support:','Dukungan keluarga:')}</span><span>$</span><input id="mat-sch-fund-family" class="inp" style="width:120px" value="${esc(sch.family_support||sch.funding_family||'')}"></div>
-        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('教会资助：','Church support:','Dukungan gereja:')}</span><span>$</span><input id="mat-sch-fund-church" class="inp" style="width:120px" value="${esc(sch.church_support||sch.funding_church||'')}"></div>
-        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('其他来源：','Other sources:','Sumber lain:')}</span><span>$</span><input id="mat-sch-fund-other" class="inp" style="width:120px" value="${esc(sch.other_sources||sch.funding_other||'')}"></div>
-        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('自筹总额：','Total self-funded:','Total mandiri:')}</span><span>$</span><input id="mat-sch-fund-total" class="inp" style="width:120px" value="${esc(sch.total_self_funded||sch.funding_total||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('家庭支持：','Family support:','Dukungan keluarga:')}</span><span>$</span><input id="mat-sch-fund-family" class="inp mat-sch-fund-src" style="width:120px" value="${esc(sch.family_support||sch.funding_family||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('教会资助：','Church support:','Dukungan gereja:')}</span><span>$</span><input id="mat-sch-fund-church" class="inp mat-sch-fund-src" style="width:120px" value="${esc(sch.church_support||sch.funding_church||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('其他来源：','Other sources:','Sumber lain:')}</span><span>$</span><input id="mat-sch-fund-other" class="inp mat-sch-fund-src" style="width:120px" value="${esc(sch.other_sources||sch.funding_other||'')}"></div>
+        <hr style="border:none;border-top:1px solid #d1d5db;margin:4px 0">
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('自筹总额：','Total self-funded:','Total mandiri:')}</span><span>$</span><input id="mat-sch-fund-total" class="inp" style="width:120px;background:#f3f4f6" value="${esc(sch.total_self_funded||sch.funding_total||'')}" readonly></div>
       </div>
       <div class="t12 mb3" style="color:#b45309">${esc(mmsT('请附收入或资助证明（见下方上传，必填）。','Attach income/support proof below (required).','Lampirkan bukti (wajib di bawah).'))}</div>
       <div class="mb2">B. ${mmsT('申请资助金额（三选一）','Financial aid requested (choose one)','Jumlah bantuan (pilih satu)')}</div>
@@ -4622,10 +4638,11 @@ function renderMaterials(){
       <div class="fw7 mb2">2. ${mmsT('申请额度与自筹说明','Requested amount & self-funding','Jumlah permohonan & sumber dana')}</div>
       <div class="mb2">A. ${mmsT('自筹资金来源','Self-funding sources','Sumber dana mandiri')}</div>
       <div class="col g2 mb2">
-        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('家庭支持：','Family support:','Dukungan keluarga:')}</span><span>$</span><input id="mat-sch-fund-family" class="inp" style="width:120px" value="${esc(sch.family_support||sch.funding_family||'')}"></div>
-        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('教会资助：','Church support:','Dukungan gereja:')}</span><span>$</span><input id="mat-sch-fund-church" class="inp" style="width:120px" value="${esc(sch.church_support||sch.funding_church||'')}"></div>
-        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('其他来源：','Other sources:','Sumber lain:')}</span><span>$</span><input id="mat-sch-fund-other" class="inp" style="width:120px" value="${esc(sch.other_sources||sch.funding_other||'')}"></div>
-        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('自筹总额：','Total self-funded:','Total mandiri:')}</span><span>$</span><input id="mat-sch-fund-total" class="inp" style="width:120px" value="${esc(sch.total_self_funded||sch.funding_total||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('家庭支持：','Family support:','Dukungan keluarga:')}</span><span>$</span><input id="mat-sch-fund-family" class="inp mat-sch-fund-src" style="width:120px" value="${esc(sch.family_support||sch.funding_family||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('教会资助：','Church support:','Dukungan gereja:')}</span><span>$</span><input id="mat-sch-fund-church" class="inp mat-sch-fund-src" style="width:120px" value="${esc(sch.church_support||sch.funding_church||'')}"></div>
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('其他来源：','Other sources:','Sumber lain:')}</span><span>$</span><input id="mat-sch-fund-other" class="inp mat-sch-fund-src" style="width:120px" value="${esc(sch.other_sources||sch.funding_other||'')}"></div>
+        <hr style="border:none;border-top:1px solid #d1d5db;margin:4px 0">
+        <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('自筹总额：','Total self-funded:','Total mandiri:')}</span><span>$</span><input id="mat-sch-fund-total" class="inp" style="width:120px;background:#f3f4f6" value="${esc(sch.total_self_funded||sch.funding_total||'')}" readonly></div>
       </div>
       <div class="t12 mb3" style="color:#b45309">${esc(mmsT('请附收入或资助证明（见下方上传，必填）。','Attach income/support proof below (required).','Lampirkan bukti (wajib di bawah).'))}</div>
       <div class="mb2">B. ${mmsT('申请资助金额','Financial aid requested','Jumlah bantuan yang dimohon')}</div>
@@ -5688,6 +5705,14 @@ function bind(){
   document.getElementById('btn-confirm-iv')?.addEventListener('click',()=>confirmInterview());
 
   // ── Materials（电子表 + 财务证明 + 勾选） ──
+  document.querySelectorAll('.mat-sch-fund-src').forEach(el=>{
+    el.addEventListener('input',()=>{
+      const v=s=>{const n=parseFloat((s||'').replace(/[^0-9.]/g,''));return isNaN(n)?0:n;};
+      const tot=v(document.getElementById('mat-sch-fund-family')?.value)+v(document.getElementById('mat-sch-fund-church')?.value)+v(document.getElementById('mat-sch-fund-other')?.value);
+      const tEl=document.getElementById('mat-sch-fund-total');
+      if(tEl) tEl.value=tot?String(tot):'';
+    });
+  });
   document.getElementById('btn-save-mat-sch')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
     const campusNp=getApplicantCampusCode(A.applicant)==='np';
