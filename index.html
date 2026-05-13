@@ -4200,8 +4200,7 @@ function materialsMissingCount(ap){
     if(campus==='np'){
       if(String(sch.np_fee_ack||'')!=='yes') miss++;
       const raw=String(sch.requested_amount||sch.amount_requested||'').trim();
-      const ra=parseFloat(raw,10);
-      if(raw===''||isNaN(ra)||ra<0||ra>1000) miss++;
+      if(raw!=='0'&&raw!=='500'&&raw!=='1000') miss++;
     }else{
       if(!pastorLetterUploadOk(sch)) miss++;
     }
@@ -4550,9 +4549,11 @@ function renderMaterials(){
   const incomeHelp=mmsT('收入/资产证明一般包括：\n1. 现金及银行类：银行存款证明；近 3–6 个月银行流水。\n2. 收入证明：工资证明/雇主开具的收入证明；自由职业者：收入说明+转账记录；教会/差会支持：奉献或资助说明信。\n3. 固定资产：房产证明（房产证/购房合同）；车辆证明。\n若由他人资助，请另上传一份相对正式的资助/承诺证明文件（选填项，有则必传）。','Proof of income/assets typically includes:\n(1) Cash/bank: deposit certificate; 3–6 month statements.\n(2) Income: salary letter; self-employed: statement + transfers; church support letters.\n(3) Assets: property/vehicle.\nIf funded by others, upload a formal sponsor document (optional; upload if applicable).','Bukti pendapatan/aset meliputi:\n1. Tunai/bank: deposit & rekening koran 3–6 bulan.\n2. Penghasilan: surat gaji; wiraswasta: keterangan+mutasi; gereja: surat dukungan.\n3. Aset: properti/kendaraan.\nJika disponsori, unggah dokumen resmi sponsor.');
   const matSchInner=isNp?`
       <div class="t14 fw7 c-gray8 mb3" style="white-space:pre-line">${esc(mmsSchTitle)}</div>
-      <div class="fw7 mb2">1. ${mmsT('费用说明（南亚就读点）','Fees (South Asia study site)','Biaya (lokasi Asia Selatan)')}</div>
+      <div class="fw7 mb2">1. ${mmsT('费用说明（尼泊尔校区）','Fees (Nepal campus)','Biaya (kampus Nepal)')}</div>
       <div class="b1 bc-gray200 r8 p3 mb3" style="background:#fff">
-        <div>${mmsT('本表适用于计划在加德满都会面点 / 南亚安排就读的申请人。具体学费、食宿及其他杂费以教务书面通知为准。','For applicants planning to study under the Kathmandu / South Asia arrangements. Tuition, board and other fees follow written notice from the office.','Untuk pelamar yang akan belajar di Kathmandu/Asia Selatan. Rincian biaya mengikuti pemberitahuan tertulis kantor.')}</div>
+        <div>${mmsT('本表适用于计划在尼泊尔（加德满都）校区就读的申请人。','For applicants planning to study at the Nepal (Kathmandu) campus.','Untuk pelamar yang akan belajar di kampus Nepal (Kathmandu).')}</div>
+        <div class="mt2">${mmsT('标准年学费：','Standard annual tuition:','Biaya kuliah standar:')} <strong>$3,000</strong></div>
+        <div>${mmsT('尼泊尔校区优惠学费：','Nepal campus reduced tuition:','Biaya kampus Nepal:')} <strong>$1,000</strong>${mmsT('（已从标准 $3,000 减免 $2,000）','(reduced from standard $3,000)','(dikurangi dari standar $3.000)')}</div>
         <div class="mt2">${mmsT('资助上限：','Maximum aid:','Batas bantuan:')} <strong>$1,000</strong> ${mmsT('（每学年；获批后用于核减应缴费用，不发放至个人账户）','(per academic year; if approved, credited against fees, not paid to individuals)','(per tahun ajaran; jika disetujui, dipotong dari biaya, tidak dibayarkan tunai)')}</div>
       </div>
       <div class="fw7 mb2">2. ${mmsT('申请额度与自筹说明','Requested amount & self-funding','Jumlah permohonan & sumber dana')}</div>
@@ -4564,11 +4565,15 @@ function renderMaterials(){
         <div class="row g2" style="align-items:center;flex-wrap:wrap"><span style="min-width:200px">${mmsT('自筹总额：','Total self-funded:','Total mandiri:')}</span><span>$</span><input id="mat-sch-fund-total" class="inp" style="width:120px" value="${esc(sch.total_self_funded||sch.funding_total||'')}"></div>
       </div>
       <div class="t12 mb3" style="color:#b45309">${esc(mmsT('请附收入或资助证明（见下方上传，必填）。','Attach income/support proof below (required).','Lampirkan bukti (wajib di bawah).'))}</div>
-      <div class="mb2">B. ${mmsT('申请资助金额','Financial aid requested','Jumlah bantuan yang dimohon')}</div>
-      <div class="row g2 mb2" style="align-items:center;flex-wrap:wrap">${mmsT('申请金额：','Requested amount:','Jumlah:')} <span>$</span><input id="mat-sch-amount-req" class="inp" style="width:120px" value="${esc(sch.requested_amount||sch.amount_requested||'')}"> ${mmsT('（最高 $1,000）','(Max $1,000)','(Maks $1,000)')}</div>
-      <div class="t12 c-gray6 mb3 lh16" style="border-left:3px solid #e5e7eb;padding-left:10px">${esc(mmsT('*注意：所申请奖助学金若获批准，将直接核减相应费用，不发放到个人。','*Note: If approved, aid is deducted from fees and not paid to individuals.','*Catatan: Jika disetujui, biaya dikurangkan langsung, tidak dibayarkan ke pribadi.'))}</div>
+      <div class="mb2">B. ${mmsT('申请资助金额（三选一）','Financial aid requested (choose one)','Jumlah bantuan (pilih satu)')}</div>
+      <div class="col g2 mb2">
+        <label class="row g2" style="align-items:center;cursor:pointer"><input type="radio" name="mat-np-aid-amount" value="1000" ${String(sch.requested_amount||sch.amount_requested||'')==='1000'?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px"><span>${mmsT('$1,000（全额资助——免除全部学费）','$1,000 (full aid — tuition fully waived)','$1.000 (bantuan penuh — kuliah gratis)')}</span></label>
+        <label class="row g2" style="align-items:center;cursor:pointer"><input type="radio" name="mat-np-aid-amount" value="500" ${String(sch.requested_amount||sch.amount_requested||'')==='500'?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px"><span>${mmsT('$500（部分资助——自付 $500）','$500 (partial aid — self-pay $500)','$500 (bantuan sebagian — bayar sendiri $500)')}</span></label>
+        <label class="row g2" style="align-items:center;cursor:pointer"><input type="radio" name="mat-np-aid-amount" value="0" ${String(sch.requested_amount||sch.amount_requested||'')==='0'?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px"><span>${mmsT('$0（不申请资助——自付全部 $1,000 学费）','$0 (no aid — self-pay full $1,000 tuition)','$0 (tanpa bantuan — bayar sendiri $1.000)')}</span></label>
+      </div>
+      <div class="t12 c-gray6 mb3 lh16" style="border-left:3px solid #e5e7eb;padding-left:10px">${esc(mmsT('*注意：尼泊尔校区学费已从标准 $3,000 优惠至 $1,000/年。所申请资助若获批准，将直接核减学费，不发放到个人。','*Note: Nepal campus tuition is already reduced from $3,000 to $1,000/year. If approved, aid is deducted from tuition, not paid to individuals.','*Catatan: Biaya kampus Nepal sudah dikurangi dari $3.000 ke $1.000/tahun. Jika disetujui, bantuan dipotong dari biaya, tidak dibayarkan tunai.'))}</div>
       <div class="fw7 mb2">3. ${mmsT('费用与资助说明确认','Fee & aid acknowledgement','Konfirmasi biaya & bantuan')}</div>
-      <div class="b1 bc-indigo100 bg-indigo50 r8 p3 mb3 lh16">${esc(mmsT('南亚就读点不适用印尼美晟校区的 $300 押金或牧师担保信制度。','The South Asia site does not use the Indonesia campus USD 300 deposit or pastor guarantee letter.','Lokasi Asia Selatan tidak menggunakan deposit $300 atau surat jaminan pendeta kampus Indonesia.'))}</div>
+      <div class="b1 bc-indigo100 bg-indigo50 r8 p3 mb3 lh16">${esc(mmsT('尼泊尔（加德满都）校区不适用印尼（雅加达）校区的 $300 押金或牧师担保信制度。','The Nepal (Kathmandu) campus does not use the Indonesia (Jakarta) campus USD 300 deposit or pastor guarantee letter.','Kampus Nepal (Kathmandu) tidak menggunakan deposit $300 atau surat jaminan pendeta kampus Indonesia (Jakarta).'))}</div>
       <div class="row g2 mb3" style="align-items:flex-start"><input type="checkbox" id="mat-np-fee-ack" ${sch.np_fee_ack==='yes'?'checked':''} style="accent-color:#4f46e5;width:18px;height:18px;flex-shrink:0;margin-top:2px"><label for="mat-np-fee-ack" class="t12 lh16">${esc(mmsT('本人已阅读并理解上述费用与资助安排（以教务通知为准）','I have read and understand the fee and aid arrangement above (subject to office notice)','Saya telah membaca dan memahami pengaturan biaya & bantuan di atas (mengikuti pemberituan kantor)'))}</label></div>
       <div class="fw7 mb2">4. ${mmsT('条款与承诺','Terms & conditions','Syarat & ketentuan')}</div>
       <div class="b1 bc-gray100 r8 p3 mb3 lh16">
@@ -4891,7 +4896,7 @@ function renderPipeline(){
             ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
             ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
             <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
-            <div class="t11 c-gray5 mb1 row g1 wrap" style="align-items:center">${esc(examLangLabelShort(getApplicantExamLang(ap)))}${getApplicantCampusCode(ap)==='np'?mkTag('#ecfdf5','#047857','南亚·尼'):''}</div>
+            <div class="t11 c-gray5 mb1 row g1 wrap" style="align-items:center">${esc(examLangLabelShort(getApplicantExamLang(ap)))}${getApplicantCampusCode(ap)==='np'?mkTag('#ecfdf5','#047857','尼泊尔'):''}</div>
             ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
             ${ap.interview_slot_id&&ap.stage!=='complete'?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
           </div>`;
@@ -5242,8 +5247,8 @@ function renderBriefingModal(ap){
               </select></div>
             <div><div class="t12 fw6 c-gray6 mb1">就读校区</div>
               <select id="brief-ap-campus" class="sel" style="width:100%">
-                <option value="id" ${getApplicantCampusCode(ap)==='id'?'selected':''}>印尼美晟</option>
-                <option value="np" ${getApplicantCampusCode(ap)==='np'?'selected':''}>南亚（加德满都）</option>
+                <option value="id" ${getApplicantCampusCode(ap)==='id'?'selected':''}>印尼（雅加达）</option>
+                <option value="np" ${getApplicantCampusCode(ap)==='np'?'selected':''}>尼泊尔（加德满都）</option>
               </select></div>
             <div><div class="t12 fw6 c-gray6 mb1">籍贯</div><input id="brief-ap-hometown" class="inp" style="width:100%" value="${valB(ap.hometown)}" placeholder="籍贯"></div>
             <div><div class="t12 fw6 c-gray6 mb1">学历</div><input id="brief-ap-education" class="inp" style="width:100%" value="${valB(ap.education)}" placeholder="学历"></div>
@@ -5256,7 +5261,7 @@ function renderBriefingModal(ap){
             <div><div class="t12 fw6 c-gray6 mb1">归主时间</div><input id="brief-ap-conversion-time" class="inp" type="date" style="width:100%" value="${valB(convDate)}"></div>
           </div>
           <div class="row g2 mt3" style="justify-content:flex-end"><button type="button" class="btn btn-primary" data-action="save-brief-basic" data-apid="${ap.id}">保存基本资料</button></div>
-        </div>`:`<div class="info-row"><span class="c-gray5">就读校区</span><span>${getApplicantCampusCode(ap)==='np'?'南亚（加德满都）':'印尼美晟'}</span></div>
+        </div>`:`<div class="info-row"><span class="c-gray5">就读校区</span><span>${getApplicantCampusCode(ap)==='np'?'尼泊尔（加德满都）':'印尼（雅加达）'}</span></div>
         <div class="info-row"><span class="c-gray5">电话</span><span>${esc(ap.phone||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">邮箱</span><span>${esc(ap.email||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">性别</span><span>${esc(ap.gender||'—')}</span></div>
@@ -5697,13 +5702,12 @@ function bind(){
       const rSp=await readOpt(document.getElementById('mat-sponsor-file'),spD,spN);
       spD=rSp.data;spN=rSp.fn;
     }catch(e){if(e.message!=='size')toast(apLine('读取文件失败','Read failed','Gagal baca'),false);return;}
-    const amtRaw=(document.getElementById('mat-sch-amount-req')?.value||'').trim();
-    const amtNum=parseFloat(amtRaw,10);
-    if(campusNp){
-      if(amtRaw===''||isNaN(amtNum)||amtNum<0||amtNum>1000){
-        toast(apLine('南亚就读点：申请资助金额请填写 0–1000 之间的数字。','South Asia site: enter requested aid between 0 and 1000.','Lokasi Asia Selatan: isi 0–1000.'),false);
-        return;
-      }
+    const amtRaw=campusNp
+      ? (document.querySelector('input[name="mat-np-aid-amount"]:checked')?.value||'')
+      : (document.getElementById('mat-sch-amount-req')?.value||'').trim();
+    if(campusNp && amtRaw===''){
+      toast(apLine('请选择申请资助金额（$1,000 / $500 / $0）。','Please select a financial aid amount.','Pilih jumlah bantuan.'),false);
+      return;
     }
     const g=campusNp?'deposit':(document.querySelector('input[name="mat-sch-guarantee"]:checked')?.value||'deposit');
     const sch={...prev,
@@ -5715,8 +5719,8 @@ function bind(){
       funding_church:(document.getElementById('mat-sch-fund-church')?.value||'').trim(),
       funding_other:(document.getElementById('mat-sch-fund-other')?.value||'').trim(),
       funding_total:(document.getElementById('mat-sch-fund-total')?.value||'').trim(),
-      requested_amount:(document.getElementById('mat-sch-amount-req')?.value||'').trim(),
-      amount_requested:(document.getElementById('mat-sch-amount-req')?.value||'').trim(),
+      requested_amount:amtRaw,
+      amount_requested:amtRaw,
       guarantee_type:g,
       np_fee_ack:campusNp?(document.getElementById('mat-np-fee-ack')?.checked?'yes':'no'):(prev.np_fee_ack||''),
       agree_terms:document.getElementById('mat-sch-agree-terms')?.checked?'yes':'no',
