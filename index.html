@@ -107,11 +107,14 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:700px){.grid-2{grid-template-columns:1fr}}
 .kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:16px;min-height:400px}
-.kanban-col{flex-shrink:0;width:196px;max-width:min(196px,88vw)}
-.kanban-col-interview{flex-shrink:0;width:300px;max-width:min(300px,92vw)}
+.kanban-col{flex-shrink:0;width:280px;max-width:min(280px,92vw)}
+.kanban-col-interview{flex-shrink:0;width:280px;max-width:min(280px,92vw)}
 .lang-subgroup{padding-top:10px;margin-top:10px;border-top:1px solid #eef2ff}
 .lang-subgroup:first-child{padding-top:0;margin-top:0;border-top:none}
-.lang-subgroup-h{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;letter-spacing:.04em}
+.lang-subgroup-h{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;letter-spacing:.04em;line-height:1.35}
+.lang-subgroup-n{color:#9ca3af;font-weight:600}
+.campus-subgroup-np{margin-top:14px;padding:10px 8px 8px;border-top:2px solid #6ee7b7;border-radius:10px;background:linear-gradient(180deg,#f0fdf4 0%,#fff 100%)}
+.campus-subgroup-np-h{font-size:11px;font-weight:700;color:#047857;margin-bottom:8px;letter-spacing:.03em;line-height:1.35}
 .exam-lang-section{margin-bottom:28px}
 .exam-lang-section-h{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e5e7eb}
 .exam-lang-section-h span{font-size:14px;font-weight:700;color:#374151}
@@ -381,6 +384,7 @@ function examLangLabelShort(lang){
 function examLangPipelineGroupTitle(lang){
   return ({zh:'中文笔试 · 面试',en:'English exam · Interview',id:'Bahasa Indonesia · Wawancara'})[lang]||'中文笔试 · 面试';
 }
+const NP_CAMPUS_PIPELINE_TITLE='尼泊尔（加德满都）· Nepal Campus';
 /** 根据姓名字符推测笔试/面试分组（不用 \\p 属性类，避免旧版浏览器整段脚本解析失败导致首页永久转圈） */
 function guessExamLangFromNameString(raw){
   const t=String(raw||'').trim();
@@ -398,6 +402,88 @@ function guessExamLangFromApplicantName(ap){
   const fromParts=combined?guessExamLangFromNameString(combined):null;
   if(fromParts) return fromParts;
   return guessExamLangFromNameString(String(ap?.full_name||'').trim());
+}
+/** 根据报名表「语言能力」识别笔试/面试分组（优先于姓名推测） */
+function guessExamLangFromLanguageProficiency(ap){
+  const t=String(ap?.language_proficiency||'').toLowerCase().trim();
+  if(!t) return null;
+  if(/indonesia|indonesian|bahasa\s*indonesia|bhs\.?\s*indo|印尼|印度尼西亚/.test(t)) return 'id';
+  if(/english|inggris|bahasa\s*inggris|英文|英语/.test(t)&&!/indonesia|indonesian|印尼/.test(t)) return 'en';
+  if(/chinese|mandarin|中文|汉语|普通话|华语|国语/.test(t)) return 'zh';
+  return null;
+}
+function guessExamLangFromApplication(ap){
+  return guessExamLangFromLanguageProficiency(ap)||guessExamLangFromApplicantName(ap)||null;
+}
+function shouldAutoSetExamLang(ap,inferred){
+  if(!inferred||getApplicantExamLang(ap)===inferred) return false;
+  if(guessExamLangFromLanguageProficiency(ap)) return true;
+  if(ap.sheet_import_unseen) return true;
+  const raw=String(ap?.exam_lang||'').toLowerCase();
+  if(!raw||raw==='zh') return inferred!=='zh';
+  return false;
+}
+function partitionApplicantsByExamLang(aps){
+  const by={zh:[],en:[],id:[]};
+  (aps||[]).forEach(ap=>{const L=getApplicantExamLang(ap);(by[L]||by.zh).push(ap);});
+  return by;
+}
+function pipelineStageCountBreakdown(aps){
+  const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)!=='np');
+  const np=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='np').length;
+  const by=partitionApplicantsByExamLang(idAps);
+  return {zh:(by.zh||[]).length,en:(by.en||[]).length,id:(by.id||[]).length,np,total:(aps||[]).length};
+}
+function renderKanbanLangSubgroups(aps,cardHtml,emptyHtml,sortFn){
+  const sort=sortFn||((a,b)=>String(fullName(a)).localeCompare(String(fullName(b)),'zh'));
+  const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)!=='np');
+  const npAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='np').slice().sort(sort);
+  const by=partitionApplicantsByExamLang(idAps);
+  const langHtml=['zh','en','id'].map(L=>{
+    const list=(by[L]||[]).slice().sort(sort);
+    return `<div class="lang-subgroup">
+      <div class="lang-subgroup-h">${esc(examLangPipelineGroupTitle(L))} <span class="lang-subgroup-n">(${list.length})</span></div>
+      <div class="col g2">${list.map(cardHtml).join('')}${list.length===0?emptyHtml:''}</div>
+    </div>`;
+  }).join('');
+  const npHtml=`<div class="campus-subgroup-np">
+      <div class="campus-subgroup-np-h">${esc(NP_CAMPUS_PIPELINE_TITLE)} <span class="lang-subgroup-n">(${npAps.length})</span></div>
+      <div class="col g2">${npAps.map(cardHtml).join('')}${npAps.length===0?emptyHtml:''}</div>
+    </div>`;
+  return langHtml+npHtml;
+}
+let __examLangAutoSyncRunning=false;
+async function autoSyncApplicantExamLangs_(){
+  if(__examLangAutoSyncRunning||!sb||(A.role!=='admin'&&A.role!=='teacher')||!Array.isArray(A.allApplicants)) return;
+  const updates=[];
+  for(const ap of A.allApplicants){
+    const inferred=guessExamLangFromApplication(ap);
+    if(!inferred||!shouldAutoSetExamLang(ap,inferred)) continue;
+    updates.push({id:ap.id,exam_lang:inferred});
+  }
+  if(!updates.length) return;
+  __examLangAutoSyncRunning=true;
+  let n=0;
+  try{
+    for(const u of updates){
+      const {error}=await sb.from('applicants').update({exam_lang:u.exam_lang}).eq('id',u.id);
+      if(!error){
+        const row=A.allApplicants.find(a=>String(a.id)===String(u.id));
+        if(row) row.exam_lang=u.exam_lang;
+        n++;
+      }
+    }
+    if(n>0){
+      saveStaffCache();
+      if(updates.some(u=>{
+        const ap=A.allApplicants.find(a=>String(a.id)===String(u.id));
+        return ap&&ap.sheet_import_unseen;
+      })) toast('已根据报名表语言能力自动填写 '+n+' 人的笔试/面试语言');
+      render();
+    }
+  }finally{
+    __examLangAutoSyncRunning=false;
+  }
 }
 /** 笔试页排序：①已笔试且面试流程未完结（分高优先）②笔试+面试流程已完结（分高优先）③无成绩/未考 ④已拒绝 */
 function interviewPathCompleteForExamSort(ap){
@@ -1689,6 +1775,7 @@ function saveStaffCache(){
       scholarship_approved_at: ap.scholarship_approved_at,
       scholarship_review_note: ap.scholarship_review_note,
       campus_code: ap.campus_code,
+      language_proficiency: ap.language_proficiency,
     }));
     localStorage.setItem(STAFF_CACHE_KEY, JSON.stringify({ts:Date.now(), allApplicants: lite}));
   }catch(_){}
@@ -1905,7 +1992,7 @@ const APPLICANTS_STAFF_LIST_COLS_MIN =
 // 首屏极简列表：不含 scholarship_form_json（大 JSON 仍走 v1 / phase2）；含批复标量便于顶栏与奖学金页摘要
 const APPLICANTS_STAFF_LIST_COLS_LITE =
   'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row,'+
-  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,campus_code';
+  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,campus_code,language_proficiency';
 /** lite 主查询失败时回退（与历史版本一致，列最少） */
 const APPLICANTS_STAFF_LIST_COLS_LITE_FALLBACK =
   'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row';
@@ -2137,7 +2224,10 @@ async function loadAdminData(opts){
     A.staffLastSyncAt = new Date().toISOString();
   }
   // 关键：只在拿到非空列表时更新缓存，避免把空列表固化到普通窗口
-  if(apRes.ok && !suspiciousEmptyApplicants && Array.isArray(A.allApplicants) && A.allApplicants.length>0) saveStaffCache();
+  if(apRes.ok && !suspiciousEmptyApplicants && Array.isArray(A.allApplicants) && A.allApplicants.length>0){
+    saveStaffCache();
+    autoSyncApplicantExamLangs_();
+  }
 
   // 无本地缓存且双通道都成功返回 0 条：多为未部署 RPC、profiles.role 不匹配或库表真为空
   if(apRes.ok && Array.isArray(apRes.data) && apRes.data.length === 0 && prevApplicants.length === 0 && (A.role === 'admin' || A.role === 'teacher') && apRes.via === 'both_empty'){
@@ -2174,6 +2264,7 @@ async function loadAdminData(opts){
           const full = await fetchApplicantsListForStaff_({lite:false});
           if(full?.ok && Array.isArray(full.data) && full.data.length){
             A.allApplicants = mergeApplicantsById_(A.allApplicants, full.data);
+            autoSyncApplicantExamLangs_();
           }
         }catch(e){ console.warn('loadAdminData phase2 applicants full', e); }
         const [slotsRes, recsRes] = await Promise.all([
@@ -4940,31 +5031,21 @@ function renderPipeline(){
     <div class="kanban">
     ${STAGES.map(sg=>{
       const aps=A.allApplicants.filter(a=>a.stage===sg.id);
-      const colClass=sg.id==='interview'?'kanban-col kanban-col-interview':'kanban-col';
-      let inner='';
-      if(sg.id==='interview'){
-        const by={zh:[],en:[],id:[]};
-        aps.forEach(ap=>{const L=getApplicantExamLang(ap);(by[L]||by.zh).push(ap);});
-        ['zh','en','id'].forEach(L=>{
-          (by[L]||[]).sort((a,b)=>{
-            const d = applicantInterviewSlotTs(a) - applicantInterviewSlotTs(b);
-            return d !== 0 ? d : String(fullName(a)).localeCompare(String(fullName(b)), 'zh');
-          });
-        });
-        inner=['zh','en','id'].map(L=>{
-          const list=by[L]||[];
-          return `<div class="lang-subgroup">
-            <div class="lang-subgroup-h">${esc(examLangPipelineGroupTitle(L))}</div>
-            <div class="col g2">${list.map(cardHtml).join('')}${list.length===0?emptyHtml:''}</div>
-          </div>`;
-        }).join('');
-      } else {
-        inner=`<div class="col g2">${aps.map(cardHtml).join('')}${aps.length===0?emptyHtml:''}</div>`;
-      }
+      const colClass='kanban-col kanban-col-interview';
+      const interviewSort=(a,b)=>{
+        const d=applicantInterviewSlotTs(a)-applicantInterviewSlotTs(b);
+        return d!==0?d:String(fullName(a)).localeCompare(String(fullName(b)),'zh');
+      };
+      const inner=renderKanbanLangSubgroups(aps,cardHtml,emptyHtml,sg.id==='interview'?interviewSort:null);
+      const bd=pipelineStageCountBreakdown(aps);
+      const bdLine=`<div class="t10 c-gray4" style="line-height:1.45;margin-top:2px">中 ${bd.zh} · En ${bd.en} · Id ${bd.id}${bd.np?` · 尼 ${bd.np}`:''}</div>`;
       return `<div class="${colClass}">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
-          <span>${sg.icon}</span><span class="fw6 c-gray7 t13">${sg.label}</span>
-          <span class="ml-auto tag" style="background:#f3f4f6;color:#6b7280">${aps.length}</span>
+        <div style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span>${sg.icon}</span><span class="fw6 c-gray7 t13">${sg.label}</span>
+            <span class="ml-auto tag" style="background:#f3f4f6;color:#6b7280">${bd.total}</span>
+          </div>
+          ${bdLine}
         </div>
         ${inner}
       </div>`;
@@ -4999,7 +5080,7 @@ function renderAddApModal(){
             <option value="id">Bahasa Indonesia</option>
           </select>
           <div id="add-ap-lang-hint" class="t11 c-gray4 mt1" style="min-height:1.2em"></div>
-          <button type="button" class="btn btn-outline btn-sm mt2" id="btn-add-ap-guess-lang">按姓名自动填入语言</button>
+          <button type="button" class="btn btn-outline btn-sm mt2" id="btn-add-ap-guess-lang">按姓名识别语言</button>
         </div>
         <div>
           <div class="t12 fw6 c-gray6 mb1">当前阶段</div>
@@ -5233,6 +5314,10 @@ function renderBriefingModal(ap){
   const dobDate=ap.date_of_birth?String(ap.date_of_birth).slice(0,10):'';
   const age=ageFromDob(dobDate);
   const curLang=getApplicantExamLang(ap);
+  const inferredAppLang=guessExamLangFromApplication(ap);
+  const examLangAutoHint=inferredAppLang
+    ?`根据报名表识别：${examLangLabelShort(inferredAppLang)}${inferredAppLang!==curLang?'（保存基本资料后将写入）':''}`
+    :'';
   const visaF=parseVisaFiles(ap);
   const visaSpec=visaMaterialsSpecOk(visaF);
   const showVisaInner=STAGE_IDX[ap.stage]>=STAGE_IDX['visa']||visaF._saved_at;
@@ -5270,7 +5355,9 @@ function renderBriefingModal(ap){
                 <option value="zh" ${curLang==='zh'?'selected':''}>中文</option>
                 <option value="en" ${curLang==='en'?'selected':''}>English</option>
                 <option value="id" ${curLang==='id'?'selected':''}>Bahasa Indonesia</option>
-              </select></div>
+              </select>
+              ${examLangAutoHint?`<div class="t11 c-indigo6 mt1">${esc(examLangAutoHint)}</div>`:''}
+              ${inferredAppLang?`<button type="button" class="btn btn-outline btn-sm mt2" data-action="brief-apply-inferred-lang" data-lang="${inferredAppLang}">按报名表填入语言</button>`:''}</div>
             <div><div class="t12 fw6 c-gray6 mb1">性别</div>
               <select id="brief-ap-gender" class="sel" style="width:100%">
                 <option value="">未填写</option>
@@ -6111,6 +6198,16 @@ function bind(){
   });
   root.querySelectorAll('[data-action=close-briefing]').forEach(el=>{
     el.addEventListener('click',()=>{A.briefingId=null;render();});
+  });
+  root.querySelectorAll('[data-action=brief-apply-inferred-lang]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const lang=el.dataset.lang;
+      const sel=document.getElementById('brief-ap-exam-lang');
+      if(lang&&sel&&(lang==='zh'||lang==='en'||lang==='id')){
+        sel.value=lang;
+        toast('已填入：'+examLangLabelShort(lang));
+      }
+    });
   });
 
   root.querySelectorAll('[data-action=save-brief-basic]').forEach(el=>{
