@@ -9,6 +9,7 @@
 <script>try{if(typeof JSZip!=='undefined'&&(typeof window.JSZip==='undefined'||!window.JSZip))window.JSZip=JSZip;}catch(_){}</script>
 <script src="exam-locale.js"></script>
 <script src="exam-plain-bundled.js"></script>
+<script src="continuing-locale.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f4f5ff;color:#1e1e2e;font-size:14px}
@@ -352,9 +353,10 @@ function staffAdminTabDefs(){
     {id:'schedule',label:'面试排班',icon:'📅'},
     {id:'docs',label:'材料审核',icon:'📄'},
     {id:'scholarship',label:'奖学金批复',icon:'💰'},
+    {id:'continuing',label:'继续申请',icon:'📋'},
     {id:'me',label:'我的',icon:'👤'},
   ];
-  return isVisaOpsStaff()?all.filter(t=>t.id!=='schedule'):all;
+  return isVisaOpsStaff()?all.filter(t=>t.id!=='schedule'&&t.id!=='continuing'):all;
 }
 
 /** 申请人笔试/面试语言归一 */
@@ -1316,6 +1318,14 @@ const A = {
   teacherProfiles: [], // role=teacher，排班下拉与语言匹配用
   staffLastSyncError: null,
   staffLastSyncAt: null,
+
+  // 继续申请（二/三年级）：公开提交，老师后台审核
+  allContinuing: [],
+  continuingSelectedId: null,
+  continuingFilter: { year:'all', lang:'all', status:'all' },
+  continuingLastSyncError: null,
+  continuingLoading: false,
+  continuingLoadedAt: 0,
 };
 let examTimer = null;
 let applicantStagePoller = null;
@@ -2289,6 +2299,8 @@ async function loadAdminData(opts){
         else A.allRecords = prevRecs;
         A.teacherProfiles = mergeTeacherProfilesFromSlots(A.allSlots, tprof);
         render();
+        // 继续申请（二/三年级）：后台静默预拉一次，方便切到 Tab 秒开
+        try{ loadContinuingForStaff({silent:true}); }catch(_){}
       }catch(e){
         console.warn('loadAdminData phase2', e);
       }
@@ -4960,6 +4972,312 @@ function renderScholarshipReview(){
   </div>`;
 }
 
+// ══════════════════════════════════════════════════════════════
+// 继续申请（二/三年级）：公开提交，老师后台审核
+// ══════════════════════════════════════════════════════════════
+const CONTINUING_STATUS_STYLE = {
+  submitted:    {bg:'#f1f5f9',color:'#475569',label:'已提交'},
+  under_review: {bg:'#dbeafe',color:'#1d4ed8',label:'审核中'},
+  interview:    {bg:'#ede9fe',color:'#6d28d9',label:'安排面试'},
+  admitted:     {bg:'#dcfce7',color:'#15803d',label:'已录取'},
+  waitlist:     {bg:'#fef9c3',color:'#854d0e',label:'候补'},
+  rejected:     {bg:'#fee2e2',color:'#dc2626',label:'婉拒'},
+};
+const CONTINUING_STATUSES = ['submitted','under_review','interview','admitted','waitlist','rejected'];
+const CONTINUING_AID_LABEL = {
+  full_scholarship: '全额奖学金',
+  partial_aid:      '助学金',
+  work_study:       '勤工助学',
+  none:             '不申请',
+};
+
+async function loadContinuingForStaff(opts){
+  opts = opts || {};
+  if(!sb) return;
+  if(A.role!=='admin' && A.role!=='teacher') return;
+  if(isVisaOpsStaff()) return;
+  A.continuingLoading = true;
+  try{
+    const {data, error} = await sb.from('continuing_applications')
+      .select('*')
+      .order('created_at', {ascending:false});
+    if(error){
+      A.continuingLastSyncError = formatSbError(error);
+      console.warn('loadContinuingForStaff error', error);
+    }else{
+      A.allContinuing = Array.isArray(data) ? data : [];
+      A.continuingLastSyncError = null;
+      A.continuingLoadedAt = Date.now();
+    }
+  }catch(e){
+    A.continuingLastSyncError = String(e?.message||e);
+    console.warn('loadContinuingForStaff exception', e);
+  }finally{
+    A.continuingLoading = false;
+    if(opts.silent!==true) render();
+  }
+}
+
+async function saveContinuingByStaff(id, patch){
+  if(!sb||!id) return;
+  if(A.role!=='admin' && A.role!=='teacher'){ toast('权限不足',false); return; }
+  const args = {
+    p_id: id,
+    p_status: patch.status ?? null,
+    p_admin_notes: patch.admin_notes ?? null,
+    p_mark_read: patch.mark_read ?? null,
+  };
+  try{
+    const {data, error} = await sb.rpc('update_continuing_application_by_staff', args);
+    if(error){ toast('保存失败：'+(error.message||''), false); return; }
+    if(!data || data.ok!==true){ toast('保存失败：'+(data?.error||'未知错误'), false); return; }
+    const row = data.row;
+    if(row && row.id){
+      const idx = A.allContinuing.findIndex(r=>String(r.id)===String(row.id));
+      if(idx>=0) A.allContinuing[idx] = row;
+      else A.allContinuing.unshift(row);
+    }
+    if(patch.toastMsg!==false) toast('已保存');
+    render();
+  }catch(e){
+    console.warn('saveContinuingByStaff', e);
+    toast('保存失败：'+(e?.message||e), false);
+  }
+}
+
+async function deleteContinuingByAdmin(id){
+  if(!sb||!id) return;
+  if(A.role!=='admin'){ toast('仅管理员可删除',false); return; }
+  if(!confirm('确定删除这条继续申请吗？此操作不可恢复。')) return;
+  try{
+    const {data, error} = await sb.rpc('delete_continuing_application_by_admin', {p_id: id});
+    if(error){ toast('删除失败：'+(error.message||''), false); return; }
+    if(!data || data.ok!==true){ toast('删除失败：'+(data?.error||''), false); return; }
+    A.allContinuing = A.allContinuing.filter(r=>String(r.id)!==String(id));
+    if(String(A.continuingSelectedId)===String(id)) A.continuingSelectedId = null;
+    toast('已删除');
+    render();
+  }catch(e){
+    console.warn('deleteContinuingByAdmin', e);
+    toast('删除失败：'+(e?.message||e), false);
+  }
+}
+
+function continuingStatusTag(status){
+  const s = CONTINUING_STATUS_STYLE[status] || {bg:'#f3f4f6',color:'#6b7280',label:status||'—'};
+  return mkTag(s.bg, s.color, s.label);
+}
+
+function continuingApplyUrl(){
+  try{ return location.origin + '/apply-continuing.html'; }catch(_){ return 'apply-continuing.html'; }
+}
+function continuingStatusUrl(no){
+  try{
+    const u = new URL(location.origin + '/apply-continuing-status.html');
+    if(no) u.searchParams.set('no', no);
+    return u.toString();
+  }catch(_){ return 'apply-continuing-status.html'+(no?('?no='+encodeURIComponent(no)):''); }
+}
+
+function copyText(text){
+  if(!text) return;
+  const done = ()=>toast('已复制');
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, ()=>{
+        const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy');}catch(_){}
+        document.body.removeChild(ta); done();
+      });
+    }else{
+      const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+      ta.select(); try{document.execCommand('copy');}catch(_){}
+      document.body.removeChild(ta); done();
+    }
+  }catch(_){}
+}
+
+function renderContinuing(){
+  if(A.continuingLoading && !A.allContinuing.length){
+    return `<div class="card p8 tc" style="max-width:420px;margin:32px auto">
+      <div class="t15 fw6 c-gray7 mb2">正在加载继续申请…</div>
+      <div class="t12 c-gray5 lh16">首次进入时同步一次列表，之后切回此页将复用缓存。</div>
+    </div>`;
+  }
+  const isAd = A.role==='admin';
+  const f = A.continuingFilter || {year:'all',lang:'all',status:'all'};
+  const rows = (A.allContinuing||[]).filter(r=>{
+    if(f.year!=='all' && String(r.target_year)!==String(f.year)) return false;
+    if(f.lang!=='all' && String(r.class_lang||'')!==String(f.lang)) return false;
+    if(f.status!=='all' && String(r.status||'')!==String(f.status)) return false;
+    return true;
+  });
+  const total = (A.allContinuing||[]).length;
+  const unread = (A.allContinuing||[]).filter(r=>r.staff_unread).length;
+  const stats = CONTINUING_STATUSES.map(s=>({
+    s, n: (A.allContinuing||[]).filter(r=>r.status===s).length,
+  }));
+
+  const langLab = lc => ({zh:'中文', id:'印尼语', en:'英语'})[lc] || lc || '—';
+
+  const tableRow = r => {
+    const sel = String(A.continuingSelectedId||'')===String(r.id);
+    return `<tr style="cursor:pointer${sel?';background:#eef2ff':''}" data-action="continuing-select" data-cid="${r.id}">
+      <td style="position:relative">${r.staff_unread?`<span title="未读" style="position:absolute;top:50%;left:6px;transform:translateY(-50%);width:7px;height:7px;background:#ef4444;border-radius:50%"></span>`:''}<span class="mono t12" style="padding-left:${r.staff_unread?'12px':'0'}">${esc(r.application_no||'—')}</span></td>
+      <td class="fw6 c-gray8">${esc(r.full_name||'—')}</td>
+      <td>Y${esc(String(r.target_year||'—'))}</td>
+      <td class="t12 c-gray6">${esc(langLab(r.class_lang))}</td>
+      <td>${continuingStatusTag(r.status)}</td>
+      <td class="t12 c-gray5">${esc(CONTINUING_AID_LABEL[r.aid_intent]||'—')}</td>
+      <td class="t12 c-gray5 nowrap">${esc(String(r.created_at||'').slice(0,16).replace('T',' '))}</td>
+    </tr>`;
+  };
+
+  return `<div class="maxw-3xl col g4">
+    <div class="row g2 wrap" style="align-items:center">
+      <div class="fw7 c-gray8 t16">继续申请（二/三年级）</div>
+      <span class="t12 c-gray5">共 ${total} 条${unread?` · <span style="color:#dc2626;font-weight:600">${unread} 条未读</span>`:''}</span>
+      <div class="ml-auto row g2">
+        <button class="btn btn-outline btn-sm" id="btn-continuing-copy-apply">📋 复制申请链接</button>
+        <button class="btn btn-ghost btn-sm" id="btn-continuing-refresh">🔄 刷新</button>
+      </div>
+    </div>
+    ${A.continuingLastSyncError?`<div class="b1 bc-red200 bg-red50 r10 p3 t12" style="color:#b91c1c">同步异常：${esc(String(A.continuingLastSyncError).slice(0,260))}</div>`:''}
+
+    <div class="card p4">
+      <div class="row g2 wrap">
+        <div class="col g1">
+          <label class="t11 c-gray5 fw6">年级</label>
+          <select class="sel" id="ct-f-year" style="width:120px">
+            <option value="all" ${f.year==='all'?'selected':''}>全部年级</option>
+            <option value="2" ${f.year==='2'?'selected':''}>第二年</option>
+            <option value="3" ${f.year==='3'?'selected':''}>第三年</option>
+          </select>
+        </div>
+        <div class="col g1">
+          <label class="t11 c-gray5 fw6">班级语言</label>
+          <select class="sel" id="ct-f-lang" style="width:140px">
+            <option value="all" ${f.lang==='all'?'selected':''}>全部语言</option>
+            <option value="zh" ${f.lang==='zh'?'selected':''}>中文</option>
+            <option value="id" ${f.lang==='id'?'selected':''}>Bahasa Indonesia</option>
+            <option value="en" ${f.lang==='en'?'selected':''}>English</option>
+          </select>
+        </div>
+        <div class="col g1">
+          <label class="t11 c-gray5 fw6">状态</label>
+          <select class="sel" id="ct-f-status" style="width:150px">
+            <option value="all" ${f.status==='all'?'selected':''}>全部状态</option>
+            ${CONTINUING_STATUSES.map(s=>`<option value="${s}" ${f.status===s?'selected':''}>${esc(CONTINUING_STATUS_STYLE[s].label)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="col g1 ml-auto" style="justify-content:flex-end">
+          <div class="row g1 wrap" style="align-items:center">
+            ${stats.map(x=>`<span class="tag" style="background:${CONTINUING_STATUS_STYLE[x.s].bg};color:${CONTINUING_STATUS_STYLE[x.s].color}">${esc(CONTINUING_STATUS_STYLE[x.s].label)} ${x.n}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="overflow:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>申请编号</th><th>姓名</th><th>年级</th><th>班级</th><th>状态</th><th>资助意向</th><th>提交时间</th>
+        </tr></thead>
+        <tbody>
+          ${rows.length
+            ? rows.map(tableRow).join('')
+            : `<tr><td colspan="7" class="t13 c-gray4 tc" style="padding:32px">${total?'没有符合筛选条件的申请':'还没有继续申请数据。请将申请链接发给学生：'+esc(continuingApplyUrl())}</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+
+    ${A.continuingSelectedId?renderContinuingDetailModal():''}
+  </div>`;
+}
+
+function renderContinuingDetailModal(){
+  const r = (A.allContinuing||[]).find(x=>String(x.id)===String(A.continuingSelectedId));
+  if(!r) return '';
+  const isAd = A.role==='admin';
+  const langLab = ({zh:'中文', id:'印尼语', en:'英语'})[r.class_lang] || r.class_lang || '—';
+  const yearLab = r.target_year===2?'第二年':r.target_year===3?'第三年':('Y'+r.target_year);
+  const aidLab = CONTINUING_AID_LABEL[r.aid_intent] || '—';
+  const sec = (title, body) => `<div class="mb4">
+    <div class="t11 c-gray5 fw7 mb1" style="text-transform:uppercase;letter-spacing:.4px">${esc(title)}</div>
+    <div class="t13 c-gray8" style="white-space:pre-line;line-height:1.7">${esc(body||'—')}</div>
+  </div>`;
+  const kv = (k,v) => `<div class="info-row"><span class="c-gray5">${esc(k)}</span><span class="fw5">${esc(v||'—')}</span></div>`;
+
+  return `<div class="modal-overlay" data-action="continuing-close">
+    <div class="modal-lg" onclick="event.stopPropagation()">
+      <div class="row g3 mb4" style="align-items:flex-start">
+        <div class="flex1">
+          <div class="t11 c-gray5 mb1 mono">${esc(r.application_no||'')}</div>
+          <div class="t20 fw8 c-gray8">${esc(r.full_name||'')}</div>
+          <div class="row g2 wrap mt2">
+            ${continuingStatusTag(r.status)}
+            ${mkTag('#eef2ff','#4f46e5',yearLab)}
+            ${mkTag('#f5f3ff','#6d28d9','班级：'+langLab)}
+            ${r.aid_intent?mkTag('#fef3c7','#92400e','资助：'+aidLab):''}
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" data-action="continuing-close">✕</button>
+      </div>
+
+      <div class="grid-2 mb4">
+        ${kv('出生年月', r.date_of_birth||'')}
+        ${kv('性别', r.gender==='male'?'男':r.gender==='female'?'女':r.gender)}
+        ${kv('国家/籍贯', r.nationality||'')}
+        ${kv('学历', r.education||'')}
+        ${kv('信主时间', r.conversion_time||'')}
+        ${kv('邮箱', r.email||'')}
+        ${kv('WhatsApp', r.whatsapp||'')}
+        ${kv('提交时间', String(r.created_at||'').slice(0,19).replace('T',' '))}
+      </div>
+
+      ${sec('第一年学习的主要收获', r.first_year_reflection)}
+      ${sec('福音认信', r.gospel_confession)}
+      ${sec('蒙召见证', r.calling_testimony)}
+      ${r.aid_intent_note?sec('资助说明（学生填写）', r.aid_intent_note):''}
+
+      <div class="b1 bc-indigo100 bg-indigo50 r12 p4 mb3">
+        <div class="fw7 c-gray8 t14 mb2">审核操作</div>
+        <div class="row g2 wrap mb3" style="align-items:center">
+          <label class="t12 c-gray6 fw6">状态</label>
+          <select class="sel" id="ct-d-status" style="width:160px">
+            ${CONTINUING_STATUSES.map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${esc(CONTINUING_STATUS_STYLE[s].label)}</option>`).join('')}
+          </select>
+          <button class="btn btn-primary btn-sm" id="ct-d-save-status">保存状态</button>
+        </div>
+        <div class="col g1 mb2">
+          <label class="t12 c-gray6 fw6">内部备注（学生不可见）</label>
+          <textarea class="textarea" id="ct-d-notes" rows="4" placeholder="例如：第一年成绩 A、面试推荐、奖学金倾向 ……">${esc(r.admin_notes||'')}</textarea>
+        </div>
+        <div class="row g2 wrap">
+          <button class="btn btn-primary btn-sm" id="ct-d-save-notes">保存备注</button>
+          <button class="btn btn-outline btn-sm" id="ct-d-copy-status-link">📋 复制查询链接</button>
+          <button class="btn btn-outline btn-sm" id="ct-d-copy-wa">💬 复制 WhatsApp 文案</button>
+          ${isAd?`<button class="btn btn-danger btn-sm ml-auto" id="ct-d-delete">🗑 删除</button>`:''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildContinuingWaText(r){
+  if(!r) return '';
+  const url = continuingStatusUrl(r.application_no);
+  const labZh = CONTINUING_STATUS_STYLE[r.status]?.label || r.status;
+  const lang = String(r.ui_lang||r.class_lang||'zh').toLowerCase();
+  if(lang==='id'){
+    return `Halo ${r.full_name||''}, status pendaftaran lanjutan Anda (${r.application_no}) saat ini: ${(window.CL?.STATUS_LABEL?.id?.[r.status])||labZh}. Cek di sini: ${url}`;
+  }
+  if(lang==='en'){
+    return `Hi ${r.full_name||''}, your continuing application (${r.application_no}) status is now: ${(window.CL?.STATUS_LABEL?.en?.[r.status])||labZh}. Details: ${url}`;
+  }
+  return `${r.full_name||''}你好，你的继续申请（${r.application_no}）当前状态：${labZh}。查询链接：${url}`;
+}
+
 function renderAdmin(){
   const tabDefs=staffAdminTabDefs();
   const validStaffTabs=new Set(tabDefs.map(t=>t.id));
@@ -4989,6 +5307,7 @@ function renderAdmin(){
   else if(A.adminTab==='schedule') content=renderSchedule();
   else if(A.adminTab==='docs') content=renderDocs();
   else if(A.adminTab==='scholarship') content=renderScholarshipReview();
+  else if(A.adminTab==='continuing') content=renderContinuing();
   else if(A.adminTab==='me') content=renderStaffMe();
 
   const selAp=A.selectedApId?A.allApplicants.find(a=>a.id===A.selectedApId):null;
@@ -6170,9 +6489,65 @@ function bind(){
         toast(apLine('当前账号不包含面试排班功能','This account has no interview scheduling tab','Akun ini tanpa jadwal wawancara'),false);
         return;
       }
-      A.adminTab=tab;A.selectedApId=null;render();
+      A.adminTab=tab;A.selectedApId=null;
+      if(tab==='continuing' && !A.continuingLoadedAt && !A.continuingLoading){
+        loadContinuingForStaff();
+      }
+      render();
     });
   });
+
+  // ── Continuing applications (二/三年级) ──
+  const ctSel = id => root.querySelector('#'+id);
+  if(ctSel('btn-continuing-refresh')) ctSel('btn-continuing-refresh').addEventListener('click', ()=>loadContinuingForStaff());
+  if(ctSel('btn-continuing-copy-apply')) ctSel('btn-continuing-copy-apply').addEventListener('click', ()=>copyText(continuingApplyUrl()+'?lang=zh'));
+  if(ctSel('ct-f-year'))   ctSel('ct-f-year').addEventListener('change', e=>{ A.continuingFilter.year   = e.target.value; render(); });
+  if(ctSel('ct-f-lang'))   ctSel('ct-f-lang').addEventListener('change', e=>{ A.continuingFilter.lang   = e.target.value; render(); });
+  if(ctSel('ct-f-status')) ctSel('ct-f-status').addEventListener('change', e=>{ A.continuingFilter.status = e.target.value; render(); });
+  root.querySelectorAll('[data-action="continuing-select"]').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const cid = el.dataset.cid;
+      A.continuingSelectedId = cid;
+      // 标记已读
+      const row = (A.allContinuing||[]).find(r=>String(r.id)===String(cid));
+      if(row && row.staff_unread){
+        row.staff_unread = false; // 乐观更新
+        saveContinuingByStaff(cid, {mark_read:true, toastMsg:false});
+      }
+      render();
+    });
+  });
+  root.querySelectorAll('[data-action="continuing-close"]').forEach(el=>{
+    el.addEventListener('click', ()=>{ A.continuingSelectedId = null; render(); });
+  });
+  if(ctSel('ct-d-save-status')){
+    ctSel('ct-d-save-status').addEventListener('click', ()=>{
+      const v = ctSel('ct-d-status')?.value;
+      if(!v) return;
+      saveContinuingByStaff(A.continuingSelectedId, {status: v});
+    });
+  }
+  if(ctSel('ct-d-save-notes')){
+    ctSel('ct-d-save-notes').addEventListener('click', ()=>{
+      const v = ctSel('ct-d-notes')?.value || '';
+      saveContinuingByStaff(A.continuingSelectedId, {admin_notes: v});
+    });
+  }
+  if(ctSel('ct-d-copy-status-link')){
+    ctSel('ct-d-copy-status-link').addEventListener('click', ()=>{
+      const r = (A.allContinuing||[]).find(x=>String(x.id)===String(A.continuingSelectedId));
+      if(r) copyText(continuingStatusUrl(r.application_no));
+    });
+  }
+  if(ctSel('ct-d-copy-wa')){
+    ctSel('ct-d-copy-wa').addEventListener('click', ()=>{
+      const r = (A.allContinuing||[]).find(x=>String(x.id)===String(A.continuingSelectedId));
+      if(r) copyText(buildContinuingWaText(r));
+    });
+  }
+  if(ctSel('ct-d-delete')){
+    ctSel('ct-d-delete').addEventListener('click', ()=>deleteContinuingByAdmin(A.continuingSelectedId));
+  }
   // ── Select / close applicant ──
   root.querySelectorAll('[data-action=select-ap]').forEach(el=>{
     el.addEventListener('click',async()=>{

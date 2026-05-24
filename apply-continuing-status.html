@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN" id="root-html">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>美村宣教学院 · 查询继续申请状态</title>
+<script src="/vendor/supabase.js"></script>
+<script src="/continuing-locale.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f4f5ff;color:#1e1e2e;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
+input{font:inherit;color:inherit}
+a{color:#4f46e5;text-decoration:none}a:hover{text-decoration:underline}
+
+.page{background:linear-gradient(135deg,#eef2ff,#fff 50%,#f5f3ff);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.wrap{width:100%;max-width:520px}
+
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand .title{font-size:18px;font-weight:800;color:#1e1e2e}
+.brand .sub{font-size:12px;color:#6b7280}
+
+.lang-switch{display:inline-flex;background:#fff;border:1px solid #e0e7ff;border-radius:10px;padding:3px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.lang-switch button{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:#6b7280;transition:all .15s}
+.lang-switch button.active{background:#4f46e5;color:#fff}
+
+.card{background:#fff;border-radius:16px;border:1px solid #eef0ff;box-shadow:0 4px 14px rgba(31,38,135,.06);padding:26px}
+.card h1{font-size:18px;font-weight:800;color:#1e1e2e;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fld label{font-size:13px;font-weight:600;color:#374151}
+.inp{border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;width:100%;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.inp:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(129,140,248,.18)}
+.hint{font-size:11.5px;color:#9ca3af}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:12px 22px;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:#4f46e5;color:#fff;width:100%}
+.btn-primary:hover{background:#4338ca;transform:translateY(-1px);box-shadow:0 4px 14px rgba(79,70,229,.3)}
+.btn-primary:disabled{background:#c7d2fe;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:transparent;color:#4f46e5;border:1px solid #c7d2fe;padding:8px 14px;font-weight:600;font-size:13px}
+.btn-outline:hover{background:#eef2ff}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.result-card{margin-top:20px;border:1px solid #c7d2fe;background:#f5f3ff;border-radius:14px;padding:20px}
+.result-card .name{font-size:16px;font-weight:800;color:#1e1e2e}
+.result-card .appno{font-family:ui-monospace,'SF Mono',monospace;font-size:13px;color:#6b7280;margin-bottom:14px}
+.status-pill{display:inline-block;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;margin-bottom:10px}
+.status-submitted   {background:#f1f5f9;color:#475569}
+.status-under_review{background:#dbeafe;color:#1d4ed8}
+.status-interview   {background:#ede9fe;color:#6d28d9}
+.status-admitted    {background:#dcfce7;color:#15803d}
+.status-waitlist    {background:#fef9c3;color:#854d0e}
+.status-rejected    {background:#fee2e2;color:#dc2626}
+
+.kvs{margin-top:10px}
+.kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ede9fe;font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:#6b7280}
+.kv .v{color:#1e1e2e;font-weight:600;text-align:right;max-width:60%;word-break:break-word}
+
+.hint-card{margin-top:12px;padding:12px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;font-size:13px;color:#374151;line-height:1.7}
+
+.err-card{margin-top:18px;padding:12px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;color:#b91c1c;font-size:13px;line-height:1.7}
+
+footer{text-align:center;color:#9ca3af;font-size:11.5px;margin-top:18px}
+footer a{color:#9ca3af}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="wrap">
+    <div class="header">
+      <div class="brand">
+        <div class="title" id="ui-title">美村宣教学院</div>
+        <div class="sub" id="ui-subtitle">查询继续申请状态</div>
+      </div>
+      <div class="lang-switch" id="lang-switch">
+        <button data-lang="zh" class="active">中文</button>
+        <button data-lang="id">ID</button>
+        <button data-lang="en">EN</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h1 id="ui-h">🔎 查询继续申请状态</h1>
+      <div class="fld">
+        <label id="lab-no">申请编号</label>
+        <input class="inp" id="f-no" autocomplete="off" placeholder="MMS-Y2-2026-0042">
+      </div>
+      <div class="fld">
+        <label id="lab-secret">邮箱 或 WhatsApp 后 4 位</label>
+        <input class="inp" id="f-secret" autocomplete="off">
+        <div class="hint" id="hint-secret"></div>
+      </div>
+      <button id="btn-lookup" class="btn btn-primary">
+        <span id="btn-lookup-text">查询</span>
+      </button>
+
+      <div id="result-box"></div>
+      <div id="err-box"></div>
+    </div>
+
+    <footer style="margin-top:18px">
+      <a href="apply-continuing.html" id="link-back">返回填写新申请</a>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var SUPABASE_URL = 'https://szjduusewnjxacrbbsdf.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amR1dXNld25qeGFjcmJic2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjMxNjEsImV4cCI6MjA5MDQzOTE2MX0.7Cg_uOp2Q2wtKaZqVnYdMLvnZJEyh6GyE26xXb-UTBw';
+  var sb = null;
+  try { if (typeof supabase !== 'undefined') sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  catch (e) { console.error('sb init', e); }
+
+  var LANG_KEY = 'continuing_app_lang_v1';
+
+  function pickLang() {
+    try {
+      var url = new URL(location.href);
+      var qp = url.searchParams.get('lang');
+      if (qp && /^(zh|id|en)$/i.test(qp)) return qp.toLowerCase();
+    } catch (e) {}
+    try {
+      var saved = localStorage.getItem(LANG_KEY);
+      if (saved && /^(zh|id|en)$/.test(saved)) return saved;
+    } catch (e) {}
+    var nav = (navigator.language || 'zh').toLowerCase();
+    if (nav.indexOf('id') === 0) return 'id';
+    if (nav.indexOf('en') === 0) return 'en';
+    return 'zh';
+  }
+  var currentLang = pickLang();
+  var busy = false;
+
+  function $(id) { return document.getElementById(id); }
+  function setText(id, s) { var el = $(id); if (el) el.textContent = s; }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  var T = function (k, vars) { return window.CL.t(k, currentLang, vars); };
+
+  function applyI18n() {
+    document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : (currentLang === 'id' ? 'id' : 'en');
+    document.title = T('app.title') + ' · ' + T('lookup.title');
+    setText('ui-title', T('app.title'));
+    setText('ui-subtitle', T('lookup.title'));
+    setText('ui-h', '🔎 ' + T('lookup.title'));
+    setText('lab-no', T('lookup.no'));
+    setText('lab-secret', T('lookup.secret'));
+    setText('hint-secret', T('lookup.secret_ph'));
+    setText('btn-lookup-text', T('lookup.btn'));
+    setText('link-back', T('lookup.return'));
+    var noInp = $('f-no'); if (noInp) noInp.setAttribute('placeholder', T('lookup.no_ph'));
+    refreshLangButtons();
+  }
+  function refreshLangButtons() {
+    document.querySelectorAll('#lang-switch button').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-lang') === currentLang);
+    });
+  }
+
+  function renderResult(row) {
+    $('err-box').innerHTML = '';
+    var statusLab = (window.CL.STATUS_LABEL[currentLang] || {})[row.status] || row.status;
+    var statusHint = (window.CL.STATUS_HINT[currentLang] || {})[row.status] || '';
+    var aidLab = row.aid_intent
+      ? (window.CL.AID_INTENT_LABEL[currentLang] || {})[row.aid_intent] || row.aid_intent
+      : '—';
+    var langLab = ({ zh: '中文', id: 'Bahasa Indonesia', en: 'English' })[row.class_lang] || row.class_lang;
+    var yearLab = row.target_year === 2 ? T('opt.year2') : (row.target_year === 3 ? T('opt.year3') : ('Y' + row.target_year));
+
+    var html = '' +
+      '<div class="result-card">' +
+        '<div class="name">' + esc(row.full_name || '') + '</div>' +
+        '<div class="appno">' + esc(row.application_no || '') + '</div>' +
+        '<div class="status-pill status-' + esc(row.status) + '">' + esc(statusLab) + '</div>' +
+        '<div class="kvs">' +
+          '<div class="kv"><span class="k">' + esc(T('lookup.year')) + '</span><span class="v">' + esc(yearLab) + '</span></div>' +
+          '<div class="kv"><span class="k">' + esc(T('lookup.class_lang')) + '</span><span class="v">' + esc(langLab) + '</span></div>' +
+          '<div class="kv"><span class="k">' + esc(T('lookup.aid_intent')) + '</span><span class="v">' + esc(aidLab) + '</span></div>' +
+          '<div class="kv"><span class="k">' + esc(T('lookup.submitted_at')) + '</span><span class="v">' + esc(window.CL.fmtDate(row.created_at)) + '</span></div>' +
+          '<div class="kv"><span class="k">' + esc(T('lookup.updated_at')) + '</span><span class="v">' + esc(window.CL.fmtDate(row.updated_at)) + '</span></div>' +
+        '</div>' +
+      '</div>' +
+      (statusHint ? '<div class="hint-card">' + esc(statusHint) + '</div>' : '');
+
+    $('result-box').innerHTML = html;
+  }
+
+  function renderErr(msg) {
+    $('result-box').innerHTML = '';
+    $('err-box').innerHTML = '<div class="err-card">' + esc(msg) + '</div>';
+  }
+
+  function setBusy(on) {
+    busy = !!on;
+    var b = $('btn-lookup'); if (!b) return;
+    b.disabled = on;
+    $('btn-lookup-text').innerHTML = on
+      ? '<span class="spinner"></span> ' + T('lookup.btn')
+      : T('lookup.btn');
+  }
+
+  async function doLookup() {
+    if (busy) return;
+    var no = ($('f-no').value || '').trim().toUpperCase();
+    var sec = ($('f-secret').value || '').trim();
+    if (!no || !sec) { renderErr(T('lookup.empty')); return; }
+    if (!sb) { renderErr(T('lookup.failed')); return; }
+
+    setBusy(true);
+    try {
+      var res = await sb.rpc('lookup_continuing_application', { p_no: no, p_secret: sec });
+      if (res.error) {
+        console.warn('lookup err', res.error);
+        renderErr(T('lookup.failed') + ' ' + (res.error.message || ''));
+        return;
+      }
+      var d = res.data || {};
+      if (!d.ok) {
+        if (d.error === 'not_found' || d.error === 'secret_mismatch') {
+          renderErr(T('lookup.not_found'));
+        } else {
+          renderErr(T('lookup.failed') + (d.error ? (' (' + d.error + ')') : ''));
+        }
+        return;
+      }
+      renderResult(d);
+    } catch (e) {
+      console.warn('lookup exc', e);
+      renderErr(T('lookup.failed'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function prefillFromUrl() {
+    try {
+      var url = new URL(location.href);
+      var no = url.searchParams.get('no');
+      if (no) $('f-no').value = no;
+    } catch (e) {}
+  }
+
+  function bindEvents() {
+    document.querySelectorAll('#lang-switch button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        currentLang = b.getAttribute('data-lang');
+        try { localStorage.setItem(LANG_KEY, currentLang); } catch (e) {}
+        try {
+          var url = new URL(location.href);
+          url.searchParams.set('lang', currentLang);
+          history.replaceState(null, '', url.pathname + url.search);
+        } catch (e) {}
+        applyI18n();
+        // 已有结果在切语言后刷新一次
+        if ($('result-box').firstChild) doLookup();
+      });
+    });
+    $('btn-lookup').addEventListener('click', doLookup);
+    ['f-no', 'f-secret'].forEach(function (id) {
+      $(id).addEventListener('keydown', function (e) { if (e.key === 'Enter') doLookup(); });
+    });
+    // 返回链接也带语言
+    try {
+      var a = $('link-back');
+      if (a) a.setAttribute('href', 'apply-continuing.html?lang=' + currentLang);
+    } catch (e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    applyI18n();
+    prefillFromUrl();
+    bindEvents();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN" id="root-html">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>美村宣教学院 · 继续申请</title>
+<script src="/vendor/supabase.js"></script>
+<script src="/continuing-locale.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f4f5ff;color:#1e1e2e;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
+input,textarea,select{font:inherit;color:inherit}
+a{color:#4f46e5;text-decoration:none}a:hover{text-decoration:underline}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#c5c8e0;border-radius:3px}
+
+.page{background:linear-gradient(135deg,#eef2ff,#fff 50%,#f5f3ff);min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding:24px 16px 64px}
+
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand .title{font-size:18px;font-weight:800;color:#1e1e2e}
+.brand .sub{font-size:12px;color:#6b7280}
+
+.lang-switch{display:inline-flex;background:#fff;border:1px solid #e0e7ff;border-radius:10px;padding:3px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.lang-switch button{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:#6b7280;transition:all .15s}
+.lang-switch button.active{background:#4f46e5;color:#fff}
+
+.card{background:#fff;border-radius:16px;border:1px solid #eef0ff;box-shadow:0 4px 14px rgba(31,38,135,.04);padding:24px;margin-bottom:18px}
+.card h2{font-size:16px;font-weight:800;color:#1e1e2e;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:8px}
+.card h2 .icon{font-size:18px}
+
+.guide h3{font-size:14px;font-weight:800;color:#374151;margin-top:14px;margin-bottom:6px}
+.guide h3:first-child{margin-top:0}
+.guide p{color:#4b5563;margin-bottom:8px;white-space:pre-line}
+.guide ul{padding-left:0;list-style:none;color:#4b5563}
+.guide ul li{margin-bottom:4px}
+.guide .note{margin-top:14px;padding:10px 12px;background:#fef9c3;border:1px solid #fde68a;border-radius:10px;color:#854d0e;font-size:12.5px;line-height:1.6}
+
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fld label{font-size:13px;font-weight:600;color:#374151}
+.fld label .req{color:#dc2626;margin-left:2px}
+.fld .hint{font-size:11.5px;color:#9ca3af}
+.inp,.sel,.textarea{border:1px solid #e5e7eb;border-radius:10px;padding:9px 12px;width:100%;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.inp:focus,.sel:focus,.textarea:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(129,140,248,.18)}
+.textarea{min-height:120px;resize:vertical;line-height:1.65;font-family:inherit}
+.textarea.long{min-height:180px}
+.count{font-size:11.5px;color:#9ca3af;text-align:right;margin-top:-2px}
+.count.over{color:#dc2626;font-weight:600}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.grid-2{grid-template-columns:1fr}}
+
+.radio-group,.checkbox-group{display:flex;flex-wrap:wrap;gap:8px}
+.radio-pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;cursor:pointer;transition:all .15s;font-size:13px;color:#374151;user-select:none}
+.radio-pill:hover{border-color:#c7d2fe;background:#f5f3ff}
+.radio-pill input{accent-color:#4f46e5;cursor:pointer}
+.radio-pill.checked{border-color:#4f46e5;background:#eef2ff;color:#4338ca;font-weight:600}
+
+.consent{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #e0e7ff;background:#f5f3ff;border-radius:12px;cursor:pointer;line-height:1.55}
+.consent input{margin-top:3px;accent-color:#4f46e5;cursor:pointer}
+.consent span{font-size:13px;color:#4338ca}
+
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:12px 22px;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:#4f46e5;color:#fff}
+.btn-primary:hover{background:#4338ca;transform:translateY(-1px);box-shadow:0 4px 14px rgba(79,70,229,.3)}
+.btn-primary:disabled{background:#c7d2fe;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{background:transparent;color:#6b7280;border:1px solid #e5e7eb;padding:8px 14px;font-weight:600;font-size:13px}
+.btn-ghost:hover{background:#f9fafb;color:#374151}
+.btn-outline{background:transparent;color:#4f46e5;border:1px solid #c7d2fe;padding:8px 14px;font-weight:600;font-size:13px}
+.btn-outline:hover{background:#eef2ff}
+
+.draft-status{font-size:11.5px;color:#9ca3af;display:inline-flex;align-items:center;gap:4px}
+.draft-status.saved{color:#16a34a}
+
+/* honeypot */
+.hp-pot{position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;height:0;width:0;overflow:hidden}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1f2937;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:#b91c1c}
+
+.success-wrap{text-align:center;padding:18px 0}
+.success-icon{font-size:48px;margin-bottom:8px}
+.success-h{font-size:22px;font-weight:800;color:#15803d;margin-bottom:8px}
+.success-p{color:#4b5563;margin-bottom:12px;line-height:1.7}
+.appno-box{display:inline-block;background:#ecfdf5;border:2px solid #6ee7b7;border-radius:14px;padding:14px 22px;margin:8px 0 12px}
+.appno-box .label{font-size:11px;color:#15803d;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px}
+.appno-box .no{font-family:ui-monospace,'SF Mono',monospace;font-size:20px;font-weight:800;color:#065f46;letter-spacing:.5px}
+.next-p{font-size:12.5px;color:#6b7280;background:#f9fafb;padding:10px 14px;border-radius:10px;margin-top:6px;line-height:1.7;white-space:pre-line}
+
+footer{text-align:center;color:#9ca3af;font-size:11.5px;margin-top:20px}
+footer a{color:#9ca3af}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="wrap" id="app-root">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <div class="title" id="ui-title">美村宣教学院 · 继续申请</div>
+        <div class="sub" id="ui-subtitle">教牧领袖与宣教士课程 · 第二年 / 第三年报名</div>
+      </div>
+      <div class="lang-switch" id="lang-switch">
+        <button data-lang="zh" class="active">中文</button>
+        <button data-lang="id">ID</button>
+        <button data-lang="en">EN</button>
+      </div>
+    </div>
+
+    <!-- 招生简章 -->
+    <div class="card guide" id="guide-card">
+      <h2><span class="icon">📖</span><span id="ui-read-guide">招生简章</span></h2>
+      <h3 id="g-intro-h"></h3><p id="g-intro-p"></p>
+      <h3 id="g-purpose-h"></h3><p id="g-purpose-p"></p>
+      <h3 id="g-program-h"></h3><p id="g-program-p"></p>
+      <h3 id="g-cond-h"></h3>
+      <ul><li id="g-cond-l1"></li><li id="g-cond-l2"></li><li id="g-cond-l3"></li></ul>
+      <h3 id="g-fee-h"></h3><p id="g-fee-p"></p>
+      <h3 id="g-contact-h"></h3><p id="g-contact-p"></p>
+      <div class="note" id="g-note"></div>
+    </div>
+
+    <!-- 申请表 -->
+    <form class="card" id="form-card" autocomplete="off">
+      <h2><span class="icon">📝</span><span id="ui-form">申请表</span></h2>
+
+      <!-- honeypot -->
+      <div class="hp-pot"><input type="text" id="hp" name="hp" tabindex="-1" autocomplete="off"></div>
+
+      <!-- 申请方向 -->
+      <div class="fld">
+        <label id="lab-target_year">申请年级<span class="req">*</span></label>
+        <div class="radio-group" id="g-target_year">
+          <label class="radio-pill"><input type="radio" name="target_year" value="2"><span data-opt="year2">第二年</span></label>
+          <label class="radio-pill"><input type="radio" name="target_year" value="3"><span data-opt="year3">第三年</span></label>
+        </div>
+      </div>
+      <div class="fld">
+        <label id="lab-class_lang">班级语言<span class="req">*</span></label>
+        <div class="radio-group" id="g-class_lang">
+          <label class="radio-pill"><input type="radio" name="class_lang" value="zh"><span data-opt="zh">中文</span></label>
+          <label class="radio-pill"><input type="radio" name="class_lang" value="id"><span data-opt="id">Bahasa Indonesia</span></label>
+          <label class="radio-pill"><input type="radio" name="class_lang" value="en"><span data-opt="en">English</span></label>
+        </div>
+      </div>
+
+      <!-- 基础信息 -->
+      <h2 style="margin-top:12px"><span class="icon">👤</span><span id="ui-sec-basic">基础信息</span></h2>
+
+      <div class="grid-2">
+        <div class="fld">
+          <label id="lab-full_name">姓名<span class="req">*</span></label>
+          <input class="inp" id="f-full_name" maxlength="120">
+        </div>
+        <div class="fld">
+          <label id="lab-date_of_birth">出生年月</label>
+          <input class="inp" id="f-date_of_birth" type="date">
+        </div>
+        <div class="fld">
+          <label id="lab-gender">性别</label>
+          <div class="radio-group" id="g-gender">
+            <label class="radio-pill"><input type="radio" name="gender" value="male"><span data-opt="male">男</span></label>
+            <label class="radio-pill"><input type="radio" name="gender" value="female"><span data-opt="female">女</span></label>
+          </div>
+        </div>
+        <div class="fld">
+          <label id="lab-conversion_time">信主时间</label>
+          <input class="inp" id="f-conversion_time" placeholder="例如：2015 / 2020-03">
+        </div>
+        <div class="fld">
+          <label id="lab-nationality">国家 / 籍贯</label>
+          <input class="inp" id="f-nationality" maxlength="120">
+        </div>
+        <div class="fld">
+          <label id="lab-education">学历</label>
+          <input class="inp" id="f-education" maxlength="120">
+        </div>
+        <div class="fld">
+          <label id="lab-email">邮箱</label>
+          <input class="inp" id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="160">
+        </div>
+        <div class="fld">
+          <label id="lab-whatsapp">WhatsApp</label>
+          <input class="inp" id="f-whatsapp" type="tel" inputmode="tel" placeholder="例如 +62 812 3456 7890" maxlength="40">
+          <div class="hint" id="hint-contact">请至少填写「邮箱」或「WhatsApp」之一</div>
+        </div>
+      </div>
+
+      <!-- 长文本 -->
+      <h2 style="margin-top:12px"><span class="icon">✍️</span><span id="ui-sec-text">个人见证（每段建议 500 字左右）</span></h2>
+
+      <div class="fld">
+        <label id="lab-first_year_reflection">第一年学习的主要收获<span class="req">*</span></label>
+        <textarea class="textarea long" id="f-first_year_reflection" maxlength="3000"></textarea>
+        <div class="count" id="c-first_year_reflection"></div>
+      </div>
+      <div class="fld">
+        <label id="lab-gospel_confession">福音认信<span class="req">*</span></label>
+        <textarea class="textarea long" id="f-gospel_confession" maxlength="3000"></textarea>
+        <div class="count" id="c-gospel_confession"></div>
+      </div>
+      <div class="fld">
+        <label id="lab-calling_testimony">蒙召见证<span class="req">*</span></label>
+        <textarea class="textarea long" id="f-calling_testimony" maxlength="3000"></textarea>
+        <div class="count" id="c-calling_testimony"></div>
+      </div>
+
+      <!-- 资助意向 -->
+      <h2 style="margin-top:12px"><span class="icon">💰</span><span id="ui-sec-aid">资助意向</span></h2>
+      <div class="fld">
+        <label id="lab-aid_intent">资助意向</label>
+        <div class="radio-group" id="g-aid_intent">
+          <label class="radio-pill"><input type="radio" name="aid_intent" value="full_scholarship"><span data-aid="full_scholarship">全额奖学金</span></label>
+          <label class="radio-pill"><input type="radio" name="aid_intent" value="partial_aid"><span data-aid="partial_aid">助学金</span></label>
+          <label class="radio-pill"><input type="radio" name="aid_intent" value="work_study"><span data-aid="work_study">勤工助学</span></label>
+          <label class="radio-pill"><input type="radio" name="aid_intent" value="none"><span data-aid="none">不申请</span></label>
+        </div>
+      </div>
+      <div class="fld">
+        <label id="lab-aid_intent_note">资助说明（可选）</label>
+        <textarea class="textarea" id="f-aid_intent_note" maxlength="1500" placeholder=""></textarea>
+        <div class="count" id="c-aid_intent_note"></div>
+      </div>
+
+      <!-- 同意条款 -->
+      <label class="consent" style="margin-top:8px">
+        <input type="checkbox" id="f-consent">
+        <span id="lab-consent">我已阅读招生简章，理解学费与奖助学金政策，并确认所填内容真实。</span>
+      </label>
+
+      <div class="btn-row" style="margin-top:18px">
+        <button type="button" id="btn-submit" class="btn btn-primary">
+          <span id="btn-submit-text">提交申请</span>
+        </button>
+        <button type="button" id="btn-clear-draft" class="btn btn-ghost">清除本机草稿</button>
+        <span class="draft-status" id="draft-status"></span>
+      </div>
+    </form>
+
+    <!-- 成功页（默认隐藏） -->
+    <div class="card" id="success-card" style="display:none">
+      <div class="success-wrap">
+        <div class="success-icon">✅</div>
+        <div class="success-h" id="suc-h">提交成功</div>
+        <div class="success-p" id="suc-p">请妥善保存以下申请编号：</div>
+        <div class="appno-box">
+          <div class="label">Application No.</div>
+          <div class="no" id="suc-no">MMS-Y2-2026-0001</div>
+        </div>
+        <div class="next-p" id="suc-next"></div>
+        <div class="btn-row" style="justify-content:center;margin-top:14px">
+          <button type="button" id="btn-copy-no" class="btn btn-outline">复制申请编号</button>
+          <a id="link-status" class="btn btn-primary" href="apply-continuing-status.html">查询申请状态</a>
+          <button type="button" id="btn-new" class="btn btn-ghost">再填一份</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <a href="apply-continuing-status.html" id="link-status-foot">查询申请状态</a> · MMS Admissions
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ─────────────── Supabase ───────────────
+  var SUPABASE_URL = 'https://szjduusewnjxacrbbsdf.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amR1dXNld25qeGFjcmJic2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjMxNjEsImV4cCI6MjA5MDQzOTE2MX0.7Cg_uOp2Q2wtKaZqVnYdMLvnZJEyh6GyE26xXb-UTBw';
+  var sb = null;
+  try {
+    if (typeof supabase !== 'undefined') sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (e) { console.error('supabase init failed', e); }
+
+  // ─────────────── State ───────────────
+  var DRAFT_KEY = 'continuing_app_draft_v1';
+  var LANG_KEY  = 'continuing_app_lang_v1';
+
+  var FIELDS_LONG = ['first_year_reflection', 'gospel_confession', 'calling_testimony'];
+  var FIELDS_TEXT = ['full_name', 'date_of_birth', 'nationality', 'email', 'whatsapp', 'education', 'conversion_time', 'aid_intent_note'];
+  var FIELDS_RADIO = ['target_year', 'class_lang', 'gender', 'aid_intent'];
+
+  var T = function (k, vars) { return window.CL.t(k, currentLang, vars); };
+
+  function currentLangInit() {
+    try {
+      var url = new URL(location.href);
+      var qp = url.searchParams.get('lang');
+      if (qp && /^(zh|id|en)$/i.test(qp)) return qp.toLowerCase();
+    } catch (e) {}
+    try {
+      var saved = localStorage.getItem(LANG_KEY);
+      if (saved && /^(zh|id|en)$/.test(saved)) return saved;
+    } catch (e) {}
+    var nav = (navigator.language || 'zh').toLowerCase();
+    if (nav.indexOf('id') === 0) return 'id';
+    if (nav.indexOf('en') === 0) return 'en';
+    return 'zh';
+  }
+  var currentLang = currentLangInit();
+  var submitting = false;
+
+  // ─────────────── DOM helpers ───────────────
+  function $(id) { return document.getElementById(id); }
+  function setText(id, s) { var el = $(id); if (el) el.textContent = s; }
+  function toast(msg, isErr) {
+    var t = $('toast'); if (!t) return;
+    t.textContent = msg;
+    t.classList.toggle('err', !!isErr);
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 3200);
+  }
+
+  // ─────────────── i18n apply ───────────────
+  function applyI18n() {
+    document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : (currentLang === 'id' ? 'id' : 'en');
+    document.title = T('app.title');
+    setText('ui-title', T('app.title'));
+    setText('ui-subtitle', T('app.subtitle'));
+    setText('ui-read-guide', T('app.read_guide'));
+    setText('ui-form', T('app.form'));
+    setText('ui-sec-basic', T('sec.basic'));
+    setText('ui-sec-text', T('sec.text'));
+    setText('ui-sec-aid', T('sec.aid'));
+
+    setText('g-intro-h', T('guide.intro_h'));
+    setText('g-intro-p', T('guide.intro_p'));
+    setText('g-purpose-h', T('guide.purpose_h'));
+    setText('g-purpose-p', T('guide.purpose_p'));
+    setText('g-program-h', T('guide.program_h'));
+    setText('g-program-p', T('guide.program_p'));
+    setText('g-cond-h', T('guide.cond_h'));
+    setText('g-cond-l1', T('guide.cond_l1'));
+    setText('g-cond-l2', T('guide.cond_l2'));
+    setText('g-cond-l3', T('guide.cond_l3'));
+    setText('g-fee-h', T('guide.fee_h'));
+    setText('g-fee-p', T('guide.fee_p'));
+    setText('g-contact-h', T('guide.contact_h'));
+    setText('g-contact-p', T('guide.contact_p'));
+    setText('g-note', T('guide.note'));
+
+    var labMap = {
+      'lab-target_year':           'field.target_year',
+      'lab-class_lang':            'field.class_lang',
+      'lab-full_name':             'field.full_name',
+      'lab-date_of_birth':         'field.date_of_birth',
+      'lab-gender':                'field.gender',
+      'lab-conversion_time':       'field.conversion_time',
+      'lab-nationality':           'field.nationality',
+      'lab-education':             'field.education',
+      'lab-email':                 'field.email',
+      'lab-whatsapp':              'field.whatsapp',
+      'lab-first_year_reflection': 'field.first_year_reflection',
+      'lab-gospel_confession':     'field.gospel_confession',
+      'lab-calling_testimony':     'field.calling_testimony',
+      'lab-aid_intent':            'field.aid_intent',
+      'lab-aid_intent_note':       'field.aid_intent_note',
+    };
+    Object.keys(labMap).forEach(function (id) {
+      var el = $(id); if (!el) return;
+      var hadReq = el.querySelector('.req');
+      el.textContent = T(labMap[id]);
+      if (hadReq) {
+        var r = document.createElement('span'); r.className = 'req'; r.textContent = '*';
+        el.appendChild(r);
+      }
+    });
+    setText('lab-consent', T('consent.label'));
+    setText('hint-contact', T('err.contact'));
+    setText('btn-submit-text', T('btn.submit'));
+    var clr = $('btn-clear-draft'); if (clr) clr.textContent = T('btn.draft_clear');
+
+    var aidNote = $('f-aid_intent_note');
+    if (aidNote) aidNote.setAttribute('placeholder', T('field.aid_intent_ph'));
+
+    // 选项文本
+    document.querySelectorAll('[data-opt]').forEach(function (el) {
+      var key = el.getAttribute('data-opt');
+      el.textContent = T('opt.' + key);
+    });
+    document.querySelectorAll('[data-aid]').forEach(function (el) {
+      var key = el.getAttribute('data-aid');
+      var lab = window.CL.AID_INTENT_LABEL[currentLang] || window.CL.AID_INTENT_LABEL.zh;
+      el.textContent = lab[key] || key;
+    });
+
+    // 成功页文案
+    setText('suc-h', T('submit.success_h'));
+    setText('suc-p', T('submit.success_p'));
+    setText('suc-next', T('submit.next_p'));
+    var btnCopy = $('btn-copy-no'); if (btnCopy) btnCopy.textContent = T('submit.copy');
+    var btnNew  = $('btn-new'); if (btnNew) btnNew.textContent = T('submit.new');
+    var linkSt  = $('link-status'); if (linkSt) linkSt.textContent = T('submit.go_status');
+    var linkStF = $('link-status-foot'); if (linkStF) linkStF.textContent = T('app.status_query');
+
+    refreshCounts();
+    refreshLangButtons();
+  }
+
+  function refreshLangButtons() {
+    document.querySelectorAll('#lang-switch button').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-lang') === currentLang);
+    });
+  }
+
+  // ─────────────── 字数计数 ───────────────
+  function refreshCounts() {
+    var counts = {
+      first_year_reflection: 3000,
+      gospel_confession: 3000,
+      calling_testimony: 3000,
+      aid_intent_note: 1500,
+    };
+    Object.keys(counts).forEach(function (k) {
+      var el = $('f-' + k);
+      var c  = $('c-' + k);
+      if (!el || !c) return;
+      var v = (el.value || '');
+      var n = v.length;
+      var lim = counts[k];
+      c.textContent = n + ' / ' + lim + ' ' + T('count.suffix');
+      c.classList.toggle('over', n > lim);
+    });
+  }
+
+  // ─────────────── Radio pill 视觉态 ───────────────
+  function refreshRadioPills() {
+    document.querySelectorAll('.radio-pill').forEach(function (lab) {
+      var inp = lab.querySelector('input[type=radio]');
+      if (!inp) return;
+      lab.classList.toggle('checked', !!inp.checked);
+    });
+  }
+
+  // ─────────────── 草稿 ───────────────
+  var draftTimer = null;
+  function gatherDraft() {
+    var d = {};
+    FIELDS_LONG.concat(FIELDS_TEXT).forEach(function (k) {
+      var el = $('f-' + k); if (el) d[k] = el.value || '';
+    });
+    FIELDS_RADIO.forEach(function (k) {
+      var sel = document.querySelector('input[name="' + k + '"]:checked');
+      d[k] = sel ? sel.value : '';
+    });
+    d.consent = !!($('f-consent') && $('f-consent').checked);
+    return d;
+  }
+  function loadDraft() {
+    try {
+      var raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      if (!d || typeof d !== 'object') return;
+      FIELDS_LONG.concat(FIELDS_TEXT).forEach(function (k) {
+        var el = $('f-' + k); if (el && typeof d[k] === 'string') el.value = d[k];
+      });
+      FIELDS_RADIO.forEach(function (k) {
+        if (!d[k]) return;
+        var inp = document.querySelector('input[name="' + k + '"][value="' + d[k] + '"]');
+        if (inp) inp.checked = true;
+      });
+      if ($('f-consent')) $('f-consent').checked = !!d.consent;
+      refreshCounts();
+      refreshRadioPills();
+    } catch (e) { console.warn('draft load', e); }
+  }
+  function saveDraftSoon() {
+    if (draftTimer) clearTimeout(draftTimer);
+    draftTimer = setTimeout(function () {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(gatherDraft()));
+        var s = $('draft-status'); if (s) {
+          s.textContent = '✓ ' + T('btn.draft_save');
+          s.classList.add('saved');
+          setTimeout(function () { s.textContent = ''; s.classList.remove('saved'); }, 2000);
+        }
+      } catch (e) {}
+    }, 800);
+  }
+  function clearDraft() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+  }
+
+  // ─────────────── 提交 ───────────────
+  function validateBeforeSubmit() {
+    var d = gatherDraft();
+
+    if (!d.target_year) { toast(T('err.invalid_year'), true); return null; }
+    if (!d.class_lang)  { toast(T('err.invalid_lang'), true); return null; }
+    if (!d.full_name || !String(d.full_name).trim()) {
+      toast(T('err.required', { label: T('field.full_name') }), true); return null;
+    }
+    var hasEmail = String(d.email || '').trim().length > 0;
+    var waDigits = String(d.whatsapp || '').replace(/\D/g, '');
+    if (!hasEmail && waDigits.length < 4) {
+      toast(T('err.contact'), true); return null;
+    }
+    if (!d.first_year_reflection || !String(d.first_year_reflection).trim()) {
+      toast(T('err.required', { label: T('field.first_year_reflection') }), true); return null;
+    }
+    if (!d.gospel_confession || !String(d.gospel_confession).trim()) {
+      toast(T('err.required', { label: T('field.gospel_confession') }), true); return null;
+    }
+    if (!d.calling_testimony || !String(d.calling_testimony).trim()) {
+      toast(T('err.required', { label: T('field.calling_testimony') }), true); return null;
+    }
+    var over = ['first_year_reflection', 'gospel_confession', 'calling_testimony'].some(function (k) {
+      return (d[k] || '').length > 3000;
+    });
+    if (over) { toast(T('err.too_long'), true); return null; }
+    if (!d.consent) { toast(T('err.consent'), true); return null; }
+
+    var hp = $('hp') ? $('hp').value : '';
+
+    return {
+      target_year:           Number(d.target_year),
+      class_lang:            d.class_lang,
+      ui_lang:               currentLang,
+      full_name:             d.full_name.trim(),
+      gender:                d.gender || null,
+      date_of_birth:         d.date_of_birth || null,
+      nationality:           d.nationality || null,
+      email:                 hasEmail ? d.email.trim() : null,
+      whatsapp:              d.whatsapp || null,
+      education:             d.education || null,
+      conversion_time:       d.conversion_time || null,
+      first_year_reflection: d.first_year_reflection.trim(),
+      gospel_confession:     d.gospel_confession.trim(),
+      calling_testimony:     d.calling_testimony.trim(),
+      aid_intent:            d.aid_intent || null,
+      aid_intent_note:       d.aid_intent_note || null,
+      hp:                    hp || null,
+    };
+  }
+
+  function setSubmitting(on) {
+    submitting = !!on;
+    var b = $('btn-submit');
+    if (!b) return;
+    b.disabled = !!on;
+    $('btn-submit-text').innerHTML = on
+      ? '<span class="spinner"></span> ' + T('btn.submitting')
+      : T('btn.submit');
+  }
+
+  function showSuccess(no) {
+    $('form-card').style.display = 'none';
+    $('guide-card').style.display = 'none';
+    var s = $('success-card');
+    s.style.display = '';
+    setText('suc-no', no || '—');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // 更新查询页链接附带申请编号
+    try {
+      var url = new URL(location.origin + '/apply-continuing-status.html');
+      if (no) url.searchParams.set('no', no);
+      url.searchParams.set('lang', currentLang);
+      var a = $('link-status');
+      if (a) a.setAttribute('href', url.pathname + url.search);
+    } catch (e) {}
+  }
+
+  async function onSubmit() {
+    if (submitting) return;
+    var payload = validateBeforeSubmit();
+    if (!payload) return;
+    if (!sb) { toast(T('err.network'), true); return; }
+
+    setSubmitting(true);
+    try {
+      var res = await sb.rpc('submit_continuing_application', { p_payload: payload });
+      if (res.error) {
+        console.warn('submit rpc error', res.error);
+        toast(T('err.network') + ': ' + (res.error.message || ''), true);
+        setSubmitting(false);
+        return;
+      }
+      var d = res.data || {};
+      if (!d.ok) {
+        var code = d.error || '';
+        var msg = T('err.network');
+        if (code === 'duplicate_recent_submission') msg = T('err.duplicate');
+        else if (code === 'contact_required') msg = T('err.contact');
+        else if (code === 'long_text_too_long') msg = T('err.too_long');
+        else if (code === 'full_name_required') msg = T('err.required', { label: T('field.full_name') });
+        else if (code === 'target_year_required') msg = T('err.invalid_year');
+        else if (code === 'class_lang_required') msg = T('err.invalid_lang');
+        else if (code) msg = msg + ': ' + code;
+        toast(msg, true);
+        setSubmitting(false);
+        return;
+      }
+      clearDraft();
+      showSuccess(d.application_no);
+    } catch (e) {
+      console.warn('submit exception', e);
+      toast(T('err.network'), true);
+      setSubmitting(false);
+    }
+  }
+
+  // ─────────────── Bind events ───────────────
+  function bindEvents() {
+    document.querySelectorAll('#lang-switch button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        currentLang = b.getAttribute('data-lang');
+        try { localStorage.setItem(LANG_KEY, currentLang); } catch (e) {}
+        try {
+          var url = new URL(location.href);
+          url.searchParams.set('lang', currentLang);
+          history.replaceState(null, '', url.pathname + url.search);
+        } catch (e) {}
+        applyI18n();
+      });
+    });
+
+    FIELDS_LONG.concat(['aid_intent_note']).forEach(function (k) {
+      var el = $('f-' + k);
+      if (!el) return;
+      el.addEventListener('input', function () { refreshCounts(); saveDraftSoon(); });
+    });
+    FIELDS_TEXT.forEach(function (k) {
+      var el = $('f-' + k);
+      if (!el) return;
+      el.addEventListener('input', saveDraftSoon);
+    });
+    FIELDS_RADIO.forEach(function (k) {
+      document.querySelectorAll('input[name="' + k + '"]').forEach(function (inp) {
+        inp.addEventListener('change', function () { refreshRadioPills(); saveDraftSoon(); });
+      });
+    });
+    var consent = $('f-consent'); if (consent) consent.addEventListener('change', saveDraftSoon);
+
+    $('btn-submit').addEventListener('click', onSubmit);
+    $('btn-clear-draft').addEventListener('click', function () {
+      clearDraft();
+      // 重置表单
+      document.querySelectorAll('#form-card input, #form-card textarea').forEach(function (el) {
+        if (el.id === 'hp') return;
+        if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+        else el.value = '';
+      });
+      refreshCounts();
+      refreshRadioPills();
+      toast('✓');
+    });
+
+    $('btn-copy-no').addEventListener('click', function () {
+      var s = $('suc-no').textContent || '';
+      if (!s) return;
+      var done = function () { toast(T('submit.copied')); };
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(s).then(done, function () {
+            var ta = document.createElement('textarea'); ta.value = s; document.body.appendChild(ta);
+            ta.select(); try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta); done();
+          });
+        } else {
+          var ta = document.createElement('textarea'); ta.value = s; document.body.appendChild(ta);
+          ta.select(); try { document.execCommand('copy'); } catch (e) {}
+          document.body.removeChild(ta); done();
+        }
+      } catch (e) {}
+    });
+
+    $('btn-new').addEventListener('click', function () {
+      location.href = location.pathname + '?lang=' + currentLang;
+    });
+  }
+
+  // ─────────────── Bootstrap ───────────────
+  document.addEventListener('DOMContentLoaded', function () {
+    applyI18n();
+    loadDraft();
+    bindEvents();
+  });
+})();
+</script>
+</body>
+</html>
