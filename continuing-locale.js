@@ -87,7 +87,7 @@
   // 核心字段/界面文案字典：键尽量短而易读
   var DICT = {
     zh: {
-      'app.title':        '美村宣教学院 · 继续申请',
+      'app.title':        '美村宣教学院 · 进深课程申请',
       'app.subtitle':     '教牧领袖与宣教士课程 · 第二年 / 第三年报名',
       'app.lang_label':   '语言',
       'app.read_guide':   '招生简章',
@@ -162,7 +162,7 @@
       'submit.go_status':  '查询申请状态',
       'submit.new':        '再填一份',
 
-      'lookup.title':     '查询继续申请状态',
+      'lookup.title':     '查询进深课程申请状态',
       'lookup.no':        '申请编号',
       'lookup.no_ph':     '例如 MMS-Y2-2026-0042',
       'lookup.secret':    '邮箱 或 WhatsApp 后 4 位',
@@ -189,7 +189,7 @@
     },
 
     id: {
-      'app.title':        'MMS · Pendaftaran Lanjutan',
+      'app.title':        'MMS · Pendaftaran Program Lanjutan',
       'app.subtitle':     'Program Pemimpin Pastoral & Misionaris · Tahun ke-2 / ke-3',
       'app.lang_label':   'Bahasa',
       'app.read_guide':   'Panduan Penerimaan',
@@ -264,7 +264,7 @@
       'submit.go_status':  'Cek status',
       'submit.new':        'Buat permohonan baru',
 
-      'lookup.title':     'Cek Status Pendaftaran Lanjutan',
+      'lookup.title':     'Cek Status Pendaftaran Program Lanjutan',
       'lookup.no':        'Nomor permohonan',
       'lookup.no_ph':     'contoh: MMS-Y2-2026-0042',
       'lookup.secret':    'Email atau 4 digit terakhir WhatsApp',
@@ -291,7 +291,7 @@
     },
 
     en: {
-      'app.title':        'MMS · Continuing Application',
+      'app.title':        'MMS · Advanced Program Application',
       'app.subtitle':     'Pastoral Leader & Missionary Program · Year 2 / Year 3',
       'app.lang_label':   'Language',
       'app.read_guide':   'Admissions Guide',
@@ -366,7 +366,7 @@
       'submit.go_status':  'Check status',
       'submit.new':        'Start another',
 
-      'lookup.title':     'Check Continuing Application Status',
+      'lookup.title':     'Check Advanced Program Application Status',
       'lookup.no':        'Application number',
       'lookup.no_ph':     'e.g. MMS-Y2-2026-0042',
       'lookup.secret':    'Email or last 4 digits of WhatsApp',
