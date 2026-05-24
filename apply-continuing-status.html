@@ -171,9 +171,6 @@ footer a{color:#9ca3af}
     $('err-box').innerHTML = '';
     var statusLab = (window.CL.STATUS_LABEL[currentLang] || {})[row.status] || row.status;
     var statusHint = (window.CL.STATUS_HINT[currentLang] || {})[row.status] || '';
-    var aidLab = row.aid_intent
-      ? (window.CL.AID_INTENT_LABEL[currentLang] || {})[row.aid_intent] || row.aid_intent
-      : '—';
     var langLab = ({ zh: '中文', id: 'Bahasa Indonesia', en: 'English' })[row.class_lang] || row.class_lang;
     var yearLab = row.target_year === 2 ? T('opt.year2') : (row.target_year === 3 ? T('opt.year3') : ('Y' + row.target_year));
 
@@ -185,7 +182,6 @@ footer a{color:#9ca3af}
         '<div class="kvs">' +
           '<div class="kv"><span class="k">' + esc(T('lookup.year')) + '</span><span class="v">' + esc(yearLab) + '</span></div>' +
           '<div class="kv"><span class="k">' + esc(T('lookup.class_lang')) + '</span><span class="v">' + esc(langLab) + '</span></div>' +
-          '<div class="kv"><span class="k">' + esc(T('lookup.aid_intent')) + '</span><span class="v">' + esc(aidLab) + '</span></div>' +
           '<div class="kv"><span class="k">' + esc(T('lookup.submitted_at')) + '</span><span class="v">' + esc(window.CL.fmtDate(row.created_at)) + '</span></div>' +
           '<div class="kv"><span class="k">' + esc(T('lookup.updated_at')) + '</span><span class="v">' + esc(window.CL.fmtDate(row.updated_at)) + '</span></div>' +
         '</div>' +

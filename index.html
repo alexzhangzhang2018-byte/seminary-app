@@ -5128,7 +5128,6 @@ function renderContinuing(){
       <td>Y${esc(String(r.target_year||'—'))}</td>
       <td class="t12 c-gray6">${esc(langLab(r.class_lang))}</td>
       <td>${continuingStatusTag(r.status)}</td>
-      <td class="t12 c-gray5">${esc(CONTINUING_AID_LABEL[r.aid_intent]||'—')}</td>
       <td class="t12 c-gray5 nowrap">${esc(String(r.created_at||'').slice(0,16).replace('T',' '))}</td>
     </tr>`;
   };
@@ -5181,12 +5180,12 @@ function renderContinuing(){
     <div class="card" style="overflow:auto">
       <table class="tbl">
         <thead><tr>
-          <th>申请编号</th><th>姓名</th><th>年级</th><th>班级</th><th>状态</th><th>资助意向</th><th>提交时间</th>
+          <th>申请编号</th><th>姓名</th><th>年级</th><th>班级</th><th>状态</th><th>提交时间</th>
         </tr></thead>
         <tbody>
           ${rows.length
             ? rows.map(tableRow).join('')
-            : `<tr><td colspan="7" class="t13 c-gray4 tc" style="padding:32px">${total?'没有符合筛选条件的申请':'还没有继续申请数据。请将申请链接发给学生：'+esc(continuingApplyUrl())}</td></tr>`}
+            : `<tr><td colspan="6" class="t13 c-gray4 tc" style="padding:32px">${total?'没有符合筛选条件的申请':'还没有继续申请数据。请将申请链接发给学生：'+esc(continuingApplyUrl())}</td></tr>`}
         </tbody>
       </table>
     </div>
@@ -5201,7 +5200,6 @@ function renderContinuingDetailModal(){
   const isAd = A.role==='admin';
   const langLab = ({zh:'中文', id:'印尼语', en:'英语'})[r.class_lang] || r.class_lang || '—';
   const yearLab = r.target_year===2?'第二年':r.target_year===3?'第三年':('Y'+r.target_year);
-  const aidLab = CONTINUING_AID_LABEL[r.aid_intent] || '—';
   const sec = (title, body) => `<div class="mb4">
     <div class="t11 c-gray5 fw7 mb1" style="text-transform:uppercase;letter-spacing:.4px">${esc(title)}</div>
     <div class="t13 c-gray8" style="white-space:pre-line;line-height:1.7">${esc(body||'—')}</div>
@@ -5218,7 +5216,6 @@ function renderContinuingDetailModal(){
             ${continuingStatusTag(r.status)}
             ${mkTag('#eef2ff','#4f46e5',yearLab)}
             ${mkTag('#f5f3ff','#6d28d9','班级：'+langLab)}
-            ${r.aid_intent?mkTag('#fef3c7','#92400e','资助：'+aidLab):''}
           </div>
         </div>
         <button class="btn btn-ghost btn-sm" data-action="continuing-close">✕</button>
@@ -5238,7 +5235,6 @@ function renderContinuingDetailModal(){
       ${sec('第一年学习的主要收获', r.first_year_reflection)}
       ${sec('福音认信', r.gospel_confession)}
       ${sec('蒙召见证', r.calling_testimony)}
-      ${r.aid_intent_note?sec('资助说明（学生填写）', r.aid_intent_note):''}
 
       <div class="b1 bc-indigo100 bg-indigo50 r12 p4 mb3">
         <div class="fw7 c-gray8 t14 mb2">审核操作</div>

@@ -211,23 +211,6 @@ footer a{color:#9ca3af}
         <div class="count" id="c-calling_testimony"></div>
       </div>
 
-      <!-- 资助意向 -->
-      <h2 style="margin-top:12px"><span class="icon">💰</span><span id="ui-sec-aid">资助意向</span></h2>
-      <div class="fld">
-        <label id="lab-aid_intent">资助意向</label>
-        <div class="radio-group" id="g-aid_intent">
-          <label class="radio-pill"><input type="radio" name="aid_intent" value="full_scholarship"><span data-aid="full_scholarship">全额奖学金</span></label>
-          <label class="radio-pill"><input type="radio" name="aid_intent" value="partial_aid"><span data-aid="partial_aid">助学金</span></label>
-          <label class="radio-pill"><input type="radio" name="aid_intent" value="work_study"><span data-aid="work_study">勤工助学</span></label>
-          <label class="radio-pill"><input type="radio" name="aid_intent" value="none"><span data-aid="none">不申请</span></label>
-        </div>
-      </div>
-      <div class="fld">
-        <label id="lab-aid_intent_note">资助说明（可选）</label>
-        <textarea class="textarea" id="f-aid_intent_note" maxlength="1500" placeholder=""></textarea>
-        <div class="count" id="c-aid_intent_note"></div>
-      </div>
-
       <!-- 同意条款 -->
       <label class="consent" style="margin-top:8px">
         <input type="checkbox" id="f-consent">
@@ -287,8 +270,8 @@ footer a{color:#9ca3af}
   var LANG_KEY  = 'continuing_app_lang_v1';
 
   var FIELDS_LONG = ['first_year_reflection', 'gospel_confession', 'calling_testimony'];
-  var FIELDS_TEXT = ['full_name', 'date_of_birth', 'nationality', 'email', 'whatsapp', 'education', 'conversion_time', 'aid_intent_note'];
-  var FIELDS_RADIO = ['target_year', 'class_lang', 'gender', 'aid_intent'];
+  var FIELDS_TEXT = ['full_name', 'date_of_birth', 'nationality', 'email', 'whatsapp', 'education', 'conversion_time'];
+  var FIELDS_RADIO = ['target_year', 'class_lang', 'gender'];
 
   var T = function (k, vars) { return window.CL.t(k, currentLang, vars); };
 
@@ -331,7 +314,6 @@ footer a{color:#9ca3af}
     setText('ui-form', T('app.form'));
     setText('ui-sec-basic', T('sec.basic'));
     setText('ui-sec-text', T('sec.text'));
-    setText('ui-sec-aid', T('sec.aid'));
 
     setText('g-intro-h', T('guide.intro_h'));
     setText('g-intro-p', T('guide.intro_p'));
@@ -363,8 +345,6 @@ footer a{color:#9ca3af}
       'lab-first_year_reflection': 'field.first_year_reflection',
       'lab-gospel_confession':     'field.gospel_confession',
       'lab-calling_testimony':     'field.calling_testimony',
-      'lab-aid_intent':            'field.aid_intent',
-      'lab-aid_intent_note':       'field.aid_intent_note',
     };
     Object.keys(labMap).forEach(function (id) {
       var el = $(id); if (!el) return;
@@ -380,18 +360,10 @@ footer a{color:#9ca3af}
     setText('btn-submit-text', T('btn.submit'));
     var clr = $('btn-clear-draft'); if (clr) clr.textContent = T('btn.draft_clear');
 
-    var aidNote = $('f-aid_intent_note');
-    if (aidNote) aidNote.setAttribute('placeholder', T('field.aid_intent_ph'));
-
     // 选项文本
     document.querySelectorAll('[data-opt]').forEach(function (el) {
       var key = el.getAttribute('data-opt');
       el.textContent = T('opt.' + key);
-    });
-    document.querySelectorAll('[data-aid]').forEach(function (el) {
-      var key = el.getAttribute('data-aid');
-      var lab = window.CL.AID_INTENT_LABEL[currentLang] || window.CL.AID_INTENT_LABEL.zh;
-      el.textContent = lab[key] || key;
     });
 
     // 成功页文案
@@ -419,7 +391,6 @@ footer a{color:#9ca3af}
       first_year_reflection: 3000,
       gospel_confession: 3000,
       calling_testimony: 3000,
-      aid_intent_note: 1500,
     };
     Object.keys(counts).forEach(function (k) {
       var el = $('f-' + k);
@@ -538,8 +509,6 @@ footer a{color:#9ca3af}
       first_year_reflection: d.first_year_reflection.trim(),
       gospel_confession:     d.gospel_confession.trim(),
       calling_testimony:     d.calling_testimony.trim(),
-      aid_intent:            d.aid_intent || null,
-      aid_intent_note:       d.aid_intent_note || null,
       hp:                    hp || null,
     };
   }
@@ -625,7 +594,7 @@ footer a{color:#9ca3af}
       });
     });
 
-    FIELDS_LONG.concat(['aid_intent_note']).forEach(function (k) {
+    FIELDS_LONG.forEach(function (k) {
       var el = $('f-' + k);
       if (!el) return;
       el.addEventListener('input', function () { refreshCounts(); saveDraftSoon(); });
