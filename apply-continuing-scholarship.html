@@ -162,8 +162,16 @@ footer a{color:#9ca3af}
       </div>
     </div>
 
-    <!-- Step 2: 奖学金申请表（验证通过 + 未提交才显示） -->
+    <!-- Step 2: 奖助学金申请表（验证通过 + 未提交才显示） -->
     <div id="step-form" style="display:none">
+
+      <!-- 费用明细 -->
+      <div class="card">
+        <h2><span class="icon">📋</span><span id="ui-fee-h"></span></h2>
+        <pre id="ui-fee-detail" style="font-family:inherit;font-size:13.5px;color:#374151;line-height:1.9;white-space:pre-wrap;margin:0"></pre>
+      </div>
+
+      <!-- 申请表单 -->
       <div class="card">
         <h2><span class="icon">🎓</span><span id="ui-form-h"></span></h2>
         <p style="font-size:13px;color:#4b5563;margin-bottom:18px" id="ui-form-hint"></p>
@@ -188,23 +196,33 @@ footer a{color:#9ca3af}
         </div>
       </div>
 
-      <!-- 承诺书 -->
-      <div class="card">
+      <!-- 承诺书（正式样式） -->
+      <div class="card" style="border-color:#d1d5db">
         <h2><span class="icon">✍️</span><span id="ui-commitment-h"></span></h2>
-        <div class="commitment-box">
-          <p class="commitment-text" id="ui-commitment-text"></p>
-          <label class="commitment-check" id="commitment-check-label">
-            <input type="checkbox" id="f-commitment">
-            <span id="ui-commitment-check"></span>
-          </label>
+
+        <!-- 正文条款 -->
+        <div style="background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:18px 20px;margin-bottom:16px">
+          <pre id="ui-commitment-text" style="font-family:inherit;font-size:13.5px;color:#1e1e2e;line-height:1.9;white-space:pre-wrap;margin:0"></pre>
         </div>
 
-        <!-- 电子签名（姓名） -->
-        <div class="fld" style="margin-bottom:0">
-          <label for="f-sign-name"><span id="ui-sign-name-label"></span><span class="req">*</span></label>
-          <input class="inp" id="f-sign-name" type="text" autocomplete="off" spellcheck="false">
-          <div class="hint" id="ui-sign-name-ph" style="font-size:12px;color:#9ca3af;margin-top:2px"></div>
-          <div class="err-msg" id="e-sign-name"></div>
+        <!-- 勾选确认 -->
+        <label class="commitment-check" id="commitment-check-label" style="margin-bottom:16px">
+          <input type="checkbox" id="f-commitment">
+          <span id="ui-commitment-check" style="font-weight:700"></span>
+        </label>
+
+        <!-- 电子签名 -->
+        <div style="border-top:1px solid #e5e7eb;padding-top:16px;margin-top:4px">
+          <div class="fld" style="margin-bottom:4px">
+            <label for="f-sign-name" style="font-size:13px;font-weight:700;color:#374151">
+              <span id="ui-sign-name-label"></span><span class="req">*</span>
+            </label>
+            <input class="inp" id="f-sign-name" type="text" autocomplete="off" spellcheck="false"
+              style="font-size:16px;font-weight:700;letter-spacing:.5px">
+            <div id="ui-sign-name-ph" style="font-size:11.5px;color:#9ca3af;margin-top:4px"></div>
+            <div class="err-msg" id="e-sign-name"></div>
+          </div>
+          <div id="sign-preview" style="display:none;margin-top:8px;padding:10px 16px;background:#f8fafc;border:1px dashed #94a3b8;border-radius:8px;font-size:15px;font-weight:800;color:#1e3a5f;letter-spacing:.5px;font-style:italic"></div>
         </div>
       </div>
 
@@ -212,6 +230,9 @@ footer a{color:#9ca3af}
         <button class="btn btn-primary" id="btn-submit" disabled>
           <span id="ui-submit-btn"></span>
         </button>
+        <a href="apply-continuing-status.html" class="btn btn-ghost" id="btn-go-status-form">
+          <span id="ui-go-status-form">查询申请状态 →</span>
+        </a>
       </div>
     </div>
 
@@ -286,21 +307,24 @@ footer a{color:#9ca3af}
     s('ui-secret-label').textContent = st('sch.secret');
     s('ui-verify-btn').textContent   = st('sch.verify_btn');
 
-    s('ui-form-h').textContent    = st('sch.form_h');
-    s('ui-form-hint').textContent = st('sch.form_hint');
+    s('ui-fee-h').textContent        = st('sch.fee_h');
+    s('ui-fee-detail').textContent   = st('sch.fee_detail');
+    s('ui-form-h').textContent       = st('sch.form_h');
+    s('ui-form-hint').textContent    = st('sch.form_hint');
     s('ui-amount-label').textContent = st('sch.amount');
     s('ui-amount-hint').textContent  = st('sch.amount_hint');
     s('ui-desc-label').textContent   = st('sch.desc');
     if (s('f-desc').placeholder !== undefined) s('f-desc').placeholder = st('sch.desc_ph');
 
-    s('ui-commitment-h').textContent    = st('sch.commitment_h');
-    s('ui-commitment-text').textContent = st('sch.commitment_text');
+    s('ui-commitment-h').textContent     = st('sch.commitment_h');
+    s('ui-commitment-text').textContent  = st('sch.commitment_text');
     s('ui-commitment-check').textContent = st('sch.commitment_check');
-    s('ui-sign-name-label').textContent = st('sch.sign_name');
-    s('ui-sign-name-ph').textContent    = st('sch.sign_name_ph');
+    s('ui-sign-name-label').textContent  = st('sch.sign_name');
+    s('ui-sign-name-ph').textContent     = st('sch.sign_name_ph');
     if (s('f-sign-name').placeholder !== undefined) s('f-sign-name').placeholder = st('sch.sign_name_ph');
 
-    s('ui-submit-btn').textContent = st('sch.submit_btn');
+    s('ui-submit-btn').textContent    = st('sch.submit_btn');
+    if (s('ui-go-status-form')) s('ui-go-status-form').textContent = st('sch.go_status') + ' →';
     s('ui-success-h').textContent  = st('sch.success_h');
     s('ui-success-p').textContent  = st('sch.success_p');
     s('ui-go-status').textContent  = st('sch.go_status');
@@ -514,7 +538,17 @@ footer a{color:#9ca3af}
 
   s('f-amount').addEventListener('input', checkSubmitReady);
   s('f-commitment').addEventListener('change', checkSubmitReady);
-  s('f-sign-name').addEventListener('input', checkSubmitReady);
+  s('f-sign-name').addEventListener('input', function () {
+    var name = this.value.trim();
+    var preview = s('sign-preview');
+    if (name) {
+      preview.style.display = 'block';
+      preview.textContent = name;
+    } else {
+      preview.style.display = 'none';
+    }
+    checkSubmitReady();
+  });
   s('f-desc').addEventListener('input', function () {
     updateCount('f-desc', 'c-desc', 2000);
   });
