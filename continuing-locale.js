@@ -135,8 +135,9 @@
       'field.whatsapp':      'WhatsApp（含国际区号）',
       'field.education':     '学历',
       'field.conversion_time': '信主时间',
+      'field.enrollment_time': '入学时间',
 
-      'field.first_year_reflection': '第一年学习的主要收获',
+      'field.first_year_reflection': '在本学院学习的主要收获',
       'field.gospel_confession':     '福音认信',
       'field.calling_testimony':     '蒙召见证',
 
@@ -237,8 +238,9 @@
       'field.whatsapp':      'WhatsApp (dengan kode negara)',
       'field.education':     'Pendidikan terakhir',
       'field.conversion_time': 'Waktu bertobat',
+      'field.enrollment_time': 'Waktu masuk (MMS)',
 
-      'field.first_year_reflection': 'Hal-hal yang Anda peroleh selama tahun pertama',
+      'field.first_year_reflection': 'Hal-hal yang Anda peroleh selama belajar di institusi ini',
       'field.gospel_confession':     'Pengakuan Injil',
       'field.calling_testimony':     'Kesaksian panggilan',
 
@@ -339,8 +341,9 @@
       'field.whatsapp':      'WhatsApp (with country code)',
       'field.education':     'Education',
       'field.conversion_time': 'When you came to faith',
+      'field.enrollment_time': 'Enrollment date (MMS)',
 
-      'field.first_year_reflection': 'What you gained during the first year',
+      'field.first_year_reflection': 'What you have gained from studying at this seminary',
       'field.gospel_confession':     'Gospel confession',
       'field.calling_testimony':     'Testimony of calling',
 

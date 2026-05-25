@@ -5309,12 +5309,13 @@ function renderContinuingDetailModal(){
         ${kv('国家/籍贯', r.nationality||'')}
         ${kv('学历', r.education||'')}
         ${kv('信主时间', r.conversion_time||'')}
+        ${kv('入学时间', r.enrollment_time||'')}
         ${kv('邮箱', r.email||'')}
         ${kv('WhatsApp', r.whatsapp||'')}
         ${kv('提交时间', String(r.created_at||'').slice(0,19).replace('T',' '))}
       </div>
 
-      ${sec('第一年学习的主要收获', r.first_year_reflection)}
+      ${sec('在本学院学习的主要收获', r.first_year_reflection)}
       ${sec('福音认信', r.gospel_confession)}
       ${sec('蒙召见证', r.calling_testimony)}
 

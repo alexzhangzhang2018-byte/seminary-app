@@ -214,6 +214,10 @@ footer a{color:#9ca3af}
           <input class="inp" id="f-conversion_time" placeholder="例如：2015 / 2020-03">
         </div>
         <div class="fld">
+          <label id="lab-enrollment_time">入学时间</label>
+          <input class="inp" id="f-enrollment_time" placeholder="例如：2025-09">
+        </div>
+        <div class="fld">
           <label id="lab-nationality">国家 / 籍贯</label>
           <input class="inp" id="f-nationality" maxlength="120">
         </div>
@@ -315,7 +319,7 @@ footer a{color:#9ca3af}
   var LANG_KEY  = 'continuing_app_lang_v1';
 
   var FIELDS_LONG = ['first_year_reflection', 'gospel_confession', 'calling_testimony'];
-  var FIELDS_TEXT = ['full_name', 'date_of_birth', 'nationality', 'email', 'whatsapp', 'education', 'conversion_time'];
+  var FIELDS_TEXT = ['full_name', 'date_of_birth', 'nationality', 'email', 'whatsapp', 'education', 'conversion_time', 'enrollment_time'];
   var FIELDS_RADIO = ['target_year', 'class_lang', 'gender'];
 
   var T = function (k, vars) { return window.CL.t(k, currentLang, vars); };
@@ -381,6 +385,7 @@ footer a{color:#9ca3af}
       'lab-date_of_birth':         'field.date_of_birth',
       'lab-gender':                'field.gender',
       'lab-conversion_time':       'field.conversion_time',
+      'lab-enrollment_time':       'field.enrollment_time',
       'lab-nationality':           'field.nationality',
       'lab-education':             'field.education',
       'lab-email':                 'field.email',
@@ -555,6 +560,7 @@ footer a{color:#9ca3af}
       whatsapp:              d.whatsapp || null,
       education:             d.education || null,
       conversion_time:       d.conversion_time || null,
+      enrollment_time:       d.enrollment_time || null,
       first_year_reflection: d.first_year_reflection.trim(),
       gospel_confession:     d.gospel_confession.trim(),
       calling_testimony:     d.calling_testimony.trim(),
