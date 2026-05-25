@@ -72,6 +72,17 @@ a{color:#4f46e5;text-decoration:none}a:hover{text-decoration:underline}
 
 .err-card{margin-top:18px;padding:12px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;color:#b91c1c;font-size:13px;line-height:1.7}
 
+/* 奖学金区块 */
+.sch-block{margin-top:12px;border-radius:12px;border:1px solid #a5f3fc;background:#ecfeff;padding:14px}
+.sch-block .sch-h{font-size:12px;font-weight:700;color:#0e7490;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.sch-status-pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:12.5px;font-weight:700;margin-bottom:8px}
+.sch-submitted{background:#dbeafe;color:#1d4ed8}
+.sch-approved {background:#dcfce7;color:#15803d}
+.sch-rejected {background:#fee2e2;color:#dc2626}
+.sch-none     {background:#f3f4f6;color:#6b7280}
+.sch-apply-btn{display:inline-flex;align-items:center;gap:6px;background:#0891b2;color:#fff;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;margin-top:6px;transition:background .15s}
+.sch-apply-btn:hover{background:#0e7490;text-decoration:none}
+
 footer{text-align:center;color:#9ca3af;font-size:11.5px;margin-top:18px}
 footer a{color:#9ca3af}
 </style>
@@ -174,17 +185,55 @@ footer a{color:#9ca3af}
     });
   }
 
-  function renderResult(row) {
+  function renderScholarshipBlock(sch, no, secret) {
+    var ST  = function (k, vars) { return window.CL.st(k, currentLang, vars); };
+    var schUrl = 'apply-continuing-scholarship.html?no=' + encodeURIComponent(no) + '&secret=' + encodeURIComponent(secret);
+
+    if (!sch) {
+      return '<div class="sch-block">' +
+        '<div class="sch-h">🎓 ' + ST('sch.apply_btn') + '</div>' +
+        '<div class="sch-status-pill sch-none">' + ST('sch.status_none') + '</div>' +
+        '<div style="margin-top:2px"><div class="hint" style="font-size:12.5px;color:#4b5563;margin-bottom:8px">' + ST('sch.admitted_hint') + '</div>' +
+        '<a href="' + esc(schUrl) + '" class="sch-apply-btn">✍️ ' + esc(ST('sch.apply_btn')) + '</a></div>' +
+        '</div>';
+    }
+
+    var pill = {submitted:'sch-submitted',approved:'sch-approved',rejected:'sch-rejected'}[sch.status] || 'sch-none';
+    var label = {
+      submitted: ST('sch.status_submitted'),
+      approved:  ST('sch.status_approved') + sch.amount_approved,
+      rejected:  ST('sch.status_rejected'),
+    }[sch.status] || sch.status;
+
+    return '<div class="sch-block">' +
+      '<div class="sch-h">🎓 ' + esc(ST('sch.form_h')) + '</div>' +
+      '<div class="sch-status-pill ' + pill + '">' + esc(label) + '</div>' +
+      (sch.review_note ? '<div style="font-size:12.5px;color:#374151;margin-top:4px">' + esc(sch.review_note) + '</div>' : '') +
+      (sch.submitted_at ? '<div style="font-size:11.5px;color:#9ca3af;margin-top:6px">' + esc(window.CL.fmtDate(sch.submitted_at)) + '</div>' : '') +
+      '</div>';
+  }
+
+  function renderResult(row, schData, secret) {
     $('err-box').innerHTML = '';
     var statusLab = (window.CL.STATUS_LABEL[currentLang] || {})[row.status] || row.status;
     var statusHint = (window.CL.STATUS_HINT[currentLang] || {})[row.status] || '';
     var langLab = ({ zh: '中文', id: 'Bahasa Indonesia', en: 'English' })[row.class_lang] || row.class_lang;
     var yearLab = row.target_year === 2 ? T('opt.year2') : (row.target_year === 3 ? T('opt.year3') : ('Y' + row.target_year));
+    var no = row.application_no || '';
+
+    var schBlock = '';
+    if (row.status === 'admitted') {
+      schBlock = renderScholarshipBlock(
+        schData && schData.scholarship ? schData.scholarship : null,
+        no,
+        secret || ''
+      );
+    }
 
     var html = '' +
       '<div class="result-card">' +
         '<div class="name">' + esc(row.full_name || '') + '</div>' +
-        '<div class="appno">' + esc(row.application_no || '') + '</div>' +
+        '<div class="appno">' + esc(no) + '</div>' +
         '<div class="status-pill status-' + esc(row.status) + '">' + esc(statusLab) + '</div>' +
         '<div class="kvs">' +
           '<div class="kv"><span class="k">' + esc(T('lookup.year')) + '</span><span class="v">' + esc(yearLab) + '</span></div>' +
@@ -192,6 +241,7 @@ footer a{color:#9ca3af}
           '<div class="kv"><span class="k">' + esc(T('lookup.submitted_at')) + '</span><span class="v">' + esc(window.CL.fmtDate(row.created_at)) + '</span></div>' +
           '<div class="kv"><span class="k">' + esc(T('lookup.updated_at')) + '</span><span class="v">' + esc(window.CL.fmtDate(row.updated_at)) + '</span></div>' +
         '</div>' +
+        schBlock +
       '</div>' +
       (statusHint ? '<div class="hint-card">' + esc(statusHint) + '</div>' : '');
 
@@ -236,7 +286,19 @@ footer a{color:#9ca3af}
         }
         return;
       }
-      renderResult(d);
+
+      // 若已录取，同时查奖学金状态
+      var schData = null;
+      if (d.status === 'admitted') {
+        try {
+          var schRes = await sb.rpc('lookup_continuing_scholarship', { p_no: no, p_secret: sec });
+          if (!schRes.error && schRes.data && schRes.data.ok) {
+            schData = schRes.data;
+          }
+        } catch (e2) { console.warn('sch lookup err', e2); }
+      }
+
+      renderResult(d, schData, sec);
     } catch (e) {
       console.warn('lookup exc', e);
       renderErr(T('lookup.failed'));
@@ -266,6 +328,7 @@ footer a{color:#9ca3af}
         applyI18n();
         // 已有结果在切语言后刷新一次
         if ($('result-box').firstChild) doLookup();
+        applyI18n();
       });
     });
     $('btn-lookup').addEventListener('click', doLookup);

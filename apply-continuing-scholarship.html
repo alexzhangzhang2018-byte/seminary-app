@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN" id="root-html">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>美村宣教学院 · 进深课程奖学金申请</title>
+<meta name="description" content="美村宣教学院 · 进深课程奖学金申请 — 仅限已录取学员填写">
+<meta property="og:title" content="美村宣教学院 · 进深课程奖学金申请">
+<meta property="og:description" content="仅限已录取学员填写 / Hanya untuk mahasiswa yang diterima / Admitted students only">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="美村宣教学院 · 进深课程奖学金申请">
+<meta name="twitter:description" content="仅限已录取学员填写">
+<script src="/vendor/supabase.js"></script>
+<script src="/continuing-locale.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f4f5ff;color:#1e1e2e;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
+input,textarea,select{font:inherit;color:inherit}
+a{color:#4f46e5;text-decoration:none}a:hover{text-decoration:underline}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#c5c8e0;border-radius:3px}
+
+.page{background:linear-gradient(135deg,#eef2ff,#fff 50%,#f5f3ff);min-height:100vh}
+.wrap{max-width:720px;margin:0 auto;padding:24px 16px 64px}
+
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand .title{font-size:18px;font-weight:800;color:#1e1e2e}
+.brand .sub{font-size:12px;color:#6b7280}
+
+.lang-switch{display:inline-flex;background:#fff;border:1px solid #e0e7ff;border-radius:10px;padding:3px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.lang-switch button{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:#6b7280;transition:all .15s}
+.lang-switch button.active{background:#4f46e5;color:#fff}
+
+.card{background:#fff;border-radius:16px;border:1px solid #eef0ff;box-shadow:0 4px 14px rgba(31,38,135,.04);padding:24px;margin-bottom:18px}
+.card h2{font-size:16px;font-weight:800;color:#1e1e2e;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:8px}
+.card h2 .icon{font-size:18px}
+
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.fld label{font-size:13px;font-weight:600;color:#374151}
+.fld label .req{color:#dc2626;margin-left:2px}
+.fld .hint{font-size:11.5px;color:#9ca3af;line-height:1.55}
+.inp,.textarea{border:1px solid #e5e7eb;border-radius:10px;padding:9px 12px;width:100%;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.inp:focus,.textarea:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(129,140,248,.18)}
+.inp.num{font-family:ui-monospace,'SF Mono',monospace;font-size:15px;font-weight:700;letter-spacing:.5px}
+.textarea{min-height:140px;resize:vertical;line-height:1.65;font-family:inherit}
+.count{font-size:11.5px;color:#9ca3af;text-align:right;margin-top:-2px}
+.count.over{color:#dc2626;font-weight:600}
+
+.commitment-box{background:#fefce8;border:1px solid #fde68a;border-radius:12px;padding:16px;margin-bottom:16px}
+.commitment-text{font-size:13px;color:#713f12;line-height:1.7;margin-bottom:14px;white-space:pre-line}
+.commitment-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.commitment-check input{margin-top:3px;accent-color:#4f46e5;cursor:pointer;flex-shrink:0;width:16px;height:16px}
+.commitment-check span{font-size:13px;color:#713f12;font-weight:600;line-height:1.55}
+
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:12px 22px;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:#4f46e5;color:#fff}
+.btn-primary:hover{background:#4338ca;transform:translateY(-1px);box-shadow:0 4px 14px rgba(79,70,229,.3)}
+.btn-primary:disabled{background:#c7d2fe;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{background:transparent;color:#6b7280;border:1px solid #e5e7eb;padding:8px 14px;font-weight:600;font-size:13px;border-radius:10px}
+.btn-ghost:hover{background:#f9fafb;color:#374151}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1f2937;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:#b91c1c}
+
+/* verify 区 */
+.verify-card{margin-bottom:20px}
+.verify-note{font-size:13px;color:#4b5563;margin-bottom:14px;line-height:1.65}
+
+/* 已认证状态条 */
+.verified-bar{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:12px;margin-bottom:18px}
+.verified-bar .icon{font-size:18px}
+.verified-bar .info{flex:1;min-width:0}
+.verified-bar .name{font-weight:700;font-size:14px;color:#065f46}
+.verified-bar .appno{font-size:12px;color:#059669;font-family:ui-monospace,'SF Mono',monospace}
+
+/* 错误/提示块 */
+.msg-block{padding:14px 16px;border-radius:12px;font-size:13.5px;line-height:1.65;margin-bottom:16px}
+.msg-block.warn{background:#fff7ed;border:1px solid #fdba74;color:#92400e}
+.msg-block.info{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af}
+
+/* 成功 */
+.success-wrap{text-align:center;padding:24px 0}
+.success-icon{font-size:52px;margin-bottom:10px}
+.success-h{font-size:22px;font-weight:800;color:#15803d;margin-bottom:8px}
+.success-p{color:#4b5563;margin-bottom:14px;line-height:1.7}
+.success-meta{font-size:12px;color:#6b7280;background:#f9fafb;padding:10px 14px;border-radius:10px;line-height:1.7}
+
+.err-msg{font-size:12px;color:#dc2626;margin-top:2px}
+
+footer{text-align:center;color:#9ca3af;font-size:11.5px;margin-top:20px}
+footer a{color:#9ca3af}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="wrap" id="app-root">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <div class="title" id="ui-title"></div>
+        <div class="sub" id="ui-subtitle"></div>
+      </div>
+      <div class="lang-switch" id="lang-switch">
+        <button data-lang="zh" class="active">中文</button>
+        <button data-lang="id">ID</button>
+        <button data-lang="en">EN</button>
+      </div>
+    </div>
+
+    <!-- Step 1: 验证身份 -->
+    <div class="card verify-card" id="step-verify">
+      <h2><span class="icon">🔒</span><span id="ui-verify-h"></span></h2>
+      <p class="verify-note" id="ui-verify-hint"></p>
+      <div class="fld">
+        <label for="f-no"><span id="ui-no-label"></span><span class="req">*</span></label>
+        <input class="inp" id="f-no" type="text" autocomplete="off" spellcheck="false">
+        <div class="err-msg" id="e-no"></div>
+      </div>
+      <div class="fld">
+        <label for="f-secret"><span id="ui-secret-label"></span><span class="req">*</span></label>
+        <input class="inp" id="f-secret" type="text" autocomplete="off" spellcheck="false">
+        <div class="err-msg" id="e-secret"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-verify">
+          <span id="ui-verify-btn"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 已认证状态条（验证通过后显示） -->
+    <div id="verified-bar-wrap" style="display:none">
+      <div class="verified-bar">
+        <div class="icon">✅</div>
+        <div class="info">
+          <div class="name" id="vb-name"></div>
+          <div class="appno" id="vb-appno"></div>
+        </div>
+        <button class="btn-ghost" id="btn-re-verify" style="font-size:12px;padding:6px 10px">↩</button>
+      </div>
+    </div>
+
+    <!-- 非录取提示 -->
+    <div id="not-admitted-block" style="display:none">
+      <div class="msg-block warn" id="ui-not-admitted-msg"></div>
+    </div>
+
+    <!-- 已提交提示 -->
+    <div id="already-submitted-block" style="display:none">
+      <div class="msg-block info" id="ui-already-submitted-msg"></div>
+      <div style="margin-top:4px">
+        <a href="apply-continuing-status.html" id="link-go-status" class="btn btn-ghost" style="display:inline-flex">
+          <span id="ui-go-status"></span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Step 2: 奖学金申请表（验证通过 + 未提交才显示） -->
+    <div id="step-form" style="display:none">
+      <div class="card">
+        <h2><span class="icon">🎓</span><span id="ui-form-h"></span></h2>
+        <p style="font-size:13px;color:#4b5563;margin-bottom:18px" id="ui-form-hint"></p>
+
+        <!-- 金额 -->
+        <div class="fld">
+          <label for="f-amount"><span id="ui-amount-label"></span><span class="req">*</span></label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-weight:700;color:#6b7280;font-size:16px">$</span>
+            <input class="inp num" id="f-amount" type="number" min="0" step="1" style="flex:1">
+          </div>
+          <div class="hint" id="ui-amount-hint"></div>
+          <div class="err-msg" id="e-amount"></div>
+        </div>
+
+        <!-- 家庭经济简述 -->
+        <div class="fld">
+          <label for="f-desc"><span id="ui-desc-label"></span></label>
+          <textarea class="textarea" id="f-desc" maxlength="2000"></textarea>
+          <div class="count" id="c-desc">0 / 2000</div>
+          <div class="err-msg" id="e-desc"></div>
+        </div>
+      </div>
+
+      <!-- 承诺书 -->
+      <div class="card">
+        <h2><span class="icon">✍️</span><span id="ui-commitment-h"></span></h2>
+        <div class="commitment-box">
+          <p class="commitment-text" id="ui-commitment-text"></p>
+          <label class="commitment-check" id="commitment-check-label">
+            <input type="checkbox" id="f-commitment">
+            <span id="ui-commitment-check"></span>
+          </label>
+        </div>
+
+        <!-- 电子签名（姓名） -->
+        <div class="fld" style="margin-bottom:0">
+          <label for="f-sign-name"><span id="ui-sign-name-label"></span><span class="req">*</span></label>
+          <input class="inp" id="f-sign-name" type="text" autocomplete="off" spellcheck="false">
+          <div class="hint" id="ui-sign-name-ph" style="font-size:12px;color:#9ca3af;margin-top:2px"></div>
+          <div class="err-msg" id="e-sign-name"></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-submit" disabled>
+          <span id="ui-submit-btn"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 成功页 -->
+    <div id="step-success" style="display:none">
+      <div class="card">
+        <div class="success-wrap">
+          <div class="success-icon">🎉</div>
+          <div class="success-h" id="ui-success-h"></div>
+          <p class="success-p" id="ui-success-p"></p>
+          <p class="success-meta" id="ui-success-meta"></p>
+          <div style="margin-top:18px">
+            <a href="apply-continuing-status.html" id="link-success-status" class="btn btn-primary">
+              <span id="ui-go-status2"></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <a href="apply-continuing.html" id="footer-apply-link">← 进深课程申请</a>
+      &nbsp;·&nbsp;
+      <a href="apply-continuing-status.html" id="footer-status-link">查询申请状态</a>
+    </footer>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Supabase 客户端 ──────────────────────────────────────────
+  var SUPA_URL = 'https://wanxqchqpnhiqjhfpjqf.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhbnhxY2hxcG5oaXFqaGZwanFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3OTI2NDUsImV4cCI6MjA2MjM2ODY0NX0.8-mEoCpTMVBa2Y0vBTSYxGSd4Hpkwlc2kpXnCZq5IVA';
+  var supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+  var CL = window.CL;
+
+  // ── 状态 ────────────────────────────────────────────────────
+  var lang = CL.pickLang(navigator.language);
+  var verified = null;   // { id, application_no, full_name, target_year, status }
+  var submitting = false;
+
+  // ── 工具 ────────────────────────────────────────────────────
+  function s(id) { return document.getElementById(id); }
+  function st(key, vars) { return CL.st(key, lang, vars); }
+
+  var toastTimer;
+  function toast(msg, isErr) {
+    var el = s('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.className = 'toast'; }, 3200);
+  }
+
+  function showEl(id) { s(id).style.display = ''; }
+  function hideEl(id) { s(id).style.display = 'none'; }
+
+  // ── 语言渲染 ─────────────────────────────────────────────────
+  function render() {
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+    document.title = st('sch.page_title');
+
+    s('ui-title').textContent     = st('sch.page_title');
+    s('ui-subtitle').textContent  = st('sch.page_subtitle');
+    s('ui-verify-h').textContent  = st('sch.verify_h');
+    s('ui-verify-hint').textContent = st('sch.verify_hint');
+    s('ui-no-label').textContent  = st('sch.no');
+    s('ui-secret-label').textContent = st('sch.secret');
+    s('ui-verify-btn').textContent   = st('sch.verify_btn');
+
+    s('ui-form-h').textContent    = st('sch.form_h');
+    s('ui-form-hint').textContent = st('sch.form_hint');
+    s('ui-amount-label').textContent = st('sch.amount');
+    s('ui-amount-hint').textContent  = st('sch.amount_hint');
+    s('ui-desc-label').textContent   = st('sch.desc');
+    if (s('f-desc').placeholder !== undefined) s('f-desc').placeholder = st('sch.desc_ph');
+
+    s('ui-commitment-h').textContent    = st('sch.commitment_h');
+    s('ui-commitment-text').textContent = st('sch.commitment_text');
+    s('ui-commitment-check').textContent = st('sch.commitment_check');
+    s('ui-sign-name-label').textContent = st('sch.sign_name');
+    s('ui-sign-name-ph').textContent    = st('sch.sign_name_ph');
+    if (s('f-sign-name').placeholder !== undefined) s('f-sign-name').placeholder = st('sch.sign_name_ph');
+
+    s('ui-submit-btn').textContent = st('sch.submit_btn');
+    s('ui-success-h').textContent  = st('sch.success_h');
+    s('ui-success-p').textContent  = st('sch.success_p');
+    s('ui-go-status').textContent  = st('sch.go_status');
+    s('ui-go-status2').textContent = st('sch.go_status');
+    s('f-no').placeholder    = st('sch.no_ph');
+
+    // 语言切换高亮
+    document.querySelectorAll('#lang-switch button').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+
+    if (verified && verified.status !== 'admitted') {
+      s('ui-not-admitted-msg').textContent = st('sch.not_admitted', {
+        status: (CL.STATUS_LABEL[lang] && CL.STATUS_LABEL[lang][verified.status]) || verified.status
+      });
+    }
+  }
+
+  // ── 验证身份 ─────────────────────────────────────────────────
+  function doVerify() {
+    var no     = s('f-no').value.trim();
+    var secret = s('f-secret').value.trim();
+
+    s('e-no').textContent     = '';
+    s('e-secret').textContent = '';
+
+    if (!no)     { s('e-no').textContent = lang === 'zh' ? '请填写申请编号' : (lang === 'id' ? 'Wajib diisi' : 'Required'); return; }
+    if (!secret) { s('e-secret').textContent = lang === 'zh' ? '请填写邮箱或 WhatsApp 后 4 位' : (lang === 'id' ? 'Wajib diisi' : 'Required'); return; }
+
+    var btn = s('btn-verify');
+    btn.disabled = true;
+    s('ui-verify-btn').innerHTML = '<span class="spinner"></span> ' + st('sch.verifying');
+
+    supa.rpc('lookup_continuing_application', { p_no: no, p_secret: secret })
+      .then(function (res) {
+        btn.disabled = false;
+        s('ui-verify-btn').textContent = st('sch.verify_btn');
+
+        if (res.error) { toast(res.error.message, true); return; }
+        var d = res.data;
+        if (!d || !d.ok) {
+          var errKey = d && d.error;
+          var msg = errKey === 'secret_mismatch' || errKey === 'application_not_found' || errKey === 'not_found'
+            ? st('sch.not_found')
+            : (d && d.error) || 'Error';
+          toast(msg, true);
+          return;
+        }
+
+        // 验证通过：拿到申请信息
+        verified = { application_no: no, status: d.status };
+
+        // 查出姓名（再次调用 lookup 会拿到 status，但没有 full_name）
+        // 姓名需要另一个 RPC 或者我们从 continuing application 里拿
+        // 简化：只显示 application_no，姓名不显示
+        showVerifiedBar(no, '');
+        handleAdmittedState(d);
+      })
+      .catch(function (e) {
+        btn.disabled = false;
+        s('ui-verify-btn').textContent = st('sch.verify_btn');
+        toast(e.message || 'Network error', true);
+      });
+  }
+
+  function showVerifiedBar(no, name) {
+    s('vb-appno').textContent = no;
+    s('vb-name').textContent  = name || '';
+    hideEl('step-verify');
+    showEl('verified-bar-wrap');
+  }
+
+  function handleAdmittedState(d) {
+    hideEl('not-admitted-block');
+    hideEl('already-submitted-block');
+    hideEl('step-form');
+
+    if (d.status !== 'admitted') {
+      showEl('not-admitted-block');
+      s('ui-not-admitted-msg').textContent = st('sch.not_admitted', {
+        status: (CL.STATUS_LABEL[lang] && CL.STATUS_LABEL[lang][d.status]) || d.status
+      });
+      return;
+    }
+
+    // 已录取 — 检查是否已提交奖学金
+    if (d.scholarship) {
+      showEl('already-submitted-block');
+      s('ui-already-submitted-msg').textContent = st('sch.already_submitted');
+      s('ui-go-status').textContent = st('sch.go_status');
+    } else {
+      showEl('step-form');
+      checkSubmitReady();
+    }
+  }
+
+  function resetToVerify() {
+    verified = null;
+    hideEl('verified-bar-wrap');
+    hideEl('not-admitted-block');
+    hideEl('already-submitted-block');
+    hideEl('step-form');
+    showEl('step-verify');
+    s('e-no').textContent = '';
+    s('e-secret').textContent = '';
+  }
+
+  // ── 表单校验 ─────────────────────────────────────────────────
+  function checkSubmitReady() {
+    var amount    = parseFloat(s('f-amount').value);
+    var committed = s('f-commitment').checked;
+    var signName  = s('f-sign-name').value.trim();
+    var ok = !isNaN(amount) && amount > 0 && committed && signName.length > 0;
+    s('btn-submit').disabled = !ok || submitting;
+  }
+
+  // ── 提交奖学金申请 ───────────────────────────────────────────
+  function doSubmit() {
+    if (submitting || !verified) return;
+
+    s('e-amount').textContent   = '';
+    s('e-sign-name').textContent = '';
+
+    var amount   = parseFloat(s('f-amount').value);
+    var desc     = s('f-desc').value.trim();
+    var checked  = s('f-commitment').checked;
+    var signName = s('f-sign-name').value.trim();
+
+    var ok = true;
+    if (isNaN(amount) || amount <= 0) {
+      s('e-amount').textContent = st('sch.err.amount'); ok = false;
+    }
+    if (!checked || !signName) {
+      s('e-sign-name').textContent = st('sch.err.commitment'); ok = false;
+    }
+    if (!ok) return;
+
+    submitting = true;
+    s('btn-submit').disabled = true;
+    s('ui-submit-btn').innerHTML = '<span class="spinner"></span> ' + st('sch.submitting');
+
+    var no     = s('f-no') && s('f-no').value.trim() !== '' ? s('f-no').value.trim() : (verified && verified.application_no);
+    var secret = s('f-secret') && s('f-secret').value.trim() !== '' ? s('f-secret').value.trim() : '';
+
+    supa.rpc('submit_continuing_scholarship', {
+      p_payload: {
+        application_no:         no,
+        secret:                 secret,
+        requested_amount:       amount,
+        financial_description:  desc,
+        commitment_signed:      true,
+        commitment_name:        signName,
+      }
+    })
+    .then(function (res) {
+      submitting = false;
+      s('ui-submit-btn').textContent = st('sch.submit_btn');
+
+      if (res.error) { toast(res.error.message, true); s('btn-submit').disabled = false; return; }
+      var d = res.data;
+      if (!d || !d.ok) {
+        var msg = {
+          already_submitted: st('sch.err.already'),
+          not_admitted:      st('sch.err.not_admitted'),
+          invalid_amount:    st('sch.err.amount'),
+          commitment_name_required: st('sch.err.name'),
+        }[d && d.error] || (d && d.error) || 'Error';
+        toast(msg, true);
+        s('btn-submit').disabled = false;
+        return;
+      }
+
+      // 成功
+      hideEl('step-form');
+      showEl('step-success');
+      var meta = lang === 'zh'
+        ? '申请编号：' + (verified && verified.application_no || no) + '\n奖学金申请已记录，请注意查收 WhatsApp / 邮件通知。'
+        : lang === 'id'
+        ? 'No. pendaftaran: ' + (verified && verified.application_no || no)
+        : 'Application: ' + (verified && verified.application_no || no);
+      s('ui-success-meta').textContent = meta;
+    })
+    .catch(function (e) {
+      submitting = false;
+      s('ui-submit-btn').textContent = st('sch.submit_btn');
+      s('btn-submit').disabled = false;
+      toast(e.message || 'Network error', true);
+    });
+  }
+
+  // ── 字符计数 ─────────────────────────────────────────────────
+  function updateCount(taId, countId, max) {
+    var len = (document.getElementById(taId).value || '').length;
+    var el  = document.getElementById(countId);
+    el.textContent = len + ' / ' + max;
+    el.className   = 'count' + (len > max ? ' over' : '');
+  }
+
+  // ── 事件绑定 ─────────────────────────────────────────────────
+  s('lang-switch').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-lang]');
+    if (!b) return;
+    lang = b.dataset.lang;
+    render();
+  });
+
+  s('btn-verify').addEventListener('click', doVerify);
+  s('f-no').addEventListener('keydown', function (e) { if (e.key === 'Enter') doVerify(); });
+  s('f-secret').addEventListener('keydown', function (e) { if (e.key === 'Enter') doVerify(); });
+  s('btn-re-verify').addEventListener('click', resetToVerify);
+
+  s('f-amount').addEventListener('input', checkSubmitReady);
+  s('f-commitment').addEventListener('change', checkSubmitReady);
+  s('f-sign-name').addEventListener('input', checkSubmitReady);
+  s('f-desc').addEventListener('input', function () {
+    updateCount('f-desc', 'c-desc', 2000);
+  });
+
+  s('btn-submit').addEventListener('click', doSubmit);
+
+  // ── 初始化 ──────────────────────────────────────────────────
+  // 尝试从 URL ?no=xxx&secret=xxx 自动填入并验证（从状态页跳转过来时使用）
+  (function tryAutoFill() {
+    try {
+      var p = new URLSearchParams(window.location.search);
+      var no     = p.get('no');
+      var secret = p.get('secret');
+      if (no) s('f-no').value = no;
+      if (secret) s('f-secret').value = secret;
+      if (no && secret) {
+        setTimeout(doVerify, 200);
+      }
+    } catch (e) {}
+  })();
+
+  render();
+})();
+</script>
+</body>
+</html>
