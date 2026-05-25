@@ -107,9 +107,9 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 .card{background:#fff;border-radius:14px;border:1px solid #f3f4f6;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:700px){.grid-2{grid-template-columns:1fr}}
-.kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:16px;min-height:400px}
-.kanban-col{flex-shrink:0;width:280px;max-width:min(280px,92vw)}
-.kanban-col-interview{flex-shrink:0;width:280px;max-width:min(280px,92vw)}
+.kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;min-height:400px}
+.kanban-col{flex-shrink:0;width:248px;max-width:min(248px,90vw)}
+.kanban-col-interview{flex-shrink:0;width:248px;max-width:min(248px,90vw)}
 .lang-subgroup{padding-top:10px;margin-top:10px;border-top:1px solid #eef2ff}
 .lang-subgroup:first-child{padding-top:0;margin-top:0;border-top:none}
 .lang-subgroup-h{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;letter-spacing:.04em;line-height:1.35}
@@ -1324,6 +1324,7 @@ const A = {
   continuingSelectedId: null,
   continuingFilter: { year:'all', lang:'all', status:'all' },
   continuingLastSyncError: null,
+  allContinuingScholarships: [],   // continuing_scholarship_applications 全量
   continuingLoading: false,
   continuingLoadedAt: 0,
 };
@@ -4998,16 +4999,20 @@ async function loadContinuingForStaff(opts){
   if(isVisaOpsStaff()) return;
   A.continuingLoading = true;
   try{
-    const {data, error} = await sb.from('continuing_applications')
-      .select('*')
-      .order('created_at', {ascending:false});
-    if(error){
-      A.continuingLastSyncError = formatSbError(error);
-      console.warn('loadContinuingForStaff error', error);
+    const [mainRes, schRes] = await Promise.all([
+      sb.from('continuing_applications').select('*').order('created_at', {ascending:false}),
+      sb.from('continuing_scholarship_applications').select('*').order('submitted_at', {ascending:false}),
+    ]);
+    if(mainRes.error){
+      A.continuingLastSyncError = formatSbError(mainRes.error);
+      console.warn('loadContinuingForStaff error', mainRes.error);
     }else{
-      A.allContinuing = Array.isArray(data) ? data : [];
+      A.allContinuing = Array.isArray(mainRes.data) ? mainRes.data : [];
       A.continuingLastSyncError = null;
       A.continuingLoadedAt = Date.now();
+    }
+    if(!schRes.error){
+      A.allContinuingScholarships = Array.isArray(schRes.data) ? schRes.data : [];
     }
   }catch(e){
     A.continuingLastSyncError = String(e?.message||e);
@@ -5060,6 +5065,33 @@ async function deleteContinuingByAdmin(id){
   }catch(e){
     console.warn('deleteContinuingByAdmin', e);
     toast('删除失败：'+(e?.message||e), false);
+  }
+}
+
+async function reviewContinuingScholarship(schId, status, amount, note){
+  if(!sb||!schId) return;
+  if(A.role!=='admin' && A.role!=='teacher'){ toast('权限不足',false); return; }
+  try{
+    const {data, error} = await sb.rpc('review_continuing_scholarship', {
+      p_id: schId,
+      p_status: status,
+      p_amount: amount != null ? Number(amount) : null,
+      p_note: note || null,
+    });
+    if(error){ toast('保存失败：'+(error.message||''), false); return; }
+    if(!data || data.ok!==true){ toast('保存失败：'+(data?.error||''), false); return; }
+    // 更新本地
+    const row = data.row;
+    if(row && row.id){
+      const idx = A.allContinuingScholarships.findIndex(r=>String(r.id)===String(row.id));
+      if(idx>=0) A.allContinuingScholarships[idx] = row;
+      else A.allContinuingScholarships.unshift(row);
+    }
+    toast('奖学金状态已保存');
+    render();
+  }catch(e){
+    console.warn('reviewContinuingScholarship', e);
+    toast('保存失败：'+(e?.message||e), false);
   }
 }
 
@@ -5206,6 +5238,56 @@ function renderContinuingDetailModal(){
   </div>`;
   const kv = (k,v) => `<div class="info-row"><span class="c-gray5">${esc(k)}</span><span class="fw5">${esc(v||'—')}</span></div>`;
 
+  // 奖学金区块（已录取才显示）
+  const sch = r.status==='admitted'
+    ? (A.allContinuingScholarships||[]).find(s=>String(s.application_id)===String(r.id))
+    : null;
+  const schStatusLabel = {'submitted':'审核中','approved':'已批复','rejected':'未通过'};
+  const schBlock = r.status==='admitted' ? `
+    <div class="b1 r12 p4 mb3" style="border-color:#a5f3fc;background:#ecfeff">
+      <div class="fw7 t14 mb2" style="color:#0e7490">🎓 奖学金申请</div>
+      ${sch ? `
+        <div class="row g2 wrap mb3" style="align-items:center">
+          <div>${mkTag(
+            sch.status==='approved'?'#dcfce7':sch.status==='rejected'?'#fee2e2':'#dbeafe',
+            sch.status==='approved'?'#15803d':sch.status==='rejected'?'#dc2626':'#1d4ed8',
+            schStatusLabel[sch.status]||sch.status
+          )}</div>
+          <div class="t12 c-gray6">申请金额：<b>$${esc(String(sch.requested_amount||0))}</b></div>
+          ${sch.amount_approved!=null?`<div class="t12" style="color:#15803d">批复金额：<b>$${esc(String(sch.amount_approved))}</b></div>`:''}
+          <div class="t12 c-gray5">${esc(String(sch.submitted_at||'').slice(0,10))}</div>
+        </div>
+        ${sch.financial_description?sec('家庭经济简述', sch.financial_description):''}
+        <div class="t12 c-gray5 mb2">承诺书签名：<b>${esc(sch.commitment_name||'')}</b></div>
+        <div class="b1 bc-indigo100 bg-white r10 p3">
+          <div class="fw6 t12 c-gray6 mb2">批复操作</div>
+          <div class="row g2 wrap mb2" style="align-items:center">
+            <label class="t12 c-gray6 fw6">状态</label>
+            <select class="sel" id="ct-sch-status" style="width:140px">
+              <option value="submitted" ${sch.status==='submitted'?'selected':''}>审核中</option>
+              <option value="approved" ${sch.status==='approved'?'selected':''}>批准</option>
+              <option value="rejected" ${sch.status==='rejected'?'selected':''}>不批准</option>
+            </select>
+          </div>
+          <div class="row g2 wrap mb2" style="align-items:center">
+            <label class="t12 c-gray6 fw6">批复金额 ($)</label>
+            <input class="inp inp-sm" id="ct-sch-amount" type="number" min="0" step="1"
+              value="${esc(String(sch.amount_approved!=null?sch.amount_approved:''))}"
+              style="width:120px">
+          </div>
+          <div class="col g1 mb2">
+            <label class="t12 c-gray6 fw6">批复备注</label>
+            <textarea class="textarea" id="ct-sch-note" rows="2">${esc(sch.review_note||'')}</textarea>
+          </div>
+          <button class="btn btn-primary btn-sm" id="ct-sch-save" data-schid="${esc(sch.id)}">保存奖学金批复</button>
+        </div>
+      ` : `
+        <div class="t13 c-gray6 mb2">该学员尚未提交奖学金申请。</div>
+        <a href="apply-continuing-scholarship.html" target="_blank" class="btn btn-outline btn-sm">打开奖学金申请页</a>
+      `}
+    </div>
+  ` : '';
+
   return `<div class="modal-overlay" data-action="continuing-close">
     <div class="modal-lg" onclick="event.stopPropagation()">
       <div class="row g3 mb4" style="align-items:flex-start">
@@ -5236,6 +5318,8 @@ function renderContinuingDetailModal(){
       ${sec('福音认信', r.gospel_confession)}
       ${sec('蒙召见证', r.calling_testimony)}
 
+      ${schBlock}
+
       <div class="b1 bc-indigo100 bg-indigo50 r12 p4 mb3">
         <div class="fw7 c-gray8 t14 mb2">审核操作</div>
         <div class="row g2 wrap mb3" style="align-items:center">
@@ -5247,7 +5331,7 @@ function renderContinuingDetailModal(){
         </div>
         <div class="col g1 mb2">
           <label class="t12 c-gray6 fw6">内部备注（学生不可见）</label>
-          <textarea class="textarea" id="ct-d-notes" rows="4" placeholder="例如：第一年成绩 A、面试推荐、奖学金倾向 ……">${esc(r.admin_notes||'')}</textarea>
+          <textarea class="textarea" id="ct-d-notes" rows="4" placeholder="例如：第一年成绩 A、面试推荐 ……">${esc(r.admin_notes||'')}</textarea>
         </div>
         <div class="row g2 wrap">
           <button class="btn btn-primary btn-sm" id="ct-d-save-notes">保存备注</button>
@@ -6543,6 +6627,18 @@ function bind(){
   }
   if(ctSel('ct-d-delete')){
     ctSel('ct-d-delete').addEventListener('click', ()=>deleteContinuingByAdmin(A.continuingSelectedId));
+  }
+  // 奖学金批复
+  if(ctSel('ct-sch-save')){
+    ctSel('ct-sch-save').addEventListener('click', ()=>{
+      const schId = ctSel('ct-sch-save').dataset.schid;
+      const status = ctSel('ct-sch-status')?.value;
+      const amtRaw = ctSel('ct-sch-amount')?.value;
+      const note   = ctSel('ct-sch-note')?.value || '';
+      const amount = amtRaw !== '' ? parseFloat(amtRaw) : null;
+      if(!schId || !status) return;
+      reviewContinuingScholarship(schId, status, amount, note);
+    });
   }
   // ── Select / close applicant ──
   root.querySelectorAll('[data-action=select-ap]').forEach(el=>{
