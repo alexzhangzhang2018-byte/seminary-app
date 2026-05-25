@@ -227,11 +227,13 @@ footer a{color:#9ca3af}
         <button type="button" id="btn-submit" class="btn btn-primary">
           <span id="btn-submit-text">提交申请</span>
         </button>
-        <a href="apply-continuing-status.html" class="btn btn-ghost" id="btn-go-status">
-          <span id="btn-go-status-text">查询申请状态 →</span>
-        </a>
         <button type="button" id="btn-clear-draft" class="btn btn-ghost">清除本机草稿</button>
         <span class="draft-status" id="draft-status"></span>
+      </div>
+      <div style="margin-top:10px">
+        <a href="apply-continuing-status.html" id="btn-go-status" style="font-size:13px;color:#4f46e5;display:inline-flex;align-items:center;gap:4px">
+          <span id="btn-go-status-text">已提交申请，查询当前状态 →</span>
+        </a>
       </div>
     </form>
 
@@ -365,7 +367,12 @@ footer a{color:#9ca3af}
     setText('lab-consent', T('consent.label'));
     setText('hint-contact', T('err.contact'));
     setText('btn-submit-text', T('btn.submit'));
-    setText('btn-go-status-text', T('app.status_query') + ' →');
+    var goStatusText = currentLang === 'id'
+      ? 'Sudah mendaftar? Cek status →'
+      : currentLang === 'en'
+      ? 'Already applied? Check status →'
+      : '已提交申请，查询当前状态 →';
+    setText('btn-go-status-text', goStatusText);
     var clr = $('btn-clear-draft'); if (clr) clr.textContent = T('btn.draft_clear');
 
     // 选项文本
