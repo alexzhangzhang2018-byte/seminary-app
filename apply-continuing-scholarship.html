@@ -222,7 +222,7 @@ footer a{color:#9ca3af}
             <div id="ui-sign-name-ph" style="font-size:11.5px;color:#9ca3af;margin-top:4px"></div>
             <div class="err-msg" id="e-sign-name"></div>
           </div>
-          <div id="sign-preview" style="display:none;margin-top:8px;padding:10px 16px;background:#f8fafc;border:1px dashed #94a3b8;border-radius:8px;font-size:15px;font-weight:800;color:#1e3a5f;letter-spacing:.5px;font-style:italic"></div>
+          <div id="sign-preview" style="display:none;margin-top:8px;padding:10px 16px;background:#f8fafc;border:1px dashed #94a3b8;border-radius:8px;font-size:18px;font-weight:400;color:#1e3a5f;letter-spacing:.5px"></div>
         </div>
       </div>
 
@@ -544,6 +544,16 @@ footer a{color:#9ca3af}
     if (name) {
       preview.style.display = 'block';
       preview.textContent = name;
+      // 中文用楷体，英文/印尼文用斜体 Times New Roman
+      if (lang === 'zh') {
+        preview.style.fontFamily = "'KaiTi', 'STKaiti', 'AR PL UKai CN', '楷体', cursive";
+        preview.style.fontStyle  = 'normal';
+        preview.style.fontSize   = '20px';
+      } else {
+        preview.style.fontFamily = "'Times New Roman', Times, serif";
+        preview.style.fontStyle  = 'italic';
+        preview.style.fontSize   = '20px';
+      }
     } else {
       preview.style.display = 'none';
     }
