@@ -102,6 +102,24 @@ a{color:#4f46e5;text-decoration:none}a:hover{text-decoration:underline}
 
 footer{text-align:center;color:#9ca3af;font-size:11.5px;margin-top:20px}
 footer a{color:#9ca3af}
+
+/* 截止日横幅 */
+.deadline-banner{border-radius:14px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.deadline-banner.active{background:#fff7ed;border:1px solid #fb923c}
+.deadline-banner.expired{background:#fef2f2;border:1px solid #fca5a5}
+.deadline-banner .dl-icon{font-size:22px;flex-shrink:0}
+.deadline-banner .dl-body{flex:1;min-width:0}
+.deadline-banner .dl-title{font-size:13px;font-weight:700;color:#9a3412;margin-bottom:4px}
+.deadline-banner.expired .dl-title{color:#b91c1c}
+.deadline-banner .dl-date{font-size:12px;color:#c2410c;margin-bottom:6px}
+.deadline-banner.expired .dl-date{color:#b91c1c}
+.countdown{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cd-unit{display:inline-flex;flex-direction:column;align-items:center;background:#fff;border:1px solid #fed7aa;border-radius:8px;padding:4px 10px;min-width:44px}
+.cd-num{font-size:18px;font-weight:800;color:#c2410c;line-height:1.2;font-variant-numeric:tabular-nums}
+.cd-lab{font-size:9px;color:#9a3412;letter-spacing:.3px;text-transform:uppercase}
+.deadline-banner.expired .cd-num{color:#b91c1c}
+.deadline-banner.expired .cd-unit{border-color:#fca5a5}
+.expired-msg{font-size:14px;font-weight:800;color:#b91c1c}
 </style>
 </head>
 <body>
@@ -117,6 +135,22 @@ footer a{color:#9ca3af}
         <button data-lang="zh" class="active">中文</button>
         <button data-lang="id">ID</button>
         <button data-lang="en">EN</button>
+      </div>
+    </div>
+
+    <!-- 截止日横幅 -->
+    <div class="deadline-banner active" id="deadline-banner">
+      <div class="dl-icon">⏰</div>
+      <div class="dl-body">
+        <div class="dl-title" id="dl-title">申请截止时间</div>
+        <div class="dl-date" id="dl-date">2026年5月29日（周五）晚 12:00</div>
+        <div class="countdown" id="countdown">
+          <div class="cd-unit"><span class="cd-num" id="cd-d">--</span><span class="cd-lab" id="cd-d-lab">天</span></div>
+          <div class="cd-unit"><span class="cd-num" id="cd-h">--</span><span class="cd-lab" id="cd-h-lab">时</span></div>
+          <div class="cd-unit"><span class="cd-num" id="cd-m">--</span><span class="cd-lab" id="cd-m-lab">分</span></div>
+          <div class="cd-unit"><span class="cd-num" id="cd-s">--</span><span class="cd-lab" id="cd-s-lab">秒</span></div>
+        </div>
+        <div class="expired-msg" id="expired-msg" style="display:none">🚫 申请已截止</div>
       </div>
     </div>
 
@@ -606,6 +640,7 @@ footer a{color:#9ca3af}
           history.replaceState(null, '', url.pathname + url.search);
         } catch (e) {}
         applyI18n();
+        updateDeadlineBanner();
       });
     });
 
@@ -664,11 +699,68 @@ footer a{color:#9ca3af}
     });
   }
 
+  // ─────────────── 截止倒计时 ───────────────
+  // 截止时间：2026-05-29 周五 23:59:59 (UTC+7)
+  var DEADLINE = new Date('2026-05-29T23:59:59+07:00');
+
+  var DEADLINE_I18N = {
+    zh: { title: '申请截止时间', date: '2026年5月29日（周五）晚 12:00', expired: '🚫 申请已截止',
+          d:'天', h:'时', m:'分', s:'秒' },
+    id: { title: 'Batas waktu pendaftaran', date: 'Jumat, 29 Mei 2026, pukul 00:00', expired: '🚫 Pendaftaran telah ditutup',
+          d:'hari', h:'jam', m:'mnt', s:'dtk' },
+    en: { title: 'Application deadline', date: 'Friday, May 29, 2026 at midnight', expired: '🚫 Applications are now closed',
+          d:'days', h:'hrs', m:'min', s:'sec' },
+  };
+
+  function updateDeadlineBanner() {
+    var lang = currentLang || 'zh';
+    var i18n = DEADLINE_I18N[lang] || DEADLINE_I18N.zh;
+    var banner  = $('deadline-banner');
+    var now     = new Date();
+    var diff    = DEADLINE - now;
+
+    $('dl-title').textContent = i18n.title;
+    $('dl-date').textContent  = i18n.date;
+    $('cd-d-lab').textContent = i18n.d;
+    $('cd-h-lab').textContent = i18n.h;
+    $('cd-m-lab').textContent = i18n.m;
+    $('cd-s-lab').textContent = i18n.s;
+
+    if (diff <= 0) {
+      banner.className = 'deadline-banner expired';
+      $('countdown').style.display   = 'none';
+      $('expired-msg').style.display = '';
+      $('expired-msg').textContent   = i18n.expired;
+      // 截止后锁定提交按钮
+      var btnSubmit = $('btn-submit');
+      if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.title = i18n.expired; }
+      return;
+    }
+
+    banner.className = 'deadline-banner active';
+    $('countdown').style.display   = '';
+    $('expired-msg').style.display = 'none';
+
+    var totalSec = Math.floor(diff / 1000);
+    var s = totalSec % 60;
+    var m = Math.floor(totalSec / 60) % 60;
+    var h = Math.floor(totalSec / 3600) % 24;
+    var d = Math.floor(totalSec / 86400);
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    $('cd-d').textContent = d;
+    $('cd-h').textContent = pad(h);
+    $('cd-m').textContent = pad(m);
+    $('cd-s').textContent = pad(s);
+  }
+
   // ─────────────── Bootstrap ───────────────
   document.addEventListener('DOMContentLoaded', function () {
     applyI18n();
     loadDraft();
     bindEvents();
+    updateDeadlineBanner();
+    setInterval(updateDeadlineBanner, 1000);
   });
 })();
 </script>
