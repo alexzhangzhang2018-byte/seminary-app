@@ -227,6 +227,9 @@ footer a{color:#9ca3af}
         <button type="button" id="btn-submit" class="btn btn-primary">
           <span id="btn-submit-text">提交申请</span>
         </button>
+        <a href="apply-continuing-status.html" class="btn btn-ghost" id="btn-go-status">
+          <span id="btn-go-status-text">查询申请状态 →</span>
+        </a>
         <button type="button" id="btn-clear-draft" class="btn btn-ghost">清除本机草稿</button>
         <span class="draft-status" id="draft-status"></span>
       </div>
@@ -362,6 +365,7 @@ footer a{color:#9ca3af}
     setText('lab-consent', T('consent.label'));
     setText('hint-contact', T('err.contact'));
     setText('btn-submit-text', T('btn.submit'));
+    setText('btn-go-status-text', T('app.status_query') + ' →');
     var clr = $('btn-clear-draft'); if (clr) clr.textContent = T('btn.draft_clear');
 
     // 选项文本
