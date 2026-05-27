@@ -5069,29 +5069,58 @@ async function deleteContinuingByAdmin(id){
 }
 
 // ── 一键翻译（MyMemory 免费 API）────────────────────────────────
-// MyMemory 语言代码：id / en / zh-CN / en-GB
+// MyMemory 不支持所有语言对直连，需要特殊处理
+// 语言代码：id / en / zh
 function mmLangCode(lang) {
-  if (lang === 'zh' || lang === 'zh-CN') return 'zh-CN';
+  if (lang === 'zh' || lang === 'zh-CN') return 'zh';
   if (lang === 'id') return 'id';
-  return 'en';  // 默认英文
+  return 'en';
 }
+
+// 不支持直连的语言对，需通过英文中转
+const MM_NEEDS_PIVOT = new Set(['id|zh', 'id|zh-CN', 'zh|id', 'zh-CN|id']);
 
 const TRANSLATE_CHUNK_SIZE = 460;
 
-async function translateChunk(text, sourceLang, targetLang) {
-  if (!text || !text.trim()) return '';
-  const src = mmLangCode(sourceLang);
-  const tgt = mmLangCode(targetLang);
-  if (src === tgt) return text;
+// 单段直连翻译，返回译文或 null（失败时）
+async function translateChunkDirect(text, src, tgt) {
   const url = 'https://api.mymemory.translated.net/get?q='
     + encodeURIComponent(text)
-    + '&langpair=' + src + '|' + tgt;
+    + '&langpair=' + src + '%7C' + tgt;  // %7C = |
   try {
     const res = await fetch(url);
     const d   = await res.json();
-    if (d?.responseStatus && d.responseStatus !== 200) return text;
-    return d?.responseData?.translatedText || text;
-  } catch(e) { return text; }
+    // responseStatus 200 = 成功；403/429 = 超限；其他 = 不支持该语言对
+    if (!d?.responseData?.translatedText) return null;
+    if (d.responseStatus !== 200) return null;
+    const t = d.responseData.translatedText.trim();
+    // API 有时原样返回原文（不支持的语言对），检测一下
+    if (t.toLowerCase() === text.trim().toLowerCase()) return null;
+    return t;
+  } catch(e) { return null; }
+}
+
+async function translateChunk(text, sourceLang, targetLang) {
+  if (!text || !text.trim()) return { ok: false, text };
+  const src = mmLangCode(sourceLang);
+  const tgt = mmLangCode(targetLang);
+  if (src === tgt) return { ok: true, text };
+
+  const pairKey = src + '|' + tgt;
+  let result = null;
+
+  if (MM_NEEDS_PIVOT.has(pairKey)) {
+    // 中转：先翻译到英文，再翻译到目标语言
+    const mid = await translateChunkDirect(text, src, 'en');
+    if (mid) {
+      await new Promise(r => setTimeout(r, 300));
+      result = await translateChunkDirect(mid, 'en', tgt);
+    }
+  } else {
+    result = await translateChunkDirect(text, src, tgt);
+  }
+
+  return result ? { ok: true, text: result } : { ok: false, text };
 }
 
 // 将任意长文本按字符数切成不超过 TRANSLATE_CHUNK_SIZE 的片段
@@ -5116,9 +5145,9 @@ function splitIntoChunks(text, size) {
   return chunks;
 }
 
+// 返回 { ok, text }：ok=false 说明翻译失败
 async function translateField(text, sourceLang, targetLang) {
-  if (!text || !text.trim()) return '';
-  // 先按段落拆，再对超长段落按字符拆
+  if (!text || !text.trim()) return { ok: true, text: '' };
   const paragraphs = text.split(/\n+/);
   const allChunks = [];
   for (const p of paragraphs) {
@@ -5128,7 +5157,6 @@ async function translateField(text, sourceLang, targetLang) {
       allChunks.push(p);
     }
   }
-  // 合并相邻短片段，减少请求次数
   const batches = [];
   let buf = '';
   for (const c of allChunks) {
@@ -5142,18 +5170,21 @@ async function translateField(text, sourceLang, targetLang) {
   if (buf.trim()) batches.push(buf.trim());
 
   const results = [];
+  let anyFailed = false;
   for (const batch of batches) {
-    results.push(await translateChunk(batch, sourceLang, targetLang));
-    if (batches.length > 1) await new Promise(r => setTimeout(r, 300));
+    const r = await translateChunk(batch, sourceLang, targetLang);
+    results.push(r.text);
+    if (!r.ok) anyFailed = true;
+    if (batches.length > 1) await new Promise(r => setTimeout(r, 350));
   }
-  return results.join('\n\n');
+  return { ok: !anyFailed, text: results.join('\n\n') };
 }
 
 // 继续申请（二/三年级）翻译
 async function doTranslateContinuing(targetLang) {
   const r = (A.allContinuing||[]).find(x=>String(x.id)===String(A.continuingSelectedId));
   if (!r) return;
-  const srcLang = r.class_lang || 'en';   // 用班级语言作为源语言
+  const srcLang = r.class_lang || 'en';
   const root = document.getElementById('admin-root') || document;
   const statusEl = root.querySelector('#ct-translate-status');
   const btnZh    = root.querySelector('#ct-translate-zh');
@@ -5161,16 +5192,18 @@ async function doTranslateContinuing(targetLang) {
   if (!statusEl) return;
 
   statusEl.style.display = '';
-  statusEl.textContent = '翻译中…';
+  statusEl.textContent = '翻译中（1/3）…';
   if (btnZh) btnZh.disabled = true;
   if (btnEn) btnEn.disabled = true;
 
   try {
-    const [tr1, tr2, tr3] = await Promise.all([
-      translateField(r.first_year_reflection || '', srcLang, targetLang),
-      translateField(r.gospel_confession     || '', srcLang, targetLang),
-      translateField(r.calling_testimony     || '', srcLang, targetLang),
-    ]);
+    const res1 = await translateField(r.first_year_reflection || '', srcLang, targetLang);
+    statusEl.textContent = '翻译中（2/3）…';
+    const res2 = await translateField(r.gospel_confession     || '', srcLang, targetLang);
+    statusEl.textContent = '翻译中（3/3）…';
+    const res3 = await translateField(r.calling_testimony     || '', srcLang, targetLang);
+
+    const anyFail = !res1.ok || !res2.ok || !res3.ok;
 
     const labelEl = root.querySelector('#ct-trans-lang-label');
     if (labelEl) labelEl.textContent = targetLang === 'zh' ? '中文译文' : 'English Translation';
@@ -5178,19 +5211,19 @@ async function doTranslateContinuing(targetLang) {
     const e1 = root.querySelector('#ct-tr-reflection');
     const e2 = root.querySelector('#ct-tr-confession');
     const e3 = root.querySelector('#ct-tr-testimony');
-    if (e1) e1.textContent = tr1;
-    if (e2) e2.textContent = tr2;
-    if (e3) e3.textContent = tr3;
+    if (e1) e1.textContent = res1.text || '（翻译失败）';
+    if (e2) e2.textContent = res2.text || '（翻译失败）';
+    if (e3) e3.textContent = res3.text || '（翻译失败）';
 
     const orig  = root.querySelector('#ct-texts-original');
     const trans = root.querySelector('#ct-texts-translated');
     if (orig)  orig.style.display  = 'none';
     if (trans) trans.style.display = '';
 
-    statusEl.textContent = '✅ 翻译完成';
-    setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+    statusEl.textContent = anyFail ? '⚠️ 部分翻译失败（可能超出今日免费额度）' : '✅ 翻译完成';
+    setTimeout(() => { statusEl.style.display = 'none'; }, anyFail ? 5000 : 2500);
   } catch(e) {
-    statusEl.textContent = '翻译失败，请重试';
+    statusEl.textContent = '⚠️ 翻译失败，请稍后重试';
   } finally {
     if (btnZh) btnZh.disabled = false;
     if (btnEn) btnEn.disabled = false;
@@ -5220,16 +5253,21 @@ async function doTranslateBriefing(targetLang) {
       { key:'testimony', text: ap.conversion_testimony  || '' },
       { key:'ministry',  text: ap.ministry_experience   || '' },
     ];
-    const translated = await Promise.all(
-      fields.map(f => translateField(f.text, srcLang, targetLang))
-    );
+    const labels = ['福音认信','得救见证','事工经历'];
+    const results = [];
+    for (let i = 0; i < fields.length; i++) {
+      statusEl.textContent = `翻译中（${i+1}/${fields.length}）${labels[i]}…`;
+      results.push(await translateField(fields[i].text, srcLang, targetLang));
+    }
+
+    const anyFail = results.some(r => !r.ok);
 
     const labelEl = root.querySelector('#brief-trans-lang-label');
     if (labelEl) labelEl.textContent = targetLang === 'zh' ? '中文译文' : 'English Translation';
 
-    ['gospel','testimony','ministry'].forEach((k, i) => {
-      const el = root.querySelector('#brief-tr-' + k);
-      if (el) el.textContent = translated[i];
+    fields.forEach((f, i) => {
+      const el = root.querySelector('#brief-tr-' + f.key);
+      if (el) el.textContent = results[i].text || '（翻译失败）';
     });
 
     const orig  = root.querySelector('#brief-texts-original');
@@ -5237,10 +5275,10 @@ async function doTranslateBriefing(targetLang) {
     if (orig)  orig.style.display  = 'none';
     if (trans) trans.style.display = '';
 
-    statusEl.textContent = '✅ 翻译完成';
-    setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+    statusEl.textContent = anyFail ? '⚠️ 部分翻译失败（可能超出今日免费额度）' : '✅ 翻译完成';
+    setTimeout(() => { statusEl.style.display = 'none'; }, anyFail ? 5000 : 2500);
   } catch(e) {
-    statusEl.textContent = '翻译失败，请重试';
+    statusEl.textContent = '⚠️ 翻译失败，请稍后重试';
   } finally {
     if (btnZh) btnZh.disabled = false;
     if (btnEn) btnEn.disabled = false;
