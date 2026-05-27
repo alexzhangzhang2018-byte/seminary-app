@@ -5069,42 +5069,53 @@ async function deleteContinuingByAdmin(id){
 }
 
 // ── 一键翻译（MyMemory 免费 API）────────────────────────────────
-async function translateChunk(text, targetLang) {
+// MyMemory 语言代码：id / en / zh-CN / en-GB
+function mmLangCode(lang) {
+  if (lang === 'zh' || lang === 'zh-CN') return 'zh-CN';
+  if (lang === 'id') return 'id';
+  return 'en';  // 默认英文
+}
+
+async function translateChunk(text, sourceLang, targetLang) {
   if (!text || !text.trim()) return '';
+  const src = mmLangCode(sourceLang);
+  const tgt = mmLangCode(targetLang);
+  if (src === tgt) return text;
   const url = 'https://api.mymemory.translated.net/get?q='
-    + encodeURIComponent(text.slice(0, 500))
-    + '&langpair=auto|' + targetLang;
+    + encodeURIComponent(text.slice(0, 480))
+    + '&langpair=' + src + '|' + tgt;
   try {
     const res = await fetch(url);
     const d   = await res.json();
+    // MyMemory 返回错误时 responseStatus !== 200
+    if (d?.responseStatus && d.responseStatus !== 200) return text;
     return d?.responseData?.translatedText || text;
   } catch(e) { return text; }
 }
 
-async function translateField(text, targetLang) {
+async function translateField(text, sourceLang, targetLang) {
   if (!text || !text.trim()) return '';
-  // 按段落拆分，每段不超过 450 字符，避免超过 API 限制
   const paragraphs = text.split(/\n+/);
   const results = [];
   let buf = '';
   for (const p of paragraphs) {
-    if ((buf + p).length > 450 && buf) {
-      results.push(await translateChunk(buf.trim(), targetLang));
+    if ((buf + p).length > 460 && buf) {
+      results.push(await translateChunk(buf.trim(), sourceLang, targetLang));
       buf = p + '\n';
-      await new Promise(r => setTimeout(r, 250));
+      await new Promise(r => setTimeout(r, 300));
     } else {
       buf += p + '\n';
     }
   }
-  if (buf.trim()) {
-    results.push(await translateChunk(buf.trim(), targetLang));
-  }
+  if (buf.trim()) results.push(await translateChunk(buf.trim(), sourceLang, targetLang));
   return results.join('\n\n');
 }
 
+// 继续申请（二/三年级）翻译
 async function doTranslateContinuing(targetLang) {
   const r = (A.allContinuing||[]).find(x=>String(x.id)===String(A.continuingSelectedId));
   if (!r) return;
+  const srcLang = r.class_lang || 'en';   // 用班级语言作为源语言
   const root = document.getElementById('admin-root') || document;
   const statusEl = root.querySelector('#ct-translate-status');
   const btnZh    = root.querySelector('#ct-translate-zh');
@@ -5118,9 +5129,9 @@ async function doTranslateContinuing(targetLang) {
 
   try {
     const [tr1, tr2, tr3] = await Promise.all([
-      translateField(r.first_year_reflection || '', targetLang),
-      translateField(r.gospel_confession     || '', targetLang),
-      translateField(r.calling_testimony     || '', targetLang),
+      translateField(r.first_year_reflection || '', srcLang, targetLang),
+      translateField(r.gospel_confession     || '', srcLang, targetLang),
+      translateField(r.calling_testimony     || '', srcLang, targetLang),
     ]);
 
     const labelEl = root.querySelector('#ct-trans-lang-label');
@@ -5135,6 +5146,56 @@ async function doTranslateContinuing(targetLang) {
 
     const orig  = root.querySelector('#ct-texts-original');
     const trans = root.querySelector('#ct-texts-translated');
+    if (orig)  orig.style.display  = 'none';
+    if (trans) trans.style.display = '';
+
+    statusEl.textContent = '✅ 翻译完成';
+    setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+  } catch(e) {
+    statusEl.textContent = '翻译失败，请重试';
+  } finally {
+    if (btnZh) btnZh.disabled = false;
+    if (btnEn) btnEn.disabled = false;
+  }
+}
+
+// 申请人档案（新生）翻译
+async function doTranslateBriefing(targetLang) {
+  const ap = A.briefingId ? A.allApplicants.find(a=>a.id===A.briefingId) : null;
+  if (!ap) return;
+  // 源语言：优先用 exam_lang，否则猜英文（印尼/英文申请人）
+  const srcLang = ap.exam_lang || 'en';
+  const root = document.getElementById('admin-root') || document;
+  const statusEl = root.querySelector('#brief-translate-status');
+  const btnZh    = root.querySelector('#brief-translate-zh');
+  const btnEn    = root.querySelector('#brief-translate-en');
+  if (!statusEl) return;
+
+  statusEl.style.display = '';
+  statusEl.textContent = '翻译中…';
+  if (btnZh) btnZh.disabled = true;
+  if (btnEn) btnEn.disabled = true;
+
+  try {
+    const fields = [
+      { key:'gospel',    text: ap.gospel_confession     || '' },
+      { key:'testimony', text: ap.conversion_testimony  || '' },
+      { key:'ministry',  text: ap.ministry_experience   || '' },
+    ];
+    const translated = await Promise.all(
+      fields.map(f => translateField(f.text, srcLang, targetLang))
+    );
+
+    const labelEl = root.querySelector('#brief-trans-lang-label');
+    if (labelEl) labelEl.textContent = targetLang === 'zh' ? '中文译文' : 'English Translation';
+
+    ['gospel','testimony','ministry'].forEach((k, i) => {
+      const el = root.querySelector('#brief-tr-' + k);
+      if (el) el.textContent = translated[i];
+    });
+
+    const orig  = root.querySelector('#brief-texts-original');
+    const trans = root.querySelector('#brief-texts-translated');
     if (orig)  orig.style.display  = 'none';
     if (trans) trans.style.display = '';
 
@@ -5397,7 +5458,7 @@ function renderContinuingDetailModal(){
 
       <!-- 一键翻译区 -->
       <div class="row g2 wrap mb3" style="align-items:center">
-        <span class="t12 c-gray5 fw6">🌐 一键翻译证词</span>
+        <span class="t12 c-gray5 fw6">🌐 一键翻译</span>
         <button class="btn btn-outline btn-sm" id="ct-translate-zh" data-target="zh">→ 中文</button>
         <button class="btn btn-outline btn-sm" id="ct-translate-en" data-target="en">→ English</button>
         <span class="t12 c-gray5" id="ct-translate-status" style="display:none"></span>
@@ -5901,34 +5962,58 @@ function renderBriefingModal(ap){
         <div class="t12 c-gray6 mt2">Zoom：${esc(ivSl.zoom_id||'847 5014 4631')} &nbsp;/&nbsp; 密码：${esc(ivSl.zoom_password||'156903')}</div>`:''}
       </div>`:''}
 
-      <div class="fw7 c-gray6 t11 mb2">2. 福音认信</div>
-      <div class="card p4 mb4">
-        ${canStaff?(
-          ap.gospel_confession
-            ? `<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.gospel_confession)}</div>`
-            : `<textarea id="brief-ap-gospel" class="textarea" rows="5" style="width:100%" placeholder="可填写福音认信…"></textarea>
-               <button type="button" class="btn btn-primary mt2" style="display:none" data-action="save-brief-gospel" data-apid="${ap.id}">保存福音认信</button>`
-        ):(ap.gospel_confession?`<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.gospel_confession)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+      <!-- 一键翻译（档案） -->
+      <div class="row g2 wrap mb3" style="align-items:center">
+        <span class="t12 c-gray5 fw6">🌐 一键翻译</span>
+        <button class="btn btn-outline btn-sm" id="brief-translate-zh">→ 中文</button>
+        <button class="btn btn-outline btn-sm" id="brief-translate-en">→ English</button>
+        <span class="t12 c-gray5" id="brief-translate-status" style="display:none"></span>
       </div>
 
-      <div class="fw7 c-gray6 t11 mb2">3. 得救见证</div>
-      <div class="card p4 mb4">
-        ${canStaff?(
-          ap.conversion_testimony
-            ? `<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.conversion_testimony)}</div>`
-            : `<textarea id="brief-ap-conv-testimony" class="textarea" rows="5" style="width:100%" placeholder="可填写得救经过…"></textarea>
-               <button type="button" class="btn btn-primary mt2" style="display:none" data-action="save-brief-testimony" data-apid="${ap.id}">保存得救见证</button>`
-        ):(ap.conversion_testimony?`<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.conversion_testimony)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+      <!-- 原文 -->
+      <div id="brief-texts-original">
+        <div class="fw7 c-gray6 t11 mb2">2. 福音认信</div>
+        <div class="card p4 mb4">
+          ${canStaff?(
+            ap.gospel_confession
+              ? `<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.gospel_confession)}</div>`
+              : `<textarea id="brief-ap-gospel" class="textarea" rows="5" style="width:100%" placeholder="可填写福音认信…"></textarea>
+                 <button type="button" class="btn btn-primary mt2" style="display:none" data-action="save-brief-gospel" data-apid="${ap.id}">保存福音认信</button>`
+          ):(ap.gospel_confession?`<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.gospel_confession)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+        </div>
+
+        <div class="fw7 c-gray6 t11 mb2">3. 得救见证</div>
+        <div class="card p4 mb4">
+          ${canStaff?(
+            ap.conversion_testimony
+              ? `<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.conversion_testimony)}</div>`
+              : `<textarea id="brief-ap-conv-testimony" class="textarea" rows="5" style="width:100%" placeholder="可填写得救经过…"></textarea>
+                 <button type="button" class="btn btn-primary mt2" style="display:none" data-action="save-brief-testimony" data-apid="${ap.id}">保存得救见证</button>`
+          ):(ap.conversion_testimony?`<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.conversion_testimony)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+        </div>
+
+        <div class="fw7 c-gray6 t11 mb2">4. 事工经历</div>
+        <div class="card p4 mb4">
+          ${canStaff?(
+            ap.ministry_experience
+              ? `<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.ministry_experience)}</div>`
+              : `<textarea id="brief-ap-ministry" class="textarea" rows="5" style="width:100%" placeholder="可填写事工/服事经历…"></textarea>
+                 <button type="button" class="btn btn-primary mt2" style="display:none" data-action="save-brief-ministry" data-apid="${ap.id}">保存事工经历</button>`
+          ):(ap.ministry_experience?`<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.ministry_experience)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+        </div>
       </div>
 
-      <div class="fw7 c-gray6 t11 mb2">4. 事工经历</div>
-      <div class="card p4 mb4">
-        ${canStaff?(
-          ap.ministry_experience
-            ? `<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.ministry_experience)}</div>`
-            : `<textarea id="brief-ap-ministry" class="textarea" rows="5" style="width:100%" placeholder="可填写事工/服事经历…"></textarea>
-               <button type="button" class="btn btn-primary mt2" style="display:none" data-action="save-brief-ministry" data-apid="${ap.id}">保存事工经历</button>`
-        ):(ap.ministry_experience?`<div class="t13 c-gray7 lh16" style="white-space:pre-wrap">${esc(ap.ministry_experience)}</div>`:'<div class="t13 c-gray4">暂无</div>')}
+      <!-- 翻译结果 -->
+      <div id="brief-texts-translated" style="display:none">
+        <div class="b1 r10 p4 mb4" style="border-color:#a5f3fc;background:#ecfeff">
+          <div class="t11 c-gray5 fw7 mb3" style="text-transform:uppercase;letter-spacing:.4px">
+            🌐 <span id="brief-trans-lang-label">译文</span> &nbsp;·&nbsp;
+            <button class="btn btn-ghost btn-sm" id="brief-show-original" style="font-size:11px;padding:2px 8px">显示原文</button>
+          </div>
+          <div class="mb3"><div class="t11 c-gray5 fw7 mb1">2. 福音认信</div><div class="t13 c-gray8" id="brief-tr-gospel" style="white-space:pre-line;line-height:1.7"></div></div>
+          <div class="mb3"><div class="t11 c-gray5 fw7 mb1">3. 得救见证</div><div class="t13 c-gray8" id="brief-tr-testimony" style="white-space:pre-line;line-height:1.7"></div></div>
+          <div class="mb0"><div class="t11 c-gray5 fw7 mb1">4. 事工经历</div><div class="t13 c-gray8" id="brief-tr-ministry" style="white-space:pre-line;line-height:1.7"></div></div>
+        </div>
       </div>
 
       <div class="fw7 c-gray6 t11 mb2">5. 笔试成绩</div>
@@ -6780,6 +6865,23 @@ function bind(){
   root.querySelectorAll('[data-action=close-briefing]').forEach(el=>{
     el.addEventListener('click',()=>{A.briefingId=null;render();});
   });
+
+  // 档案一键翻译
+  const briefRoot = root;
+  const bBtnZh = briefRoot.querySelector('#brief-translate-zh');
+  const bBtnEn = briefRoot.querySelector('#brief-translate-en');
+  const bBtnOrig = briefRoot.querySelector('#brief-show-original');
+  if (bBtnZh) bBtnZh.addEventListener('click', ()=>doTranslateBriefing('zh'));
+  if (bBtnEn) bBtnEn.addEventListener('click', ()=>doTranslateBriefing('en'));
+  if (bBtnOrig) bBtnOrig.addEventListener('click', ()=>{
+    const orig  = briefRoot.querySelector('#brief-texts-original');
+    const trans = briefRoot.querySelector('#brief-texts-translated');
+    const statusEl = briefRoot.querySelector('#brief-translate-status');
+    if (orig)  orig.style.display  = '';
+    if (trans) trans.style.display = 'none';
+    if (statusEl) statusEl.style.display = 'none';
+  });
+
   root.querySelectorAll('[data-action=brief-apply-inferred-lang]').forEach(el=>{
     el.addEventListener('click',()=>{
       const lang=el.dataset.lang;
