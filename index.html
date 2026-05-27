@@ -5068,6 +5068,86 @@ async function deleteContinuingByAdmin(id){
   }
 }
 
+// ── 一键翻译（MyMemory 免费 API）────────────────────────────────
+async function translateChunk(text, targetLang) {
+  if (!text || !text.trim()) return '';
+  const url = 'https://api.mymemory.translated.net/get?q='
+    + encodeURIComponent(text.slice(0, 500))
+    + '&langpair=auto|' + targetLang;
+  try {
+    const res = await fetch(url);
+    const d   = await res.json();
+    return d?.responseData?.translatedText || text;
+  } catch(e) { return text; }
+}
+
+async function translateField(text, targetLang) {
+  if (!text || !text.trim()) return '';
+  // 按段落拆分，每段不超过 450 字符，避免超过 API 限制
+  const paragraphs = text.split(/\n+/);
+  const results = [];
+  let buf = '';
+  for (const p of paragraphs) {
+    if ((buf + p).length > 450 && buf) {
+      results.push(await translateChunk(buf.trim(), targetLang));
+      buf = p + '\n';
+      await new Promise(r => setTimeout(r, 250));
+    } else {
+      buf += p + '\n';
+    }
+  }
+  if (buf.trim()) {
+    results.push(await translateChunk(buf.trim(), targetLang));
+  }
+  return results.join('\n\n');
+}
+
+async function doTranslateContinuing(targetLang) {
+  const r = (A.allContinuing||[]).find(x=>String(x.id)===String(A.continuingSelectedId));
+  if (!r) return;
+  const root = document.getElementById('admin-root') || document;
+  const statusEl = root.querySelector('#ct-translate-status');
+  const btnZh    = root.querySelector('#ct-translate-zh');
+  const btnEn    = root.querySelector('#ct-translate-en');
+  if (!statusEl) return;
+
+  statusEl.style.display = '';
+  statusEl.textContent = '翻译中…';
+  if (btnZh) btnZh.disabled = true;
+  if (btnEn) btnEn.disabled = true;
+
+  try {
+    const [tr1, tr2, tr3] = await Promise.all([
+      translateField(r.first_year_reflection || '', targetLang),
+      translateField(r.gospel_confession     || '', targetLang),
+      translateField(r.calling_testimony     || '', targetLang),
+    ]);
+
+    const labelEl = root.querySelector('#ct-trans-lang-label');
+    if (labelEl) labelEl.textContent = targetLang === 'zh' ? '中文译文' : 'English Translation';
+
+    const e1 = root.querySelector('#ct-tr-reflection');
+    const e2 = root.querySelector('#ct-tr-confession');
+    const e3 = root.querySelector('#ct-tr-testimony');
+    if (e1) e1.textContent = tr1;
+    if (e2) e2.textContent = tr2;
+    if (e3) e3.textContent = tr3;
+
+    const orig  = root.querySelector('#ct-texts-original');
+    const trans = root.querySelector('#ct-texts-translated');
+    if (orig)  orig.style.display  = 'none';
+    if (trans) trans.style.display = '';
+
+    statusEl.textContent = '✅ 翻译完成';
+    setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+  } catch(e) {
+    statusEl.textContent = '翻译失败，请重试';
+  } finally {
+    if (btnZh) btnZh.disabled = false;
+    if (btnEn) btnEn.disabled = false;
+  }
+}
+
 async function reviewContinuingScholarship(schId, status, amount, note){
   if(!sb||!schId) return;
   if(A.role!=='admin' && A.role!=='teacher'){ toast('权限不足',false); return; }
@@ -5315,9 +5395,29 @@ function renderContinuingDetailModal(){
         ${kv('提交时间', String(r.created_at||'').slice(0,19).replace('T',' '))}
       </div>
 
-      ${sec('在本学院学习的主要收获', r.first_year_reflection)}
-      ${sec('福音认信', r.gospel_confession)}
-      ${sec('蒙召见证', r.calling_testimony)}
+      <!-- 一键翻译区 -->
+      <div class="row g2 wrap mb3" style="align-items:center">
+        <span class="t12 c-gray5 fw6">🌐 一键翻译证词</span>
+        <button class="btn btn-outline btn-sm" id="ct-translate-zh" data-target="zh">→ 中文</button>
+        <button class="btn btn-outline btn-sm" id="ct-translate-en" data-target="en">→ English</button>
+        <span class="t12 c-gray5" id="ct-translate-status" style="display:none"></span>
+      </div>
+
+      <!-- 原文三段 -->
+      <div id="ct-texts-original">
+        ${sec('在本学院学习的主要收获', r.first_year_reflection)}
+        ${sec('福音认信', r.gospel_confession)}
+        ${sec('蒙召见证', r.calling_testimony)}
+      </div>
+      <!-- 翻译结果（初始隐藏） -->
+      <div id="ct-texts-translated" style="display:none">
+        <div class="b1 r10 p3 mb3" style="border-color:#a5f3fc;background:#ecfeff">
+          <div class="t11 c-gray5 fw7 mb2" style="text-transform:uppercase;letter-spacing:.4px">🌐 <span id="ct-trans-lang-label">翻译</span> · <button class="btn btn-ghost btn-sm" id="ct-show-original" style="font-size:11px;padding:2px 8px">显示原文</button></div>
+          <div class="mb3"><div class="t11 c-gray5 fw7 mb1">在本学院学习的主要收获</div><div class="t13 c-gray8" id="ct-tr-reflection" style="white-space:pre-line;line-height:1.7"></div></div>
+          <div class="mb3"><div class="t11 c-gray5 fw7 mb1">福音认信</div><div class="t13 c-gray8" id="ct-tr-confession" style="white-space:pre-line;line-height:1.7"></div></div>
+          <div class="mb0"><div class="t11 c-gray5 fw7 mb1">蒙召见证</div><div class="t13 c-gray8" id="ct-tr-testimony" style="white-space:pre-line;line-height:1.7"></div></div>
+        </div>
+      </div>
 
       ${schBlock}
 
@@ -6628,6 +6728,19 @@ function bind(){
   }
   if(ctSel('ct-d-delete')){
     ctSel('ct-d-delete').addEventListener('click', ()=>deleteContinuingByAdmin(A.continuingSelectedId));
+  }
+  // 一键翻译
+  if(ctSel('ct-translate-zh')) ctSel('ct-translate-zh').addEventListener('click', ()=>doTranslateContinuing('zh'));
+  if(ctSel('ct-translate-en')) ctSel('ct-translate-en').addEventListener('click', ()=>doTranslateContinuing('en'));
+  if(ctSel('ct-show-original')){
+    ctSel('ct-show-original').addEventListener('click', ()=>{
+      const orig  = root.querySelector('#ct-texts-original');
+      const trans = root.querySelector('#ct-texts-translated');
+      const statusEl = root.querySelector('#ct-translate-status');
+      if (orig)  orig.style.display  = '';
+      if (trans) trans.style.display = 'none';
+      if (statusEl) statusEl.style.display = 'none';
+    });
   }
   // 奖学金批复
   if(ctSel('ct-sch-save')){
