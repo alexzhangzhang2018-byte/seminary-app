@@ -5076,38 +5076,76 @@ function mmLangCode(lang) {
   return 'en';  // 默认英文
 }
 
+const TRANSLATE_CHUNK_SIZE = 460;
+
 async function translateChunk(text, sourceLang, targetLang) {
   if (!text || !text.trim()) return '';
   const src = mmLangCode(sourceLang);
   const tgt = mmLangCode(targetLang);
   if (src === tgt) return text;
   const url = 'https://api.mymemory.translated.net/get?q='
-    + encodeURIComponent(text.slice(0, 480))
+    + encodeURIComponent(text)
     + '&langpair=' + src + '|' + tgt;
   try {
     const res = await fetch(url);
     const d   = await res.json();
-    // MyMemory 返回错误时 responseStatus !== 200
     if (d?.responseStatus && d.responseStatus !== 200) return text;
     return d?.responseData?.translatedText || text;
   } catch(e) { return text; }
 }
 
+// 将任意长文本按字符数切成不超过 TRANSLATE_CHUNK_SIZE 的片段
+function splitIntoChunks(text, size) {
+  const chunks = [];
+  // 优先在句号/问号/感叹号/换行处断开
+  const sentenceEnd = /[。！？.!?\n]/;
+  let start = 0;
+  while (start < text.length) {
+    if (start + size >= text.length) {
+      chunks.push(text.slice(start));
+      break;
+    }
+    // 在 size 附近找最近的句末符号
+    let cut = start + size;
+    for (let i = cut; i > start + size * 0.6; i--) {
+      if (sentenceEnd.test(text[i])) { cut = i + 1; break; }
+    }
+    chunks.push(text.slice(start, cut));
+    start = cut;
+  }
+  return chunks;
+}
+
 async function translateField(text, sourceLang, targetLang) {
   if (!text || !text.trim()) return '';
+  // 先按段落拆，再对超长段落按字符拆
   const paragraphs = text.split(/\n+/);
-  const results = [];
-  let buf = '';
+  const allChunks = [];
   for (const p of paragraphs) {
-    if ((buf + p).length > 460 && buf) {
-      results.push(await translateChunk(buf.trim(), sourceLang, targetLang));
-      buf = p + '\n';
-      await new Promise(r => setTimeout(r, 300));
-    } else {
-      buf += p + '\n';
+    if (p.length > TRANSLATE_CHUNK_SIZE) {
+      allChunks.push(...splitIntoChunks(p, TRANSLATE_CHUNK_SIZE));
+    } else if (p.trim()) {
+      allChunks.push(p);
     }
   }
-  if (buf.trim()) results.push(await translateChunk(buf.trim(), sourceLang, targetLang));
+  // 合并相邻短片段，减少请求次数
+  const batches = [];
+  let buf = '';
+  for (const c of allChunks) {
+    if ((buf + ' ' + c).trim().length > TRANSLATE_CHUNK_SIZE && buf) {
+      batches.push(buf.trim());
+      buf = c;
+    } else {
+      buf = buf ? buf + ' ' + c : c;
+    }
+  }
+  if (buf.trim()) batches.push(buf.trim());
+
+  const results = [];
+  for (const batch of batches) {
+    results.push(await translateChunk(batch, sourceLang, targetLang));
+    if (batches.length > 1) await new Promise(r => setTimeout(r, 300));
+  }
   return results.join('\n\n');
 }
 
