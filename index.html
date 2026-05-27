@@ -5069,32 +5069,34 @@ async function deleteContinuingByAdmin(id){
 }
 
 // ── 一键翻译（MyMemory 免费 API）────────────────────────────────
-// MyMemory 不支持所有语言对直连，需要特殊处理
-// 语言代码：id / en / zh
+// 注册 https://mymemory.translated.net 后将邮箱填入下方
+// 免费账号：10,000 字符/天；留空则匿名 5,000 字符/天
+const MM_API_EMAIL = alexzhangzhang2018@gmail.com';  // ← 替换为注册邮箱
+
 function mmLangCode(lang) {
   if (lang === 'zh' || lang === 'zh-CN') return 'zh';
   if (lang === 'id') return 'id';
   return 'en';
 }
 
-// 不支持直连的语言对，需通过英文中转
-const MM_NEEDS_PIVOT = new Set(['id|zh', 'id|zh-CN', 'zh|id', 'zh-CN|id']);
+// 印尼语↔中文不支持直连，需通过英文中转
+const MM_NEEDS_PIVOT = new Set(['id|zh', 'zh|id']);
 
 const TRANSLATE_CHUNK_SIZE = 460;
 
-// 单段直连翻译，返回译文或 null（失败时）
 async function translateChunkDirect(text, src, tgt) {
-  const url = 'https://api.mymemory.translated.net/get?q='
+  let url = 'https://api.mymemory.translated.net/get?q='
     + encodeURIComponent(text)
-    + '&langpair=' + src + '%7C' + tgt;  // %7C = |
+    + '&langpair=' + src + '|' + tgt;
+  if (MM_API_EMAIL && MM_API_EMAIL !== 'your@email.com') {
+    url += '&de=' + encodeURIComponent(MM_API_EMAIL);
+  }
   try {
     const res = await fetch(url);
     const d   = await res.json();
-    // responseStatus 200 = 成功；403/429 = 超限；其他 = 不支持该语言对
     if (!d?.responseData?.translatedText) return null;
     if (d.responseStatus !== 200) return null;
     const t = d.responseData.translatedText.trim();
-    // API 有时原样返回原文（不支持的语言对），检测一下
     if (t.toLowerCase() === text.trim().toLowerCase()) return null;
     return t;
   } catch(e) { return null; }
