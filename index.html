@@ -1617,7 +1617,7 @@ const progTag  = prog => {const s=PROG_STYLE[prog]||{bg:'#f3f4f6',color:'#6b7280
 const stageTag = stage => {const s=STAGE_STYLE[stage]||{bg:'#f3f4f6',color:'#6b7280'};const lab=(STAGES.find(x=>x.id===stage)||{}).label||(STAFF_STAGE_OPTIONS.find(x=>x.id===stage)||{}).label||stage;return mkTag(s.bg,s.color,lab);}
 
 // ── Exam schedule helpers ──────────────────────────────────────
-const EXAM_OPEN_DAYS_WIB = [1,3,6]; // Mon/Wed/Sat (0=Sun)
+const EXAM_OPEN_DAYS_WIB = [1,3,5]; // Mon/Wed/Fri (0=Sun)
 const EXAM_WIB_START = '09:00';
 const EXAM_WIB_END   = '11:30';
 const EXAM_ZOOM_ID = '847 5014 4631';
@@ -1658,7 +1658,7 @@ function nextExamStartUtc(){
 }
 
 function getExamWindowUtc(){
-  // 考试窗口固定：WIB 周一/周三/周六 09:00-11:30（150 分钟）
+  // 考试窗口固定：WIB 周一/周三/周五 09:00-11:30（150 分钟）
   const nowMs = Date.now();
   const startParts = parseHHMM(EXAM_WIB_START) || {hh:9,mm:0};
   const intervalMs = 150*60*1000;
@@ -3473,7 +3473,7 @@ function renderApplicant(){
         <div class="t13 c-gray5 mb4 lh16">
           ${esc(apLine(`共 ${nQ} 道题`,`${nQ} questions`,`${nQ} soal`))}<br>
           ${esc(apLine('考试时长 150 分钟','150 minutes total','Durasi 150 menit'))}<br>
-          ${esc(apLine('开放时间：周一 / 周三 / 周六','Open: Mon / Wed / Sat','Buka: Sen / Rab / Sab'))}<br>
+          ${esc(apLine('开放时间：周一 / 周三 / 周五','Open: Mon / Wed / Fri','Buka: Sen / Rab / Jum'))}<br>
           ${esc(apLine(`印尼时间（WIB） ${EXAM_WIB_START}–${EXAM_WIB_END}；北京时间 10:00–12:30`,`WIB ${EXAM_WIB_START}–${EXAM_WIB_END}; Beijing 10:00–12:30`,`WIB ${EXAM_WIB_START}–${EXAM_WIB_END}; Beijing 10:00–12:30`))}
         </div>
 
@@ -3555,7 +3555,7 @@ function renderExamDoing(){
     return `<div class="maxw-lg mx-auto px4" style="padding:28px 16px 64px">
       <div class="t48 mb3">⛔</div>
       <div class="t22 fw7 c-gray8 mb2">${esc(apLine('当前不可答题','Exam closed','Ujian tertutup'))}</div>
-      <div class="t13 c-gray5 mb4 lh16">${esc(apLine(`仅在印尼时间周一/三/六上午 ${EXAM_WIB_START}–${EXAM_WIB_END} 可答题。`,`Available Mon/Wed/Sat mornings WIB ${EXAM_WIB_START}–${EXAM_WIB_END} only.`,`Hanya Sen/Rab/Sab pagi WIB ${EXAM_WIB_START}–${EXAM_WIB_END}.`))}</div>
+      <div class="t13 c-gray5 mb4 lh16">${esc(apLine(`仅在印尼时间周一/三/五上午 ${EXAM_WIB_START}–${EXAM_WIB_END} 可答题。`,`Available Mon/Wed/Fri mornings WIB ${EXAM_WIB_START}–${EXAM_WIB_END} only.`,`Hanya Sen/Rab/Jum pagi WIB ${EXAM_WIB_START}–${EXAM_WIB_END}.`))}</div>
       <div class="card p4 tl mb4">
         <div class="fw7 c-gray8 t13 mb2">${esc(apLine('下一次开放时间','Next window','Jendela berikutnya'))}</div>
         <div class="t12 c-gray7 lh16">
