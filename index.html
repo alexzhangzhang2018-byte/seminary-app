@@ -419,10 +419,11 @@ function guessExamLangFromApplication(ap){
 }
 function shouldAutoSetExamLang(ap,inferred){
   if(!inferred||getApplicantExamLang(ap)===inferred) return false;
-  if(guessExamLangFromLanguageProficiency(ap)) return true;
+  // 仅对新导入（小红点）或尚未明确设置语言的记录自动填写；不覆盖教务手动修改
   if(ap.sheet_import_unseen) return true;
   const raw=String(ap?.exam_lang||'').toLowerCase();
-  if(!raw||raw==='zh') return inferred!=='zh';
+  if(!raw||raw==='') return true;
+  if(raw==='zh') return inferred!=='zh';
   return false;
 }
 function partitionApplicantsByExamLang(aps){
@@ -6694,6 +6695,7 @@ function bind(){
       const payload={
         exam_lang,
         campus_code,
+        sheet_import_unseen:false,
         phone:(document.getElementById('brief-ap-phone')?.value||'').trim()||null,
         email:(document.getElementById('brief-ap-email')?.value||'').trim()||null,
         gender:(document.getElementById('brief-ap-gender')?.value||'')||null,
@@ -6710,6 +6712,7 @@ function bind(){
       if(!error){
         const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
         if(ap) Object.assign(ap,payload);
+        if(ap) ap.sheet_import_unseen=false;
         toast('基本资料已保存');
         render();
       } else toast('保存失败：'+(error?.message||''),false);
@@ -6973,6 +6976,7 @@ function bind(){
 
     const payload={
       exam_lang,
+      sheet_import_unseen:false,
       gender: gender||null,
       hometown: hometown||null,
       education: education||null,
@@ -6993,6 +6997,7 @@ function bind(){
       A.editApInfoId=null;
       const apRow=A.allApplicants.find(a=>String(a.id)===String(apid));
       if(apRow) apRow.exam_lang=exam_lang;
+      if(apRow) apRow.sheet_import_unseen=false;
     await loadAdminData({fast:true});
       render();
     } else {
