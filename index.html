@@ -157,7 +157,8 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
 .modal-sm{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:400px;box-shadow:0 24px 50px rgba(0,0,0,.2)}
-.modal-lg{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 50px rgba(0,0,0,.2)}
+.modal-lg{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 50px rgba(0,0,0,.2);-webkit-overflow-scrolling:touch}
+.modal-overlay .btn,.modal-overlay button{touch-action:manipulation}
 
 /* Login */
 .login-card{background:#fff;border-radius:22px;padding:32px;box-shadow:0 20px 40px rgba(0,0,0,.1);width:100%;max-width:420px}
@@ -192,7 +193,7 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* Toast */
-.toast{position:fixed;bottom:24px;right:24px;background:#1f2937;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast{position:fixed;bottom:24px;right:24px;background:#1f2937;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;max-width:min(420px,calc(100vw - 32px))}
 .toast.show{opacity:1}
 
 /* Notif preview */
@@ -213,6 +214,10 @@ html{overflow-x:hidden}
 /* 防止 iOS 点击 input 时自动放大（font-size < 16px 会触发） */
 @media(max-width:767px){
   input,textarea,select{font-size:16px}
+  /* 手机：提示居中显示，避免右下角看不到 */
+  .toast{left:50%;right:auto;bottom:max(20px,env(safe-area-inset-bottom,20px));transform:translateX(-50%);text-align:center}
+  /* 手机：「添加申请人」按钮固定在顶部，避免被看板横向滚动挤掉视线 */
+  .pipeline-toolbar{position:sticky;top:0;z-index:12;background:#f4f5ff;padding:10px 0 12px;margin:-4px 0 8px;border-bottom:1px solid #e5e7eb}
 }
 
 /* 考试页面：全平台字体 17px，手机电脑统一，阅读舒适 */
@@ -5427,8 +5432,8 @@ function renderPipeline(){
           </div>`;
   const emptyHtml=`<div style="font-size:11px;color:#d1d5db;text-align:center;padding:16px 0;border:2px dashed #f3f4f6;border-radius:12px">暂无</div>`;
   return `<div>
-    ${canAddAp?`<div class="row g2 mb4">
-      <button class="btn btn-primary btn-sm" data-action="show-add-ap-modal">➕ 手动添加申请人</button>
+    ${canAddAp?`<div class="row g2 pipeline-toolbar">
+      <button class="btn btn-primary" data-action="show-add-ap-modal" style="min-height:44px">➕ 手动添加申请人</button>
     </div>`:''}
     <div class="kanban">
     ${STAGES.map(sg=>{
@@ -5467,8 +5472,8 @@ function renderAddApModal(){
           <input id="add-ap-name" class="inp" placeholder="例：张三">
         </div>
         <div>
-          <div class="t12 fw6 c-gray6 mb1">手机号</div>
-          <input id="add-ap-phone" class="inp" placeholder="例：13812345678">
+          <div class="t12 fw6 c-gray6 mb1">手机号 * <span class="t11 c-gray4 fw4">（至少后四位，学生登录用）</span></div>
+          <input id="add-ap-phone" class="inp" type="tel" inputmode="numeric" autocomplete="tel" placeholder="例：13812345678">
         </div>
         <div>
           <div class="t12 fw6 c-gray6 mb1">邮箱</div>
@@ -6049,6 +6054,26 @@ function render(){
   syncStaffApplicantsPoll();
 }
 
+// 弹窗遮罩：仅点击灰色背景才关闭（避免手机端误触内容区导致弹窗关闭、保存失败）
+function modalBackdropShouldClose(e){
+  return e.target === e.currentTarget;
+}
+function bindModalClose(root, selector, onClose){
+  root.querySelectorAll(selector).forEach(el=>{
+    el.addEventListener('click', e=>{
+      if(el.classList.contains('modal-overlay') && !modalBackdropShouldClose(e)) return;
+      onClose();
+    });
+  });
+}
+function toIsoDateOrNull(raw){
+  const s=String(raw||'').trim();
+  if(!s) return null;
+  const d=new Date(s);
+  if(Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
 function bind(){
   const root=document.getElementById('root');
 
@@ -6600,18 +6625,18 @@ function bind(){
       render();
     });
   });
-  root.querySelectorAll('[data-action="continuing-close"]').forEach(el=>{
-    el.addEventListener('click', ()=>{ A.continuingSelectedId = null; render(); });
-  });
+  bindModalClose(root, '[data-action="continuing-close"]', ()=>{ A.continuingSelectedId = null; render(); });
   if(ctSel('ct-d-save-status')){
-    ctSel('ct-d-save-status').addEventListener('click', ()=>{
+    ctSel('ct-d-save-status').addEventListener('click', e=>{
+      e.stopPropagation();
       const v = ctSel('ct-d-status')?.value;
       if(!v) return;
       saveContinuingByStaff(A.continuingSelectedId, {status: v});
     });
   }
   if(ctSel('ct-d-save-notes')){
-    ctSel('ct-d-save-notes').addEventListener('click', ()=>{
+    ctSel('ct-d-save-notes').addEventListener('click', e=>{
+      e.stopPropagation();
       const v = ctSel('ct-d-notes')?.value || '';
       saveContinuingByStaff(A.continuingSelectedId, {admin_notes: v});
     });
@@ -6633,7 +6658,8 @@ function bind(){
   }
   // 奖学金批复
   if(ctSel('ct-sch-save')){
-    ctSel('ct-sch-save').addEventListener('click', ()=>{
+    ctSel('ct-sch-save').addEventListener('click', e=>{
+      e.stopPropagation();
       const schId = ctSel('ct-sch-save').dataset.schid;
       const status = ctSel('ct-sch-status')?.value;
       const amtRaw = ctSel('ct-sch-amount')?.value;
@@ -6651,9 +6677,7 @@ function bind(){
       A.selectedApId=apid;render();
     });
   });
-  root.querySelectorAll('[data-action=close-modal]').forEach(el=>{
-    el.addEventListener('click',()=>{A.selectedApId=null;render();});
-  });
+  bindModalClose(root, '[data-action=close-modal]', ()=>{ A.selectedApId=null; render(); });
 
   // ── Briefing ──
   root.querySelectorAll('[data-action=view-briefing]').forEach(el=>{
@@ -6666,9 +6690,7 @@ function bind(){
       A.briefingId=apid;A.selectedApId=null;render();
     });
   });
-  root.querySelectorAll('[data-action=close-briefing]').forEach(el=>{
-    el.addEventListener('click',()=>{A.briefingId=null;render();});
-  });
+  bindModalClose(root, '[data-action=close-briefing]', ()=>{ A.briefingId=null; render(); });
 
   root.querySelectorAll('[data-action=brief-apply-inferred-lang]').forEach(el=>{
     el.addEventListener('click',()=>{
@@ -6682,7 +6704,8 @@ function bind(){
   });
 
   root.querySelectorAll('[data-action=save-brief-basic]').forEach(el=>{
-    el.addEventListener('click',async()=>{
+    el.addEventListener('click',async e=>{
+      e.stopPropagation();
       if(A.role!=='admin'&&A.role!=='teacher') return;
       const apid=el.dataset.apid;
       if(!apid) return;
@@ -6705,17 +6728,21 @@ function bind(){
         denomination:(document.getElementById('brief-ap-denom')?.value||'')||null,
         language_proficiency:(document.getElementById('brief-ap-language')?.value||'')||null,
         marital_status:(document.getElementById('brief-ap-marital')?.value||'')||null,
-        conversion_time: conversion_time_raw ? new Date(conversion_time_raw).toISOString() : null,
+        conversion_time: toIsoDateOrNull(conversion_time_raw),
         date_of_birth: dob_raw ? dob_raw : null,
       };
-      const {error}=await sb.from('applicants').update(payload).eq('id',apid);
-      if(!error){
-        const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
-        if(ap) Object.assign(ap,payload);
-        if(ap) ap.sheet_import_unseen=false;
-        toast('基本资料已保存');
-        render();
-      } else toast('保存失败：'+(error?.message||''),false);
+      try{
+        const {error}=await sb.from('applicants').update(payload).eq('id',apid);
+        if(!error){
+          const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+          if(ap) Object.assign(ap,payload);
+          if(ap) ap.sheet_import_unseen=false;
+          toast('基本资料已保存');
+          render();
+        } else toast('保存失败：'+(error?.message||''),false);
+      }catch(err){
+        toast('保存失败：'+(err?.message||err),false);
+      }
     });
   });
   root.querySelectorAll('[data-action=save-brief-testimony]').forEach(el=>{
@@ -6873,10 +6900,9 @@ function bind(){
       A.showAddApModal=true;render();
     });
   });
-  root.querySelectorAll('[data-action=close-add-ap-modal]').forEach(el=>{
-    el.addEventListener('click',()=>{A.showAddApModal=false;render();});
-  });
-  document.getElementById('btn-save-add-ap')?.addEventListener('click',async()=>{
+  bindModalClose(root, '[data-action=close-add-ap-modal]', ()=>{ A.showAddApModal=false; render(); });
+  document.getElementById('btn-save-add-ap')?.addEventListener('click',async e=>{
+    e.stopPropagation();
     if(isVisaOpsStaff()) return;
     if(A.role!=='admin'&&A.role!=='teacher') return;
     const name=(document.getElementById('add-ap-name')?.value||'').trim();
@@ -6888,7 +6914,7 @@ function bind(){
     const phoneDigits=(phone||'').replace(/\D/g,'');
     const last4=phoneDigits.length>=4?phoneDigits.slice(-4):phoneDigits;
     if(!last4||last4.length!==4){
-      toast('请填写手机号后四位（或完整手机号）',false);
+      toast('请填写手机号（至少后四位），学生凭「姓名+后四位」登录',false);
       return;
     }
     const rpcRes=await sb.rpc('create_applicant_by_staff',{
@@ -6953,10 +6979,9 @@ function bind(){
       render();
     });
   });
-  root.querySelectorAll('[data-action=close-edit-ap-info]').forEach(el=>{
-    el.addEventListener('click',()=>{A.showEditApInfoModal=false;A.editApInfoId=null;render();});
-  });
-  document.getElementById('btn-save-ap-info')?.addEventListener('click',async()=>{
+  bindModalClose(root, '[data-action=close-edit-ap-info]', ()=>{ A.showEditApInfoModal=false; A.editApInfoId=null; render(); });
+  document.getElementById('btn-save-ap-info')?.addEventListener('click',async e=>{
+    e.stopPropagation();
     if(A.role!=='admin') return;
     const apid=document.getElementById('btn-save-ap-info')?.dataset?.apid;
     if(!apid) return;
@@ -6984,24 +7009,28 @@ function bind(){
       denomination: denomination||null,
       language_proficiency: language_proficiency||null,
       marital_status: marital_status||null,
-      conversion_time: conversion_time_raw ? new Date(conversion_time_raw).toISOString() : null,
+      conversion_time: toIsoDateOrNull(conversion_time_raw),
       conversion_testimony: conversion_testimony||null,
       ministry_experience: ministry_experience||null,
       admin_notes: admin_notes||null,
     };
 
-    const {error}=await sb.from('applicants').update(payload).eq('id',apid);
-    if(!error){
-      toast('档案信息已保存');
-      A.showEditApInfoModal=false;
-      A.editApInfoId=null;
-      const apRow=A.allApplicants.find(a=>String(a.id)===String(apid));
-      if(apRow) apRow.exam_lang=exam_lang;
-      if(apRow) apRow.sheet_import_unseen=false;
-    await loadAdminData({fast:true});
-      render();
-    } else {
-      toast('保存失败：'+(error?.message||'未知错误'),false);
+    try{
+      const {error}=await sb.from('applicants').update(payload).eq('id',apid);
+      if(!error){
+        toast('档案信息已保存');
+        A.showEditApInfoModal=false;
+        A.editApInfoId=null;
+        const apRow=A.allApplicants.find(a=>String(a.id)===String(apid));
+        if(apRow) apRow.exam_lang=exam_lang;
+        if(apRow) apRow.sheet_import_unseen=false;
+        await loadAdminData({fast:true});
+        render();
+      } else {
+        toast('保存失败：'+(error?.message||'未知错误'),false);
+      }
+    }catch(err){
+      toast('保存失败：'+(err?.message||err),false);
     }
   });
 
@@ -7038,9 +7067,7 @@ function bind(){
       A.selectedApId=el.dataset.apid;A.showRecordForm=true;A.briefingId=null;render();
     });
   });
-  root.querySelectorAll('[data-action=close-record-form]').forEach(el=>{
-    el.addEventListener('click',()=>{A.showRecordForm=false;render();});
-  });
+  bindModalClose(root, '[data-action=close-record-form]', ()=>{ A.showRecordForm=false; render(); });
   document.getElementById('btn-save-record')?.addEventListener('click',async()=>{
     if(!staffCanEditApplicantStage()) return;
     const content=document.getElementById('rec-content')?.value;
