@@ -4984,13 +4984,14 @@ function renderScholarshipReview(){
 // ══════════════════════════════════════════════════════════════
 const CONTINUING_STATUS_STYLE = {
   submitted:    {bg:'#f1f5f9',color:'#475569',label:'已提交'},
-  under_review: {bg:'#dbeafe',color:'#1d4ed8',label:'审核中'},
-  interview:    {bg:'#ede9fe',color:'#6d28d9',label:'安排面试'},
+  interview:    {bg:'#ede9fe',color:'#6d28d9',label:'已面试'},
   admitted:     {bg:'#dcfce7',color:'#15803d',label:'已录取'},
   waitlist:     {bg:'#fef9c3',color:'#854d0e',label:'候补'},
+  // 旧状态（仅用于历史记录展示，不再出现在筛选/统计/下拉）
+  under_review: {bg:'#dbeafe',color:'#1d4ed8',label:'审核中'},
   rejected:     {bg:'#fee2e2',color:'#dc2626',label:'婉拒'},
 };
-const CONTINUING_STATUSES = ['submitted','under_review','interview','admitted','waitlist','rejected'];
+const CONTINUING_STATUSES = ['submitted','interview','admitted','waitlist'];
 const CONTINUING_AID_LABEL = {
   full_scholarship: '全额奖学金',
   partial_aid:      '助学金',
