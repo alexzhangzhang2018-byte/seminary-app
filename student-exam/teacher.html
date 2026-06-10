@@ -126,7 +126,7 @@ async function loadSubjectsForDay() {
   S.subjects = [];
   if (!S.selectedDayId) return;
   const { data } = await sb.from('student_exam_day_subjects')
-    .select('id,subject_name,grade,start_at,end_at,sort_order,paper_id')
+    .select('id,subject_name,grade,class_track,start_at,end_at,sort_order,paper_id')
     .eq('exam_day_id', S.selectedDayId)
     .order('sort_order');
   S.subjects = data || [];
@@ -145,7 +145,7 @@ function renderGrades() {
     `<option value="${d.id}"${d.id === S.selectedDayId ? ' selected' : ''}>${esc(d.title)} (${d.exam_date})</option>`
   ).join('');
   const subOpts = S.subjects.map((s) =>
-    `<option value="${s.id}"${s.id === S.selectedSubjectId ? ' selected' : ''}>${esc(s.subject_name)} · ${s.grade}年级</option>`
+    `<option value="${s.id}"${s.id === S.selectedSubjectId ? ' selected' : ''}>${esc(s.subject_name)} · ${s.grade}年级 · ${s.class_track === 'id' ? '印尼班' : '中英班'}</option>`
   ).join('');
   const rows = S.attempts.map((a) => {
     const gs = a.grading_status === 'done' || a.grading_status === 'none' ? 'tag-done' : 'tag-pending';
@@ -153,6 +153,7 @@ function renderGrades() {
     return `<tr class="sel" data-aid="${a.id}">
       <td>${esc(a.display_name)}</td>
       <td>${a.grade}</td>
+      <td>${a.class_track === 'id' ? '印尼班' : '中英班'}</td>
       <td>${esc(a.exam_lang)}</td>
       <td>${a.objective_score ?? '—'}</td>
       <td>${a.subjective_score ?? '—'}</td>
@@ -172,7 +173,7 @@ function renderGrades() {
       <button class="btn btn-o" id="btn-export-csv" style="margin:8px 0">导出 CSV</button>
       <table>
         <thead><tr>
-          <th>姓名</th><th>年级</th><th>语言</th><th>客观</th><th>主观</th><th>总分</th><th>阅卷</th><th>切屏</th>
+          <th>姓名</th><th>年级</th><th>班级</th><th>语言</th><th>客观</th><th>主观</th><th>总分</th><th>阅卷</th><th>切屏</th>
         </tr></thead>
         <tbody>${rows || '<tr><td colspan="8" class="muted">暂无答卷</td></tr>'}</tbody>
       </table>
@@ -197,9 +198,9 @@ function renderGrades() {
 }
 
 function exportCsv() {
-  const hdr = ['姓名', '年级', '语言', '客观分', '主观分', '总分', '阅卷状态', '切屏', '交卷时间'];
+  const hdr = ['姓名', '年级', '班级', '语言', '客观分', '主观分', '总分', '阅卷状态', '切屏', '交卷时间'];
   const lines = S.attempts.map((a) => [
-    a.display_name, a.grade, a.exam_lang,
+    a.display_name, a.grade, a.class_track === 'id' ? '印尼班' : '中英班', a.exam_lang,
     a.objective_score ?? '', a.subjective_score ?? '', a.total_score ?? '',
     a.grading_status, a.proctor_flags ?? 0, a.submitted_at ?? '',
   ].map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','));
@@ -330,9 +331,10 @@ function renderDays() {
       <input class="inp" id="d-date" type="date">
       <div id="sub-rows">
         <div class="grid2 sub-row" style="margin-bottom:8px">
-          <input class="inp sub-name" placeholder="科目名">
+          <input class="inp sub-name" placeholder="科目名（如：启示录）">
           <select class="sel sub-paper">${paperOpts}</select>
           <input class="inp sub-grade" type="number" min="1" max="3" value="2" placeholder="年级">
+          <select class="sel sub-track"><option value="zh_en">中英班</option><option value="id">印尼语班</option></select>
           <input class="inp sub-start" type="datetime-local">
           <input class="inp sub-end" type="datetime-local">
         </div>
@@ -356,6 +358,7 @@ function renderDays() {
       subject_name: row.querySelector('.sub-name').value,
       paper_id: row.querySelector('.sub-paper').value,
       grade: +row.querySelector('.sub-grade').value,
+      class_track: row.querySelector('.sub-track').value,
       start_at: new Date(row.querySelector('.sub-start').value).toISOString(),
       end_at: new Date(row.querySelector('.sub-end').value).toISOString(),
       sort_order: i,

@@ -20,6 +20,9 @@ export const UI = {
     full_name: '姓名',
     grade: '年级',
     grade1: '一年级', grade2: '二年级', grade3: '三年级',
+    class_track: '班级',
+    track_zh_en: '中英班（试卷：启·撒·诗 等）',
+    track_id: '印尼语班（试卷：启·撒·来 等）',
     exam_lang: '答卷语言',
     phone_last4: '手机/WhatsApp 后 4 位（选填，换设备时恢复）',
     btn_checkin: '签到并开始',
@@ -55,6 +58,9 @@ export const UI = {
     full_name: 'Full name',
     grade: 'Year',
     grade1: 'Year 1', grade2: 'Year 2', grade3: 'Year 3',
+    class_track: 'Class',
+    track_zh_en: 'Chinese/English track',
+    track_id: 'Indonesian track',
     exam_lang: 'Exam language',
     phone_last4: 'Last 4 digits of phone/WhatsApp (optional)',
     btn_checkin: 'Check in',
@@ -90,6 +96,9 @@ export const UI = {
     full_name: 'Nama lengkap',
     grade: 'Angkatan',
     grade1: 'Tahun 1', grade2: 'Tahun 2', grade3: 'Tahun 3',
+    class_track: 'Kelas',
+    track_zh_en: 'Kelas Cina/Inggris',
+    track_id: 'Kelas Bahasa Indonesia',
     exam_lang: 'Bahasa ujian',
     phone_last4: '4 digit terakhir HP/WhatsApp (opsional)',
     btn_checkin: 'Check-in',
@@ -153,6 +162,16 @@ export function fmtTimer(sec) {
 
 export function gradeLabel(g, lang) {
   return t(lang, `grade${g}`);
+}
+
+export function trackLabel(track, lang) {
+  return track === 'id' ? t(lang, 'track_id') : t(lang, 'track_zh_en');
+}
+
+/** 中英班可选 zh/en；印尼班固定 id */
+export function examLangOptionsForTrack(track) {
+  if (track === 'id') return [{ v: 'id', l: 'Bahasa Indonesia' }];
+  return [{ v: 'zh', l: '中文' }, { v: 'en', l: 'English' }];
 }
 
 export function renderQuestionHtml(q, answers, lang) {
