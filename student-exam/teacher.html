@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>内部考试 · 教师端</title>
+<script src="/vendor/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;color:#1e293b;font-size:14px}
+button,input,textarea,select{font:inherit}
+a{color:#4f46e5}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.hdr h1{font-size:18px;font-weight:800}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;font-weight:600}
+.tab.on{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px;margin-bottom:14px}
+.card h2{font-size:15px;font-weight:800;margin-bottom:12px}
+.inp,.sel,.textarea{width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;margin-bottom:8px}
+.textarea{min-height:160px;font-family:ui-monospace,monospace;font-size:12px}
+.btn{padding:9px 16px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:#4f46e5;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-o{background:#fff;color:#4f46e5;border:1px solid #c7d2fe}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid #f1f5f9;text-align:left}
+th{font-size:11px;color:#64748b;text-transform:uppercase}
+tr.sel{background:#eef2ff;cursor:pointer}
+.tag{font-size:11px;padding:3px 8px;border-radius:999px;font-weight:700}
+.tag-pending{background:#fef3c7;color:#92400e}
+.tag-done{background:#dcfce7;color:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+.grade-box{border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px}
+.muted{color:#64748b;font-size:12px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transition:.2s;z-index:9}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <h1>内部考试 · 教师端</h1>
+    <div id="auth-area"></div>
+  </div>
+  <div id="login-panel" class="card" style="max-width:400px">
+    <h2>教务登录</h2>
+    <input class="inp" id="login-email" type="email" placeholder="邮箱">
+    <input class="inp" id="login-pw" type="password" placeholder="密码">
+    <button class="btn" id="btn-login">登录</button>
+    <p class="muted" style="margin-top:10px">使用招生系统同一教务账号（admin / teacher）</p>
+  </div>
+  <div id="main-panel" style="display:none">
+    <div class="tabs">
+      <button class="tab on" data-tab="grades">成绩</button>
+      <button class="tab" data-tab="papers">题库/试卷</button>
+      <button class="tab" data-tab="days">考试日</button>
+    </div>
+    <div id="tab-grades"></div>
+    <div id="tab-papers" style="display:none"></div>
+    <div id="tab-days" style="display:none"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script type="module">
+import { createSb, esc } from './shared.js';
+
+const sb = createSb();
+const S = {
+  user: null,
+  profile: null,
+  tab: 'grades',
+  days: [],
+  papers: [],
+  subjects: [],
+  selectedDayId: null,
+  selectedSubjectId: null,
+  attempts: [],
+  gradingAttempt: null,
+};
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (error) { toast(error.message); return; }
+  S.user = data.user;
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+  S.profile = prof;
+  if (!['admin', 'teacher'].includes(prof?.role)) {
+    toast('无权限');
+    await sb.auth.signOut();
+    return;
+  }
+  document.getElementById('login-panel').style.display = 'none';
+  document.getElementById('main-panel').style.display = 'block';
+  document.getElementById('auth-area').innerHTML = `<span class="muted">${esc(prof.display_name || email)}</span> <button class="btn-o btn" id="btn-logout" style="margin-left:8px;padding:6px 12px">退出</button>`;
+  document.getElementById('btn-logout').onclick = async () => {
+    await sb.auth.signOut();
+    location.reload();
+  };
+  await loadAll();
+}
+
+async function loadAll() {
+  const [d, p] = await Promise.all([
+    sb.rpc('staff_student_exam_list_days'),
+    sb.rpc('staff_student_exam_list_papers'),
+  ]);
+  S.days = d.data?.days || [];
+  S.papers = p.data?.papers || [];
+  if (!S.selectedDayId && S.days[0]) S.selectedDayId = S.days[0].id;
+  await loadSubjectsForDay();
+  render();
+}
+
+async function loadSubjectsForDay() {
+  S.subjects = [];
+  if (!S.selectedDayId) return;
+  const { data } = await sb.from('student_exam_day_subjects')
+    .select('id,subject_name,grade,start_at,end_at,sort_order,paper_id')
+    .eq('exam_day_id', S.selectedDayId)
+    .order('sort_order');
+  S.subjects = data || [];
+  if (!S.selectedSubjectId && S.subjects[0]) S.selectedSubjectId = S.subjects[0].id;
+  if (S.selectedSubjectId) await loadAttempts();
+}
+
+async function loadAttempts() {
+  if (!S.selectedSubjectId) { S.attempts = []; return; }
+  const { data } = await sb.rpc('staff_student_exam_list_attempts', { p_day_subject_id: S.selectedSubjectId });
+  S.attempts = data?.attempts || [];
+}
+
+function renderGrades() {
+  const dayOpts = S.days.map((d) =>
+    `<option value="${d.id}"${d.id === S.selectedDayId ? ' selected' : ''}>${esc(d.title)} (${d.exam_date})</option>`
+  ).join('');
+  const subOpts = S.subjects.map((s) =>
+    `<option value="${s.id}"${s.id === S.selectedSubjectId ? ' selected' : ''}>${esc(s.subject_name)} · ${s.grade}年级</option>`
+  ).join('');
+  const rows = S.attempts.map((a) => {
+    const gs = a.grading_status === 'done' || a.grading_status === 'none' ? 'tag-done' : 'tag-pending';
+    const gt = a.grading_status === 'none' ? '仅客观' : a.grading_status === 'done' ? '已阅' : '待阅';
+    return `<tr class="sel" data-aid="${a.id}">
+      <td>${esc(a.display_name)}</td>
+      <td>${a.grade}</td>
+      <td>${esc(a.exam_lang)}</td>
+      <td>${a.objective_score ?? '—'}</td>
+      <td>${a.subjective_score ?? '—'}</td>
+      <td><strong>${a.total_score ?? '—'}</strong></td>
+      <td><span class="tag ${gs}">${gt}</span></td>
+      <td>${a.proctor_flags || 0}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tab-grades').innerHTML = `
+    <div class="card">
+      <h2>成绩列表</h2>
+      <div class="grid2">
+        <select class="sel" id="sel-day">${dayOpts || '<option>暂无考试日</option>'}</select>
+        <select class="sel" id="sel-subject">${subOpts || '<option>暂无科目</option>'}</select>
+      </div>
+      <button class="btn btn-o" id="btn-export-csv" style="margin:8px 0">导出 CSV</button>
+      <table>
+        <thead><tr>
+          <th>姓名</th><th>年级</th><th>语言</th><th>客观</th><th>主观</th><th>总分</th><th>阅卷</th><th>切屏</th>
+        </tr></thead>
+        <tbody>${rows || '<tr><td colspan="8" class="muted">暂无答卷</td></tr>'}</tbody>
+      </table>
+    </div>
+    <div id="grade-panel"></div>`;
+
+  document.getElementById('sel-day')?.addEventListener('change', async (e) => {
+    S.selectedDayId = e.target.value;
+    S.selectedSubjectId = null;
+    await loadSubjectsForDay();
+    render();
+  });
+  document.getElementById('sel-subject')?.addEventListener('change', async (e) => {
+    S.selectedSubjectId = e.target.value;
+    await loadAttempts();
+    render();
+  });
+  document.querySelectorAll('[data-aid]').forEach((tr) => {
+    tr.addEventListener('click', () => openGrading(tr.dataset.aid));
+  });
+  document.getElementById('btn-export-csv')?.addEventListener('click', exportCsv);
+}
+
+function exportCsv() {
+  const hdr = ['姓名', '年级', '语言', '客观分', '主观分', '总分', '阅卷状态', '切屏', '交卷时间'];
+  const lines = S.attempts.map((a) => [
+    a.display_name, a.grade, a.exam_lang,
+    a.objective_score ?? '', a.subjective_score ?? '', a.total_score ?? '',
+    a.grading_status, a.proctor_flags ?? 0, a.submitted_at ?? '',
+  ].map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','));
+  const blob = new Blob(['\uFEFF' + hdr.join(',') + '\n' + lines.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'exam-grades.csv';
+  a.click();
+}
+
+async function openGrading(attemptId) {
+  const { data } = await sb.rpc('staff_student_exam_get_attempt', { p_attempt_id: attemptId });
+  if (!data?.ok) { toast('加载失败'); return; }
+  S.gradingAttempt = data;
+  const items = data.grading_items || [];
+  if (!items.length) {
+    document.getElementById('grade-panel').innerHTML = `<div class="card"><p class="muted">该答卷无主观题，客观分：${data.attempt.objective_score ?? '—'}</p></div>`;
+    return;
+  }
+  const blocks = items.map((gi) => {
+    const q = (data.paper || []).find((x) => x.group_id === gi.group_id);
+    const loc = q?.locales?.[data.check_in.exam_lang] || q?.locales?.zh || {};
+    return `<div class="grade-box" data-gid="${esc(gi.group_id)}">
+      <div class="muted">第 ${gi.sort_order} 题 · 满分 ${gi.max_score}</div>
+      <div style="margin:8px 0;font-weight:600">${esc(loc.stem || '')}</div>
+      <div class="muted">学生作答：</div>
+      <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#f8fafc;border-radius:8px">${esc(gi.answer_text || '（未作答）')}</div>
+      <label>得分 <input class="inp" type="number" min="0" max="${gi.max_score}" step="0.5" data-score value="${gi.score ?? ''}" style="width:100px;display:inline-block"></label>
+      <textarea class="textarea" data-comment rows="2" placeholder="评语（可选）">${esc(gi.comment || '')}</textarea>
+    </div>`;
+  }).join('');
+
+  document.getElementById('grade-panel').innerHTML = `
+    <div class="card">
+      <h2>阅卷 · ${esc(data.attempt.display_name)}</h2>
+      <p class="muted">签到：${esc(data.check_in.full_name)} · 客观 ${data.attempt.objective_score ?? 0} 分</p>
+      ${blocks}
+      <button class="btn" id="btn-save-grade">保存评分</button>
+    </div>`;
+
+  document.getElementById('btn-save-grade').onclick = async () => {
+    const payload = [...document.querySelectorAll('.grade-box')].map((box) => ({
+      group_id: box.dataset.gid,
+      score: box.querySelector('[data-score]').value,
+      comment: box.querySelector('[data-comment]').value,
+    }));
+    const res = await sb.rpc('staff_student_exam_grade', {
+      p_attempt_id: attemptId,
+      p_items: payload,
+    });
+    if (res.data?.ok) {
+      toast('已保存');
+      await loadAttempts();
+      render();
+    } else toast('保存失败');
+  };
+}
+
+function renderPapers() {
+  const list = S.papers.map((p) =>
+    `<tr><td>${esc(p.title)}</td><td>${p.grade}</td><td>${p.total_score}</td><td>${esc(p.status)}</td><td>${(p.snapshot_json || []).length} 题</td></tr>`
+  ).join('');
+  const sample = JSON.stringify([
+    {
+      group_id: 'demo-1',
+      sort_order: 1,
+      type: 'single',
+      section: 'A',
+      score: 2,
+      locales: {
+        zh: { stem: '示例单选题：……', options: ['A', 'B', 'C'], answer_key: { answer_index: 1 } },
+        en: { stem: 'Sample MCQ…', options: ['A', 'B', 'C'], answer_key: { answer_index: 1 } },
+        id: { stem: 'Contoh pilihan ganda…', options: ['A', 'B', 'C'], answer_key: { answer_index: 1 } },
+      },
+    },
+    {
+      group_id: 'demo-essay',
+      sort_order: 2,
+      type: 'essay',
+      section: 'B',
+      score: 10,
+      locales: {
+        zh: { stem: '论述题：请阐述……', options: [], answer_key: {} },
+        en: { stem: 'Essay: explain…', options: [], answer_key: {} },
+        id: { stem: 'Esai: jelaskan…', options: [], answer_key: {} },
+      },
+    },
+  ], null, 2);
+
+  document.getElementById('tab-papers').innerHTML = `
+    <div class="card">
+      <h2>导入 / 更新试卷（JSON）</h2>
+      <input class="inp" id="p-title" placeholder="试卷标题">
+      <select class="sel" id="p-grade"><option value="1">一年级</option><option value="2">二年级</option><option value="3">三年级</option></select>
+      <input class="inp" id="p-course" placeholder="课程代码（可选）">
+      <textarea class="textarea" id="p-json" placeholder="题目 JSON 数组">${esc(sample)}</textarea>
+      <button class="btn" id="btn-save-paper">保存试卷</button>
+    </div>
+    <div class="card">
+      <h2>已有试卷</h2>
+      <table><thead><tr><th>标题</th><th>年级</th><th>总分</th><th>状态</th><th>题数</th></tr></thead>
+      <tbody>${list || '<tr><td colspan="5" class="muted">暂无</td></tr>'}</tbody></table>
+    </div>`;
+
+  document.getElementById('btn-save-paper').onclick = async () => {
+    let snap;
+    try { snap = JSON.parse(document.getElementById('p-json').value); }
+    catch { toast('JSON 格式错误'); return; }
+    const res = await sb.rpc('staff_student_exam_upsert_paper', {
+      p_id: null,
+      p_title: document.getElementById('p-title').value,
+      p_grade: +document.getElementById('p-grade').value,
+      p_course_code: document.getElementById('p-course').value,
+      p_snapshot_json: snap,
+      p_status: 'published',
+    });
+    if (res.data?.ok) { toast('试卷已保存'); await loadAll(); }
+    else toast(res.data?.error || '失败');
+  };
+}
+
+function renderDays() {
+  const paperOpts = S.papers.map((p) => `<option value="${p.id}">${esc(p.title)} (${p.grade}年级)</option>`).join('');
+  document.getElementById('tab-days').innerHTML = `
+    <div class="card">
+      <h2>创建考试日</h2>
+      <input class="inp" id="d-title" placeholder="例如：2026 春季期末考">
+      <input class="inp" id="d-date" type="date">
+      <div id="sub-rows">
+        <div class="grid2 sub-row" style="margin-bottom:8px">
+          <input class="inp sub-name" placeholder="科目名">
+          <select class="sel sub-paper">${paperOpts}</select>
+          <input class="inp sub-grade" type="number" min="1" max="3" value="2" placeholder="年级">
+          <input class="inp sub-start" type="datetime-local">
+          <input class="inp sub-end" type="datetime-local">
+        </div>
+      </div>
+      <button class="btn btn-o" id="btn-add-sub" type="button">+ 添加科目</button>
+      <div style="margin-top:10px"><button class="btn" id="btn-save-day">保存考试日</button></div>
+    </div>
+    <div class="card">
+      <h2>已有考试日</h2>
+      <ul>${S.days.map((d) => `<li>${esc(d.title)} — ${d.exam_date} (${d.status})</li>`).join('') || '<li class="muted">暂无</li>'}</ul>
+    </div>`;
+
+  document.getElementById('btn-add-sub').onclick = () => {
+    const row = document.querySelector('.sub-row').cloneNode(true);
+    row.querySelectorAll('input').forEach((i) => { i.value = ''; });
+    document.getElementById('sub-rows').appendChild(row);
+  };
+
+  document.getElementById('btn-save-day').onclick = async () => {
+    const subjects = [...document.querySelectorAll('.sub-row')].map((row, i) => ({
+      subject_name: row.querySelector('.sub-name').value,
+      paper_id: row.querySelector('.sub-paper').value,
+      grade: +row.querySelector('.sub-grade').value,
+      start_at: new Date(row.querySelector('.sub-start').value).toISOString(),
+      end_at: new Date(row.querySelector('.sub-end').value).toISOString(),
+      sort_order: i,
+    })).filter((s) => s.subject_name && s.paper_id && s.start_at && s.end_at);
+    if (!subjects.length) { toast('请填写至少一门科目'); return; }
+    const res = await sb.rpc('staff_student_exam_upsert_day', {
+      p_id: null,
+      p_title: document.getElementById('d-title').value,
+      p_exam_date: document.getElementById('d-date').value,
+      p_status: 'active',
+      p_subjects: subjects,
+    });
+    if (res.data?.ok) { toast('考试日已创建'); await loadAll(); }
+    else toast(res.data?.error || '失败');
+  };
+}
+
+function render() {
+  document.querySelectorAll('.tab').forEach((t) => {
+    t.classList.toggle('on', t.dataset.tab === S.tab);
+  });
+  document.getElementById('tab-grades').style.display = S.tab === 'grades' ? 'block' : 'none';
+  document.getElementById('tab-papers').style.display = S.tab === 'papers' ? 'block' : 'none';
+  document.getElementById('tab-days').style.display = S.tab === 'days' ? 'block' : 'none';
+  if (S.tab === 'grades') renderGrades();
+  if (S.tab === 'papers') renderPapers();
+  if (S.tab === 'days') renderDays();
+}
+
+document.querySelectorAll('.tab').forEach((t) => {
+  t.addEventListener('click', () => { S.tab = t.dataset.tab; render(); });
+});
+document.getElementById('btn-login').addEventListener('click', login);
+
+sb.auth.getSession().then(async ({ data }) => {
+  if (!data?.session?.user) return;
+  S.user = data.session.user;
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', S.user.id).single();
+  if (!['admin', 'teacher'].includes(prof?.role)) return;
+  S.profile = prof;
+  document.getElementById('login-panel').style.display = 'none';
+  document.getElementById('main-panel').style.display = 'block';
+  document.getElementById('auth-area').innerHTML = `<span class="muted">${esc(prof.display_name || S.user.email)}</span> <button class="btn-o btn" id="btn-logout" style="margin-left:8px;padding:6px 12px">退出</button>`;
+  document.getElementById('btn-logout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  await loadAll();
+});
+</script>
+</body>
+</html>

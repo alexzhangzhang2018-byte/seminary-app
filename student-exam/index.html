@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>美村宣教学院 · 内部考试</title>
+<script src="/vendor/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f4f5ff;color:#1e1e2e;font-size:15px;line-height:1.55}
+button{cursor:pointer;border:none;background:none;font:inherit}
+input,textarea,select{font:inherit;color:inherit}
+a{color:#4f46e5}
+.page{min-height:100vh;background:linear-gradient(135deg,#eef2ff,#fff 45%,#f5f3ff)}
+.wrap{max-width:820px;margin:0 auto;padding:20px 16px 48px}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.hdr h1{font-size:17px;font-weight:800}
+.lang-sw{display:inline-flex;background:#fff;border:1px solid #e0e7ff;border-radius:10px;padding:3px}
+.lang-sw button{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:#6b7280}
+.lang-sw button.on{background:#4f46e5;color:#fff}
+.card{background:#fff;border:1px solid #eef0ff;border-radius:16px;padding:22px;margin-bottom:16px;box-shadow:0 4px 14px rgba(31,38,135,.05)}
+.card h2{font-size:16px;font-weight:800;margin-bottom:12px}
+.hint{font-size:13px;color:#6b7280;margin-bottom:14px;line-height:1.65}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#374151}
+.inp,.sel,.textarea{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;background:#fff;outline:none}
+.inp:focus,.sel:focus,.textarea:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(129,140,248,.18)}
+.textarea{min-height:120px;resize:vertical;line-height:1.65}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{padding:8px 14px;border:1px solid #e5e7eb;border-radius:999px;font-size:13px;cursor:pointer}
+.pill.on{border-color:#4f46e5;background:#eef2ff;color:#4338ca;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:12px 20px;font-weight:700;border:none;cursor:pointer}
+.btn-p{background:#4f46e5;color:#fff}
+.btn-p:hover{background:#4338ca}
+.btn-p:disabled{background:#c7d2fe;cursor:not-allowed}
+.btn-o{background:#fff;color:#4f46e5;border:1px solid #c7d2fe}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.sub-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #f3f4f6}
+.sub-row:last-child{border-bottom:none}
+.tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px}
+.tag-up{background:#f1f5f9;color:#475569}
+.tag-open{background:#dcfce7;color:#15803d}
+.tag-end{background:#fee2e2;color:#dc2626}
+.timer-bar{position:sticky;top:0;z-index:10;background:#eef2ff;border-bottom:1px solid #e0e7ff;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.timer-bar .t{font-weight:800;font-variant-numeric:tabular-nums;color:#4338ca}
+.timer-track{flex:1;height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,#4f46e5,#818cf8);transition:width 1s linear}
+.q-card{border:1px solid #f3f4f6;border-radius:12px;padding:16px;margin-bottom:14px}
+.q-head{display:flex;justify-content:space-between;margin-bottom:8px}
+.q-no{font-weight:800;color:#4f46e5}
+.q-score{font-size:12px;color:#6b7280}
+.q-stem{font-size:16px;line-height:1.7;margin-bottom:12px;white-space:pre-wrap}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;cursor:pointer}
+.opt input{margin-top:3px}
+.cover-grid{display:grid;gap:10px;margin:14px 0}
+.cover-line{display:flex;gap:8px;font-size:15px}
+.cover-line strong{min-width:72px;color:#6b7280}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:opacity .2s;z-index:99;max-width:92vw;text-align:center}
+.toast.show{opacity:1}
+.toast.err{background:#b91c1c}
+.ok-center{text-align:center;padding:28px 12px}
+.ok-center .ico{font-size:48px;margin-bottom:8px}
+.ok-center h2{color:#15803d;font-size:20px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="wrap">
+    <div class="hdr">
+      <h1 id="site-title">美村宣教学院 · 内部考试</h1>
+      <div class="lang-sw" id="lang-sw">
+        <button data-lang="zh" class="on">中文</button>
+        <button data-lang="en">EN</button>
+        <button data-lang="id">ID</button>
+      </div>
+    </div>
+    <div id="app"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script type="module">
+import {
+  createSb, SESSION_KEY, LANG_KEY, t, esc, fmtTime, fmtTimer,
+  gradeLabel, renderQuestionHtml, collectAnswers, installProctor,
+} from './shared.js';
+
+const sb = createSb();
+const S = {
+  uiLang: localStorage.getItem(LANG_KEY) || 'zh',
+  token: localStorage.getItem(SESSION_KEY) || null,
+  examDay: null,
+  checkIn: null,
+  schedule: [],
+  view: 'loading',
+  subject: null,
+  paper: null,
+  attempt: null,
+  answers: {},
+  proctorFlags: 0,
+  timerSec: 0,
+  timerTotal: 0,
+};
+
+let timerIv = null;
+let draftIv = null;
+
+function toast(msg, ok = true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (ok ? '' : ' err');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function setLang(lang) {
+  S.uiLang = lang;
+  localStorage.setItem(LANG_KEY, lang);
+  document.querySelectorAll('#lang-sw button').forEach((b) => {
+    b.classList.toggle('on', b.dataset.lang === lang);
+  });
+  document.getElementById('site-title').textContent = t(lang, 'site');
+  render();
+}
+
+async function loadToday() {
+  if (!sb) { toast('Database unavailable', false); return; }
+  const { data, error } = await sb.rpc('student_exam_get_today');
+  if (error || !data?.ok) {
+    S.examDay = null;
+    S.view = 'no_exam';
+    return;
+  }
+  S.examDay = data.exam_day;
+  if (S.token) {
+    const sch = await sb.rpc('student_exam_get_schedule', { p_token: S.token });
+    if (sch.data?.ok) {
+      S.checkIn = sch.data.check_in;
+      S.schedule = sch.data.subjects || [];
+      S.view = 'schedule';
+      return;
+    }
+    S.token = null;
+    localStorage.removeItem(SESSION_KEY);
+  }
+  S.view = 'checkin';
+}
+
+async function doCheckIn(resume = false) {
+  const name = document.getElementById('f-name')?.value?.trim();
+  const grade = +document.getElementById('f-grade')?.value;
+  const examLang = document.getElementById('f-exam-lang')?.value || S.uiLang;
+  const pl4 = document.getElementById('f-pl4')?.value?.trim() || null;
+  if (!name) { toast(t(S.uiLang, 'full_name') + '?', false); return; }
+
+  let rpc, args;
+  if (resume && pl4) {
+    rpc = 'student_exam_resume';
+    args = { p_exam_day_id: S.examDay.id, p_full_name: name, p_grade: grade, p_phone_last4: pl4 };
+  } else {
+    rpc = 'student_exam_check_in';
+    args = {
+      p_exam_day_id: S.examDay.id,
+      p_full_name: name,
+      p_grade: grade,
+      p_ui_lang: S.uiLang,
+      p_exam_lang: examLang,
+      p_phone_last4: pl4,
+      p_resume_token: S.token || null,
+    };
+  }
+
+  const { data, error } = await sb.rpc(rpc, args);
+  if (error || !data?.ok) {
+    toast(data?.error || t(S.uiLang, 'err'), false);
+    return;
+  }
+  S.token = data.check_in.session_token;
+  localStorage.setItem(SESSION_KEY, S.token);
+  S.checkIn = data.check_in;
+  await refreshSchedule();
+}
+
+async function refreshSchedule() {
+  const { data } = await sb.rpc('student_exam_get_schedule', { p_token: S.token });
+  if (data?.ok) {
+    S.checkIn = data.check_in;
+    S.schedule = data.subjects || [];
+    S.view = 'schedule';
+    render();
+  }
+}
+
+async function openCover(subjectId) {
+  const sub = S.schedule.find((x) => x.id === subjectId);
+  if (!sub) return;
+  if (sub.window_status === 'upcoming') { toast(t(S.uiLang, 'window_upcoming'), false); return; }
+  if (sub.window_status === 'ended' && sub.attempt_status !== 'in_progress') {
+    toast(t(S.uiLang, 'window_ended'), false);
+    return;
+  }
+  if (sub.attempt_status === 'submitted') {
+    S.view = 'done';
+    S.subject = sub;
+    render();
+    return;
+  }
+  S.subject = sub;
+  if (sub.attempt_status === 'in_progress' && sub.attempt_id) {
+    await resumeAttempt(sub);
+    return;
+  }
+  S.view = 'cover';
+  render();
+}
+
+async function resumeAttempt(sub) {
+  const { data: startData } = await sb.rpc('student_exam_start_attempt', {
+    p_token: S.token,
+    p_day_subject_id: sub.id,
+    p_display_name: S.checkIn.full_name,
+  });
+  if (!startData?.ok) { toast(startData?.error || t(S.uiLang, 'err'), false); return; }
+  S.attempt = startData.attempt;
+  S.answers = S.attempt.answers_json || {};
+  S.proctorFlags = S.attempt.proctor_flags || 0;
+  const paperRes = await sb.rpc('student_exam_get_paper', { p_token: S.token, p_day_subject_id: sub.id });
+  if (!paperRes.data?.ok) { toast(t(S.uiLang, 'err'), false); return; }
+  S.paper = paperRes.data;
+  S.subject = { ...sub, ...paperRes.data.subject };
+  const endMs = new Date(S.subject.end_at).getTime();
+  S.timerSec = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
+  S.timerTotal = S.timerSec;
+  S.view = 'exam';
+  render();
+  startTimer();
+  startDraftSave();
+  installProctor(() => {
+    if (S.view !== 'exam') return;
+    S.proctorFlags++;
+    toast(t(S.uiLang, 'proctor_warn'), false);
+  });
+}
+
+async function startExam() {
+  const displayName = document.getElementById('cover-name')?.value?.trim();
+  if (!displayName) return;
+  const { data, error } = await sb.rpc('student_exam_start_attempt', {
+    p_token: S.token,
+    p_day_subject_id: S.subject.id,
+    p_display_name: displayName,
+  });
+  if (error || !data?.ok) {
+    toast(data?.error || t(S.uiLang, 'err'), false);
+    return;
+  }
+  S.attempt = data.attempt;
+  S.answers = S.attempt.answers_json || {};
+  S.proctorFlags = S.attempt.proctor_flags || 0;
+
+  const paperRes = await sb.rpc('student_exam_get_paper', {
+    p_token: S.token,
+    p_day_subject_id: S.subject.id,
+  });
+  if (!paperRes.data?.ok) {
+    toast(t(S.uiLang, 'err'), false);
+    return;
+  }
+  S.paper = paperRes.data;
+  S.subject = { ...S.subject, ...paperRes.data.subject };
+
+  const endMs = new Date(S.subject.end_at).getTime();
+  S.timerSec = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
+  S.timerTotal = S.timerSec;
+  S.view = 'exam';
+  render();
+  startTimer();
+  startDraftSave();
+  installProctor(() => {
+    if (S.view !== 'exam') return;
+    S.proctorFlags++;
+    toast(t(S.uiLang, 'proctor_warn'), false);
+  });
+}
+
+function startTimer() {
+  clearInterval(timerIv);
+  timerIv = setInterval(() => {
+    S.timerSec--;
+    const d = document.getElementById('timer-d');
+    const f = document.getElementById('timer-fill');
+    if (d) d.textContent = fmtTimer(S.timerSec);
+    if (f && S.timerTotal) f.style.width = `${((S.timerTotal - S.timerSec) / S.timerTotal) * 100}%`;
+    if (S.timerSec <= 0) submitExam('timeout');
+  }, 1000);
+}
+
+function startDraftSave() {
+  clearInterval(draftIv);
+  draftIv = setInterval(saveDraft, 15000);
+}
+
+async function saveDraft() {
+  if (!S.attempt?.id || S.view !== 'exam') return;
+  const root = document.getElementById('exam-root');
+  S.answers = collectAnswers(root);
+  await sb.rpc('student_exam_save_draft', {
+    p_token: S.token,
+    p_attempt_id: S.attempt.id,
+    p_answers: S.answers,
+    p_proctor_flags: S.proctorFlags,
+  });
+}
+
+async function submitExam(submitType = 'manual') {
+  clearInterval(timerIv);
+  clearInterval(draftIv);
+  const root = document.getElementById('exam-root');
+  S.answers = collectAnswers(root);
+  const { data, error } = await sb.rpc('student_exam_submit', {
+    p_token: S.token,
+    p_attempt_id: S.attempt.id,
+    p_answers: S.answers,
+    p_proctor_flags: S.proctorFlags,
+    p_submit_type: submitType,
+  });
+  if (error || !data?.ok) {
+    if (data?.error !== 'already_submitted') {
+      toast(data?.error || t(S.uiLang, 'err'), false);
+      return;
+    }
+  }
+  S.view = 'done';
+  await refreshSchedule();
+  render();
+}
+
+function renderCheckin() {
+  const L = S.uiLang;
+  return `<div class="card">
+    <h2>${esc(t(L, 'checkin_title'))}</h2>
+    <p class="hint">${esc(t(L, 'checkin_hint'))}</p>
+    <div class="fld"><label>${esc(t(L, 'full_name'))}</label>
+      <input class="inp" id="f-name" value="${esc(S.checkIn?.full_name || '')}"></div>
+    <div class="grid2">
+      <div class="fld"><label>${esc(t(L, 'grade'))}</label>
+        <select class="sel" id="f-grade">
+          ${[1, 2, 3].map((g) => `<option value="${g}"${S.checkIn?.grade === g ? ' selected' : ''}>${esc(gradeLabel(g, L))}</option>`).join('')}
+        </select></div>
+      <div class="fld"><label>${esc(t(L, 'exam_lang'))}</label>
+        <select class="sel" id="f-exam-lang">
+          <option value="zh">中文</option><option value="en">English</option><option value="id">Bahasa Indonesia</option>
+        </select></div>
+    </div>
+    <div class="fld"><label>${esc(t(L, 'phone_last4'))}</label>
+      <input class="inp" id="f-pl4" inputmode="numeric" maxlength="4" placeholder="1234"></div>
+    <div class="btn-row">
+      <button class="btn btn-p" id="btn-checkin">${esc(t(L, 'btn_checkin'))}</button>
+      <button class="btn btn-o" id="btn-resume">${esc(t(L, 'btn_resume'))}</button>
+    </div>
+  </div>`;
+}
+
+function renderSchedule() {
+  const L = S.uiLang;
+  const ci = S.checkIn;
+  const rows = (S.schedule || []).map((sub) => {
+    const ws = sub.window_status;
+    const tagCls = ws === 'open' ? 'tag-open' : ws === 'ended' ? 'tag-end' : 'tag-up';
+    const tagTxt = t(L, `window_${ws}`);
+    let st = t(L, 'status_not_started');
+    let btn = '';
+    if (sub.attempt_status === 'submitted') {
+      st = t(L, 'status_submitted');
+      btn = `<button class="btn btn-o" disabled>${esc(t(L, 'btn_done'))}</button>`;
+    } else if (sub.attempt_status === 'in_progress') {
+      st = t(L, 'status_in_progress');
+      btn = `<button class="btn btn-p" data-open="${sub.id}">${esc(t(L, 'btn_continue'))}</button>`;
+    } else if (ws === 'open') {
+      btn = `<button class="btn btn-p" data-open="${sub.id}">${esc(t(L, 'btn_enter'))}</button>`;
+    }
+    return `<div class="sub-row">
+      <div>
+        <div style="font-weight:700">${esc(sub.subject_name)}</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:4px">${fmtTime(sub.start_at, L)} – ${fmtTime(sub.end_at, L)} · ${esc(st)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="tag ${tagCls}">${esc(tagTxt)}</span>${btn}
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <h2>${esc(t(L, 'schedule_title'))}</h2>
+    <p class="hint">${esc(t(L, 'hello'))}，<strong>${esc(ci?.full_name)}</strong> · ${esc(gradeLabel(ci?.grade, L))}</p>
+    ${rows || '<p class="hint">—</p>'}
+  </div>`;
+}
+
+function renderCover() {
+  const L = S.uiLang;
+  const sub = S.subject;
+  return `<div class="card">
+    <h2>${esc(t(L, 'cover_title'))}</h2>
+    <div class="cover-grid">
+      <div class="cover-line"><strong>${esc(t(L, 'subject'))}</strong><span>${esc(sub.subject_name)}</span></div>
+      <div class="cover-line"><strong>${esc(t(L, 'grade'))}</strong><span>${esc(gradeLabel(S.checkIn?.grade, L))}</span></div>
+      <div class="cover-line"><strong>${esc(t(L, 'cover_name'))}</strong>
+        <input class="inp" id="cover-name" value="${esc(S.checkIn?.full_name || '')}" style="flex:1"></div>
+    </div>
+    <button class="btn btn-p" id="btn-cover-start">${esc(t(L, 'cover_confirm'))}</button>
+    <div class="btn-row"><button class="btn btn-o" id="btn-back-sched">${esc(t(L, 'back_schedule'))}</button></div>
+  </div>`;
+}
+
+function renderExam() {
+  const L = S.uiLang;
+  const qs = S.paper?.questions || [];
+  const html = qs.map((q) => renderQuestionHtml(q, S.answers, L)).join('');
+  return `<div class="timer-bar">
+    <span>${esc(t(L, 'timer'))}</span>
+    <span class="t" id="timer-d">${fmtTimer(S.timerSec)}</span>
+    <div class="timer-track"><div class="timer-fill" id="timer-fill" style="width:0%"></div></div>
+    <button class="btn btn-p" id="btn-submit" style="padding:8px 14px">${esc(t(L, 'submit'))}</button>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h2>${esc(S.paper?.paper_title || S.subject?.subject_name)}</h2>
+    <div id="exam-root">${html}</div>
+  </div>`;
+}
+
+function renderDone() {
+  return `<div class="card ok-center">
+    <div class="ico">✓</div>
+    <h2>${esc(t(S.uiLang, 'submitted_ok'))}</h2>
+    <div class="btn-row" style="justify-content:center;margin-top:16px">
+      <button class="btn btn-p" id="btn-back-sched">${esc(t(S.uiLang, 'back_schedule'))}</button>
+    </div>
+  </div>`;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  let html = '';
+  if (S.view === 'loading') html = `<div class="card"><p>${esc(t(S.uiLang, 'loading'))}</p></div>`;
+  else if (S.view === 'no_exam') html = `<div class="card"><p>${esc(t(S.uiLang, 'no_exam'))}</p></div>`;
+  else if (S.view === 'checkin') html = renderCheckin();
+  else if (S.view === 'schedule') html = renderSchedule();
+  else if (S.view === 'cover') html = renderCover();
+  else if (S.view === 'exam') html = renderExam();
+  else if (S.view === 'done') html = renderDone();
+  app.innerHTML = html;
+  bind();
+}
+
+function bind() {
+  document.getElementById('btn-checkin')?.addEventListener('click', () => doCheckIn(false));
+  document.getElementById('btn-resume')?.addEventListener('click', () => doCheckIn(true));
+  document.querySelectorAll('[data-open]').forEach((el) => {
+    el.addEventListener('click', () => openCover(el.dataset.open));
+  });
+  document.getElementById('btn-cover-start')?.addEventListener('click', startExam);
+  document.getElementById('btn-submit')?.addEventListener('click', () => submitExam('manual'));
+  document.getElementById('btn-back-sched')?.addEventListener('click', async () => {
+    clearInterval(timerIv);
+    clearInterval(draftIv);
+    S.view = 'schedule';
+    await refreshSchedule();
+  });
+}
+
+document.querySelectorAll('#lang-sw button').forEach((b) => {
+  b.addEventListener('click', () => setLang(b.dataset.lang));
+});
+
+setLang(S.uiLang);
+loadToday().then(render);
+</script>
+</body>
+</html>
