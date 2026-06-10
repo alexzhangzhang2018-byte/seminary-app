@@ -22,7 +22,9 @@ export async function extractDocxLines(arrayBuffer) {
     const inner = m[1];
     while ((t = textRe.exec(inner))) parts.push(decodeXml(t[1]));
     if (!parts.length) continue;
-    const s = parts.join('').replace(/\s+/g, ' ').trim();
+    let s = parts.join('');
+    s = s.replace(/<[^>]+>/g, '');
+    s = s.replace(/\s+/g, ' ').trim();
     if (s) lines.push(s);
   }
   return lines;
@@ -41,7 +43,153 @@ function normSeq(s) {
   return String(s || '').replace(/\s+/g, '').toUpperCase();
 }
 
-/** 解析纯文本 → 旧版 EXAM_Qs 结构 */
+/** 神学院课程卷（希伯来书等）：经文填空【】、单选（ ）、判断、简答、论述 */
+export function parseCourseExamText(lines) {
+  const questions = [];
+  let qid = 1;
+  let i = 0;
+
+  const sectionScore = (hdr, fallback) => {
+    const m = hdr.match(/每题([0-9.]+)分/) || hdr.match(/每空([0-9.]+)分/);
+    return m ? +m[1] : fallback;
+  };
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (/^一、.*填空/.test(line)) {
+      const perBlank = sectionScore(line, 1);
+      i++;
+      while (i < lines.length && !/^二、/.test(lines[i])) {
+        const l = lines[i];
+        const bracketParts = [...l.matchAll(/【([^】]*)】/g)];
+        if (bracketParts.length > 0) {
+          const answers = bracketParts.map((m) => m[1].trim());
+          const examOnly = answers.every((a) => a === '');
+          const prompt = l.replace(/【[^】]*】/g, '____');
+          const q = {
+            id: qid++,
+            type: 'fill',
+            prompt,
+            answers: examOnly ? new Array(answers.length).fill('') : answers,
+            score: answers.length * perBlank,
+          };
+          if (examOnly) q.needs_answer_key = true;
+          questions.push(q);
+        }
+        i++;
+      }
+      continue;
+    }
+
+    if (/^二、.*选择/.test(line)) {
+      const perQ = sectionScore(line, 1);
+      i++;
+      while (i < lines.length && !/^三、/.test(lines[i])) {
+        const l = lines[i];
+        const ansM = l.match(/^（\s*([A-D])\s*）/);
+        const examM = !ansM && /^（\s*）/.test(l);
+        if (ansM || examM) {
+          const prompt = l.replace(/^（\s*(?:[A-D])?\s*）\s*/, '').trim();
+          let optLine = lines[i + 1] || '';
+          if (!/^\s*[A-D]\s/.test(optLine) && /[A-D]\s/.test(l)) optLine = l;
+          const options = parseInlineOptions(optLine);
+          if (options.length >= 2) {
+            const q = {
+              id: qid++,
+              type: 'single',
+              prompt,
+              options,
+              score: perQ,
+            };
+            if (ansM) {
+              q.answer_index = { A: 0, B: 1, C: 2, D: 3 }[ansM[1]];
+            } else {
+              q.needs_answer_key = true;
+            }
+            questions.push(q);
+            if (optLine === lines[i + 1]) i++;
+          }
+        }
+        i++;
+      }
+      continue;
+    }
+
+    if (/^三、判断/.test(line)) {
+      const perQ = sectionScore(line, 1);
+      i++;
+      while (i < lines.length && !/^四、/.test(lines[i])) {
+        const l = lines[i];
+        const ansM = l.match(/^（\s*([✓√×xX])\s*）/);
+        const examM = !ansM && /^（\s*）/.test(l);
+        if (ansM || examM) {
+          const prompt = l.replace(/^（\s*(?:[✓√×xX])?\s*）\s*/, '').trim();
+          const q = { id: qid++, type: 'truefalse', prompt, score: perQ };
+          if (ansM) {
+            q.answer_bool = ansM[1] === '✓' || ansM[1] === '√';
+          } else {
+            q.needs_answer_key = true;
+          }
+          questions.push(q);
+        }
+        i++;
+      }
+      continue;
+    }
+
+    if (/^四、简答/.test(line)) {
+      const perQ = sectionScore(line, 2);
+      i++;
+      while (i < lines.length && !/^五、/.test(lines[i])) {
+        const l = lines[i].trim();
+        if (l && !/^四、/.test(l)) {
+          questions.push({ id: qid++, type: 'essay', prompt: l, score: perQ });
+        }
+        i++;
+      }
+      continue;
+    }
+
+    if (/^五、论述/.test(line)) {
+      const perQ = sectionScore(line, 10);
+      i++;
+      while (i < lines.length) {
+        const l = lines[i].trim();
+        if (l && !/^五、/.test(l)) {
+          questions.push({ id: qid++, type: 'essay', prompt: l, score: perQ });
+        }
+        i++;
+      }
+      break;
+    }
+
+    i++;
+  }
+  return questions;
+}
+
+function parseInlineOptions(line) {
+  const opts = [];
+  const re = /(?:^|\s)([A-D])\s+(.+?)(?=(?:\s+[A-D]\s+)|$)/g;
+  let m;
+  while ((m = re.exec(line))) opts.push(m[2].trim());
+  if (opts.length >= 2) return opts;
+  for (const L of ['A', 'B', 'C', 'D']) {
+    const om = line.match(new RegExp(`\\b${L}\\s+(.+?)(?=\\s+[A-D]\\s+|$)`));
+    if (om) opts.push(om[1].trim());
+  }
+  return opts;
+}
+
+export function detectExamFormat(lines) {
+  const head = lines.slice(0, 15).join('\n');
+  if (/一、经文填空|二、单项选择题|【\s*】/.test(head)) return 'course';
+  if (/一、填空题|旧约部分|新约部分|\{[^}]+\}/.test(lines.join('\n'))) return 'recruitment';
+  return 'course';
+}
+
+/** 解析纯文本 → 旧版 EXAM_Qs 结构（招生笔试） */
 export function parseExamPlainText(lines) {
   const questions = [];
   let qid = 1;
@@ -231,13 +379,14 @@ function legacyToLocale(q) {
   if (q.type === 'single') {
     loc.stem = q.prompt;
     loc.options = q.options || [];
-    loc.answer_key = { answer_index: q.answer_index };
+    if (q.answer_index != null) loc.answer_key = { answer_index: q.answer_index };
   } else if (q.type === 'truefalse') {
     loc.stem = q.prompt;
-    loc.answer_key = { answer_bool: !!q.answer_bool };
+    if (q.answer_bool != null) loc.answer_key = { answer_bool: !!q.answer_bool };
   } else if (q.type === 'fill') {
     loc.stem = q.prompt;
-    loc.answer_key = { answers: q.answers || [] };
+    const ans = q.answers || [];
+    if (ans.length && ans.some((a) => String(a).trim())) loc.answer_key = { answers: ans };
   } else if (q.type === 'match') {
     loc.stem = (q.prompt || '连线题') + '\n' + (q.left_items || []).map((t, i) => `${i + 1}. ${t}`).join('\n');
     loc.options = q.right_items || [];
@@ -287,7 +436,12 @@ export function mergeSnapshotsByIndex(parts) {
 export async function docxFileToSnapshot(file, lang) {
   const buf = await file.arrayBuffer();
   const lines = await extractDocxLines(buf);
-  const legacy = parseExamPlainText(lines);
-  if (!legacy.length) throw new Error('未能从 Word 中识别到题目，请确认格式与招生卷一致（一、填空题 二、单选题…）');
-  return legacyListToSnapshot(legacy, lang);
+  const fmt = detectExamFormat(lines);
+  const legacy = fmt === 'course' ? parseCourseExamText(lines) : parseExamPlainText(lines);
+  if (!legacy.length) {
+    throw new Error('未能识别题目。支持：①课程卷（经文填空【】、单选、判断、简答、论述）②招生卷（一、填空题…）');
+  }
+  const snapshot = legacyListToSnapshot(legacy, lang);
+  const needsAnswerKey = legacy.filter((q) => q.needs_answer_key).length;
+  return { snapshot, format: fmt, needsAnswerKey };
 }

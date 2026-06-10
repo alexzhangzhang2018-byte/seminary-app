@@ -1,0 +1,698 @@
+[
+   {
+      "type" : "fill",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answers" : [
+                  "众先知",
+                  "末世",
+                  "他儿子",
+                  "光辉",
+                  "远超过"
+               ]
+            },
+            "stem" : "神既在古时藉着____多次多方地晓谕列祖；就在这____藉着____晓谕我们，又早已立他为承受万有的；也曾藉着他创造诸世界。他是神荣耀所发的____，是神本体的真像，常用他权能的命令托住万有。他洗净了人的罪，就坐在高天至大者的右边。他所承受的名既比天使的名更尊贵，就____天使。(来1:1-4)",
+            "options" : []
+         }
+      },
+      "section" : "一",
+      "sort_order" : 1,
+      "score" : 5,
+      "group_id" : "q01"
+   },
+   {
+      "score" : 4,
+      "group_id" : "q02",
+      "sort_order" : 2,
+      "section" : "一",
+      "type" : "fill",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "stem" : "所以，我们当越发____所听见的道理，恐怕我们随流失去。那藉着天使所传的话既是确定的，凡干犯悖逆的，都受了该受的报应。我们若忽略____，怎能逃罪呢？这救恩起先是____的，后来是____给我们证实了。(来2:1-3)",
+            "answer_key" : {
+               "answers" : [
+                  "郑重",
+                  "这么大的救恩",
+                  "主亲自讲",
+                  "听见的人"
+               ]
+            }
+         }
+      }
+   },
+   {
+      "type" : "fill",
+      "locales" : {
+         "zh" : {
+            "stem" : "____既同有血肉之体，他也照样亲自成了血肉之体，特要藉着死，败坏那____的，就是魔鬼，并要释放那些____的人。(来2:14-15)",
+            "answer_key" : {
+               "answers" : [
+                  "儿女",
+                  "掌死权",
+                  "一生因怕死而为奴仆"
+               ]
+            },
+            "options" : []
+         }
+      },
+      "section" : "一",
+      "sort_order" : 3,
+      "score" : 3,
+      "group_id" : "q03"
+   },
+   {
+      "section" : "一",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "stem" : "____是活泼的，是有功效的，比一切两刃的剑更快，……(来4:12)",
+            "answer_key" : {
+               "answers" : [
+                  "神的道"
+               ]
+            }
+         }
+      },
+      "type" : "fill",
+      "score" : 1,
+      "group_id" : "q04",
+      "sort_order" : 4
+   },
+   {
+      "sort_order" : 5,
+      "score" : 2,
+      "group_id" : "q05",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answers" : [
+                  "有",
+                  "大祭司"
+               ]
+            },
+            "stem" : "我们所讲的事，其中第一要紧的，就是我们____这样的____，已经坐在天上至大者宝座的右边，(来8:1)",
+            "options" : []
+         }
+      },
+      "type" : "fill",
+      "section" : "一"
+   },
+   {
+      "group_id" : "q06",
+      "score" : 4,
+      "sort_order" : 6,
+      "section" : "一",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "answer_key" : {
+               "answers" : [
+                  "将来美事",
+                  "自己的血",
+                  "一次",
+                  "永远"
+               ]
+            },
+            "stem" : "但现在基督已经来到，作了____的大祭司，经过那更大、更全备的帐幕，不是人手所造，也不是属乎这世界的。并且不用山羊和牛犊的血，乃用____，只____进入圣所，成了____赎罪的事。(来9:11-12)"
+         }
+      },
+      "type" : "fill"
+   },
+   {
+      "section" : "一",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "stem" : "信就是____的实底，是____的确据。古人在这信上得了美好的证据。我们因着信，就知道诸世界是藉____造成的，这样，所看见的，并不是从显然之物造出来的。(来11:1-3)",
+            "answer_key" : {
+               "answers" : [
+                  "所望之事",
+                  "未见之事",
+                  "神的话"
+               ]
+            }
+         }
+      },
+      "type" : "fill",
+      "score" : 3,
+      "group_id" : "q07",
+      "sort_order" : 7
+   },
+   {
+      "type" : "fill",
+      "locales" : {
+         "zh" : {
+            "stem" : "这些人都是存着信心死的，并没有得着____，却从远处望见，且欢喜迎接，又承认自己在世上是____，是寄居的。说这样话的人是表明自己要找一个家乡。他们若想念所离开的家乡，还有可以回去的机会。他们却羡慕一个____，就是在天上的。所以神被称为他们的神，并不以为耻，因为他已经给他们预备了一座城。(来11:13-16)",
+            "answer_key" : {
+               "answers" : [
+                  "所应许的",
+                  "客旅",
+                  "更美的家乡"
+               ]
+            },
+            "options" : []
+         }
+      },
+      "section" : "一",
+      "sort_order" : 8,
+      "score" : 3,
+      "group_id" : "q08"
+   },
+   {
+      "group_id" : "q09",
+      "score" : 4,
+      "sort_order" : 9,
+      "section" : "一",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answers" : [
+                  "见证人",
+                  "罪",
+                  "创始成终",
+                  "疲倦灰心"
+               ]
+            },
+            "stem" : "我们既有这许多的____，如同云彩围着我们，就当放下各样的重担，脱去容易缠累我们的____，存心忍耐，奔那摆在我们前头的路程，仰望为我们信心____的耶稣。他因那摆在前面的喜乐，就轻看羞辱，忍受了十字架的苦难，便坐在神宝座的右边。那忍受罪人这样顶撞的，你们要思想，免得____。(来12:1-3)",
+            "options" : []
+         }
+      },
+      "type" : "fill"
+   },
+   {
+      "section" : "一",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answers" : [
+                  "恩"
+               ]
+            },
+            "stem" : "你们不要被那诸般怪异的教训勾引了去。因为人心靠____得坚固才是好的，并不是靠饮食；那在饮食上专心的，从来没有得着益处。(来13:9)",
+            "options" : []
+         }
+      },
+      "type" : "fill",
+      "score" : 1,
+      "group_id" : "q10",
+      "sort_order" : 10
+   },
+   {
+      "locales" : {
+         "zh" : {
+            "options" : [
+               "（撒下7:14）",
+               "（诗2:7）",
+               "（诗102:25）",
+               "（诗110:1）"
+            ],
+            "answer_key" : {
+               "answer_index" : 1
+            },
+            "stem" : "“你是我的儿子，我今日生你”所引用的旧约经文是："
+         }
+      },
+      "type" : "single",
+      "section" : "二",
+      "sort_order" : 11,
+      "score" : 1,
+      "group_id" : "q11"
+   },
+   {
+      "type" : "single",
+      "locales" : {
+         "zh" : {
+            "options" : [
+               "服役的灵",
+               "暂时比耶稣大",
+               "为全人类效力",
+               "传神的话"
+            ],
+            "answer_key" : {
+               "answer_index" : 2
+            },
+            "stem" : "以下哪项不是天使的身份、职责或特征 ："
+         }
+      },
+      "section" : "二",
+      "sort_order" : 12,
+      "score" : 1,
+      "group_id" : "q12"
+   },
+   {
+      "locales" : {
+         "zh" : {
+            "stem" : "以下哪个选项不是本书对比着论述的：",
+            "answer_key" : {
+               "answer_index" : 1
+            },
+            "options" : [
+               "耶稣与天使",
+               "耶稣与大卫",
+               "麦基洗德等次与亚伦等次",
+               "新约与前约"
+            ]
+         }
+      },
+      "type" : "single",
+      "section" : "二",
+      "sort_order" : 13,
+      "score" : 1,
+      "group_id" : "q13"
+   },
+   {
+      "section" : "二",
+      "locales" : {
+         "zh" : {
+            "options" : [
+               "懈怠",
+               "不信",
+               "贪恋世俗",
+               "拜偶像"
+            ],
+            "stem" : "以下哪个选项描述的不是收信人的问题：",
+            "answer_key" : {
+               "answer_index" : 3
+            }
+         }
+      },
+      "type" : "single",
+      "group_id" : "q14",
+      "score" : 1,
+      "sort_order" : 14
+   },
+   {
+      "sort_order" : 15,
+      "group_id" : "q15",
+      "score" : 1,
+      "locales" : {
+         "zh" : {
+            "stem" : "以下哪个选项不是麦基洗德的特征：",
+            "answer_key" : {
+               "answer_index" : 2
+            },
+            "options" : [
+               "君王",
+               "祭司",
+               "先知",
+               "永活的"
+            ]
+         }
+      },
+      "type" : "single",
+      "section" : "二"
+   },
+   {
+      "section" : "二",
+      "locales" : {
+         "zh" : {
+            "options" : [
+               "基督道理的开端",
+               "根基",
+               "完全的地步",
+               "神圣言小学的开端"
+            ],
+            "answer_key" : {
+               "answer_index" : 2
+            },
+            "stem" : "以下哪个选项是我们竭力进入的："
+         }
+      },
+      "type" : "single",
+      "group_id" : "q16",
+      "score" : 1,
+      "sort_order" : 16
+   },
+   {
+      "score" : 1,
+      "group_id" : "q17",
+      "sort_order" : 17,
+      "section" : "二",
+      "type" : "single",
+      "locales" : {
+         "zh" : {
+            "options" : [
+               "有死阻隔",
+               "利未支派作以色列的长子",
+               "律法的要求",
+               "神的赐福和抬举"
+            ],
+            "answer_key" : {
+               "answer_index" : 0
+            },
+            "stem" : "亚伦等次的祭司为何代代相传："
+         }
+      }
+   },
+   {
+      "section" : "二",
+      "locales" : {
+         "zh" : {
+            "stem" : "以下哪个选项不是圣幕里的设置：",
+            "answer_key" : {
+               "answer_index" : 0
+            },
+            "options" : [
+               "祭坛",
+               "灯台",
+               "金香坛",
+               "约柜"
+            ]
+         }
+      },
+      "type" : "single",
+      "group_id" : "q18",
+      "score" : 1,
+      "sort_order" : 18
+   },
+   {
+      "sort_order" : 19,
+      "group_id" : "q19",
+      "score" : 1,
+      "type" : "single",
+      "locales" : {
+         "zh" : {
+            "options" : [
+               "追求圣洁",
+               "忍受管教",
+               "顺服牧者",
+               "远避偶像"
+            ],
+            "stem" : "以下哪个选项不是本书的劝勉：",
+            "answer_key" : {
+               "answer_index" : 3
+            }
+         }
+      },
+      "section" : "二"
+   },
+   {
+      "section" : "二",
+      "locales" : {
+         "zh" : {
+            "options" : [
+               "神学论文",
+               "布道讲章",
+               "启示文学",
+               "书信"
+            ],
+            "answer_key" : {
+               "answer_index" : 3
+            },
+            "stem" : "希伯来书的体裁是什么："
+         }
+      },
+      "type" : "single",
+      "group_id" : "q20",
+      "score" : 1,
+      "sort_order" : 20
+   },
+   {
+      "section" : "三",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "stem" : "神藉天使创造诸世界。"
+         }
+      },
+      "type" : "truefalse",
+      "group_id" : "q21",
+      "score" : 1,
+      "sort_order" : 21
+   },
+   {
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "stem" : "希伯来书所论述的要点是耶稣的超越性。"
+         }
+      },
+      "type" : "truefalse",
+      "section" : "三",
+      "sort_order" : 22,
+      "score" : 1,
+      "group_id" : "q22"
+   },
+   {
+      "score" : 1,
+      "group_id" : "q23",
+      "sort_order" : 23,
+      "section" : "三",
+      "locales" : {
+         "zh" : {
+            "stem" : "诗篇8篇“人算什么，你竟顾念他？”中的“人”直接指的是被造的世人。",
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "options" : []
+         }
+      },
+      "type" : "truefalse"
+   },
+   {
+      "score" : 1,
+      "group_id" : "q24",
+      "sort_order" : 24,
+      "section" : "三",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "stem" : "作者时代的基督徒已经被圣灵重生，不同于旧约神的百姓，因此已经进入安息。"
+         }
+      },
+      "type" : "truefalse"
+   },
+   {
+      "section" : "三",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answer_bool" : true
+            },
+            "stem" : "若是离弃道理，就不能叫他们重新懊悔了，因为他们把神的儿子重钉十字架，明明地羞辱他。(来6:6) 这只是牧养性的警告，并非说救恩可能失落。",
+            "options" : []
+         }
+      },
+      "type" : "truefalse",
+      "score" : 1,
+      "group_id" : "q25",
+      "sort_order" : 25
+   },
+   {
+      "sort_order" : 26,
+      "group_id" : "q26",
+      "score" : 1,
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "stem" : "耶稣为祭司，不是起誓立的。",
+            "answer_key" : {
+               "answer_bool" : false
+            }
+         }
+      },
+      "type" : "truefalse",
+      "section" : "三"
+   },
+   {
+      "type" : "truefalse",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "stem" : "耶稣作为大祭司，现在仍在为我们献祭了。"
+         }
+      },
+      "section" : "三",
+      "sort_order" : 27,
+      "score" : 1,
+      "group_id" : "q27"
+   },
+   {
+      "group_id" : "q28",
+      "score" : 1,
+      "sort_order" : 28,
+      "section" : "三",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "stem" : "亚伯拉罕等古人都是信心的伟人，因此他们死前都得到了神所应许的。",
+            "answer_key" : {
+               "answer_bool" : false
+            }
+         }
+      },
+      "type" : "truefalse"
+   },
+   {
+      "sort_order" : 29,
+      "score" : 1,
+      "group_id" : "q29",
+      "type" : "truefalse",
+      "locales" : {
+         "zh" : {
+            "stem" : "律法上说的都是将来的事的影子，不是本物的真像。",
+            "answer_key" : {
+               "answer_bool" : true
+            },
+            "options" : []
+         }
+      },
+      "section" : "三"
+   },
+   {
+      "score" : 1,
+      "group_id" : "q30",
+      "sort_order" : 30,
+      "section" : "三",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "stem" : "旧约是神所设立的，因此没有瑕疵。"
+         }
+      },
+      "type" : "truefalse"
+   },
+   {
+      "group_id" : "q31",
+      "score" : 2,
+      "sort_order" : 31,
+      "section" : "四",
+      "type" : "essay",
+      "locales" : {
+         "zh" : {
+            "stem" : "神的安息的特征是什么？我们今日进入安息了吗？",
+            "answer_key" : {},
+            "options" : []
+         }
+      }
+   },
+   {
+      "score" : 2,
+      "group_id" : "q32",
+      "sort_order" : 32,
+      "section" : "四",
+      "type" : "essay",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "answer_key" : {},
+            "stem" : "神的道是活(泼)的，是有功效的，这是在说明什么？"
+         }
+      }
+   },
+   {
+      "section" : "四",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {},
+            "stem" : "耶稣作大祭司，在哪里供职？",
+            "options" : []
+         }
+      },
+      "type" : "essay",
+      "score" : 2,
+      "group_id" : "q33",
+      "sort_order" : 33
+   },
+   {
+      "sort_order" : 34,
+      "score" : 2,
+      "group_id" : "q34",
+      "locales" : {
+         "zh" : {
+            "stem" : "简述头一层帐幕和第二层帐幕分别指代什么时候。",
+            "answer_key" : {},
+            "options" : []
+         }
+      },
+      "type" : "essay",
+      "section" : "四"
+   },
+   {
+      "section" : "四",
+      "locales" : {
+         "zh" : {
+            "stem" : "简述基督作大祭司所带来的功效。",
+            "answer_key" : {},
+            "options" : []
+         }
+      },
+      "type" : "essay",
+      "score" : 2,
+      "group_id" : "q35",
+      "sort_order" : 35
+   },
+   {
+      "score" : 10,
+      "group_id" : "q36",
+      "sort_order" : 36,
+      "section" : "五",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "stem" : "写出划分本书卷结构的（1）依据经文的章节号。请据此写出（2）书卷结构，和（3）几大主题。",
+            "answer_key" : {}
+         }
+      },
+      "type" : "essay"
+   },
+   {
+      "sort_order" : 37,
+      "score" : 10,
+      "group_id" : "q37",
+      "type" : "essay",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {},
+            "stem" : "分析作者写希伯来书的（1）目的。分析作者试图（2）如何达成这个目的，以及作者如此写书信在（3）牧养神学上的重大贡献或启发。",
+            "options" : []
+         }
+      },
+      "section" : "五"
+   },
+   {
+      "sort_order" : 38,
+      "group_id" : "q38",
+      "score" : 10,
+      "type" : "essay",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {},
+            "stem" : "具体分析，当（1）如何理解“所以，我们应当离开基督道理的开端，竭力进到完全的地步，不必再立根基，就如……”(来6:1)？这样理解（2）对牧养的启发是什么？基于此，你的（3）决定是什么？",
+            "options" : []
+         }
+      },
+      "section" : "五"
+   },
+   {
+      "sort_order" : 39,
+      "score" : 10,
+      "group_id" : "q39",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "stem" : "通过此次学习希伯来书，具体说明你现在如何理解基督徒的（1）“信、望、爱”，以及（2）基督徒的信望爱与福音的关系。据此理解，请具体谈谈学习希伯来书的（3）收获。",
+            "answer_key" : {}
+         }
+      },
+      "type" : "essay",
+      "section" : "五"
+   }
+]

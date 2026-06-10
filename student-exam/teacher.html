@@ -306,9 +306,10 @@ function renderPapers() {
     <div class="card">
       <h2>从 Word 导入试卷（推荐）</h2>
       <p class="muted" style="margin-bottom:12px;line-height:1.65">
-        使用与<strong>招生笔试</strong>相同的 Word 卷面格式即可（一、填空题　二、单选题　三、连线题…）。<br>
-        填空答案用 <code>{大括号}</code> 标出；单选答案写在题干末尾如 <code>（C）</code>。<br>
-        可只传中文卷；若有英/印尼语卷，题号顺序需一致，系统会自动合并三语。
+        支持两种 Word 格式：<br>
+        <strong>课程卷</strong>（如希伯来书）：一、经文填空【】　二、单项选择题　三、判断题　四、简答题　五、论述题<br>
+        <strong>招生卷</strong>：一、填空题{答案}　二、单选题…（题干末尾标答案字母）<br>
+        「考试版」无标准答案也可导入答题；客观题需另备答案卷或在 JSON 里补 <code>answer_key</code> 后才能机评。
       </p>
       <input class="inp" id="p-title" placeholder="试卷标题（如：启示录）">
       <select class="sel" id="p-grade"><option value="1">一年级</option><option value="2">二年级</option><option value="3">三年级</option></select>
@@ -319,8 +320,10 @@ function renderPapers() {
       </div>
       <div class="btn-row" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" type="button" id="btn-import-docx">从 Word 解析到下方</button>
+        <button class="btn btn-o" type="button" id="btn-load-hebrews">加载内置：希伯来书 2025-2026</button>
         <span class="muted" id="import-status"></span>
       </div>
+      <p class="muted" style="margin-top:8px">上传<strong>答案版</strong> .docx 可自动识别填空【答案】、单选（ B ）、判断（✓/×）。</p>
     </div>
     <div class="card">
       <h2>检查 / 保存（JSON 可手改）</h2>
@@ -334,6 +337,20 @@ function renderPapers() {
       <tbody>${list || '<tr><td colspan="5" class="muted">暂无</td></tr>'}</tbody></table>
     </div>`;
 
+  document.getElementById('btn-load-hebrews').onclick = async () => {
+    try {
+      const r = await fetch('./papers/hebrews-2025-2026-zh.json');
+      const snap = await r.json();
+      document.getElementById('p-json').value = JSON.stringify(snap, null, 2);
+      document.getElementById('p-title').value = '希伯来书 2025-2026';
+      document.getElementById('p-grade').value = '2';
+      document.getElementById('import-status').textContent = `已加载 ${snap.length} 题（含客观题答案）`;
+      toast('希伯来书试卷已加载，点「保存试卷」入库');
+    } catch (e) {
+      toast('加载失败：' + (e.message || e));
+    }
+  };
+
   document.getElementById('btn-import-docx').onclick = async () => {
     const status = document.getElementById('import-status');
     status.textContent = '解析中…';
@@ -343,15 +360,26 @@ function renderPapers() {
       const en = document.getElementById('f-docx-en').files[0];
       const idf = document.getElementById('f-docx-id').files[0];
       if (!zh && !en && !idf) { toast('请至少选择一个 .docx 文件'); status.textContent = ''; return; }
-      if (zh) parts.push({ lang: 'zh', snapshot: await docxFileToSnapshot(zh, 'zh') });
-      if (en) parts.push({ lang: 'en', snapshot: await docxFileToSnapshot(en, 'en') });
-      if (idf) parts.push({ lang: 'id', snapshot: await docxFileToSnapshot(idf, 'id') });
+      let totalNeedKey = 0;
+      let fmt = '';
+      for (const [file, lang] of [[zh, 'zh'], [en, 'en'], [idf, 'id']]) {
+        if (!file) continue;
+        const r = await docxFileToSnapshot(file, lang);
+        parts.push({ lang, snapshot: r.snapshot });
+        totalNeedKey = Math.max(totalNeedKey, r.needsAnswerKey || 0);
+        fmt = r.format || fmt;
+      }
       const merged = parts.length === 1 ? parts[0].snapshot : mergeSnapshotsByIndex(parts);
       document.getElementById('p-json').value = JSON.stringify(merged, null, 2);
       const title = document.getElementById('p-title');
-      if (!title.value.trim() && zh) title.value = zh.name.replace(/\.docx$/i, '');
-      status.textContent = `已解析 ${merged.length} 题`;
-      toast('Word 已解析，请检查下方 JSON 后点保存');
+      const src = zh || en || idf;
+      if (!title.value.trim() && src) title.value = src.name.replace(/\.docx$/i, '');
+      status.textContent = `已解析 ${merged.length} 题（${fmt === 'course' ? '课程卷' : '招生卷'}）`;
+      if (totalNeedKey > 0) {
+        toast(`已解析 ${merged.length} 题；其中 ${totalNeedKey} 道客观题缺标准答案，需补答案卷或教师阅卷`);
+      } else {
+        toast('Word 已解析，请检查后保存');
+      }
     } catch (e) {
       console.error(e);
       status.textContent = '';
