@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>内部考试 · 教师端</title>
 <script src="/vendor/supabase.js"></script>
+<script src="/vendor/jszip.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;color:#1e293b;font-size:14px}
@@ -65,6 +66,7 @@ tr.sel{background:#eef2ff;cursor:pointer}
 <div class="toast" id="toast"></div>
 <script type="module">
 import { createSb, esc } from './shared.js';
+import { docxFileToSnapshot, mergeSnapshotsByIndex } from './docx-import.js';
 
 const sb = createSb();
 const S = {
@@ -116,7 +118,17 @@ async function loadAll() {
     sb.rpc('staff_student_exam_list_papers'),
   ]);
   S.days = d.data?.days || [];
+  if (p.error) {
+    console.warn('list_papers', p.error);
+    toast('加载试卷失败：' + (p.error.message || '请确认已执行数据库迁移'));
+  }
   S.papers = p.data?.papers || [];
+  if (!S.papers.length) {
+    const { data: rows } = await sb.from('student_exam_papers')
+      .select('id,title,grade,status,total_score')
+      .order('updated_at', { ascending: false });
+    if (rows?.length) S.papers = rows;
+  }
   if (!S.selectedDayId && S.days[0]) S.selectedDayId = S.days[0].id;
   await loadSubjectsForDay();
   render();
@@ -292,11 +304,28 @@ function renderPapers() {
 
   document.getElementById('tab-papers').innerHTML = `
     <div class="card">
-      <h2>导入 / 更新试卷（JSON）</h2>
-      <input class="inp" id="p-title" placeholder="试卷标题">
+      <h2>从 Word 导入试卷（推荐）</h2>
+      <p class="muted" style="margin-bottom:12px;line-height:1.65">
+        使用与<strong>招生笔试</strong>相同的 Word 卷面格式即可（一、填空题　二、单选题　三、连线题…）。<br>
+        填空答案用 <code>{大括号}</code> 标出；单选答案写在题干末尾如 <code>（C）</code>。<br>
+        可只传中文卷；若有英/印尼语卷，题号顺序需一致，系统会自动合并三语。
+      </p>
+      <input class="inp" id="p-title" placeholder="试卷标题（如：启示录）">
       <select class="sel" id="p-grade"><option value="1">一年级</option><option value="2">二年级</option><option value="3">三年级</option></select>
+      <div class="grid2" style="margin-top:8px">
+        <div><label class="muted">中文卷 .docx</label><input type="file" id="f-docx-zh" accept=".docx"></div>
+        <div><label class="muted">英文卷 .docx（可选）</label><input type="file" id="f-docx-en" accept=".docx"></div>
+        <div><label class="muted">印尼语卷 .docx（可选）</label><input type="file" id="f-docx-id" accept=".docx"></div>
+      </div>
+      <div class="btn-row" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" type="button" id="btn-import-docx">从 Word 解析到下方</button>
+        <span class="muted" id="import-status"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>检查 / 保存（JSON 可手改）</h2>
       <input class="inp" id="p-course" placeholder="课程代码（可选）">
-      <textarea class="textarea" id="p-json" placeholder="题目 JSON 数组">${esc(sample)}</textarea>
+      <textarea class="textarea" id="p-json" placeholder="解析后题目会出现在这里">${esc(sample)}</textarea>
       <button class="btn" id="btn-save-paper">保存试卷</button>
     </div>
     <div class="card">
@@ -304,6 +333,31 @@ function renderPapers() {
       <table><thead><tr><th>标题</th><th>年级</th><th>总分</th><th>状态</th><th>题数</th></tr></thead>
       <tbody>${list || '<tr><td colspan="5" class="muted">暂无</td></tr>'}</tbody></table>
     </div>`;
+
+  document.getElementById('btn-import-docx').onclick = async () => {
+    const status = document.getElementById('import-status');
+    status.textContent = '解析中…';
+    try {
+      const parts = [];
+      const zh = document.getElementById('f-docx-zh').files[0];
+      const en = document.getElementById('f-docx-en').files[0];
+      const idf = document.getElementById('f-docx-id').files[0];
+      if (!zh && !en && !idf) { toast('请至少选择一个 .docx 文件'); status.textContent = ''; return; }
+      if (zh) parts.push({ lang: 'zh', snapshot: await docxFileToSnapshot(zh, 'zh') });
+      if (en) parts.push({ lang: 'en', snapshot: await docxFileToSnapshot(en, 'en') });
+      if (idf) parts.push({ lang: 'id', snapshot: await docxFileToSnapshot(idf, 'id') });
+      const merged = parts.length === 1 ? parts[0].snapshot : mergeSnapshotsByIndex(parts);
+      document.getElementById('p-json').value = JSON.stringify(merged, null, 2);
+      const title = document.getElementById('p-title');
+      if (!title.value.trim() && zh) title.value = zh.name.replace(/\.docx$/i, '');
+      status.textContent = `已解析 ${merged.length} 题`;
+      toast('Word 已解析，请检查下方 JSON 后点保存');
+    } catch (e) {
+      console.error(e);
+      status.textContent = '';
+      toast(e.message || '解析失败', false);
+    }
+  };
 
   document.getElementById('btn-save-paper').onclick = async () => {
     let snap;
@@ -322,23 +376,46 @@ function renderPapers() {
   };
 }
 
+function paperSelectHtml(selectedId) {
+  if (!S.papers.length) {
+    return '<option value="">— 请先到「题库/试卷」创建试卷 —</option>';
+  }
+  const opts = S.papers.map((p) =>
+    `<option value="${p.id}"${p.id === selectedId ? ' selected' : ''}>${esc(p.title)}（${p.grade}年级）</option>`
+  ).join('');
+  return `<option value="">— 选择试卷 —</option>${opts}`;
+}
+
+function subjectRowHtml() {
+  return `<div class="sub-row" style="margin-bottom:12px;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
+    <div class="grid2">
+      <div><label class="muted">科目名称</label><input class="inp sub-name" placeholder="如：启示录"></div>
+      <div><label class="muted">绑定试卷 <span style="color:#dc2626">*</span></label><select class="sel sub-paper">${paperSelectHtml()}</select></div>
+      <div><label class="muted">年级</label><input class="inp sub-grade" type="number" min="1" max="3" value="1"></div>
+      <div><label class="muted">班级轨道</label><select class="sel sub-track"><option value="zh_en">中英班</option><option value="id">印尼语班</option></select></div>
+      <div><label class="muted">开始时间</label><input class="inp sub-start" type="datetime-local"></div>
+      <div><label class="muted">结束时间</label><input class="inp sub-end" type="datetime-local"></div>
+    </div>
+  </div>`;
+}
+
+function parseLocalDatetime(val) {
+  if (!val) return null;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 function renderDays() {
-  const paperOpts = S.papers.map((p) => `<option value="${p.id}">${esc(p.title)} (${p.grade}年级)</option>`).join('');
+  const noPaperWarn = S.papers.length
+    ? ''
+    : '<p class="muted" style="margin-bottom:12px;padding:10px;background:#fef3c7;border-radius:8px;color:#92400e">⚠️ 还没有试卷。请先到上方 <strong>题库/试卷</strong> 标签保存至少一份试卷，再回来排考。</p>';
   document.getElementById('tab-days').innerHTML = `
     <div class="card">
       <h2>创建考试日</h2>
+      ${noPaperWarn}
       <input class="inp" id="d-title" placeholder="例如：2026 春季期末考">
       <input class="inp" id="d-date" type="date">
-      <div id="sub-rows">
-        <div class="grid2 sub-row" style="margin-bottom:8px">
-          <input class="inp sub-name" placeholder="科目名（如：启示录）">
-          <select class="sel sub-paper">${paperOpts}</select>
-          <input class="inp sub-grade" type="number" min="1" max="3" value="2" placeholder="年级">
-          <select class="sel sub-track"><option value="zh_en">中英班</option><option value="id">印尼语班</option></select>
-          <input class="inp sub-start" type="datetime-local">
-          <input class="inp sub-end" type="datetime-local">
-        </div>
-      </div>
+      <div id="sub-rows">${subjectRowHtml()}</div>
       <button class="btn btn-o" id="btn-add-sub" type="button">+ 添加科目</button>
       <div style="margin-top:10px"><button class="btn" id="btn-save-day">保存考试日</button></div>
     </div>
@@ -348,26 +425,43 @@ function renderDays() {
     </div>`;
 
   document.getElementById('btn-add-sub').onclick = () => {
-    const row = document.querySelector('.sub-row').cloneNode(true);
-    row.querySelectorAll('input').forEach((i) => { i.value = ''; });
-    document.getElementById('sub-rows').appendChild(row);
+    document.getElementById('sub-rows').insertAdjacentHTML('beforeend', subjectRowHtml());
   };
 
   document.getElementById('btn-save-day').onclick = async () => {
-    const subjects = [...document.querySelectorAll('.sub-row')].map((row, i) => ({
-      subject_name: row.querySelector('.sub-name').value,
-      paper_id: row.querySelector('.sub-paper').value,
-      grade: +row.querySelector('.sub-grade').value,
-      class_track: row.querySelector('.sub-track').value,
-      start_at: new Date(row.querySelector('.sub-start').value).toISOString(),
-      end_at: new Date(row.querySelector('.sub-end').value).toISOString(),
-      sort_order: i,
-    })).filter((s) => s.subject_name && s.paper_id && s.start_at && s.end_at);
-    if (!subjects.length) { toast('请填写至少一门科目'); return; }
+    if (!S.papers.length) {
+      toast('请先到「题库/试卷」创建并保存至少一份试卷');
+      return;
+    }
+    const rows = [...document.querySelectorAll('.sub-row')];
+    const subjects = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const subject_name = row.querySelector('.sub-name')?.value?.trim();
+      const paper_id = row.querySelector('.sub-paper')?.value;
+      const grade = +row.querySelector('.sub-grade')?.value;
+      const class_track = row.querySelector('.sub-track')?.value;
+      const startRaw = row.querySelector('.sub-start')?.value;
+      const endRaw = row.querySelector('.sub-end')?.value;
+      const start_at = parseLocalDatetime(startRaw);
+      const end_at = parseLocalDatetime(endRaw);
+      const empty = !subject_name && !paper_id && !startRaw && !endRaw;
+      if (empty) continue;
+      if (!subject_name) { toast(`第 ${i + 1} 门：请填写科目名称`); return; }
+      if (!paper_id) { toast(`第 ${i + 1} 门「${subject_name}」：请选择试卷`); return; }
+      if (!start_at || !end_at) { toast(`第 ${i + 1} 门「${subject_name}」：请填写开始/结束时间`); return; }
+      if (end_at <= start_at) { toast(`第 ${i + 1} 门「${subject_name}」：结束时间须晚于开始时间`); return; }
+      subjects.push({ subject_name, paper_id, grade, class_track, start_at, end_at, sort_order: i });
+    }
+    if (!subjects.length) { toast('请至少填写一门完整科目（含试卷与时间）'); return; }
+    const title = document.getElementById('d-title')?.value?.trim();
+    const examDate = document.getElementById('d-date')?.value;
+    if (!title) { toast('请填写考试日名称'); return; }
+    if (!examDate) { toast('请选择考试日期'); return; }
     const res = await sb.rpc('staff_student_exam_upsert_day', {
       p_id: null,
-      p_title: document.getElementById('d-title').value,
-      p_exam_date: document.getElementById('d-date').value,
+      p_title: title,
+      p_exam_date: examDate,
       p_status: 'active',
       p_subjects: subjects,
     });
