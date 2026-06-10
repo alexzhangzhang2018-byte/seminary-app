@@ -116,6 +116,8 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 .lang-subgroup-n{color:#9ca3af;font-weight:600}
 .campus-subgroup-np{margin-top:14px;padding:10px 8px 8px;border-top:2px solid #6ee7b7;border-radius:10px;background:linear-gradient(180deg,#f0fdf4 0%,#fff 100%)}
 .campus-subgroup-np-h{font-size:11px;font-weight:700;color:#047857;margin-bottom:8px;letter-spacing:.03em;line-height:1.35}
+.campus-subgroup-ai{margin-top:14px;padding:10px 8px 8px;border-top:2px solid #c4b5fd;border-radius:10px;background:linear-gradient(180deg,#f5f3ff 0%,#fff 100%)}
+.campus-subgroup-ai-h{font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:8px;letter-spacing:.03em;line-height:1.35}
 .exam-lang-section{margin-bottom:28px}
 .exam-lang-section-h{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e5e7eb}
 .exam-lang-section-h span{font-size:14px;font-weight:700;color:#374151}
@@ -392,6 +394,7 @@ function examLangPipelineGroupTitle(lang){
   return ({zh:'中文笔试 · 面试',en:'English exam · Interview',id:'Bahasa Indonesia · Wawancara'})[lang]||'中文笔试 · 面试';
 }
 const NP_CAMPUS_PIPELINE_TITLE='尼泊尔（加德满都）· Nepal Campus';
+const AI_CAMPUS_PIPELINE_TITLE='AI项目 · AI Project';
 /** 根据姓名字符推测笔试/面试分组（不用 \\p 属性类，避免旧版浏览器整段脚本解析失败导致首页永久转圈） */
 function guessExamLangFromNameString(raw){
   const t=String(raw||'').trim();
@@ -437,15 +440,17 @@ function partitionApplicantsByExamLang(aps){
   return by;
 }
 function pipelineStageCountBreakdown(aps){
-  const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)!=='np');
+  const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='id');
   const np=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='np').length;
+  const ai=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='ai').length;
   const by=partitionApplicantsByExamLang(idAps);
-  return {zh:(by.zh||[]).length,en:(by.en||[]).length,id:(by.id||[]).length,np,total:(aps||[]).length};
+  return {zh:(by.zh||[]).length,en:(by.en||[]).length,id:(by.id||[]).length,np,ai,total:(aps||[]).length};
 }
 function renderKanbanLangSubgroups(aps,cardHtml,emptyHtml,sortFn){
   const sort=sortFn||((a,b)=>String(fullName(a)).localeCompare(String(fullName(b)),'zh'));
-  const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)!=='np');
+  const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='id');
   const npAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='np').slice().sort(sort);
+  const aiAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='ai').slice().sort(sort);
   const by=partitionApplicantsByExamLang(idAps);
   const langHtml=['zh','en','id'].map(L=>{
     const list=(by[L]||[]).slice().sort(sort);
@@ -458,7 +463,11 @@ function renderKanbanLangSubgroups(aps,cardHtml,emptyHtml,sortFn){
       <div class="campus-subgroup-np-h">${esc(NP_CAMPUS_PIPELINE_TITLE)} <span class="lang-subgroup-n">(${npAps.length})</span></div>
       <div class="col g2">${npAps.map(cardHtml).join('')}${npAps.length===0?emptyHtml:''}</div>
     </div>`;
-  return langHtml+npHtml;
+  const aiHtml=`<div class="campus-subgroup-ai">
+      <div class="campus-subgroup-ai-h">${esc(AI_CAMPUS_PIPELINE_TITLE)} <span class="lang-subgroup-n">(${aiAps.length})</span></div>
+      <div class="col g2">${aiAps.map(cardHtml).join('')}${aiAps.length===0?emptyHtml:''}</div>
+    </div>`;
+  return langHtml+npHtml+aiHtml;
 }
 let __examLangAutoSyncRunning=false;
 async function autoSyncApplicantExamLangs_(){
@@ -4070,11 +4079,24 @@ function pastorLetterUploadOk(sch){
   if(!sch||(sch.guarantee_type||'deposit')!=='pastor_letter') return true;
   return !!(sch.pastor_letter_upload_data&&String(sch.pastor_letter_upload_data).length>32);
 }
-/** 就读校区：id 印尼美晟；np 南亚-尼泊尔（加德满都） */
+/** 就读校区：id 印尼美晟；np 南亚-尼泊尔（加德满都）；ai AI项目 */
 function getApplicantCampusCode(ap){
   const v=String(ap?.campus_code??'').trim().toLowerCase();
   if(v==='np'||v==='nepal'||v==='kathmandu') return 'np';
+  if(v==='ai'||v==='ai项目'||v==='ai project') return 'ai';
   return 'id';
+}
+function getApplicantCampusLabel(ap){
+  const c=getApplicantCampusCode(ap);
+  if(c==='np') return '尼泊尔（加德满都）';
+  if(c==='ai') return 'AI项目';
+  return '印尼（雅加达）';
+}
+function applicantCampusTagHtml(ap){
+  const c=getApplicantCampusCode(ap);
+  if(c==='np') return mkTag('#ecfdf5','#047857','尼泊尔');
+  if(c==='ai') return mkTag('#ede9fe','#6d28d9','AI');
+  return '';
 }
 function computeSurveyAlertFromSurveyJson(sur){
   const drug=String(sur.drug_history||sur.drug_hist||sur.substance_history||'').toLowerCase()==='yes';
@@ -5427,7 +5449,7 @@ function renderPipeline(){
             ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
             ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
             <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
-            <div class="t11 c-gray5 mb1 row g1 wrap" style="align-items:center">${esc(examLangLabelShort(getApplicantExamLang(ap)))}${getApplicantCampusCode(ap)==='np'?mkTag('#ecfdf5','#047857','尼泊尔'):''}</div>
+            <div class="t11 c-gray5 mb1 row g1 wrap" style="align-items:center">${esc(examLangLabelShort(getApplicantExamLang(ap)))}${applicantCampusTagHtml(ap)}</div>
             ${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}
             ${ap.interview_slot_id&&ap.stage!=='complete'?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
           </div>`;
@@ -5446,7 +5468,7 @@ function renderPipeline(){
       };
       const inner=renderKanbanLangSubgroups(aps,cardHtml,emptyHtml,sg.id==='interview'?interviewSort:null);
       const bd=pipelineStageCountBreakdown(aps);
-      const bdLine=`<div class="t10 c-gray4" style="line-height:1.45;margin-top:2px">中 ${bd.zh} · En ${bd.en} · Id ${bd.id}${bd.np?` · 尼 ${bd.np}`:''}</div>`;
+      const bdLine=`<div class="t10 c-gray4" style="line-height:1.45;margin-top:2px">中 ${bd.zh} · En ${bd.en} · Id ${bd.id}${bd.np?` · 尼 ${bd.np}`:''}${bd.ai?` · AI ${bd.ai}`:''}</div>`;
       return `<div class="${colClass}">
         <div style="margin-bottom:10px">
           <div style="display:flex;align-items:center;gap:6px">
@@ -5776,6 +5798,7 @@ function renderBriefingModal(ap){
               <select id="brief-ap-campus" class="sel" style="width:100%">
                 <option value="id" ${getApplicantCampusCode(ap)==='id'?'selected':''}>印尼（雅加达）</option>
                 <option value="np" ${getApplicantCampusCode(ap)==='np'?'selected':''}>尼泊尔（加德满都）</option>
+                <option value="ai" ${getApplicantCampusCode(ap)==='ai'?'selected':''}>AI项目</option>
               </select></div>
             <div><div class="t12 fw6 c-gray6 mb1">籍贯</div><input id="brief-ap-hometown" class="inp" style="width:100%" value="${valB(ap.hometown)}" placeholder="籍贯"></div>
             <div><div class="t12 fw6 c-gray6 mb1">学历</div><input id="brief-ap-education" class="inp" style="width:100%" value="${valB(ap.education)}" placeholder="学历"></div>
@@ -5788,7 +5811,7 @@ function renderBriefingModal(ap){
             <div><div class="t12 fw6 c-gray6 mb1">归主时间</div><input id="brief-ap-conversion-time" class="inp" type="date" style="width:100%" value="${valB(convDate)}"></div>
           </div>
           <div class="row g2 mt3" style="justify-content:flex-end"><button type="button" class="btn btn-primary" data-action="save-brief-basic" data-apid="${ap.id}">保存基本资料</button></div>
-        </div>`:`<div class="info-row"><span class="c-gray5">就读校区</span><span>${getApplicantCampusCode(ap)==='np'?'尼泊尔（加德满都）':'印尼（雅加达）'}</span></div>
+        </div>`:`<div class="info-row"><span class="c-gray5">就读校区</span><span>${esc(getApplicantCampusLabel(ap))}</span></div>
         <div class="info-row"><span class="c-gray5">电话</span><span>${esc(ap.phone||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">邮箱</span><span>${esc(ap.email||'—')}</span></div>
         <div class="info-row"><span class="c-gray5">性别</span><span>${esc(ap.gender||'—')}</span></div>
@@ -6715,7 +6738,7 @@ function bind(){
       const conversion_time_raw=document.getElementById('brief-ap-conversion-time')?.value||'';
       const dob_raw=document.getElementById('brief-ap-dob')?.value||'';
       const campusSel=document.getElementById('brief-ap-campus')?.value||'id';
-      const campus_code=campusSel==='np'?'np':'id';
+      const campus_code=campusSel==='np'?'np':campusSel==='ai'?'ai':'id';
       const payload={
         exam_lang,
         campus_code,
