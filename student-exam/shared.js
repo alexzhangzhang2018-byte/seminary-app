@@ -174,6 +174,22 @@ export function examLangOptionsForTrack(track) {
   return [{ v: 'zh', l: '中文' }, { v: 'en', l: 'English' }];
 }
 
+export function renderExamWithSections(questions, answers, lang) {
+  let html = '';
+  let lastLabel = '';
+  for (const q of questions || []) {
+    const label = q.section_label || '';
+    if (label && label !== lastLabel) {
+      const sec = q.section || '';
+      const cls = sec === '五' ? 'sec-head sec-long' : sec === '四' ? 'sec-head sec-short' : 'sec-head';
+      html += `<div class="${cls}">${esc(label)}</div>`;
+      lastLabel = label;
+    }
+    html += renderQuestionHtml(q, answers, lang);
+  }
+  return html;
+}
+
 export function renderQuestionHtml(q, answers, lang) {
   const gid = q.group_id;
   const cur = answers[gid];
@@ -200,14 +216,16 @@ export function renderQuestionHtml(q, answers, lang) {
       `<input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" placeholder="${i + 1}">`
     ).join('');
   } else if (q.type === 'essay') {
-    body = `<textarea class="textarea" rows="8" data-gid="${esc(gid)}" data-kind="essay" placeholder="">${esc(cur || '')}</textarea>`;
+    const rows = q.essay_kind === 'long' ? 12 : 5;
+    body = `<textarea class="textarea essay-${q.essay_kind || 'short'}" rows="${rows}" data-gid="${esc(gid)}" data-kind="essay" placeholder="">${esc(cur || '')}</textarea>`;
   } else if (q.type === 'dictation') {
     body = `<textarea class="textarea" rows="5" data-gid="${esc(gid)}" data-kind="dictation" placeholder="">${esc(cur || '')}</textarea>`;
   } else {
     body = `<input class="inp" data-gid="${esc(gid)}" data-kind="text" value="${esc(cur || '')}">`;
   }
 
-  return `<div class="q-card" data-qid="${esc(gid)}">
+  const qcls = q.type === 'essay' ? ` q-card essay-${q.essay_kind || 'short'}` : ' q-card';
+  return `<div class="${qcls.trim()}" data-qid="${esc(gid)}">
     <div class="q-head"><span class="q-no">${no}</span><span class="q-score">${q.score} ${lang === 'zh' ? '分' : 'pts'}</span></div>
     <div class="q-stem">${esc(q.stem)}</div>
     <div class="q-body">${body}</div>

@@ -47,7 +47,12 @@ a{color:#4f46e5}
 .timer-bar .t{font-weight:800;font-variant-numeric:tabular-nums;color:#4338ca}
 .timer-track{flex:1;height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
 .timer-fill{height:100%;background:linear-gradient(90deg,#4f46e5,#818cf8);transition:width 1s linear}
+.sec-head{margin:22px 0 12px;padding:12px 14px;border-radius:10px;font-size:15px;font-weight:800;color:#1e293b;background:#f1f5f9;border-left:4px solid #64748b}
+.sec-head.sec-short{background:#eff6ff;border-left-color:#3b82f6;color:#1d4ed8}
+.sec-head.sec-long{background:#faf5ff;border-left-color:#7c3aed;color:#5b21b6}
 .q-card{border:1px solid #f3f4f6;border-radius:12px;padding:16px;margin-bottom:14px}
+.q-card.essay-short{border-color:#dbeafe}
+.q-card.essay-long{border-color:#e9d5ff}
 .q-head{display:flex;justify-content:space-between;margin-bottom:8px}
 .q-no{font-weight:800;color:#4f46e5}
 .q-score{font-size:12px;color:#6b7280}
@@ -84,7 +89,7 @@ a{color:#4f46e5}
 import {
   createSb, SESSION_KEY, LANG_KEY, t, esc, fmtTime, fmtTimer,
   gradeLabel, trackLabel, examLangOptionsForTrack,
-  renderQuestionHtml, collectAnswers, installProctor,
+  renderExamWithSections, collectAnswers, installProctor,
 } from './shared.js';
 
 const sb = createSb();
@@ -433,7 +438,7 @@ function renderCover() {
 function renderExam() {
   const L = S.uiLang;
   const qs = S.paper?.questions || [];
-  const html = qs.map((q) => renderQuestionHtml(q, S.answers, L)).join('');
+  const html = renderExamWithSections(qs, S.answers, L);
   return `<div class="timer-bar">
     <span>${esc(t(L, 'timer'))}</span>
     <span class="t" id="timer-d">${fmtTimer(S.timerSec)}</span>

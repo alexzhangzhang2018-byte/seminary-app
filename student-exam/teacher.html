@@ -33,8 +33,15 @@ tr.sel{background:#eef2ff;cursor:pointer}
 .tag-done{background:#dcfce7;color:#15803d}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:800px){.grid2{grid-template-columns:1fr}}
-.grade-box{border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px}
+.grade-box{border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px}
+.grade-score-row{display:flex;align-items:center;gap:12px;margin:12px 0 8px;padding:10px 12px;background:#eff6ff;border:2px solid #93c5fd;border-radius:10px}
+.grade-score-row label{font-weight:800;font-size:14px;color:#1e40af;white-space:nowrap}
+.grade-score-inp{width:88px!important;padding:10px 8px!important;font-size:22px;font-weight:800;text-align:center;border:2px solid #3b82f6!important;border-radius:10px!important;margin:0!important;background:#fff}
+.grade-comment-inp{width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:13px;margin:0}
 .muted{color:#64748b;font-size:12px}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-danger:hover{background:#b91c1c}
+.admin-warn{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px;margin-bottom:12px;color:#991b1b;font-size:13px;line-height:1.6}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transition:.2s;z-index:9}
 .toast.show{opacity:1}
 </style>
@@ -57,10 +64,12 @@ tr.sel{background:#eef2ff;cursor:pointer}
       <button class="tab on" data-tab="grades">成绩</button>
       <button class="tab" data-tab="papers">题库/试卷</button>
       <button class="tab" data-tab="days">考试日</button>
+      <button class="tab" data-tab="admin">测试管理</button>
     </div>
     <div id="tab-grades"></div>
     <div id="tab-papers" style="display:none"></div>
     <div id="tab-days" style="display:none"></div>
+    <div id="tab-admin" style="display:none"></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -240,8 +249,12 @@ async function openGrading(attemptId) {
       <div style="margin:8px 0;font-weight:600">${esc(loc.stem || '')}</div>
       <div class="muted">学生作答：</div>
       <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#f8fafc;border-radius:8px">${esc(gi.answer_text || '（未作答）')}</div>
-      <label>得分 <input class="inp" type="number" min="0" max="${gi.max_score}" step="0.5" data-score value="${gi.score ?? ''}" style="width:100px;display:inline-block"></label>
-      <textarea class="textarea" data-comment rows="2" placeholder="评语（可选）">${esc(gi.comment || '')}</textarea>
+      <div class="grade-score-row">
+        <label for="score-${esc(gi.group_id)}">得分</label>
+        <input class="grade-score-inp" id="score-${esc(gi.group_id)}" type="number" min="0" max="${gi.max_score}" step="0.5" data-score value="${gi.score ?? ''}" inputmode="decimal">
+        <span class="muted">/ ${gi.max_score} 分</span>
+      </div>
+      <input class="grade-comment-inp" type="text" data-comment placeholder="评语（可选，一行）" value="${esc(gi.comment || '')}">
     </div>`;
   }).join('');
 
@@ -343,7 +356,7 @@ function renderPapers() {
       const snap = await r.json();
       document.getElementById('p-json').value = JSON.stringify(snap, null, 2);
       document.getElementById('p-title').value = '希伯来书 2025-2026';
-      document.getElementById('p-grade').value = '2';
+      document.getElementById('p-grade').value = '1';
       document.getElementById('import-status').textContent = `已加载 ${snap.length} 题（含客观题答案）`;
       toast('希伯来书试卷已加载，点「保存试卷」入库');
     } catch (e) {
@@ -498,6 +511,58 @@ function renderDays() {
   };
 }
 
+function renderAdmin() {
+  const dayOpts = S.days.map((d) =>
+    `<option value="${d.id}">${esc(d.title)} — ${d.exam_date} (${d.status})</option>`
+  ).join('');
+  document.getElementById('tab-admin').innerHTML = `
+    <div class="card">
+      <h2>测试管理</h2>
+      <p class="admin-warn">⚠️ 以下操作仅供今日联调测试。终止考试会立即关闭考试日并强制交卷所有进行中的答卷；清空考生会删除该日全部签到与答卷记录，不可恢复。</p>
+      <label class="muted">选择考试日</label>
+      <select class="sel" id="admin-day">${dayOpts || '<option value="">— 暂无考试日 —</option>'}</select>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn btn-danger" type="button" id="btn-end-day">一键终止考试</button>
+        <button class="btn btn-danger btn-o" type="button" id="btn-clear-students" style="border-color:#fca5a5;color:#dc2626">清空考生记录</button>
+      </div>
+      <p class="muted" id="admin-status" style="margin-top:12px"></p>
+    </div>`;
+
+  document.getElementById('btn-end-day').onclick = async () => {
+    const id = document.getElementById('admin-day').value;
+    if (!id) { toast('请选择考试日'); return; }
+    if (!confirm('确定终止该考试日？所有未交卷学生将被强制交卷，且无法再开考。')) return;
+    const res = await sb.rpc('staff_student_exam_end_day', { p_exam_day_id: id });
+    const st = document.getElementById('admin-status');
+    if (res.data?.ok) {
+      st.textContent = `已终止。强制交卷 ${res.data.forced_submit_count ?? 0} 份。`;
+      toast('考试已终止');
+      await loadAll();
+      render();
+    } else {
+      st.textContent = res.data?.error || res.error?.message || '失败';
+      toast('操作失败');
+    }
+  };
+
+  document.getElementById('btn-clear-students').onclick = async () => {
+    const id = document.getElementById('admin-day').value;
+    if (!id) { toast('请选择考试日'); return; }
+    if (!confirm('确定清空该考试日全部考生签到与答卷？此操作不可恢复。')) return;
+    const res = await sb.rpc('staff_student_exam_clear_day_students', { p_exam_day_id: id });
+    const st = document.getElementById('admin-status');
+    if (res.data?.ok) {
+      st.textContent = `已删除 ${res.data.deleted_check_ins ?? 0} 条签到记录（含关联答卷）。`;
+      toast('考生记录已清空');
+      await loadAll();
+      render();
+    } else {
+      st.textContent = res.data?.error || res.error?.message || '失败';
+      toast('操作失败');
+    }
+  };
+}
+
 function render() {
   document.querySelectorAll('.tab').forEach((t) => {
     t.classList.toggle('on', t.dataset.tab === S.tab);
@@ -505,9 +570,11 @@ function render() {
   document.getElementById('tab-grades').style.display = S.tab === 'grades' ? 'block' : 'none';
   document.getElementById('tab-papers').style.display = S.tab === 'papers' ? 'block' : 'none';
   document.getElementById('tab-days').style.display = S.tab === 'days' ? 'block' : 'none';
+  document.getElementById('tab-admin').style.display = S.tab === 'admin' ? 'block' : 'none';
   if (S.tab === 'grades') renderGrades();
   if (S.tab === 'papers') renderPapers();
   if (S.tab === 'days') renderDays();
+  if (S.tab === 'admin') renderAdmin();
 }
 
 document.querySelectorAll('.tab').forEach((t) => {

@@ -58,6 +58,7 @@ export function parseCourseExamText(lines) {
     const line = lines[i];
 
     if (/^一、.*填空/.test(line)) {
+      const hdr = line;
       const perBlank = sectionScore(line, 1);
       i++;
       while (i < lines.length && !/^二、/.test(lines[i])) {
@@ -73,6 +74,8 @@ export function parseCourseExamText(lines) {
             prompt,
             answers: examOnly ? new Array(answers.length).fill('') : answers,
             score: answers.length * perBlank,
+            section: '一',
+            section_label: hdr,
           };
           if (examOnly) q.needs_answer_key = true;
           questions.push(q);
@@ -83,6 +86,7 @@ export function parseCourseExamText(lines) {
     }
 
     if (/^二、.*选择/.test(line)) {
+      const hdr = line;
       const perQ = sectionScore(line, 1);
       i++;
       while (i < lines.length && !/^三、/.test(lines[i])) {
@@ -101,6 +105,8 @@ export function parseCourseExamText(lines) {
               prompt,
               options,
               score: perQ,
+              section: '二',
+              section_label: hdr,
             };
             if (ansM) {
               q.answer_index = { A: 0, B: 1, C: 2, D: 3 }[ansM[1]];
@@ -117,6 +123,7 @@ export function parseCourseExamText(lines) {
     }
 
     if (/^三、判断/.test(line)) {
+      const hdr = line;
       const perQ = sectionScore(line, 1);
       i++;
       while (i < lines.length && !/^四、/.test(lines[i])) {
@@ -125,7 +132,7 @@ export function parseCourseExamText(lines) {
         const examM = !ansM && /^（\s*）/.test(l);
         if (ansM || examM) {
           const prompt = l.replace(/^（\s*(?:[✓√×xX])?\s*）\s*/, '').trim();
-          const q = { id: qid++, type: 'truefalse', prompt, score: perQ };
+          const q = { id: qid++, type: 'truefalse', prompt, score: perQ, section: '三', section_label: hdr };
           if (ansM) {
             q.answer_bool = ansM[1] === '✓' || ansM[1] === '√';
           } else {
@@ -139,12 +146,16 @@ export function parseCourseExamText(lines) {
     }
 
     if (/^四、简答/.test(line)) {
+      const hdr = line;
       const perQ = sectionScore(line, 2);
       i++;
       while (i < lines.length && !/^五、/.test(lines[i])) {
         const l = lines[i].trim();
         if (l && !/^四、/.test(l)) {
-          questions.push({ id: qid++, type: 'essay', prompt: l, score: perQ });
+          questions.push({
+            id: qid++, type: 'essay', prompt: l, score: perQ,
+            section: '四', section_label: hdr, essay_kind: 'short',
+          });
         }
         i++;
       }
@@ -152,12 +163,16 @@ export function parseCourseExamText(lines) {
     }
 
     if (/^五、论述/.test(line)) {
+      const hdr = line;
       const perQ = sectionScore(line, 10);
       i++;
       while (i < lines.length) {
         const l = lines[i].trim();
         if (l && !/^五、/.test(l)) {
-          questions.push({ id: qid++, type: 'essay', prompt: l, score: perQ });
+          questions.push({
+            id: qid++, type: 'essay', prompt: l, score: perQ,
+            section: '五', section_label: hdr, essay_kind: 'long',
+          });
         }
         i++;
       }
@@ -405,14 +420,19 @@ function legacyToLocale(q) {
 }
 
 function legacyListToSnapshot(questions, lang) {
-  return questions.map((q, idx) => ({
-    group_id: `q${idx + 1}`,
-    sort_order: idx + 1,
-    type: q.type,
-    section: 'A',
-    score: q.score || 0,
-    locales: { [lang]: legacyToLocale(q) },
-  }));
+  return questions.map((q, idx) => {
+    const row = {
+      group_id: `q${String(idx + 1).padStart(2, '0')}`,
+      sort_order: idx + 1,
+      type: q.type,
+      section: q.section || 'A',
+      score: q.score || 0,
+      locales: { [lang]: legacyToLocale(q) },
+    };
+    if (q.section_label) row.section_label = q.section_label;
+    if (q.essay_kind) row.essay_kind = q.essay_kind;
+    return row;
+  });
 }
 
 export function mergeSnapshotsByIndex(parts) {
