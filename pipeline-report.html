@@ -8,39 +8,39 @@
 <script src="/vendor/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:#f4f5ff;color:#1e293b;font-size:14px;line-height:1.5}
-.wrap{max-width:900px;margin:0 auto;padding:16px 14px 40px}
-.hdr{margin-bottom:14px}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f4f5ff;color:#1e293b;font-size:14px;line-height:1.45}
+.wrap{max-width:100%;margin:0 auto;padding:16px 14px 32px}
+.hdr{margin-bottom:12px}
 .hdr h1{font-size:18px;font-weight:800}
 .hdr .sub{font-size:12px;color:#64748b;margin-top:4px}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
 .sel{padding:8px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;font:inherit;min-width:140px}
 .btn{padding:8px 14px;border-radius:10px;border:1px solid #c7d2fe;background:#fff;color:#4f46e5;font-weight:700;cursor:pointer;font-size:13px}
-.btn:hover{background:#eef2ff}
 .cnt{font-size:12px;color:#64748b;margin-left:auto}
-.panel{background:#fff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #f1f5f9}
-th{font-size:11px;color:#64748b;font-weight:700;background:#f8fafc}
-tr:last-child td{border-bottom:none}
-.name{font-weight:600}
-.stage{font-size:12px;color:#475569}
-.score{color:#4f46e5;font-weight:700}
-.muted{color:#94a3b8}
-.empty{padding:32px;text-align:center;color:#94a3b8;font-size:13px}
+.board{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch}
+.col{flex:0 0 132px;min-width:120px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;display:flex;flex-direction:column;max-height:72vh}
+.col-h{padding:8px 10px;font-weight:700;font-size:12px;color:#475569;background:#f8fafc;border-radius:12px 12px 0 0;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;gap:4px;align-items:baseline}
+.col-n{background:#e2e8f0;color:#64748b;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;flex-shrink:0}
+.col-body{overflow-y:auto;flex:1}
+.row{padding:7px 10px;border-bottom:1px solid #f8fafc}
+.row:last-child{border-bottom:none}
+.row .n{font-weight:600;font-size:12px;line-height:1.35;word-break:break-word}
+.row .s{font-size:11px;margin-top:2px;color:#4f46e5;font-weight:700}
+.row .s.none{color:#cbd5e1;font-weight:400}
+.col-empty{padding:12px 8px;font-size:11px;color:#cbd5e1;text-align:center}
 .err,.load{padding:24px;text-align:center}
 .err{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:12px}
-.note{font-size:11px;color:#94a3b8;margin-top:12px;text-align:center}
+.note{font-size:11px;color:#94a3b8;margin-top:10px;text-align:center}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="hdr">
     <h1>🏫 招生进度看板</h1>
-    <div class="sub" id="subline">只读列表 · 仅供内部老师查看</div>
+    <div class="sub" id="subline">按阶段横向查看 · 仅供内部老师</div>
   </div>
   <div id="root"><div class="load">加载中…</div></div>
-  <p class="note">数据与招生工作台同步；切换分类或点「刷新」获取最新状态。</p>
+  <p class="note">切换班级查看；每列下方为姓名与笔试分（无则显示 —）。</p>
 </div>
 <script>
 (function () {
@@ -53,12 +53,10 @@ tr:last-child td{border-bottom:none}
     { id: 'exam', label: '笔试' },
     { id: 'interview', label: '面试' },
     { id: 'result', label: '预录取' },
-    { id: 'materials', label: '上传资料' },
+    { id: 'materials', label: '资料' },
     { id: 'visa', label: '签证' },
     { id: 'complete', label: '完成' },
   ];
-  const STAGE_LABEL = Object.fromEntries(STAGES.map((s) => [s.id, s.label]));
-  const STAGE_ORDER = Object.fromEntries(STAGES.map((s, i) => [s.id, i + 1]));
   const TRACKS = [
     { id: 'all', label: '全部' },
     { id: 'zh', label: '中文班' },
@@ -82,72 +80,57 @@ tr:last-child td{border-bottom:none}
     return ['en', 'id'].includes(ap.exam_lang) ? ap.exam_lang : 'zh';
   }
 
-  function formatIv(slot) {
-    if (!slot) return '—';
-    const tn = slot.teacher_name ? ' · ' + slot.teacher_name : '';
-    return `${slot.slot_date || ''} ${slot.slot_time || ''}${tn}`.trim() || '—';
-  }
-
   function filterApps(apps) {
     if (track === 'all') return apps;
     return apps.filter((a) => applicantTrack(a) === track);
   }
 
-  function sortApps(list) {
-    return list.slice().sort((a, b) => {
-      const oa = STAGE_ORDER[a.stage] ?? 99;
-      const ob = STAGE_ORDER[b.stage] ?? 99;
-      if (oa !== ob) return oa - ob;
-      return String(a.display_name).localeCompare(String(b.display_name), 'zh');
-    });
+  function scoreHtml(ap) {
+    if (ap.exam_score != null && ap.exam_score !== '') {
+      return `<div class="s">${esc(ap.exam_score)} 分</div>`;
+    }
+    return '<div class="s none">—</div>';
   }
 
-  function renderTable(apps) {
-    const list = sortApps(filterApps(apps));
+  function renderBoard(apps) {
+    const list = filterApps(apps);
     if (!list.length) {
-      return '<div class="empty">该分类下暂无申请人</div>';
+      return '<div class="col-empty" style="padding:24px">该分类下暂无申请人</div>';
     }
-    const rows = list.map((ap) => {
-      const score = ap.exam_score != null ? `<span class="score">${ap.exam_score}</span>` : '<span class="muted">—</span>';
-      const pl4 = ap.phone_last4 ? esc(ap.phone_last4) : '—';
-      const iv = ap.interview_slot ? esc(formatIv(ap.interview_slot)) : '<span class="muted">—</span>';
-      return `<tr>
-        <td class="name">${esc(ap.display_name)}</td>
-        <td class="stage">${esc(STAGE_LABEL[ap.stage] || ap.stage || '—')}</td>
-        <td>${score}</td>
-        <td style="font-size:12px">${iv}</td>
-        <td class="muted">${pl4}</td>
-      </tr>`;
+    return STAGES.map((st) => {
+      const inStage = list
+        .filter((a) => a.stage === st.id)
+        .sort((a, b) => String(a.display_name).localeCompare(String(b.display_name), 'zh'));
+      const body = inStage.length
+        ? inStage.map((ap) => `<div class="row"><div class="n">${esc(ap.display_name)}</div>${scoreHtml(ap)}</div>`).join('')
+        : '<div class="col-empty">—</div>';
+      return `<div class="col">
+        <div class="col-h"><span>${esc(st.label)}</span><span class="col-n">${inStage.length}</span></div>
+        <div class="col-body">${body}</div>
+      </div>`;
     }).join('');
-    return `<table>
-      <thead><tr><th>姓名</th><th>阶段</th><th>笔试</th><th>面试预约</th><th>尾号</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
   }
 
   function renderShell() {
-    const s = snapshot?.stats || {};
     const apps = snapshot?.applicants || [];
     const at = snapshot?.generated_at ? new Date(snapshot.generated_at) : null;
-    const sub = at
+    document.getElementById('subline').textContent = at
       ? `更新于 ${at.toLocaleString('zh-CN', { hour12: false })}`
-      : '只读列表';
-    document.getElementById('subline').textContent = sub;
+      : '按阶段横向查看';
 
-    const filtered = filterApps(apps);
     document.getElementById('root').innerHTML = `
       <div class="toolbar">
         <select class="sel" id="track-filter">${TRACKS.map((t) =>
           `<option value="${t.id}"${t.id === track ? ' selected' : ''}>${esc(t.label)}</option>`
         ).join('')}</select>
         <button class="btn" type="button" id="btn-refresh">刷新</button>
-        <span class="cnt" id="list-cnt">共 ${filtered.length} 人</span>
+        <span class="cnt" id="list-cnt">共 ${filterApps(apps).length} 人</span>
       </div>
-      <div class="panel">${renderTable(apps)}</div>`;
+      <div class="board" id="board">${renderBoard(apps)}</div>`;
 
     document.getElementById('track-filter').onchange = (e) => {
       track = e.target.value;
-      document.querySelector('.panel').innerHTML = renderTable(apps);
+      document.getElementById('board').innerHTML = renderBoard(apps);
       document.getElementById('list-cnt').textContent = `共 ${filterApps(apps).length} 人`;
     };
     document.getElementById('btn-refresh').onclick = load;
