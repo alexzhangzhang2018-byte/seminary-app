@@ -88,7 +88,7 @@ a{color:#4f46e5}
 <script type="module">
 import {
   createSb, SESSION_KEY, LANG_KEY, t, esc, fmtTime, fmtTimer,
-  gradeLabel, trackLabel, examLangOptionsForTrack,
+  gradeLabel, trackLabel, classTrackOptions, examLangForTrack,
   renderExamWithSections, collectAnswers, installProctor,
 } from './shared.js';
 
@@ -153,22 +153,14 @@ async function loadToday() {
 }
 
 function getCheckInTrack() {
-  return document.querySelector('input[name="f-track"]:checked')?.value || 'zh_en';
-}
-
-function syncExamLangSelect() {
-  const track = getCheckInTrack();
-  const sel = document.getElementById('f-exam-lang');
-  if (!sel) return;
-  const opts = examLangOptionsForTrack(track);
-  sel.innerHTML = opts.map((o) => `<option value="${o.v}">${esc(o.l)}</option>`).join('');
+  return document.querySelector('input[name="f-track"]:checked')?.value || 'zh';
 }
 
 async function doCheckIn(resume = false) {
   const name = document.getElementById('f-name')?.value?.trim();
   const grade = +document.getElementById('f-grade')?.value;
   const classTrack = getCheckInTrack();
-  const examLang = document.getElementById('f-exam-lang')?.value || (classTrack === 'id' ? 'id' : 'zh');
+  const examLang = examLangForTrack(classTrack);
   const pl4 = document.getElementById('f-pl4')?.value?.trim() || null;
   if (!name) { toast(t(S.uiLang, 'full_name') + '?', false); return; }
 
@@ -364,17 +356,16 @@ function renderCheckin() {
       <input class="inp" id="f-name" value="${esc(S.checkIn?.full_name || '')}"></div>
     <div class="fld"><label>${esc(t(L, 'class_track'))}</label>
       <div class="pills" id="track-pills">
-        <label class="pill on"><input type="radio" name="f-track" value="zh_en" checked style="display:none"> ${esc(t(L, 'track_zh_en'))}</label>
-        <label class="pill"><input type="radio" name="f-track" value="id" style="display:none"> ${esc(t(L, 'track_id'))}</label>
+        ${classTrackOptions(L).map((o) => {
+          const cur = S.checkIn?.class_track === 'zh_en' ? 'zh' : (S.checkIn?.class_track || 'zh');
+          const on = o.v === cur;
+          return `<label class="pill${on ? ' on' : ''}"><input type="radio" name="f-track" value="${o.v}"${on ? ' checked' : ''} style="display:none"> ${esc(o.l)}</label>`;
+        }).join('')}
       </div></div>
-    <div class="grid2">
-      <div class="fld"><label>${esc(t(L, 'grade'))}</label>
-        <select class="sel" id="f-grade">
-          ${[1, 2, 3].map((g) => `<option value="${g}"${S.checkIn?.grade === g ? ' selected' : ''}>${esc(gradeLabel(g, L))}</option>`).join('')}
-        </select></div>
-      <div class="fld"><label>${esc(t(L, 'exam_lang'))}</label>
-        <select class="sel" id="f-exam-lang"></select></div>
-    </div>
+    <div class="fld"><label>${esc(t(L, 'grade'))}</label>
+      <select class="sel" id="f-grade">
+        ${[1, 2, 3].map((g) => `<option value="${g}"${S.checkIn?.grade === g ? ' selected' : ''}>${esc(gradeLabel(g, L))}</option>`).join('')}
+      </select></div>
     <div class="fld"><label>${esc(t(L, 'phone_last4'))}</label>
       <input class="inp" id="f-pl4" inputmode="numeric" maxlength="4" placeholder="1234"></div>
     <div class="btn-row">
@@ -427,6 +418,7 @@ function renderCover() {
     <div class="cover-grid">
       <div class="cover-line"><strong>${esc(t(L, 'subject'))}</strong><span>${esc(sub.subject_name)}</span></div>
       <div class="cover-line"><strong>${esc(t(L, 'grade'))}</strong><span>${esc(gradeLabel(S.checkIn?.grade, L))}</span></div>
+      <div class="cover-line"><strong>${esc(t(L, 'class_track'))}</strong><span>${esc(trackLabel(S.checkIn?.class_track, L))}</span></div>
       <div class="cover-line"><strong>${esc(t(L, 'cover_name'))}</strong>
         <input class="inp" id="cover-name" value="${esc(S.checkIn?.full_name || '')}" style="flex:1"></div>
     </div>
@@ -482,10 +474,8 @@ function bindTrackPills() {
       pill.classList.add('on');
       const radio = pill.querySelector('input[type="radio"]');
       if (radio) radio.checked = true;
-      syncExamLangSelect();
     });
   });
-  syncExamLangSelect();
 }
 
 function bind() {

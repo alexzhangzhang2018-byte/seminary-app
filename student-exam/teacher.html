@@ -74,7 +74,11 @@ tr.sel{background:#eef2ff;cursor:pointer}
 </div>
 <div class="toast" id="toast"></div>
 <script type="module">
-import { createSb, esc } from './shared.js';
+import { createSb, esc, trackLabel } from './shared.js';
+
+function trackLabelZh(track) {
+  return trackLabel(track, 'zh');
+}
 import { docxFileToSnapshot, mergeSnapshotsByIndex } from './docx-import.js';
 
 const sb = createSb();
@@ -175,7 +179,7 @@ function renderGrades() {
     `<option value="${d.id}"${d.id === S.selectedDayId ? ' selected' : ''}>${esc(d.title)} (${d.exam_date})</option>`
   ).join('');
   const subOpts = S.subjects.map((s) =>
-    `<option value="${s.id}"${s.id === S.selectedSubjectId ? ' selected' : ''}>${esc(s.subject_name)} · ${s.grade}年级 · ${s.class_track === 'id' ? '印尼班' : '中英班'}</option>`
+    `<option value="${s.id}"${s.id === S.selectedSubjectId ? ' selected' : ''}>${esc(s.subject_name)} · ${s.grade}年级 · ${esc(trackLabelZh(s.class_track))}</option>`
   ).join('');
   const rows = S.attempts.map((a) => {
     const gs = a.grading_status === 'done' || a.grading_status === 'none' ? 'tag-done' : 'tag-pending';
@@ -183,7 +187,7 @@ function renderGrades() {
     return `<tr class="sel" data-aid="${a.id}">
       <td>${esc(a.display_name)}</td>
       <td>${a.grade}</td>
-      <td>${a.class_track === 'id' ? '印尼班' : '中英班'}</td>
+      <td>${esc(trackLabelZh(a.class_track))}</td>
       <td>${esc(a.exam_lang)}</td>
       <td>${a.objective_score ?? '—'}</td>
       <td>${a.subjective_score ?? '—'}</td>
@@ -230,7 +234,7 @@ function renderGrades() {
 function exportCsv() {
   const hdr = ['姓名', '年级', '班级', '语言', '客观分', '主观分', '总分', '阅卷状态', '切屏', '交卷时间'];
   const lines = S.attempts.map((a) => [
-    a.display_name, a.grade, a.class_track === 'id' ? '印尼班' : '中英班', a.exam_lang,
+    a.display_name, a.grade, trackLabelZh(a.class_track), a.exam_lang,
     a.objective_score ?? '', a.subjective_score ?? '', a.total_score ?? '',
     a.grading_status, a.proctor_flags ?? 0, a.submitted_at ?? '',
   ].map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','));
@@ -457,7 +461,7 @@ function subjectRowHtml() {
       <div><label class="muted">科目名称</label><input class="inp sub-name" placeholder="如：启示录"></div>
       <div><label class="muted">绑定试卷 <span style="color:#dc2626">*</span></label><select class="sel sub-paper">${paperSelectHtml()}</select></div>
       <div><label class="muted">年级</label><input class="inp sub-grade" type="number" min="1" max="3" value="1"></div>
-      <div><label class="muted">班级轨道</label><select class="sel sub-track"><option value="zh_en">中英班</option><option value="id">印尼语班</option></select></div>
+      <div><label class="muted">班级</label><select class="sel sub-track"><option value="zh">中文班</option><option value="en">英文班</option><option value="id">印尼语班</option></select></div>
       <div><label class="muted">开始时间</label><input class="inp sub-start" type="datetime-local"></div>
       <div><label class="muted">结束时间</label><input class="inp sub-end" type="datetime-local"></div>
     </div>
@@ -480,6 +484,7 @@ function renderDays() {
       ${noPaperWarn}
       <input class="inp" id="d-title" placeholder="例如：2026 春季期末考">
       <input class="inp" id="d-date" type="date">
+      <p class="muted" style="margin-bottom:12px;line-height:1.65">同一时段可为中文班、英文班、印尼语班各排一门不同科目：点「+ 添加科目」增加一行，选不同班级与试卷，开始/结束时间可相同。</p>
       <div id="sub-rows">${subjectRowHtml()}</div>
       <button class="btn btn-o" id="btn-add-sub" type="button">+ 添加科目</button>
       <div style="margin-top:10px"><button class="btn" id="btn-save-day">保存考试日</button></div>

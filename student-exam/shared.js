@@ -21,8 +21,9 @@ export const UI = {
     grade: '年级',
     grade1: '一年级', grade2: '二年级', grade3: '三年级',
     class_track: '班级',
-    track_zh_en: '中英班（试卷：启·撒·诗 等）',
-    track_id: '印尼语班（试卷：启·撒·来 等）',
+    track_zh: '中文班',
+    track_en: '英文班',
+    track_id: '印尼语班',
     exam_lang: '答卷语言',
     phone_last4: '手机/WhatsApp 后 4 位（选填，换设备时恢复）',
     btn_checkin: '签到并开始',
@@ -59,8 +60,9 @@ export const UI = {
     grade: 'Year',
     grade1: 'Year 1', grade2: 'Year 2', grade3: 'Year 3',
     class_track: 'Class',
-    track_zh_en: 'Chinese/English track',
-    track_id: 'Indonesian track',
+    track_zh: 'Chinese class',
+    track_en: 'English class',
+    track_id: 'Indonesian class',
     exam_lang: 'Exam language',
     phone_last4: 'Last 4 digits of phone/WhatsApp (optional)',
     btn_checkin: 'Check in',
@@ -97,7 +99,8 @@ export const UI = {
     grade: 'Angkatan',
     grade1: 'Tahun 1', grade2: 'Tahun 2', grade3: 'Tahun 3',
     class_track: 'Kelas',
-    track_zh_en: 'Kelas Cina/Inggris',
+    track_zh: 'Kelas Bahasa Cina',
+    track_en: 'Kelas Bahasa Inggris',
     track_id: 'Kelas Bahasa Indonesia',
     exam_lang: 'Bahasa ujian',
     phone_last4: '4 digit terakhir HP/WhatsApp (opsional)',
@@ -165,20 +168,41 @@ export function gradeLabel(g, lang) {
 }
 
 export function trackLabel(track, lang) {
-  return track === 'id' ? t(lang, 'track_id') : t(lang, 'track_zh_en');
+  const key = { zh: 'track_zh', en: 'track_en', id: 'track_id', zh_en: 'track_zh' }[track] || 'track_zh';
+  return t(lang, key);
 }
 
-/** 中英班可选 zh/en；印尼班固定 id */
-export function examLangOptionsForTrack(track) {
-  if (track === 'id') return [{ v: 'id', l: 'Bahasa Indonesia' }];
-  return [{ v: 'zh', l: '中文' }, { v: 'en', l: 'English' }];
+export function classTrackOptions(lang) {
+  return [
+    { v: 'zh', l: t(lang, 'track_zh') },
+    { v: 'en', l: t(lang, 'track_en') },
+    { v: 'id', l: t(lang, 'track_id') },
+  ];
+}
+
+/** 答卷语言与班级一致 */
+export function examLangForTrack(track) {
+  const n = track === 'zh_en' ? 'zh' : track;
+  return ['zh', 'en', 'id'].includes(n) ? n : 'zh';
+}
+
+export function displaySectionLabel(raw) {
+  if (!raw) return '';
+  const s = String(raw).replace(/^[一二三四五六七八九十]+、\s*/, '');
+  const name = s.replace(/（.*$/, '').trim();
+  const parenM = s.match(/（([^）]*)）/);
+  if (!parenM) return name || s;
+  const parts = parenM[1].split(/[，,]/).map((p) => p.trim())
+    .filter((p) => /每[题空][0-9.]+\s*分/.test(p) || /^共/.test(p));
+  if (parts.length) return `${name}（${parts.join('，')}）`;
+  return name;
 }
 
 export function renderExamWithSections(questions, answers, lang) {
   let html = '';
   let lastLabel = '';
   for (const q of questions || []) {
-    const label = q.section_label || '';
+    const label = displaySectionLabel(q.section_label || '');
     if (label && label !== lastLabel) {
       const sec = q.section || '';
       const cls = sec === '五' ? 'sec-head sec-long' : sec === '四' ? 'sec-head sec-short' : 'sec-head';
