@@ -88,7 +88,7 @@ a{color:#4f46e5}
 <script type="module">
 import {
   createSb, SESSION_KEY, LANG_KEY, t, esc, fmtTime, fmtTimer,
-  gradeLabel, trackLabel, classTrackOptions, examLangForTrack,
+  gradeLabel, trackLabel, classTrackOptions, examLangForTrack, studentPaperTitle,
   renderExamWithSections, collectAnswers, installProctor,
 } from './shared.js';
 
@@ -438,7 +438,7 @@ function renderExam() {
     <button class="btn btn-p" id="btn-submit" style="padding:8px 14px">${esc(t(L, 'submit'))}</button>
   </div>
   <div class="card" style="margin-top:12px">
-    <h2>${esc(S.paper?.paper_title || S.subject?.subject_name)}</h2>
+    <h2>${esc(studentPaperTitle(S.paper?.paper_title || S.subject?.subject_name || ''))}</h2>
     <div id="exam-root">${html}</div>
   </div>`;
 }

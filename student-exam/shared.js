@@ -16,7 +16,7 @@ export const UI = {
   zh: {
     site: '美村宣教学院 · 内部考试',
     checkin_title: '今日考试签到',
-    checkin_hint: '请填写与纸质卷相同的姓名，选择年级与答卷语言。今日只需签到一次。',
+    checkin_hint: '请填写姓名，选择年级与答卷语言。今日只需签到一次。',
     full_name: '姓名',
     grade: '年级',
     grade1: '一年级', grade2: '二年级', grade3: '三年级',
@@ -55,7 +55,7 @@ export const UI = {
   en: {
     site: 'MMS · Internal Exam',
     checkin_title: 'Check-in for today',
-    checkin_hint: 'Enter your name as on paper, grade, and exam language. Check in once per day.',
+    checkin_hint: 'Enter your name, grade, and exam language. Check in once per day.',
     full_name: 'Full name',
     grade: 'Year',
     grade1: 'Year 1', grade2: 'Year 2', grade3: 'Year 3',
@@ -94,7 +94,7 @@ export const UI = {
   id: {
     site: 'MMS · Ujian Internal',
     checkin_title: 'Check-in hari ini',
-    checkin_hint: 'Isi nama seperti di kertas ujian, angkatan, dan bahasa ujian. Cukup sekali per hari.',
+    checkin_hint: 'Isi nama, angkatan, dan bahasa ujian. Cukup sekali per hari.',
     full_name: 'Nama lengkap',
     grade: 'Angkatan',
     grade1: 'Tahun 1', grade2: 'Tahun 2', grade3: 'Tahun 3',
@@ -165,6 +165,19 @@ export function fmtTimer(sec) {
 
 export function gradeLabel(g, lang) {
   return t(lang, `grade${g}`);
+}
+
+/** 学生端卷名：去掉学年后缀（如「希伯来书 2025-2026」→「希伯来书」） */
+export function studentPaperTitle(title) {
+  if (!title) return '';
+  return String(title).replace(/\s+\d{4}-\d{4}\s*$/, '').trim();
+}
+
+/** 教师端卷名：科目 + 年级（如「希伯来书-一年级」） */
+export function teacherPaperTitle(title, grade, lang = 'zh') {
+  const base = studentPaperTitle(title);
+  if (!grade) return base;
+  return `${base}-${gradeLabel(grade, lang)}`;
 }
 
 export function trackLabel(track, lang) {

@@ -64,7 +64,7 @@ tr.sel{background:#eef2ff;cursor:pointer}
       <button class="tab on" data-tab="grades">成绩</button>
       <button class="tab" data-tab="papers">题库/试卷</button>
       <button class="tab" data-tab="days">考试日</button>
-      <button class="tab" data-tab="admin">测试管理</button>
+      <button class="tab" data-tab="admin">考试管理</button>
     </div>
     <div id="tab-grades"></div>
     <div id="tab-papers" style="display:none"></div>
@@ -74,7 +74,7 @@ tr.sel{background:#eef2ff;cursor:pointer}
 </div>
 <div class="toast" id="toast"></div>
 <script type="module">
-import { createSb, esc, trackLabel } from './shared.js';
+import { createSb, esc, trackLabel, teacherPaperTitle } from './shared.js';
 
 function trackLabelZh(track) {
   return trackLabel(track, 'zh');
@@ -298,7 +298,7 @@ async function openGrading(attemptId) {
 function renderPapers() {
   const list = S.papers.map((p) =>
     `<tr data-pid="${p.id}">
-      <td>${esc(p.title)}</td><td>${p.grade}</td><td>${p.total_score}</td><td>${esc(p.status)}</td>
+      <td>${esc(teacherPaperTitle(p.title, p.grade))}</td><td>${p.grade}</td><td>${p.total_score}</td><td>${esc(p.status)}</td>
       <td>${(p.snapshot_json || []).length} 题</td>
       <td><button class="btn btn-o btn-sm btn-del-paper" type="button" data-pid="${p.id}">删除</button></td>
     </tr>`
@@ -383,7 +383,7 @@ function renderPapers() {
       const r = await fetch('./papers/hebrews-2025-2026-zh.json');
       const snap = await r.json();
       document.getElementById('p-json').value = JSON.stringify(snap, null, 2);
-      document.getElementById('p-title').value = '希伯来书 2025-2026';
+      document.getElementById('p-title').value = '希伯来书';
       document.getElementById('p-grade').value = '1';
       document.getElementById('import-status').textContent = `已加载 ${snap.length} 题（含客观题答案）`;
       toast('希伯来书试卷已加载，点「保存试卷」入库');
@@ -450,7 +450,7 @@ function paperSelectHtml(selectedId) {
     return '<option value="">— 请先到「题库/试卷」创建试卷 —</option>';
   }
   const opts = S.papers.map((p) =>
-    `<option value="${p.id}"${p.id === selectedId ? ' selected' : ''}>${esc(p.title)}（${p.grade}年级）</option>`
+    `<option value="${p.id}"${p.id === selectedId ? ' selected' : ''}>${esc(teacherPaperTitle(p.title, p.grade))}</option>`
   ).join('');
   return `<option value="">— 选择试卷 —</option>${opts}`;
 }
@@ -552,13 +552,16 @@ function renderAdmin() {
   ).join('');
   document.getElementById('tab-admin').innerHTML = `
     <div class="card">
-      <h2>测试管理</h2>
-      <p class="admin-warn">⚠️ 以下操作仅供今日联调测试。终止考试会立即关闭考试日并强制交卷所有进行中的答卷；清空考生会删除该日全部签到与答卷记录，不可恢复。</p>
+      <h2>考试管理</h2>
+      <p class="muted" style="margin-bottom:12px;line-height:1.65;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
+        <strong>一键终止考试</strong>：立即关闭所选考试日，并强制交卷所有进行中的答卷。<br>
+        <strong>清空考生记录</strong>：删除该日全部签到与答卷，便于重新测试。<span style="color:#b91c1c">此操作不可恢复，请谨慎使用。</span>
+      </p>
       <label class="muted">选择考试日</label>
       <select class="sel" id="admin-day">${dayOpts || '<option value="">— 暂无考试日 —</option>'}</select>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
         <button class="btn btn-danger" type="button" id="btn-end-day">一键终止考试</button>
-        <button class="btn btn-danger btn-o" type="button" id="btn-clear-students" style="border-color:#fca5a5;color:#dc2626">清空考生记录</button>
+        <button class="btn btn-o" type="button" id="btn-clear-students" style="border-color:#fca5a5;color:#dc2626">清空考生记录</button>
       </div>
       <p class="muted" id="admin-status" style="margin-top:12px"></p>
     </div>`;
