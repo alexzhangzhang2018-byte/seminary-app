@@ -34,10 +34,10 @@ tr.sel{background:#eef2ff;cursor:pointer}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:800px){.grid2{grid-template-columns:1fr}}
 .grade-box{border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px}
-.grade-score-row{display:flex;align-items:center;gap:12px;margin:12px 0 8px;padding:10px 12px;background:#eff6ff;border:2px solid #93c5fd;border-radius:10px}
-.grade-score-row label{font-weight:800;font-size:14px;color:#1e40af;white-space:nowrap}
-.grade-score-inp{width:88px!important;padding:10px 8px!important;font-size:22px;font-weight:800;text-align:center;border:2px solid #3b82f6!important;border-radius:10px!important;margin:0!important;background:#fff}
-.grade-comment-inp{width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:13px;margin:0}
+.grade-score-row{display:flex;align-items:center;gap:10px;margin:12px 0 0}
+.grade-score-row label{font-weight:700;font-size:14px;white-space:nowrap}
+.grade-score-inp{width:72px;padding:8px 6px;font-size:26px;font-weight:800;text-align:center;border:1px solid #cbd5e1;border-radius:8px;margin:0;background:#fff}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:8px}
 .muted{color:#64748b;font-size:12px}
 .btn-danger{background:#dc2626;color:#fff}
 .btn-danger:hover{background:#b91c1c}
@@ -96,6 +96,15 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function dayErrorText(code) {
+  const map = {
+    forbidden: '无权限',
+    day_not_found: '考试日不存在',
+    date_exists: '该日期已有考试日',
+  };
+  return map[code] || code;
 }
 
 async function login() {
@@ -254,7 +263,6 @@ async function openGrading(attemptId) {
         <input class="grade-score-inp" id="score-${esc(gi.group_id)}" type="number" min="0" max="${gi.max_score}" step="0.5" data-score value="${gi.score ?? ''}" inputmode="decimal">
         <span class="muted">/ ${gi.max_score} 分</span>
       </div>
-      <input class="grade-comment-inp" type="text" data-comment placeholder="评语（可选，一行）" value="${esc(gi.comment || '')}">
     </div>`;
   }).join('');
 
@@ -270,7 +278,6 @@ async function openGrading(attemptId) {
     const payload = [...document.querySelectorAll('.grade-box')].map((box) => ({
       group_id: box.dataset.gid,
       score: box.querySelector('[data-score]').value,
-      comment: box.querySelector('[data-comment]').value,
     }));
     const res = await sb.rpc('staff_student_exam_grade', {
       p_attempt_id: attemptId,
@@ -286,7 +293,11 @@ async function openGrading(attemptId) {
 
 function renderPapers() {
   const list = S.papers.map((p) =>
-    `<tr><td>${esc(p.title)}</td><td>${p.grade}</td><td>${p.total_score}</td><td>${esc(p.status)}</td><td>${(p.snapshot_json || []).length} 题</td></tr>`
+    `<tr data-pid="${p.id}">
+      <td>${esc(p.title)}</td><td>${p.grade}</td><td>${p.total_score}</td><td>${esc(p.status)}</td>
+      <td>${(p.snapshot_json || []).length} 题</td>
+      <td><button class="btn btn-o btn-sm btn-del-paper" type="button" data-pid="${p.id}">删除</button></td>
+    </tr>`
   ).join('');
   const sample = JSON.stringify([
     {
@@ -346,9 +357,22 @@ function renderPapers() {
     </div>
     <div class="card">
       <h2>已有试卷</h2>
-      <table><thead><tr><th>标题</th><th>年级</th><th>总分</th><th>状态</th><th>题数</th></tr></thead>
-      <tbody>${list || '<tr><td colspan="5" class="muted">暂无</td></tr>'}</tbody></table>
+      <table><thead><tr><th>标题</th><th>年级</th><th>总分</th><th>状态</th><th>题数</th><th></th></tr></thead>
+      <tbody>${list || '<tr><td colspan="6" class="muted">暂无</td></tr>'}</tbody></table>
     </div>`;
+
+  document.querySelectorAll('.btn-del-paper').forEach((btn) => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      const pid = btn.dataset.pid;
+      const row = S.papers.find((p) => p.id === pid);
+      if (!confirm(`确定删除试卷「${row?.title || ''}」？`)) return;
+      const res = await sb.rpc('staff_student_exam_delete_paper', { p_id: pid });
+      if (res.data?.ok) { toast('已删除'); await loadAll(); render(); }
+      else if (res.data?.error === 'paper_in_use') toast('该试卷已被考试日引用，无法删除');
+      else toast(res.data?.error || res.error?.message || '删除失败');
+    };
+  });
 
   document.getElementById('btn-load-hebrews').onclick = async () => {
     try {
@@ -462,7 +486,8 @@ function renderDays() {
     </div>
     <div class="card">
       <h2>已有考试日</h2>
-      <ul>${S.days.map((d) => `<li>${esc(d.title)} — ${d.exam_date} (${d.status})</li>`).join('') || '<li class="muted">暂无</li>'}</ul>
+      <ul>${S.days.map((d) => `<li>${esc(d.title)} — ${d.exam_date} (${d.status})${d.status === 'closed' ? ' · 同日保存可覆盖重启' : ''}</li>`).join('') || '<li class="muted">暂无</li>'}</ul>
+      <p class="muted" style="margin-top:8px">每天只能有一个考试日；若日期已存在，保存时将覆盖科目并重新启用。</p>
     </div>`;
 
   document.getElementById('btn-add-sub').onclick = () => {
@@ -499,6 +524,8 @@ function renderDays() {
     const examDate = document.getElementById('d-date')?.value;
     if (!title) { toast('请填写考试日名称'); return; }
     if (!examDate) { toast('请选择考试日期'); return; }
+    const existing = S.days.find((d) => d.exam_date === examDate);
+    if (existing && !confirm(`该日期已有考试日「${existing.title}」（${existing.status}），将覆盖科目安排并重新启用。继续？`)) return;
     const res = await sb.rpc('staff_student_exam_upsert_day', {
       p_id: null,
       p_title: title,
@@ -506,8 +533,11 @@ function renderDays() {
       p_status: 'active',
       p_subjects: subjects,
     });
-    if (res.data?.ok) { toast('考试日已创建'); await loadAll(); }
-    else toast(res.data?.error || '失败');
+    if (res.data?.ok) {
+      toast(res.data.reused_date ? '考试日已更新（同日覆盖）' : '考试日已创建');
+      await loadAll();
+      render();
+    } else toast(dayErrorText(res.data?.error) || res.error?.message || '失败');
   };
 }
 
