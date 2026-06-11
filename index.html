@@ -206,6 +206,10 @@ body.pr-body{background:#f4f5ff;margin:0}
 .pr-wrap{max-width:100%;margin:0 auto;padding:16px 14px 32px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;font-size:14px;line-height:1.45}
 .pr-hdr{margin-bottom:12px}.pr-hdr h1{font-size:18px;font-weight:800;margin:0}
 .pr-sub{font-size:12px;color:#64748b;margin-top:4px}
+.pr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.pr-stat-card{background:#fff;border-radius:14px;border:1px solid #f3f4f6;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.pr-stat-val{font-size:28px;font-weight:800;line-height:1.1}
+.pr-stat-lbl{font-size:11px;color:#9ca3af;margin-top:4px}
 .pr-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
 .pr-sel{padding:8px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;font:inherit;min-width:140px}
 .pr-board{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch}
@@ -222,6 +226,7 @@ body.pr-body{background:#f4f5ff;margin:0}
 .pr-load,.pr-err{padding:24px;text-align:center}.pr-err{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:12px}
 .pr-cnt{font-size:12px;color:#64748b;margin-left:auto}
 .pr-note{font-size:11px;color:#94a3b8;margin-top:10px;text-align:center}
+@media(max-width:600px){.pr-stats{grid-template-columns:repeat(2,1fr);gap:8px}.pr-stat-card{padding:10px 6px}}
 
 /* Notif preview */
 .notif-preview{background:rgba(0,0,0,.03);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7;color:#374151;margin-top:8px;border-left:3px solid #c7d2fe;white-space:pre-line}
@@ -7399,6 +7404,20 @@ function prFilterApps(apps){
   if(prTrack==='all') return apps;
   return apps.filter(a=>prApplicantTrack(a)===prTrack);
 }
+function prComputeStats(list){
+  return [
+    {label:'总申请人',value:list.length,color:'#4f46e5'},
+    {label:'待笔试',value:list.filter(a=>a.stage==='exam').length,color:'#2563eb'},
+    {label:'待面试',value:list.filter(a=>a.stage==='interview').length,color:'#7c3aed'},
+    {label:'资料/签证',value:list.filter(a=>['materials','visa','complete'].includes(a.stage)).length,color:'#16a34a'},
+  ];
+}
+function prRenderStats(apps){
+  const stats=prComputeStats(prFilterApps(apps));
+  return `<div class="pr-stats" id="pr-stats-row">${stats.map(s=>
+    `<div class="pr-stat-card"><div class="pr-stat-val" style="color:${s.color}">${s.value}</div><div class="pr-stat-lbl">${esc(s.label)}</div></div>`
+  ).join('')}</div>`;
+}
 function prScoreHtml(ap){
   if(ap.exam_score!=null&&ap.exam_score!=='') return `<div class="s">${esc(ap.exam_score)} 分</div>`;
   return '<div class="s none">—</div>';
@@ -7420,6 +7439,7 @@ function prRenderShell(){
   const at=prSnapshot?.generated_at?new Date(prSnapshot.generated_at):null;
   document.getElementById('pr-subline').textContent=at?`更新于 ${at.toLocaleString('zh-CN',{hour12:false})}`:'按阶段横向查看';
   document.getElementById('pr-root').innerHTML=`
+    ${prRenderStats(apps)}
     <div class="pr-toolbar">
       <select class="pr-sel" id="pr-track-filter">${PR_TRACKS.map(t=>
         `<option value="${t.id}"${t.id===prTrack?' selected':''}>${esc(t.label)}</option>`
@@ -7430,6 +7450,7 @@ function prRenderShell(){
     <div class="pr-board" id="pr-board">${prRenderBoard(apps)}</div>`;
   document.getElementById('pr-track-filter').onchange=(e)=>{
     prTrack=e.target.value;
+    document.getElementById('pr-stats-row').outerHTML=prRenderStats(apps);
     document.getElementById('pr-board').innerHTML=prRenderBoard(apps);
     document.getElementById('pr-list-cnt').textContent=`共 ${prFilterApps(apps).length} 人`;
   };
