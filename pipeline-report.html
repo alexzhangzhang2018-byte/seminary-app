@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>美村宣教学院 · 招生进度看板</title>
+<meta name="robots" content="noindex, nofollow">
+<script src="/vendor/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f4f5ff;color:#1e293b;font-size:14px;line-height:1.5}
+.wrap{max-width:1200px;margin:0 auto;padding:16px 14px 40px}
+.hdr{margin-bottom:16px}
+.hdr h1{font-size:18px;font-weight:800}
+.hdr .sub{font-size:12px;color:#64748b;margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px;text-align:center}
+.stat .n{font-size:24px;font-weight:800}
+.stat .l{font-size:11px;color:#64748b;margin-top:2px}
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media(max-width:1000px){.kanban{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.kanban{grid-template-columns:1fr}}
+.col{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px;min-height:120px}
+.col-h{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-weight:700;font-size:13px;color:#475569}
+.col-h .cnt{margin-left:auto;font-size:11px;background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:999px}
+.sub{margin-bottom:10px}
+.sub-h{font-size:10px;font-weight:700;color:#94a3b8;margin:8px 0 6px;letter-spacing:.03em}
+.card{border:1px solid #eef2ff;border-radius:10px;padding:10px;margin-bottom:8px;background:#fafbff}
+.card .name{font-weight:700;font-size:13px;margin-bottom:4px}
+.card .meta{font-size:11px;color:#64748b;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px}
+.tag-zh{background:#f1f5f9;color:#475569}
+.tag-en{background:#dbeafe;color:#1d4ed8}
+.tag-id{background:#ffedd5;color:#9a3412}
+.tag-np{background:#f0fdf4;color:#047857}
+.tag-ai{background:#faf5ff;color:#6d28d9}
+.score{color:#4f46e5;font-weight:800}
+.iv{color:#4f46e5;font-size:11px;margin-top:4px}
+.empty{font-size:11px;color:#cbd5e1;text-align:center;padding:16px 8px;border:1px dashed #e2e8f0;border-radius:10px}
+.err,.load{padding:24px;text-align:center;color:#64748b}
+.err{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.btn{padding:8px 14px;border-radius:10px;border:1px solid #c7d2fe;background:#fff;color:#4f46e5;font-weight:700;cursor:pointer;font-size:13px}
+.btn:hover{background:#eef2ff}
+.note{font-size:11px;color:#94a3b8;margin-top:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <h1>🏫 招生进度看板</h1>
+    <div class="sub" id="subline">只读报表 · 仅供内部老师查看</div>
+  </div>
+  <div id="root"><div class="load">加载中…</div></div>
+  <p class="note">数据与招生工作台同步；下拉刷新或点「刷新」获取最新状态。仅供内部老师查看。</p>
+</div>
+<script>
+(function () {
+  const SUPABASE_URL = 'https://szjduusewnjxacrbbsdf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amR1dXNld25qeGFjcmJic2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjMxNjEsImV4cCI6MjA5MDQzOTE2MX0.7Cg_uOp2Q2wtKaZqVnYdMLvnZJEyh6GyE26xXb-UTBw';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const STAGES = [
+    { id: 'apply', label: '报名 · Apply', icon: '📝' },
+    { id: 'exam', label: '笔试 · Exam', icon: '📖' },
+    { id: 'interview', label: '面试 · Interview', icon: '💬' },
+    { id: 'result', label: '预录取 · Pre-admission', icon: '🎓' },
+    { id: 'materials', label: '上传资料 · Documents', icon: '📄' },
+    { id: 'visa', label: '签证 · Visa', icon: '🛂' },
+    { id: 'complete', label: '完成 · Complete', icon: '✅' },
+  ];
+  const LANG = { zh: '中文', en: 'English', id: 'Indonesia' };
+  const CAMPUS = { np: '尼泊尔', ai: 'AI项目' };
+
+  function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function langTag(lang) {
+    const cls = lang === 'en' ? 'tag-en' : lang === 'id' ? 'tag-id' : 'tag-zh';
+    return `<span class="tag ${cls}">${esc(LANG[lang] || LANG.zh)}</span>`;
+  }
+
+  function campusTag(code) {
+    if (!code) return '';
+    const cls = code === 'ai' ? 'tag-ai' : 'tag-np';
+    return `<span class="tag ${cls}">${esc(CAMPUS[code] || code)}</span>`;
+  }
+
+  function formatIv(slot) {
+    if (!slot) return '';
+    const tm = slot.slot_time || '';
+    const tn = slot.teacher_name ? ' · ' + slot.teacher_name : '';
+    return `${slot.slot_date} ${tm}${tn}`;
+  }
+
+  function renderCard(ap) {
+    const lang = ['en', 'id'].includes(ap.exam_lang) ? ap.exam_lang : 'zh';
+    const score = ap.exam_score != null ? `<span class="score">${ap.exam_score} 分</span>` : '';
+    const pl4 = ap.phone_last4 ? `<span>尾号 ${esc(ap.phone_last4)}</span>` : '';
+    const iv = ap.interview_slot ? `<div class="iv">📅 ${esc(formatIv(ap.interview_slot))}</div>` : '';
+    return `<div class="card">
+      <div class="name">${esc(ap.display_name)}</div>
+      <div class="meta">${langTag(lang)}${campusTag(ap.campus_code)}${score}${pl4}</div>
+      ${iv}
+    </div>`;
+  }
+
+  function renderSubgroup(title, list) {
+    if (!list.length) return '';
+    return `<div class="sub">
+      <div class="sub-h">${esc(title)} (${list.length})</div>
+      ${list.map(renderCard).join('')}
+    </div>`;
+  }
+
+  function renderColumn(stage, apps) {
+    const inStage = apps.filter((a) => a.stage === stage.id);
+    const zh = inStage.filter((a) => (a.exam_lang || 'zh') === 'zh');
+    const en = inStage.filter((a) => a.exam_lang === 'en');
+    const id = inStage.filter((a) => a.exam_lang === 'id');
+    const np = inStage.filter((a) => a.campus_code === 'np');
+    const ai = inStage.filter((a) => a.campus_code === 'ai');
+    const idMain = id.filter((a) => a.campus_code !== 'np' && a.campus_code !== 'ai');
+
+    let body = '';
+    if (!inStage.length) body = '<div class="empty">暂无</div>';
+    else {
+      if (stage.id === 'interview') {
+        const sortIv = (a, b) => String(a.sort_key || '').localeCompare(String(b.sort_key || ''));
+        body += renderSubgroup('中文笔试 · 面试', zh.slice().sort(sortIv));
+        body += renderSubgroup('English exam · Interview', en.slice().sort(sortIv));
+        body += renderSubgroup('Bahasa Indonesia · Wawancara', idMain.slice().sort(sortIv));
+        body += renderSubgroup('尼泊尔（加德满都）· Nepal Campus', np.slice().sort(sortIv));
+        body += renderSubgroup('AI项目 · AI Project', ai.slice().sort(sortIv));
+      } else {
+        body += renderSubgroup('中文', zh);
+        body += renderSubgroup('English', en);
+        body += renderSubgroup('Indonesia', idMain);
+        if (np.length) body += renderSubgroup('尼泊尔', np);
+        if (ai.length) body += renderSubgroup('AI项目', ai);
+      }
+    }
+
+    return `<div class="col">
+      <div class="col-h"><span>${stage.icon}</span><span>${esc(stage.label)}</span><span class="cnt">${inStage.length}</span></div>
+      ${body}
+    </div>`;
+  }
+
+  function render(data) {
+    const s = data.stats || {};
+    const apps = data.applicants || [];
+    const at = data.generated_at ? new Date(data.generated_at) : null;
+    const sub = at
+      ? `更新于 ${at.toLocaleString('zh-CN', { hour12: false })} · 共 ${s.total ?? apps.length} 人`
+      : `共 ${s.total ?? apps.length} 人`;
+    document.getElementById('subline').textContent = sub;
+
+    const mainCols = STAGES.filter((st) => ['apply', 'exam', 'interview', 'result'].includes(st.id));
+    const tailCols = STAGES.filter((st) => ['materials', 'visa', 'complete'].includes(st.id));
+
+    document.getElementById('root').innerHTML = `
+      <div class="toolbar"><button class="btn" type="button" id="btn-refresh">刷新</button></div>
+      <div class="stats">
+        <div class="stat"><div class="n" style="color:#4f46e5">${s.total ?? '—'}</div><div class="l">总申请人</div></div>
+        <div class="stat"><div class="n" style="color:#2563eb">${s.exam ?? '—'}</div><div class="l">待笔试</div></div>
+        <div class="stat"><div class="n" style="color:#7c3aed">${s.interview ?? '—'}</div><div class="l">待面试</div></div>
+        <div class="stat"><div class="n" style="color:#16a34a">${s.materials_visa_complete ?? '—'}</div><div class="l">资料/签证/完成</div></div>
+      </div>
+      <div class="kanban" style="margin-bottom:12px">${mainCols.map((st) => renderColumn(st, apps)).join('')}</div>
+      <div class="kanban">${tailCols.map((st) => renderColumn(st, apps)).join('')}</div>`;
+    document.getElementById('btn-refresh').onclick = load;
+  }
+
+  async function load() {
+    const root = document.getElementById('root');
+    root.innerHTML = '<div class="load">加载中…</div>';
+    try {
+      const { data, error } = await sb.rpc('pipeline_snapshot_public');
+      if (error) throw error;
+      if (!data?.ok) {
+        root.innerHTML = '<div class="err">无法加载数据，请稍后重试或联系教务。</div>';
+        return;
+      }
+      render(data);
+    } catch (e) {
+      root.innerHTML = `<div class="err">加载失败：${esc(e.message || e)}</div>`;
+    }
+  }
+
+  load();
+  setInterval(load, 120000);
+})();
+</script>
+</body>
+</html>

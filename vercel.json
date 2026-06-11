@@ -1,3 +1,7 @@
 {
-  "version": 2
+  "version": 2,
+  "rewrites": [
+    { "source": "/pipeline-report", "destination": "/index.html?pipeline-report=1" },
+    { "source": "/pipeline-report.html", "destination": "/index.html?pipeline-report=1" }
+  ]
 }

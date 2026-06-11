@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/pipeline-report.html"
+  to = "/index.html?pipeline-report=1"
+  status = 200
+
+[[redirects]]
+  from = "/pipeline-report"
+  to = "/index.html?pipeline-report=1"
+  status = 200

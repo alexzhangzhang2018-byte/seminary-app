@@ -201,6 +201,32 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 /* Toast */
 .toast{position:fixed;bottom:24px;right:24px;background:#1f2937;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;max-width:min(420px,calc(100vw - 32px))}
 .toast.show{opacity:1}
+/* 公开招生看板 /pipeline-report */
+body.pr-body{background:#f4f5ff;margin:0}
+.pr-wrap{max-width:1200px;margin:0 auto;padding:16px 14px 40px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;font-size:14px;line-height:1.5}
+.pr-hdr{margin-bottom:16px}.pr-hdr h1{font-size:18px;font-weight:800;margin:0}
+.pr-sub{font-size:12px;color:#64748b;margin-top:4px}
+.pr-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+@media(max-width:700px){.pr-stats{grid-template-columns:repeat(2,1fr)}}
+.pr-stat{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px;text-align:center}
+.pr-n{font-size:24px;font-weight:800}.pr-l{font-size:11px;color:#64748b;margin-top:2px}
+.pr-kanban{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media(max-width:1000px){.pr-kanban{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.pr-kanban{grid-template-columns:1fr}}
+.pr-col{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px;min-height:120px}
+.pr-col-h{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-weight:700;font-size:13px;color:#475569}
+.pr-cnt{margin-left:auto;font-size:11px;background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:999px}
+.pr-sub-h{font-size:10px;font-weight:700;color:#94a3b8;margin:8px 0 6px}
+.pr-card{border:1px solid #eef2ff;border-radius:10px;padding:10px;margin-bottom:8px;background:#fafbff}
+.pr-name{font-weight:700;font-size:13px;margin-bottom:4px}
+.pr-meta{font-size:11px;color:#64748b;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pr-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px}
+.pr-tag-zh{background:#f1f5f9;color:#475569}.pr-tag-en{background:#dbeafe;color:#1d4ed8}.pr-tag-id{background:#ffedd5;color:#9a3412}
+.pr-tag-np{background:#f0fdf4;color:#047857}.pr-tag-ai{background:#faf5ff;color:#6d28d9}
+.pr-score{color:#4f46e5;font-weight:800}.pr-iv{color:#4f46e5;font-size:11px;margin-top:4px}
+.pr-empty{font-size:11px;color:#cbd5e1;text-align:center;padding:16px 8px;border:1px dashed #e2e8f0;border-radius:10px}
+.pr-load,.pr-err{padding:24px;text-align:center}.pr-err{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:12px}
+.pr-toolbar{margin-bottom:12px}.pr-note{font-size:11px;color:#94a3b8;margin-top:12px;text-align:center}
 
 /* Notif preview */
 .notif-preview{background:rgba(0,0,0,.03);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7;color:#374151;margin-top:8px;border-left:3px solid #c7d2fe;white-space:pre-line}
@@ -1310,6 +1336,7 @@ const A = {
   loginMode: null,   // 'applicant' | 'staff'
   adminDataLoading: false, // 职员登录/恢复会话：先出工作台壳，再异步拉 applicants/slots/records
   staffCacheCount: 0, // 管理端本地缓存条数（用于“秒开”提示）
+  pipelineShareUrl: null, // 招生看板只读分享链接（免登录）
 
   // Applicant exam state
   examStarted: false,
@@ -5445,6 +5472,51 @@ function renderAdmin(){
   </div>`;
 }
 
+function buildPipelineReportUrl(){
+  return new URL('pipeline-report.html', window.location.href).href;
+}
+function ensurePipelineShareUrl(){
+  if(!A.pipelineShareUrl) A.pipelineShareUrl=buildPipelineReportUrl();
+  return A.pipelineShareUrl;
+}
+function renderPipelineShareCard(){
+  const url=ensurePipelineShareUrl();
+  return `<div class="card p4 mb4" style="background:linear-gradient(135deg,#f0fdf4,#ecfeff);border-color:#bbf7d0">
+    <div class="fw7 c-gray8 t14 mb2">📤 招生看板分享（免登录）</div>
+    <div class="t12 c-gray5 mb3 lh16">老师无需登录，打开固定链接即可查看当前申请人及各阶段进度。请仅发给内部老师。</div>
+    <div class="row g2 wrap" style="align-items:center">
+      <input id="pipeline-share-url" class="inp flex1" readonly value="${esc(url)}" style="margin:0;font-size:12px">
+      <button class="btn btn-primary btn-sm" type="button" id="btn-pipeline-share-copy">复制链接</button>
+      <button class="btn btn-outline btn-sm" type="button" id="btn-pipeline-share-open">预览</button>
+    </div>
+  </div>`;
+}
+function wirePipelineShareUi(){
+  if(A.adminTab!=='pipeline'||(A.role!=='admin'&&A.role!=='teacher')) return;
+  const inp=document.getElementById('pipeline-share-url');
+  if(!inp) return;
+  const url=ensurePipelineShareUrl();
+  inp.value=url;
+  const wireBtn=(id, fn)=>{
+    const el=document.getElementById(id);
+    if(!el || el.dataset.wired) return;
+    el.dataset.wired='1';
+    el.addEventListener('click', fn);
+  };
+  wireBtn('btn-pipeline-share-copy', async()=>{
+    try{
+      await navigator.clipboard.writeText(url);
+      toast('链接已复制，可发给老师');
+    }catch(e){
+      inp.select();
+      try{ document.execCommand('copy'); toast('链接已复制'); }catch(_){ toast('请手动复制链接',false); }
+    }
+  });
+  wireBtn('btn-pipeline-share-open', ()=>{
+    window.open(url,'_blank','noopener');
+  });
+}
+
 function renderPipeline(){
   const isAd=A.role==='admin';
   const canAddAp=isAd||(A.role==='teacher'&&!isVisaOpsStaff());
@@ -5458,6 +5530,7 @@ function renderPipeline(){
           </div>`;
   const emptyHtml=`<div class="pipeline-col-empty">暂无</div>`;
   return `<div>
+    ${renderPipelineShareCard()}
     ${canAddAp?`<div class="row g2 pipeline-toolbar">
       <button class="btn btn-primary" data-action="show-add-ap-modal" style="min-height:44px">➕ 手动添加申请人</button>
     </div>`:''}
@@ -6079,6 +6152,7 @@ function render(){
   if(A.role==='applicant'&&A.applicant?.stage==='exam'&&A.examStarted&&!A.examSubmitted) startTimer();
   syncInterviewSlotPoll();
   syncStaffApplicantsPoll();
+  wirePipelineShareUi();
 }
 
 // 弹窗遮罩：仅点击灰色背景才关闭（避免手机端误触内容区导致弹窗关闭、保存失败）
@@ -7304,6 +7378,120 @@ function bind(){
 }
 
 // ══════════════════════════════════════════════════════════════
+// 公开招生看板（免登录，/pipeline-report.html 或 ?pipeline-report=1）
+// ══════════════════════════════════════════════════════════════
+function isPublicPipelineReportPage(){
+  if(new URLSearchParams(location.search).get('pipeline-report')==='1') return true;
+  return /\/pipeline-report(?:\.html)?\/?$/i.test(location.pathname||'');
+}
+const PIPELINE_REPORT_STAGES=[
+  {id:'apply',label:'报名 · Apply',icon:'📝'},
+  {id:'exam',label:'笔试 · Exam',icon:'📖'},
+  {id:'interview',label:'面试 · Interview',icon:'💬'},
+  {id:'result',label:'预录取 · Pre-admission',icon:'🎓'},
+  {id:'materials',label:'上传资料 · Documents',icon:'📄'},
+  {id:'visa',label:'签证 · Visa',icon:'🛂'},
+  {id:'complete',label:'完成 · Complete',icon:'✅'},
+];
+function prLangTag(lang){
+  const L={zh:'中文',en:'English',id:'Indonesia'};
+  const cls=lang==='en'?'pr-tag-en':lang==='id'?'pr-tag-id':'pr-tag-zh';
+  return `<span class="pr-tag ${cls}">${esc(L[lang]||L.zh)}</span>`;
+}
+function prCampusTag(code){
+  if(!code) return '';
+  const C={np:'尼泊尔',ai:'AI项目'};
+  const cls=code==='ai'?'pr-tag-ai':'pr-tag-np';
+  return `<span class="pr-tag ${cls}">${esc(C[code]||code)}</span>`;
+}
+function prFormatIv(slot){
+  if(!slot) return '';
+  return `${slot.slot_date||''} ${slot.slot_time||''}${slot.teacher_name?' · '+slot.teacher_name:''}`;
+}
+function prRenderCard(ap){
+  const lang=['en','id'].includes(ap.exam_lang)?ap.exam_lang:'zh';
+  const score=ap.exam_score!=null?`<span class="pr-score">${ap.exam_score} 分</span>`:'';
+  const pl4=ap.phone_last4?`<span>尾号 ${esc(ap.phone_last4)}</span>`:'';
+  const iv=ap.interview_slot?`<div class="pr-iv">📅 ${esc(prFormatIv(ap.interview_slot))}</div>`:'';
+  return `<div class="pr-card"><div class="pr-name">${esc(ap.display_name)}</div><div class="pr-meta">${prLangTag(lang)}${prCampusTag(ap.campus_code)}${score}${pl4}</div>${iv}</div>`;
+}
+function prRenderSubgroup(title,list){
+  if(!list.length) return '';
+  return `<div class="pr-sub"><div class="pr-sub-h">${esc(title)} (${list.length})</div>${list.map(prRenderCard).join('')}</div>`;
+}
+function prRenderColumn(stage,apps){
+  const inStage=apps.filter(a=>a.stage===stage.id);
+  const zh=inStage.filter(a=>(a.exam_lang||'zh')==='zh');
+  const en=inStage.filter(a=>a.exam_lang==='en');
+  const id=inStage.filter(a=>a.exam_lang==='id');
+  const np=inStage.filter(a=>a.campus_code==='np');
+  const ai=inStage.filter(a=>a.campus_code==='ai');
+  const idMain=id.filter(a=>a.campus_code!=='np'&&a.campus_code!=='ai');
+  let body='';
+  if(!inStage.length) body='<div class="pr-empty">暂无</div>';
+  else if(stage.id==='interview'){
+    const sortIv=(a,b)=>String(a.sort_key||'').localeCompare(String(b.sort_key||''));
+    body=prRenderSubgroup('中文笔试 · 面试',zh.slice().sort(sortIv))
+      +prRenderSubgroup('English exam · Interview',en.slice().sort(sortIv))
+      +prRenderSubgroup('Bahasa Indonesia · Wawancara',idMain.slice().sort(sortIv))
+      +prRenderSubgroup('尼泊尔（加德满都）· Nepal Campus',np.slice().sort(sortIv))
+      +prRenderSubgroup('AI项目 · AI Project',ai.slice().sort(sortIv));
+  }else{
+    body=prRenderSubgroup('中文',zh)+prRenderSubgroup('English',en)+prRenderSubgroup('Indonesia',idMain);
+    if(np.length) body+=prRenderSubgroup('尼泊尔',np);
+    if(ai.length) body+=prRenderSubgroup('AI项目',ai);
+  }
+  return `<div class="pr-col"><div class="pr-col-h"><span>${stage.icon}</span><span>${esc(stage.label)}</span><span class="pr-cnt">${inStage.length}</span></div>${body}</div>`;
+}
+function prRenderSnapshot(data){
+  const s=data.stats||{};
+  const apps=data.applicants||[];
+  const at=data.generated_at?new Date(data.generated_at):null;
+  const sub=at?`更新于 ${at.toLocaleString('zh-CN',{hour12:false})} · 共 ${s.total??apps.length} 人`:`共 ${s.total??apps.length} 人`;
+  const main=PIPELINE_REPORT_STAGES.filter(st=>['apply','exam','interview','result'].includes(st.id));
+  const tail=PIPELINE_REPORT_STAGES.filter(st=>['materials','visa','complete'].includes(st.id));
+  document.getElementById('pr-subline').textContent=sub;
+  document.getElementById('pr-root').innerHTML=`
+    <div class="pr-toolbar"><button class="btn btn-outline btn-sm" type="button" id="pr-refresh">刷新</button></div>
+    <div class="pr-stats">
+      <div class="pr-stat"><div class="pr-n" style="color:#4f46e5">${s.total??'—'}</div><div class="pr-l">总申请人</div></div>
+      <div class="pr-stat"><div class="pr-n" style="color:#2563eb">${s.exam??'—'}</div><div class="pr-l">待笔试</div></div>
+      <div class="pr-stat"><div class="pr-n" style="color:#7c3aed">${s.interview??'—'}</div><div class="pr-l">待面试</div></div>
+      <div class="pr-stat"><div class="pr-n" style="color:#16a34a">${s.materials_visa_complete??'—'}</div><div class="pr-l">资料/签证/完成</div></div>
+    </div>
+    <div class="pr-kanban" style="margin-bottom:12px">${main.map(st=>prRenderColumn(st,apps)).join('')}</div>
+    <div class="pr-kanban">${tail.map(st=>prRenderColumn(st,apps)).join('')}</div>`;
+  document.getElementById('pr-refresh').onclick=()=>loadPublicPipelineReport();
+}
+async function loadPublicPipelineReport(){
+  const root=document.getElementById('pr-root');
+  if(!root||!sb) return;
+  root.innerHTML='<div class="pr-load">加载中…</div>';
+  try{
+    const {data,error}=await sb.rpc('pipeline_snapshot_public');
+    if(error) throw error;
+    if(!data?.ok){
+      root.innerHTML='<div class="pr-err">无法加载数据，请确认已在 Supabase 执行迁移 20260611180000_pipeline_public_snapshot_no_token.sql</div>';
+      return;
+    }
+    prRenderSnapshot(data);
+  }catch(e){
+    root.innerHTML=`<div class="pr-err">加载失败：${esc(e.message||e)}</div>`;
+  }
+}
+function mountPublicPipelineReportPage(){
+  document.title='美村宣教学院 · 招生进度看板';
+  document.body.className='pr-body';
+  document.body.innerHTML=`<div class="pr-wrap">
+    <div class="pr-hdr"><h1>🏫 招生进度看板</h1><div class="pr-sub" id="pr-subline">只读报表 · 仅供内部老师查看</div></div>
+    <div id="pr-root"><div class="pr-load">加载中…</div></div>
+    <p class="pr-note">数据与招生工作台同步；点「刷新」获取最新状态。仅供内部老师查看。</p>
+  </div>`;
+  loadPublicPipelineReport();
+  setInterval(loadPublicPipelineReport,120000);
+}
+
+// ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
 async function init(){
@@ -7379,18 +7567,26 @@ async function init(){
   }
 }
 
-init().catch(err=>{
-  console.error(err);
-  try{
-    A.role=null;
-    A.user=null;
-    A.profile=null;
-    A.applicant=null;
-    render();
-  }catch(_){}
-  const msg=err&&err.message?String(err.message):String(err);
-  toast('页面加载异常，已显示登录页。若持续如此，请按 F12 查看控制台错误。'+msg.slice(0,120), false);
-});
+if(isPublicPipelineReportPage()){
+  if(!sb){
+    document.getElementById('root').innerHTML='<div class="p6 tc c-gray6">无法加载 Supabase 客户端</div>';
+  }else{
+    mountPublicPipelineReportPage();
+  }
+}else{
+  init().catch(err=>{
+    console.error(err);
+    try{
+      A.role=null;
+      A.user=null;
+      A.profile=null;
+      A.applicant=null;
+      render();
+    }catch(_){}
+    const msg=err&&err.message?String(err.message):String(err);
+    toast('页面加载异常，已显示登录页。若持续如此，请按 F12 查看控制台错误。'+msg.slice(0,120), false);
+  });
+}
 </script>
 </body>
 </html>
