@@ -9,40 +9,27 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,sans-serif;background:#f4f5ff;color:#1e293b;font-size:14px;line-height:1.5}
-.wrap{max-width:1200px;margin:0 auto;padding:16px 14px 40px}
-.hdr{margin-bottom:16px}
+.wrap{max-width:900px;margin:0 auto;padding:16px 14px 40px}
+.hdr{margin-bottom:14px}
 .hdr h1{font-size:18px;font-weight:800}
 .hdr .sub{font-size:12px;color:#64748b;margin-top:4px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
-@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
-.stat{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px;text-align:center}
-.stat .n{font-size:24px;font-weight:800}
-.stat .l{font-size:11px;color:#64748b;margin-top:2px}
-.kanban{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-@media(max-width:1000px){.kanban{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){.kanban{grid-template-columns:1fr}}
-.col{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px;min-height:120px}
-.col-h{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-weight:700;font-size:13px;color:#475569}
-.col-h .cnt{margin-left:auto;font-size:11px;background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:999px}
-.sub{margin-bottom:10px}
-.sub-h{font-size:10px;font-weight:700;color:#94a3b8;margin:8px 0 6px;letter-spacing:.03em}
-.card{border:1px solid #eef2ff;border-radius:10px;padding:10px;margin-bottom:8px;background:#fafbff}
-.card .name{font-weight:700;font-size:13px;margin-bottom:4px}
-.card .meta{font-size:11px;color:#64748b;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px}
-.tag-zh{background:#f1f5f9;color:#475569}
-.tag-en{background:#dbeafe;color:#1d4ed8}
-.tag-id{background:#ffedd5;color:#9a3412}
-.tag-np{background:#f0fdf4;color:#047857}
-.tag-ai{background:#faf5ff;color:#6d28d9}
-.score{color:#4f46e5;font-weight:800}
-.iv{color:#4f46e5;font-size:11px;margin-top:4px}
-.empty{font-size:11px;color:#cbd5e1;text-align:center;padding:16px 8px;border:1px dashed #e2e8f0;border-radius:10px}
-.err,.load{padding:24px;text-align:center;color:#64748b}
-.err{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:12px}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.sel{padding:8px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;font:inherit;min-width:140px}
 .btn{padding:8px 14px;border-radius:10px;border:1px solid #c7d2fe;background:#fff;color:#4f46e5;font-weight:700;cursor:pointer;font-size:13px}
 .btn:hover{background:#eef2ff}
+.cnt{font-size:12px;color:#64748b;margin-left:auto}
+.panel{background:#fff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #f1f5f9}
+th{font-size:11px;color:#64748b;font-weight:700;background:#f8fafc}
+tr:last-child td{border-bottom:none}
+.name{font-weight:600}
+.stage{font-size:12px;color:#475569}
+.score{color:#4f46e5;font-weight:700}
+.muted{color:#94a3b8}
+.empty{padding:32px;text-align:center;color:#94a3b8;font-size:13px}
+.err,.load{padding:24px;text-align:center}
+.err{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:12px}
 .note{font-size:11px;color:#94a3b8;margin-top:12px;text-align:center}
 </style>
 </head>
@@ -50,10 +37,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f4f5ff;color:#1e
 <div class="wrap">
   <div class="hdr">
     <h1>🏫 招生进度看板</h1>
-    <div class="sub" id="subline">只读报表 · 仅供内部老师查看</div>
+    <div class="sub" id="subline">只读列表 · 仅供内部老师查看</div>
   </div>
   <div id="root"><div class="load">加载中…</div></div>
-  <p class="note">数据与招生工作台同步；下拉刷新或点「刷新」获取最新状态。仅供内部老师查看。</p>
+  <p class="note">数据与招生工作台同步；切换分类或点「刷新」获取最新状态。</p>
 </div>
 <script>
 (function () {
@@ -62,115 +49,107 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f4f5ff;color:#1e
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const STAGES = [
-    { id: 'apply', label: '报名 · Apply', icon: '📝' },
-    { id: 'exam', label: '笔试 · Exam', icon: '📖' },
-    { id: 'interview', label: '面试 · Interview', icon: '💬' },
-    { id: 'result', label: '预录取 · Pre-admission', icon: '🎓' },
-    { id: 'materials', label: '上传资料 · Documents', icon: '📄' },
-    { id: 'visa', label: '签证 · Visa', icon: '🛂' },
-    { id: 'complete', label: '完成 · Complete', icon: '✅' },
+    { id: 'apply', label: '报名' },
+    { id: 'exam', label: '笔试' },
+    { id: 'interview', label: '面试' },
+    { id: 'result', label: '预录取' },
+    { id: 'materials', label: '上传资料' },
+    { id: 'visa', label: '签证' },
+    { id: 'complete', label: '完成' },
   ];
-  const LANG = { zh: '中文', en: 'English', id: 'Indonesia' };
-  const CAMPUS = { np: '尼泊尔', ai: 'AI项目' };
+  const STAGE_LABEL = Object.fromEntries(STAGES.map((s) => [s.id, s.label]));
+  const STAGE_ORDER = Object.fromEntries(STAGES.map((s, i) => [s.id, i + 1]));
+  const TRACKS = [
+    { id: 'all', label: '全部' },
+    { id: 'zh', label: '中文班' },
+    { id: 'en', label: '英文班' },
+    { id: 'id', label: '印尼语班' },
+    { id: 'ai', label: 'AI项目' },
+    { id: 'np', label: '尼泊尔' },
+  ];
+
+  let snapshot = null;
+  let track = 'all';
 
   function esc(s) {
     return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  function langTag(lang) {
-    const cls = lang === 'en' ? 'tag-en' : lang === 'id' ? 'tag-id' : 'tag-zh';
-    return `<span class="tag ${cls}">${esc(LANG[lang] || LANG.zh)}</span>`;
-  }
-
-  function campusTag(code) {
-    if (!code) return '';
-    const cls = code === 'ai' ? 'tag-ai' : 'tag-np';
-    return `<span class="tag ${cls}">${esc(CAMPUS[code] || code)}</span>`;
+  function applicantTrack(ap) {
+    const c = String(ap.campus_code || '').toLowerCase();
+    if (c === 'np') return 'np';
+    if (c === 'ai') return 'ai';
+    return ['en', 'id'].includes(ap.exam_lang) ? ap.exam_lang : 'zh';
   }
 
   function formatIv(slot) {
-    if (!slot) return '';
-    const tm = slot.slot_time || '';
+    if (!slot) return '—';
     const tn = slot.teacher_name ? ' · ' + slot.teacher_name : '';
-    return `${slot.slot_date} ${tm}${tn}`;
+    return `${slot.slot_date || ''} ${slot.slot_time || ''}${tn}`.trim() || '—';
   }
 
-  function renderCard(ap) {
-    const lang = ['en', 'id'].includes(ap.exam_lang) ? ap.exam_lang : 'zh';
-    const score = ap.exam_score != null ? `<span class="score">${ap.exam_score} 分</span>` : '';
-    const pl4 = ap.phone_last4 ? `<span>尾号 ${esc(ap.phone_last4)}</span>` : '';
-    const iv = ap.interview_slot ? `<div class="iv">📅 ${esc(formatIv(ap.interview_slot))}</div>` : '';
-    return `<div class="card">
-      <div class="name">${esc(ap.display_name)}</div>
-      <div class="meta">${langTag(lang)}${campusTag(ap.campus_code)}${score}${pl4}</div>
-      ${iv}
-    </div>`;
+  function filterApps(apps) {
+    if (track === 'all') return apps;
+    return apps.filter((a) => applicantTrack(a) === track);
   }
 
-  function renderSubgroup(title, list) {
-    if (!list.length) return '';
-    return `<div class="sub">
-      <div class="sub-h">${esc(title)} (${list.length})</div>
-      ${list.map(renderCard).join('')}
-    </div>`;
+  function sortApps(list) {
+    return list.slice().sort((a, b) => {
+      const oa = STAGE_ORDER[a.stage] ?? 99;
+      const ob = STAGE_ORDER[b.stage] ?? 99;
+      if (oa !== ob) return oa - ob;
+      return String(a.display_name).localeCompare(String(b.display_name), 'zh');
+    });
   }
 
-  function renderColumn(stage, apps) {
-    const inStage = apps.filter((a) => a.stage === stage.id);
-    const zh = inStage.filter((a) => (a.exam_lang || 'zh') === 'zh');
-    const en = inStage.filter((a) => a.exam_lang === 'en');
-    const id = inStage.filter((a) => a.exam_lang === 'id');
-    const np = inStage.filter((a) => a.campus_code === 'np');
-    const ai = inStage.filter((a) => a.campus_code === 'ai');
-    const idMain = id.filter((a) => a.campus_code !== 'np' && a.campus_code !== 'ai');
-
-    let body = '';
-    if (!inStage.length) body = '<div class="empty">暂无</div>';
-    else {
-      if (stage.id === 'interview') {
-        const sortIv = (a, b) => String(a.sort_key || '').localeCompare(String(b.sort_key || ''));
-        body += renderSubgroup('中文笔试 · 面试', zh.slice().sort(sortIv));
-        body += renderSubgroup('English exam · Interview', en.slice().sort(sortIv));
-        body += renderSubgroup('Bahasa Indonesia · Wawancara', idMain.slice().sort(sortIv));
-        body += renderSubgroup('尼泊尔（加德满都）· Nepal Campus', np.slice().sort(sortIv));
-        body += renderSubgroup('AI项目 · AI Project', ai.slice().sort(sortIv));
-      } else {
-        body += renderSubgroup('中文', zh);
-        body += renderSubgroup('English', en);
-        body += renderSubgroup('Indonesia', idMain);
-        if (np.length) body += renderSubgroup('尼泊尔', np);
-        if (ai.length) body += renderSubgroup('AI项目', ai);
-      }
+  function renderTable(apps) {
+    const list = sortApps(filterApps(apps));
+    if (!list.length) {
+      return '<div class="empty">该分类下暂无申请人</div>';
     }
-
-    return `<div class="col">
-      <div class="col-h"><span>${stage.icon}</span><span>${esc(stage.label)}</span><span class="cnt">${inStage.length}</span></div>
-      ${body}
-    </div>`;
+    const rows = list.map((ap) => {
+      const score = ap.exam_score != null ? `<span class="score">${ap.exam_score}</span>` : '<span class="muted">—</span>';
+      const pl4 = ap.phone_last4 ? esc(ap.phone_last4) : '—';
+      const iv = ap.interview_slot ? esc(formatIv(ap.interview_slot)) : '<span class="muted">—</span>';
+      return `<tr>
+        <td class="name">${esc(ap.display_name)}</td>
+        <td class="stage">${esc(STAGE_LABEL[ap.stage] || ap.stage || '—')}</td>
+        <td>${score}</td>
+        <td style="font-size:12px">${iv}</td>
+        <td class="muted">${pl4}</td>
+      </tr>`;
+    }).join('');
+    return `<table>
+      <thead><tr><th>姓名</th><th>阶段</th><th>笔试</th><th>面试预约</th><th>尾号</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
   }
 
-  function render(data) {
-    const s = data.stats || {};
-    const apps = data.applicants || [];
-    const at = data.generated_at ? new Date(data.generated_at) : null;
+  function renderShell() {
+    const s = snapshot?.stats || {};
+    const apps = snapshot?.applicants || [];
+    const at = snapshot?.generated_at ? new Date(snapshot.generated_at) : null;
     const sub = at
-      ? `更新于 ${at.toLocaleString('zh-CN', { hour12: false })} · 共 ${s.total ?? apps.length} 人`
-      : `共 ${s.total ?? apps.length} 人`;
+      ? `更新于 ${at.toLocaleString('zh-CN', { hour12: false })}`
+      : '只读列表';
     document.getElementById('subline').textContent = sub;
 
-    const mainCols = STAGES.filter((st) => ['apply', 'exam', 'interview', 'result'].includes(st.id));
-    const tailCols = STAGES.filter((st) => ['materials', 'visa', 'complete'].includes(st.id));
-
+    const filtered = filterApps(apps);
     document.getElementById('root').innerHTML = `
-      <div class="toolbar"><button class="btn" type="button" id="btn-refresh">刷新</button></div>
-      <div class="stats">
-        <div class="stat"><div class="n" style="color:#4f46e5">${s.total ?? '—'}</div><div class="l">总申请人</div></div>
-        <div class="stat"><div class="n" style="color:#2563eb">${s.exam ?? '—'}</div><div class="l">待笔试</div></div>
-        <div class="stat"><div class="n" style="color:#7c3aed">${s.interview ?? '—'}</div><div class="l">待面试</div></div>
-        <div class="stat"><div class="n" style="color:#16a34a">${s.materials_visa_complete ?? '—'}</div><div class="l">资料/签证/完成</div></div>
+      <div class="toolbar">
+        <select class="sel" id="track-filter">${TRACKS.map((t) =>
+          `<option value="${t.id}"${t.id === track ? ' selected' : ''}>${esc(t.label)}</option>`
+        ).join('')}</select>
+        <button class="btn" type="button" id="btn-refresh">刷新</button>
+        <span class="cnt" id="list-cnt">共 ${filtered.length} 人</span>
       </div>
-      <div class="kanban" style="margin-bottom:12px">${mainCols.map((st) => renderColumn(st, apps)).join('')}</div>
-      <div class="kanban">${tailCols.map((st) => renderColumn(st, apps)).join('')}</div>`;
+      <div class="panel">${renderTable(apps)}</div>`;
+
+    document.getElementById('track-filter').onchange = (e) => {
+      track = e.target.value;
+      document.querySelector('.panel').innerHTML = renderTable(apps);
+      document.getElementById('list-cnt').textContent = `共 ${filterApps(apps).length} 人`;
+    };
     document.getElementById('btn-refresh').onclick = load;
   }
 
@@ -184,7 +163,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f4f5ff;color:#1e
         root.innerHTML = '<div class="err">无法加载数据，请稍后重试或联系教务。</div>';
         return;
       }
-      render(data);
+      snapshot = data;
+      renderShell();
     } catch (e) {
       root.innerHTML = `<div class="err">加载失败：${esc(e.message || e)}</div>`;
     }
