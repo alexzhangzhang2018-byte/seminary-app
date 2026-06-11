@@ -44,6 +44,10 @@ tr.sel{background:#eef2ff;cursor:pointer}
 .admin-warn{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px;margin-bottom:12px;color:#991b1b;font-size:13px;line-height:1.6}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transition:.2s;z-index:9}
 .toast.show{opacity:1}
+.lang-tags{display:flex;gap:4px;flex-wrap:wrap}
+.lang-tag{font-size:11px;padding:2px 7px;border-radius:6px;font-weight:700;white-space:nowrap}
+.lang-tag.lang-on{background:#dcfce7;color:#15803d;border:1px solid #86efac}
+.lang-tag.lang-off{background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0;text-decoration:line-through}
 </style>
 </head>
 <body>
@@ -74,7 +78,10 @@ tr.sel{background:#eef2ff;cursor:pointer}
 </div>
 <div class="toast" id="toast"></div>
 <script type="module">
-import { createSb, esc, trackLabel, teacherPaperTitle } from './shared.js';
+import {
+  createSb, esc, trackLabel, teacherPaperTitle,
+  paperLocaleBadgesHtml, paperLocaleSummary,
+} from './shared.js';
 
 function trackLabelZh(track) {
   return trackLabel(track, 'zh');
@@ -147,7 +154,7 @@ async function loadAll() {
   S.papers = p.data?.papers || [];
   if (!S.papers.length) {
     const { data: rows } = await sb.from('student_exam_papers')
-      .select('id,title,grade,status,total_score')
+      .select('id,title,grade,status,total_score,snapshot_json,title_locales,course_code')
       .order('updated_at', { ascending: false });
     if (rows?.length) S.papers = rows;
   }
@@ -298,7 +305,9 @@ async function openGrading(attemptId) {
 function renderPapers() {
   const list = S.papers.map((p) =>
     `<tr data-pid="${p.id}">
-      <td>${esc(teacherPaperTitle(p.title, p.grade))}</td><td>${p.grade}</td><td>${p.total_score}</td><td>${esc(p.status)}</td>
+      <td>${esc(teacherPaperTitle(p.title, p.grade))}</td>
+      <td><div class="lang-tags">${paperLocaleBadgesHtml(p)}</div></td>
+      <td>${p.grade}</td><td>${p.total_score}</td><td>${esc(p.status)}</td>
       <td>${(p.snapshot_json || []).length} 题</td>
       <td><button class="btn btn-o btn-sm btn-del-paper" type="button" data-pid="${p.id}">删除</button></td>
     </tr>`
@@ -335,7 +344,8 @@ function renderPapers() {
       <h2>从 Word 导入试卷（推荐）</h2>
       <p class="muted" style="margin-bottom:12px;line-height:1.65">
         支持两种 Word 格式：<br>
-        <strong>课程卷</strong>（如希伯来书）：一、经文填空【】　二、单项选择题　三、判断题　四、简答题　五、论述题<br>
+        <strong>课程卷</strong>（如希伯来书）：一、经文填空【】　二、单选　三、判断　四、简答　五、论述<br>
+        <strong>诗篇卷</strong>：一、经文填空【】　二、诗篇小标题　三、诗篇结构　四、简答题（可分别上传中/英 .docx 后保存）<br>
         <strong>招生卷</strong>：一、填空题{答案}　二、单选题…（题干末尾标答案字母）<br>
         「考试版」无标准答案也可导入答题；客观题需另备答案卷或在 JSON 里补 <code>answer_key</code> 后才能机评。
       </p>
@@ -348,7 +358,8 @@ function renderPapers() {
       </div>
       <div class="btn-row" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" type="button" id="btn-import-docx">从 Word 解析到下方</button>
-        <button class="btn btn-o" type="button" id="btn-load-hebrews">加载内置：希伯来书 2025-2026</button>
+        <button class="btn btn-o" type="button" id="btn-load-hebrews">加载内置：希伯来书（中/印尼）</button>
+        <button class="btn btn-o" type="button" id="btn-load-psalms">加载内置：诗篇（中/英）</button>
         <span class="muted" id="import-status"></span>
       </div>
       <p class="muted" style="margin-top:8px">上传<strong>答案版</strong> .docx 可自动识别填空【答案】、单选（ B ）、判断（✓/×）。</p>
@@ -361,8 +372,9 @@ function renderPapers() {
     </div>
     <div class="card">
       <h2>已有试卷</h2>
-      <table><thead><tr><th>标题</th><th>年级</th><th>总分</th><th>状态</th><th>题数</th><th></th></tr></thead>
-      <tbody>${list || '<tr><td colspan="6" class="muted">暂无</td></tr>'}</tbody></table>
+      <p class="muted" style="margin-bottom:10px">绿色为已入库语言版本；灰色删除线为尚未包含该语言题干。排考时请为各班级选择含对应语言的试卷。</p>
+      <table><thead><tr><th>标题</th><th>语言版本</th><th>年级</th><th>总分</th><th>状态</th><th>题数</th><th></th></tr></thead>
+      <tbody>${list || '<tr><td colspan="7" class="muted">暂无</td></tr>'}</tbody></table>
     </div>`;
 
   document.querySelectorAll('.btn-del-paper').forEach((btn) => {
@@ -380,13 +392,29 @@ function renderPapers() {
 
   document.getElementById('btn-load-hebrews').onclick = async () => {
     try {
-      const r = await fetch('./papers/hebrews-2025-2026-zh.json');
+      const r = await fetch('./papers/hebrews-2025-2026.json');
       const snap = await r.json();
       document.getElementById('p-json').value = JSON.stringify(snap, null, 2);
       document.getElementById('p-title').value = '希伯来书';
       document.getElementById('p-grade').value = '1';
-      document.getElementById('import-status').textContent = `已加载 ${snap.length} 题（含客观题答案）`;
-      toast('希伯来书试卷已加载，点「保存试卷」入库');
+      document.getElementById('p-course').value = 'HEB';
+      document.getElementById('import-status').textContent = `已加载 ${snap.length} 题（中文 + 印尼语，含客观题答案）`;
+      toast('希伯来书试卷已加载（中/印尼语），点「保存试卷」入库');
+    } catch (e) {
+      toast('加载失败：' + (e.message || e));
+    }
+  };
+
+  document.getElementById('btn-load-psalms').onclick = async () => {
+    try {
+      const r = await fetch('./papers/psalms-2025-2026.json');
+      const snap = await r.json();
+      document.getElementById('p-json').value = JSON.stringify(snap, null, 2);
+      document.getElementById('p-title').value = '诗篇';
+      document.getElementById('p-grade').value = '1';
+      document.getElementById('p-course').value = 'PSA';
+      document.getElementById('import-status').textContent = `已加载 ${snap.length} 题（中+英，满分 100）`;
+      toast('诗篇试卷已加载，点「保存试卷」入库');
     } catch (e) {
       toast('加载失败：' + (e.message || e));
     }
@@ -449,9 +477,11 @@ function paperSelectHtml(selectedId) {
   if (!S.papers.length) {
     return '<option value="">— 请先到「题库/试卷」创建试卷 —</option>';
   }
-  const opts = S.papers.map((p) =>
-    `<option value="${p.id}"${p.id === selectedId ? ' selected' : ''}>${esc(teacherPaperTitle(p.title, p.grade))}</option>`
-  ).join('');
+  const opts = S.papers.map((p) => {
+    const langs = paperLocaleSummary(p);
+    const suffix = langs ? ` [${langs}]` : '';
+    return `<option value="${p.id}"${p.id === selectedId ? ' selected' : ''}>${esc(teacherPaperTitle(p.title, p.grade))}${esc(suffix)}</option>`;
+  }).join('');
   return `<option value="">— 选择试卷 —</option>${opts}`;
 }
 

@@ -198,9 +198,11 @@ function parseInlineOptions(line) {
 }
 
 export function detectExamFormat(lines) {
-  const head = lines.slice(0, 15).join('\n');
+  const all = lines.join('\n');
+  const head = lines.slice(0, 20).join('\n');
+  if (/二、诗篇小标题|II\.\s*Psalm Superscriptions/i.test(all)) return 'psalms';
   if (/一、经文填空|二、单项选择题|【\s*】/.test(head)) return 'course';
-  if (/一、填空题|旧约部分|新约部分|\{[^}]+\}/.test(lines.join('\n'))) return 'recruitment';
+  if (/一、填空题|旧约部分|新约部分|\{[^}]+\}/.test(all)) return 'recruitment';
   return 'course';
 }
 
@@ -457,9 +459,12 @@ export async function docxFileToSnapshot(file, lang) {
   const buf = await file.arrayBuffer();
   const lines = await extractDocxLines(buf);
   const fmt = detectExamFormat(lines);
+  if (fmt === 'psalms') {
+    throw new Error('已识别为诗篇卷格式。请使用教师端「加载内置：诗篇（中英）」一键导入，或分别上传中/英卷后合并保存。');
+  }
   const legacy = fmt === 'course' ? parseCourseExamText(lines) : parseExamPlainText(lines);
   if (!legacy.length) {
-    throw new Error('未能识别题目。支持：①课程卷（经文填空【】、单选、判断、简答、论述）②招生卷（一、填空题…）');
+    throw new Error('未能识别题目。支持：①课程卷 ②诗篇卷（用内置加载）③招生卷');
   }
   const snapshot = legacyListToSnapshot(legacy, lang);
   const needsAnswerKey = legacy.filter((q) => q.needs_answer_key).length;

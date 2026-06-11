@@ -88,7 +88,8 @@ a{color:#4f46e5}
 <script type="module">
 import {
   createSb, SESSION_KEY, LANG_KEY, t, esc, fmtTime, fmtTimer,
-  gradeLabel, trackLabel, classTrackOptions, examLangForTrack, studentPaperTitle,
+  gradeLabel, trackLabel, classTrackOptions, examLangForTrack,
+  studentPaperTitle, examContentLang,
   renderExamWithSections, collectAnswers, installProctor,
 } from './shared.js';
 
@@ -428,17 +429,19 @@ function renderCover() {
 }
 
 function renderExam() {
-  const L = S.uiLang;
+  const uiL = S.uiLang;
+  const examL = examContentLang(S.checkIn, S.paper);
   const qs = S.paper?.questions || [];
-  const html = renderExamWithSections(qs, S.answers, L);
+  const html = renderExamWithSections(qs, S.answers, examL);
+  const paperName = studentPaperTitle(S.paper?.paper_title || S.subject?.subject_name || '', examL);
   return `<div class="timer-bar">
-    <span>${esc(t(L, 'timer'))}</span>
+    <span>${esc(t(uiL, 'timer'))}</span>
     <span class="t" id="timer-d">${fmtTimer(S.timerSec)}</span>
     <div class="timer-track"><div class="timer-fill" id="timer-fill" style="width:0%"></div></div>
-    <button class="btn btn-p" id="btn-submit" style="padding:8px 14px">${esc(t(L, 'submit'))}</button>
+    <button class="btn btn-p" id="btn-submit" style="padding:8px 14px">${esc(t(uiL, 'submit'))}</button>
   </div>
   <div class="card" style="margin-top:12px">
-    <h2>${esc(studentPaperTitle(S.paper?.paper_title || S.subject?.subject_name || ''))}</h2>
+    <h2>${esc(paperName)}</h2>
     <div id="exam-root">${html}</div>
   </div>`;
 }

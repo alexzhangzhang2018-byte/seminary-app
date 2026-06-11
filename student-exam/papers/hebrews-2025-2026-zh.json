@@ -1,13 +1,17 @@
 [
    {
+      "score" : 5,
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      },
+      "group_id" : "q01",
       "section" : "一",
       "sort_order" : 1,
-      "group_id" : "q01",
-      "section_label" : "一、经文填空 （每空1分，共30分）",
       "type" : "fill",
-      "score" : 5,
+      "section_label" : "一、经文填空 （每空1分，共30分）",
       "locales" : {
          "zh" : {
+            "options" : [],
             "stem" : "神既在古时藉着____多次多方地晓谕列祖；就在这____藉着____晓谕我们，又早已立他为承受万有的；也曾藉着他创造诸世界。他是神荣耀所发的____，是神本体的真像，常用他权能的命令托住万有。他洗净了人的罪，就坐在高天至大者的右边。他所承受的名既比天使的名更尊贵，就____天使。(来1:1-4)",
             "answer_key" : {
                "answers" : [
@@ -17,19 +21,22 @@
                   "光辉",
                   "远超过"
                ]
-            },
-            "options" : []
+            }
          }
       }
    },
    {
       "score" : 4,
-      "section_label" : "一、经文填空 （每空1分，共30分）",
-      "group_id" : "q02",
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      },
       "type" : "fill",
+      "sort_order" : 2,
+      "section" : "一",
+      "group_id" : "q02",
+      "section_label" : "一、经文填空 （每空1分，共30分）",
       "locales" : {
          "zh" : {
-            "options" : [],
             "answer_key" : {
                "answers" : [
                   "郑重",
@@ -38,19 +45,21 @@
                   "听见的人"
                ]
             },
-            "stem" : "所以，我们当越发____所听见的道理，恐怕我们随流失去。那藉着天使所传的话既是确定的，凡干犯悖逆的，都受了该受的报应。我们若忽略____，怎能逃罪呢？这救恩起先是____的，后来是____给我们证实了。(来2:1-3)"
+            "stem" : "所以，我们当越发____所听见的道理，恐怕我们随流失去。那藉着天使所传的话既是确定的，凡干犯悖逆的，都受了该受的报应。我们若忽略____，怎能逃罪呢？这救恩起先是____的，后来是____给我们证实了。(来2:1-3)",
+            "options" : []
          }
-      },
-      "sort_order" : 2,
-      "section" : "一"
+      }
    },
    {
-      "section" : "一",
-      "sort_order" : 3,
       "score" : 3,
-      "section_label" : "一、经文填空 （每空1分，共30分）",
-      "group_id" : "q03",
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      },
+      "sort_order" : 3,
       "type" : "fill",
+      "section" : "一",
+      "group_id" : "q03",
+      "section_label" : "一、经文填空 （每空1分，共30分）",
       "locales" : {
          "zh" : {
             "answer_key" : {
@@ -60,53 +69,65 @@
                   "一生因怕死而为奴仆"
                ]
             },
-            "stem" : "____既同有血肉之体，他也照样亲自成了血肉之体，特要藉着死，败坏那____的，就是魔鬼，并要释放那些____的人。(来2:14-15)",
-            "options" : []
+            "options" : [],
+            "stem" : "____既同有血肉之体，他也照样亲自成了血肉之体，特要藉着死，败坏那____的，就是魔鬼，并要释放那些____的人。(来2:14-15)"
          }
       }
    },
    {
+      "type" : "fill",
+      "sort_order" : 4,
+      "group_id" : "q04",
+      "section" : "一",
+      "score" : 1,
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      },
       "locales" : {
          "zh" : {
+            "stem" : "____是活泼的，是有功效的，比一切两刃的剑更快，……(来4:12)",
+            "options" : [],
             "answer_key" : {
                "answers" : [
                   "神的道"
                ]
-            },
-            "stem" : "____是活泼的，是有功效的，比一切两刃的剑更快，……(来4:12)",
-            "options" : []
+            }
          }
       },
-      "section_label" : "一、经文填空 （每空1分，共30分）",
-      "type" : "fill",
-      "group_id" : "q04",
-      "score" : 1,
-      "section" : "一",
-      "sort_order" : 4
+      "section_label" : "一、经文填空 （每空1分，共30分）"
    },
    {
-      "sort_order" : 5,
-      "section" : "一",
+      "section_label" : "一、经文填空 （每空1分，共30分）",
       "locales" : {
          "zh" : {
+            "options" : [],
             "stem" : "我们所讲的事，其中第一要紧的，就是我们____这样的____，已经坐在天上至大者宝座的右边，(来8:1)",
             "answer_key" : {
                "answers" : [
                   "有",
                   "大祭司"
                ]
-            },
-            "options" : []
+            }
          }
       },
       "score" : 2,
-      "section_label" : "一、经文填空 （每空1分，共30分）",
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      },
+      "section" : "一",
       "group_id" : "q05",
+      "sort_order" : 5,
       "type" : "fill"
    },
    {
+      "group_id" : "q06",
       "section" : "一",
+      "type" : "fill",
       "sort_order" : 6,
+      "score" : 4,
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      },
       "locales" : {
          "zh" : {
             "answer_key" : {
@@ -117,19 +138,15 @@
                   "永远"
                ]
             },
-            "stem" : "但现在基督已经来到，作了____的大祭司，经过那更大、更全备的帐幕，不是人手所造，也不是属乎这世界的。并且不用山羊和牛犊的血，乃用____，只____进入圣所，成了____赎罪的事。(来9:11-12)",
-            "options" : []
+            "options" : [],
+            "stem" : "但现在基督已经来到，作了____的大祭司，经过那更大、更全备的帐幕，不是人手所造，也不是属乎这世界的。并且不用山羊和牛犊的血，乃用____，只____进入圣所，成了____赎罪的事。(来9:11-12)"
          }
       },
-      "score" : 4,
-      "section_label" : "一、经文填空 （每空1分，共30分）",
-      "type" : "fill",
-      "group_id" : "q06"
+      "section_label" : "一、经文填空 （每空1分，共30分）"
    },
    {
       "locales" : {
          "zh" : {
-            "options" : [],
             "answer_key" : {
                "answers" : [
                   "所望之事",
@@ -137,21 +154,33 @@
                   "神的话"
                ]
             },
-            "stem" : "信就是____的实底，是____的确据。古人在这信上得了美好的证据。我们因着信，就知道诸世界是藉____造成的，这样，所看见的，并不是从显然之物造出来的。(来11:1-3)"
+            "stem" : "信就是____的实底，是____的确据。古人在这信上得了美好的证据。我们因着信，就知道诸世界是藉____造成的，这样，所看见的，并不是从显然之物造出来的。(来11:1-3)",
+            "options" : []
          }
       },
-      "score" : 3,
       "section_label" : "一、经文填空 （每空1分，共30分）",
+      "section" : "一",
       "group_id" : "q07",
-      "type" : "fill",
       "sort_order" : 7,
-      "section" : "一"
+      "type" : "fill",
+      "score" : 3,
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      }
    },
    {
+      "type" : "fill",
+      "sort_order" : 8,
+      "group_id" : "q08",
+      "section" : "一",
+      "score" : 3,
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      },
       "locales" : {
          "zh" : {
-            "options" : [],
             "stem" : "这些人都是存着信心死的，并没有得着____，却从远处望见，且欢喜迎接，又承认自己在世上是____，是寄居的。说这样话的人是表明自己要找一个家乡。他们若想念所离开的家乡，还有可以回去的机会。他们却羡慕一个____，就是在天上的。所以神被称为他们的神，并不以为耻，因为他已经给他们预备了一座城。(来11:13-16)",
+            "options" : [],
             "answer_key" : {
                "answers" : [
                   "所应许的",
@@ -161,17 +190,11 @@
             }
          }
       },
-      "group_id" : "q08",
-      "section_label" : "一、经文填空 （每空1分，共30分）",
-      "type" : "fill",
-      "score" : 3,
-      "section" : "一",
-      "sort_order" : 8
+      "section_label" : "一、经文填空 （每空1分，共30分）"
    },
    {
       "locales" : {
          "zh" : {
-            "options" : [],
             "answer_key" : {
                "answers" : [
                   "见证人",
@@ -180,168 +203,201 @@
                   "疲倦灰心"
                ]
             },
+            "options" : [],
             "stem" : "我们既有这许多的____，如同云彩围着我们，就当放下各样的重担，脱去容易缠累我们的____，存心忍耐，奔那摆在我们前头的路程，仰望为我们信心____的耶稣。他因那摆在前面的喜乐，就轻看羞辱，忍受了十字架的苦难，便坐在神宝座的右边。那忍受罪人这样顶撞的，你们要思想，免得____。(来12:1-3)"
          }
       },
-      "score" : 4,
       "section_label" : "一、经文填空 （每空1分，共30分）",
       "group_id" : "q09",
-      "type" : "fill",
+      "section" : "一",
       "sort_order" : 9,
-      "section" : "一"
+      "type" : "fill",
+      "score" : 4,
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      }
    },
    {
-      "section" : "一",
-      "sort_order" : 10,
-      "score" : 1,
       "section_label" : "一、经文填空 （每空1分，共30分）",
-      "group_id" : "q10",
-      "type" : "fill",
       "locales" : {
          "zh" : {
+            "options" : [],
             "stem" : "你们不要被那诸般怪异的教训勾引了去。因为人心靠____得坚固才是好的，并不是靠饮食；那在饮食上专心的，从来没有得着益处。(来13:9)",
             "answer_key" : {
                "answers" : [
                   "恩"
                ]
-            },
-            "options" : []
+            }
          }
-      }
+      },
+      "score" : 1,
+      "section_labels" : {
+         "zh" : "一、经文填空 （每空1分，共30分）"
+      },
+      "group_id" : "q10",
+      "section" : "一",
+      "sort_order" : 10,
+      "type" : "fill"
    },
    {
       "sort_order" : 11,
+      "type" : "single",
+      "group_id" : "q11",
       "section" : "二",
+      "score" : 1,
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
       "locales" : {
          "zh" : {
-            "stem" : "“你是我的儿子，我今日生你”所引用的旧约经文是：",
-            "answer_key" : {
-               "answer_index" : 1
-            },
             "options" : [
                "（撒下7:14）",
                "（诗2:7）",
                "（诗102:25）",
                "（诗110:1）"
-            ]
+            ],
+            "stem" : "“你是我的儿子，我今日生你”所引用的旧约经文是：",
+            "answer_key" : {
+               "answer_index" : 1
+            }
          }
       },
-      "score" : 1,
-      "section_label" : "二、单项选择题 （每题1分，共10分）",
-      "group_id" : "q11",
-      "type" : "single"
+      "section_label" : "二、单项选择题 （每题1分，共10分）"
    },
    {
-      "section" : "二",
-      "sort_order" : 12,
+      "section_label" : "二、单项选择题 （每题1分，共10分）",
       "locales" : {
          "zh" : {
             "answer_key" : {
                "answer_index" : 2
             },
-            "stem" : "以下哪项不是天使的身份、职责或特征 ：",
             "options" : [
                "服役的灵",
                "暂时比耶稣大",
                "为全人类效力",
                "传神的话"
-            ]
+            ],
+            "stem" : "以下哪项不是天使的身份、职责或特征 ："
          }
       },
-      "score" : 1,
-      "section_label" : "二、单项选择题 （每题1分，共10分）",
-      "group_id" : "q12",
-      "type" : "single"
-   },
-   {
-      "section" : "二",
-      "sort_order" : 13,
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
       "score" : 1,
       "type" : "single",
+      "sort_order" : 12,
+      "section" : "二",
+      "group_id" : "q12"
+   },
+   {
       "section_label" : "二、单项选择题 （每题1分，共10分）",
-      "group_id" : "q13",
       "locales" : {
          "zh" : {
+            "answer_key" : {
+               "answer_index" : 1
+            },
             "options" : [
                "耶稣与天使",
                "耶稣与大卫",
                "麦基洗德等次与亚伦等次",
                "新约与前约"
             ],
-            "answer_key" : {
-               "answer_index" : 1
-            },
             "stem" : "以下哪个选项不是本书对比着论述的："
          }
-      }
+      },
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
+      "score" : 1,
+      "sort_order" : 13,
+      "type" : "single",
+      "section" : "二",
+      "group_id" : "q13"
    },
    {
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
+      "score" : 1,
       "section" : "二",
+      "group_id" : "q14",
       "sort_order" : 14,
+      "type" : "single",
+      "section_label" : "二、单项选择题 （每题1分，共10分）",
       "locales" : {
          "zh" : {
+            "stem" : "以下哪个选项描述的不是收信人的问题：",
             "options" : [
                "懈怠",
                "不信",
                "贪恋世俗",
                "拜偶像"
             ],
-            "stem" : "以下哪个选项描述的不是收信人的问题：",
             "answer_key" : {
                "answer_index" : 3
             }
          }
-      },
-      "type" : "single",
-      "section_label" : "二、单项选择题 （每题1分，共10分）",
-      "group_id" : "q14",
-      "score" : 1
+      }
    },
    {
-      "sort_order" : 15,
-      "section" : "二",
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
       "score" : 1,
+      "sort_order" : 15,
+      "type" : "single",
+      "section" : "二",
       "group_id" : "q15",
       "section_label" : "二、单项选择题 （每题1分，共10分）",
-      "type" : "single",
       "locales" : {
          "zh" : {
-            "answer_key" : {
-               "answer_index" : 2
-            },
-            "stem" : "以下哪个选项不是麦基洗德的特征：",
             "options" : [
                "君王",
                "祭司",
                "先知",
                "永活的"
+            ],
+            "stem" : "以下哪个选项不是麦基洗德的特征：",
+            "answer_key" : {
+               "answer_index" : 2
+            }
+         }
+      }
+   },
+   {
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
+      "score" : 1,
+      "sort_order" : 16,
+      "type" : "single",
+      "section" : "二",
+      "group_id" : "q16",
+      "section_label" : "二、单项选择题 （每题1分，共10分）",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answer_index" : 2
+            },
+            "stem" : "以下哪个选项是我们竭力进入的：",
+            "options" : [
+               "基督道理的开端",
+               "根基",
+               "完全的地步",
+               "神圣言小学的开端"
             ]
          }
       }
    },
    {
       "section" : "二",
-      "sort_order" : 16,
-      "locales" : {
-         "zh" : {
-            "options" : [
-               "基督道理的开端",
-               "根基",
-               "完全的地步",
-               "神圣言小学的开端"
-            ],
-            "answer_key" : {
-               "answer_index" : 2
-            },
-            "stem" : "以下哪个选项是我们竭力进入的："
-         }
-      },
-      "group_id" : "q16",
-      "section_label" : "二、单项选择题 （每题1分，共10分）",
+      "group_id" : "q17",
       "type" : "single",
-      "score" : 1
-   },
-   {
+      "sort_order" : 17,
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
+      "score" : 1,
       "locales" : {
          "zh" : {
             "options" : [
@@ -350,48 +406,49 @@
                "律法的要求",
                "神的赐福和抬举"
             ],
+            "stem" : "亚伦等次的祭司为何代代相传：",
             "answer_key" : {
                "answer_index" : 0
-            },
-            "stem" : "亚伦等次的祭司为何代代相传："
+            }
          }
       },
-      "score" : 1,
-      "section_label" : "二、单项选择题 （每题1分，共10分）",
-      "type" : "single",
-      "group_id" : "q17",
-      "sort_order" : 17,
-      "section" : "二"
+      "section_label" : "二、单项选择题 （每题1分，共10分）"
    },
    {
-      "section" : "二",
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
+      "score" : 1,
       "sort_order" : 18,
+      "type" : "single",
+      "group_id" : "q18",
+      "section" : "二",
+      "section_label" : "二、单项选择题 （每题1分，共10分）",
       "locales" : {
          "zh" : {
-            "answer_key" : {
-               "answer_index" : 0
-            },
-            "stem" : "以下哪个选项不是圣幕里的设置：",
             "options" : [
                "祭坛",
                "灯台",
                "金香坛",
                "约柜"
-            ]
+            ],
+            "stem" : "以下哪个选项不是圣幕里的设置：",
+            "answer_key" : {
+               "answer_index" : 0
+            }
          }
-      },
-      "score" : 1,
-      "section_label" : "二、单项选择题 （每题1分，共10分）",
-      "type" : "single",
-      "group_id" : "q18"
+      }
    },
    {
-      "section" : "二",
-      "sort_order" : 19,
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
       "score" : 1,
-      "section_label" : "二、单项选择题 （每题1分，共10分）",
+      "section" : "二",
       "group_id" : "q19",
+      "sort_order" : 19,
       "type" : "single",
+      "section_label" : "二、单项选择题 （每题1分，共10分）",
       "locales" : {
          "zh" : {
             "options" : [
@@ -409,9 +466,14 @@
    },
    {
       "score" : 1,
-      "type" : "single",
-      "section_label" : "二、单项选择题 （每题1分，共10分）",
+      "section_labels" : {
+         "zh" : "二、单项选择题 （每题1分，共10分）"
+      },
       "group_id" : "q20",
+      "section" : "二",
+      "type" : "single",
+      "sort_order" : 20,
+      "section_label" : "二、单项选择题 （每题1分，共10分）",
       "locales" : {
          "zh" : {
             "options" : [
@@ -420,327 +482,382 @@
                "启示文学",
                "书信"
             ],
+            "stem" : "希伯来书的体裁是什么：",
             "answer_key" : {
                "answer_index" : 3
-            },
-            "stem" : "希伯来书的体裁是什么："
-         }
-      },
-      "section" : "二",
-      "sort_order" : 20
-   },
-   {
-      "locales" : {
-         "zh" : {
-            "stem" : "神藉天使创造诸世界。",
-            "answer_key" : {
-               "answer_bool" : false
-            },
-            "options" : []
-         }
-      },
-      "score" : 1,
-      "type" : "truefalse",
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "group_id" : "q21",
-      "sort_order" : 21,
-      "section" : "三"
-   },
-   {
-      "score" : 1,
-      "group_id" : "q22",
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "type" : "truefalse",
-      "locales" : {
-         "zh" : {
-            "options" : [],
-            "answer_key" : {
-               "answer_bool" : false
-            },
-            "stem" : "希伯来书所论述的要点是耶稣的超越性。"
-         }
-      },
-      "section" : "三",
-      "sort_order" : 22
-   },
-   {
-      "type" : "truefalse",
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "group_id" : "q23",
-      "score" : 1,
-      "locales" : {
-         "zh" : {
-            "options" : [],
-            "stem" : "诗篇8篇“人算什么，你竟顾念他？”中的“人”直接指的是被造的世人。",
-            "answer_key" : {
-               "answer_bool" : false
             }
-         }
-      },
-      "sort_order" : 23,
-      "section" : "三"
-   },
-   {
-      "locales" : {
-         "zh" : {
-            "options" : [],
-            "answer_key" : {
-               "answer_bool" : false
-            },
-            "stem" : "作者时代的基督徒已经被圣灵重生，不同于旧约神的百姓，因此已经进入安息。"
-         }
-      },
-      "type" : "truefalse",
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "group_id" : "q24",
-      "score" : 1,
-      "section" : "三",
-      "sort_order" : 24
-   },
-   {
-      "locales" : {
-         "zh" : {
-            "stem" : "若是离弃道理，就不能叫他们重新懊悔了，因为他们把神的儿子重钉十字架，明明地羞辱他。(来6:6) 这只是牧养性的警告，并非说救恩可能失落。",
-            "answer_key" : {
-               "answer_bool" : true
-            },
-            "options" : []
-         }
-      },
-      "group_id" : "q25",
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "type" : "truefalse",
-      "score" : 1,
-      "section" : "三",
-      "sort_order" : 25
-   },
-   {
-      "locales" : {
-         "zh" : {
-            "answer_key" : {
-               "answer_bool" : false
-            },
-            "stem" : "耶稣为祭司，不是起誓立的。",
-            "options" : []
-         }
-      },
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "group_id" : "q26",
-      "type" : "truefalse",
-      "score" : 1,
-      "section" : "三",
-      "sort_order" : 26
-   },
-   {
-      "score" : 1,
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "type" : "truefalse",
-      "group_id" : "q27",
-      "locales" : {
-         "zh" : {
-            "options" : [],
-            "stem" : "耶稣作为大祭司，现在仍在为我们献祭了。",
-            "answer_key" : {
-               "answer_bool" : false
-            }
-         }
-      },
-      "section" : "三",
-      "sort_order" : 27
-   },
-   {
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "group_id" : "q28",
-      "type" : "truefalse",
-      "score" : 1,
-      "locales" : {
-         "zh" : {
-            "stem" : "亚伯拉罕等古人都是信心的伟人，因此他们死前都得到了神所应许的。",
-            "answer_key" : {
-               "answer_bool" : false
-            },
-            "options" : []
-         }
-      },
-      "sort_order" : 28,
-      "section" : "三"
-   },
-   {
-      "score" : 1,
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "group_id" : "q29",
-      "type" : "truefalse",
-      "locales" : {
-         "zh" : {
-            "options" : [],
-            "answer_key" : {
-               "answer_bool" : true
-            },
-            "stem" : "律法上说的都是将来的事的影子，不是本物的真像。"
-         }
-      },
-      "sort_order" : 29,
-      "section" : "三"
-   },
-   {
-      "sort_order" : 30,
-      "section" : "三",
-      "locales" : {
-         "zh" : {
-            "options" : [],
-            "stem" : "旧约是神所设立的，因此没有瑕疵。",
-            "answer_key" : {
-               "answer_bool" : false
-            }
-         }
-      },
-      "score" : 1,
-      "group_id" : "q30",
-      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "type" : "truefalse"
-   },
-   {
-      "section" : "四",
-      "type" : "essay",
-      "locales" : {
-         "zh" : {
-            "options" : [],
-            "answer_key" : {},
-            "stem" : "神的安息的特征是什么？我们今日进入安息了吗？"
-         }
-      },
-      "sort_order" : 31,
-      "group_id" : "q31",
-      "essay_kind" : "short",
-      "section_label" : "四、简答题（每题2分，共10分）",
-      "score" : 2
-   },
-   {
-      "type" : "essay",
-      "locales" : {
-         "zh" : {
-            "answer_key" : {},
-            "stem" : "神的道是活(泼)的，是有功效的，这是在说明什么？",
-            "options" : []
-         }
-      },
-      "section" : "四",
-      "score" : 2,
-      "essay_kind" : "short",
-      "section_label" : "四、简答题（每题2分，共10分）",
-      "group_id" : "q32",
-      "sort_order" : 32
-   },
-   {
-      "locales" : {
-         "zh" : {
-            "options" : [],
-            "answer_key" : {},
-            "stem" : "耶稣作大祭司，在哪里供职？"
-         }
-      },
-      "type" : "essay",
-      "section" : "四",
-      "score" : 2,
-      "essay_kind" : "short",
-      "section_label" : "四、简答题（每题2分，共10分）",
-      "group_id" : "q33",
-      "sort_order" : 33
-   },
-   {
-      "essay_kind" : "short",
-      "section_label" : "四、简答题（每题2分，共10分）",
-      "group_id" : "q34",
-      "score" : 2,
-      "sort_order" : 34,
-      "locales" : {
-         "zh" : {
-            "answer_key" : {},
-            "stem" : "简述头一层帐幕和第二层帐幕分别指代什么时候。",
-            "options" : []
-         }
-      },
-      "type" : "essay",
-      "section" : "四"
-   },
-   {
-      "section" : "四",
-      "type" : "essay",
-      "locales" : {
-         "zh" : {
-            "stem" : "简述基督作大祭司所带来的功效。",
-            "answer_key" : {},
-            "options" : []
-         }
-      },
-      "sort_order" : 35,
-      "score" : 2,
-      "essay_kind" : "short",
-      "section_label" : "四、简答题（每题2分，共10分）",
-      "group_id" : "q35"
-   },
-   {
-      "sort_order" : 36,
-      "section_label" : "五、论述题（每题10分，共40分）",
-      "essay_kind" : "long",
-      "group_id" : "q36",
-      "score" : 10,
-      "section" : "五",
-      "type" : "essay",
-      "locales" : {
-         "zh" : {
-            "answer_key" : {},
-            "stem" : "写出划分本书卷结构的（1）依据经文的章节号。请据此写出（2）书卷结构，和（3）几大主题。",
-            "options" : []
          }
       }
    },
    {
-      "sort_order" : 37,
-      "essay_kind" : "long",
-      "section_label" : "五、论述题（每题10分，共40分）",
-      "group_id" : "q37",
-      "score" : 10,
-      "section" : "五",
+      "section" : "三",
+      "group_id" : "q21",
+      "sort_order" : 21,
+      "type" : "truefalse",
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      },
+      "score" : 1,
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "options" : [],
+            "stem" : "神藉天使创造诸世界。"
+         }
+      },
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+   },
+   {
+      "locales" : {
+         "zh" : {
+            "stem" : "希伯来书所论述的要点是耶稣的超越性。",
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            }
+         }
+      },
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
+      "type" : "truefalse",
+      "sort_order" : 22,
+      "group_id" : "q22",
+      "section" : "三",
+      "score" : 1,
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      }
+   },
+   {
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
+      "locales" : {
+         "zh" : {
+            "stem" : "诗篇8篇“人算什么，你竟顾念他？”中的“人”直接指的是被造的世人。",
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            }
+         }
+      },
+      "score" : 1,
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      },
+      "section" : "三",
+      "group_id" : "q23",
+      "sort_order" : 23,
+      "type" : "truefalse"
+   },
+   {
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "stem" : "作者时代的基督徒已经被圣灵重生，不同于旧约神的百姓，因此已经进入安息。",
+            "options" : []
+         }
+      },
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
+      "sort_order" : 24,
+      "type" : "truefalse",
+      "group_id" : "q24",
+      "section" : "三",
+      "score" : 1,
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      }
+   },
+   {
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answer_bool" : true
+            },
+            "stem" : "若是离弃道理，就不能叫他们重新懊悔了，因为他们把神的儿子重钉十字架，明明地羞辱他。(来6:6) 这只是牧养性的警告，并非说救恩可能失落。",
+            "options" : []
+         }
+      },
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
+      "group_id" : "q25",
+      "section" : "三",
+      "sort_order" : 25,
+      "type" : "truefalse",
+      "score" : 1,
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      }
+   },
+   {
       "locales" : {
          "zh" : {
             "options" : [],
-            "answer_key" : {},
-            "stem" : "分析作者写希伯来书的（1）目的。分析作者试图（2）如何达成这个目的，以及作者如此写书信在（3）牧养神学上的重大贡献或启发。"
+            "stem" : "耶稣为祭司，不是起誓立的。",
+            "answer_key" : {
+               "answer_bool" : false
+            }
          }
       },
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
+      "section" : "三",
+      "group_id" : "q26",
+      "sort_order" : 26,
+      "type" : "truefalse",
+      "score" : 1,
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      }
+   },
+   {
+      "sort_order" : 27,
+      "type" : "truefalse",
+      "group_id" : "q27",
+      "section" : "三",
+      "score" : 1,
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      },
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "stem" : "耶稣作为大祭司，现在仍在为我们献祭了。",
+            "options" : []
+         }
+      },
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+   },
+   {
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "options" : [],
+            "stem" : "亚伯拉罕等古人都是信心的伟人，因此他们死前都得到了神所应许的。"
+         }
+      },
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
+      "group_id" : "q28",
+      "section" : "三",
+      "sort_order" : 28,
+      "type" : "truefalse",
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      },
+      "score" : 1
+   },
+   {
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answer_bool" : true
+            },
+            "options" : [],
+            "stem" : "律法上说的都是将来的事的影子，不是本物的真像。"
+         }
+      },
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      },
+      "score" : 1,
+      "section" : "三",
+      "group_id" : "q29",
+      "sort_order" : 29,
+      "type" : "truefalse"
+   },
+   {
+      "locales" : {
+         "zh" : {
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "options" : [],
+            "stem" : "旧约是神所设立的，因此没有瑕疵。"
+         }
+      },
+      "section_label" : "三、判断题（请在括号内打✓或×，每题1分，共10分）",
+      "section" : "三",
+      "group_id" : "q30",
+      "sort_order" : 30,
+      "type" : "truefalse",
+      "section_labels" : {
+         "zh" : "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+      },
+      "score" : 1
+   },
+   {
+      "section_label" : "四、简答题（每题2分，共10分）",
+      "essay_kind" : "short",
+      "locales" : {
+         "zh" : {
+            "answer_key" : {},
+            "options" : [],
+            "stem" : "神的安息的特征是什么？我们今日进入安息了吗？"
+         }
+      },
+      "section_labels" : {
+         "zh" : "四、简答题（每题2分，共10分）"
+      },
+      "score" : 2,
+      "group_id" : "q31",
+      "section" : "四",
+      "sort_order" : 31,
+      "type" : "essay"
+   },
+   {
+      "sort_order" : 32,
+      "type" : "essay",
+      "section" : "四",
+      "group_id" : "q32",
+      "section_labels" : {
+         "zh" : "四、简答题（每题2分，共10分）"
+      },
+      "score" : 2,
+      "locales" : {
+         "zh" : {
+            "stem" : "神的道是活(泼)的，是有功效的，这是在说明什么？",
+            "options" : [],
+            "answer_key" : {}
+         }
+      },
+      "section_label" : "四、简答题（每题2分，共10分）",
+      "essay_kind" : "short"
+   },
+   {
+      "essay_kind" : "short",
+      "section_label" : "四、简答题（每题2分，共10分）",
+      "locales" : {
+         "zh" : {
+            "stem" : "耶稣作大祭司，在哪里供职？",
+            "options" : [],
+            "answer_key" : {}
+         }
+      },
+      "score" : 2,
+      "section_labels" : {
+         "zh" : "四、简答题（每题2分，共10分）"
+      },
+      "group_id" : "q33",
+      "section" : "四",
+      "type" : "essay",
+      "sort_order" : 33
+   },
+   {
+      "sort_order" : 34,
+      "type" : "essay",
+      "section" : "四",
+      "group_id" : "q34",
+      "score" : 2,
+      "section_labels" : {
+         "zh" : "四、简答题（每题2分，共10分）"
+      },
+      "locales" : {
+         "zh" : {
+            "answer_key" : {},
+            "options" : [],
+            "stem" : "简述头一层帐幕和第二层帐幕分别指代什么时候。"
+         }
+      },
+      "section_label" : "四、简答题（每题2分，共10分）",
+      "essay_kind" : "short"
+   },
+   {
+      "section" : "四",
+      "group_id" : "q35",
+      "type" : "essay",
+      "sort_order" : 35,
+      "section_labels" : {
+         "zh" : "四、简答题（每题2分，共10分）"
+      },
+      "score" : 2,
+      "locales" : {
+         "zh" : {
+            "answer_key" : {},
+            "stem" : "简述基督作大祭司所带来的功效。",
+            "options" : []
+         }
+      },
+      "essay_kind" : "short",
+      "section_label" : "四、简答题（每题2分，共10分）"
+   },
+   {
+      "section_label" : "五、论述题（每题10分，共40分）",
+      "essay_kind" : "long",
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "stem" : "写出划分本书卷结构的（1）依据经文的章节号。请据此写出（2）书卷结构，和（3）几大主题。",
+            "answer_key" : {}
+         }
+      },
+      "score" : 10,
+      "section_labels" : {
+         "zh" : "五、论述题（每题10分，共40分）"
+      },
+      "section" : "五",
+      "group_id" : "q36",
+      "sort_order" : 36,
       "type" : "essay"
    },
    {
       "locales" : {
          "zh" : {
             "options" : [],
-            "answer_key" : {},
-            "stem" : "具体分析，当（1）如何理解“所以，我们应当离开基督道理的开端，竭力进到完全的地步，不必再立根基，就如……”(来6:1)？这样理解（2）对牧养的启发是什么？基于此，你的（3）决定是什么？"
+            "stem" : "分析作者写希伯来书的（1）目的。分析作者试图（2）如何达成这个目的，以及作者如此写书信在（3）牧养神学上的重大贡献或启发。",
+            "answer_key" : {}
          }
       },
+      "essay_kind" : "long",
+      "section_label" : "五、论述题（每题10分，共40分）",
+      "group_id" : "q37",
+      "section" : "五",
       "type" : "essay",
+      "sort_order" : 37,
+      "section_labels" : {
+         "zh" : "五、论述题（每题10分，共40分）"
+      },
+      "score" : 10
+   },
+   {
+      "section_labels" : {
+         "zh" : "五、论述题（每题10分，共40分）"
+      },
+      "score" : 10,
+      "type" : "essay",
+      "sort_order" : 38,
+      "group_id" : "q38",
       "section" : "五",
       "essay_kind" : "long",
       "section_label" : "五、论述题（每题10分，共40分）",
-      "group_id" : "q38",
-      "score" : 10,
-      "sort_order" : 38
+      "locales" : {
+         "zh" : {
+            "options" : [],
+            "stem" : "具体分析，当（1）如何理解“所以，我们应当离开基督道理的开端，竭力进到完全的地步，不必再立根基，就如……”(来6:1)？这样理解（2）对牧养的启发是什么？基于此，你的（3）决定是什么？",
+            "answer_key" : {}
+         }
+      }
    },
    {
       "sort_order" : 39,
-      "essay_kind" : "long",
-      "group_id" : "q39",
-      "section_label" : "五、论述题（每题10分，共40分）",
-      "score" : 10,
-      "section" : "五",
       "type" : "essay",
+      "group_id" : "q39",
+      "section" : "五",
+      "score" : 10,
+      "section_labels" : {
+         "zh" : "五、论述题（每题10分，共40分）"
+      },
       "locales" : {
          "zh" : {
             "answer_key" : {},
-            "stem" : "通过此次学习希伯来书，具体说明你现在如何理解基督徒的（1）“信、望、爱”，以及（2）基督徒的信望爱与福音的关系。据此理解，请具体谈谈学习希伯来书的（3）收获。",
-            "options" : []
+            "options" : [],
+            "stem" : "通过此次学习希伯来书，具体说明你现在如何理解基督徒的（1）“信、望、爱”，以及（2）基督徒的信望爱与福音的关系。据此理解，请具体谈谈学习希伯来书的（3）收获。"
          }
-      }
+      },
+      "section_label" : "五、论述题（每题10分，共40分）",
+      "essay_kind" : "long"
    }
 ]

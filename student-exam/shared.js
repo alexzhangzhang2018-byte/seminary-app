@@ -167,10 +167,23 @@ export function gradeLabel(g, lang) {
   return t(lang, `grade${g}`);
 }
 
-/** 学生端卷名：去掉学年后缀（如「希伯来书 2025-2026」→「希伯来书」） */
-export function studentPaperTitle(title) {
+const PAPER_TITLE_FALLBACK = {
+  诗篇: { en: 'Psalm', id: 'Mazmur' },
+  希伯来书: { en: 'Hebrews', id: 'Ibrani' },
+  Psalm: { zh: '诗篇', id: 'Mazmur' },
+  Hebrews: { zh: '希伯来书', id: 'Ibrani' },
+};
+
+/** 学生端卷名：按答卷语言；去掉学年后缀 */
+export function studentPaperTitle(title, lang = 'zh') {
   if (!title) return '';
-  return String(title).replace(/\s+\d{4}-\d{4}\s*$/, '').trim();
+  const base = String(title).replace(/\s+\d{4}-\d{4}\s*$/, '').trim();
+  if (lang === 'zh') return PAPER_TITLE_FALLBACK[base]?.zh || base;
+  return PAPER_TITLE_FALLBACK[base]?.[lang] || base;
+}
+
+export function examContentLang(checkIn, paper) {
+  return paper?.exam_lang || checkIn?.exam_lang || 'zh';
 }
 
 /** 教师端卷名：科目 + 年级（如「希伯来书-一年级」） */
@@ -178,6 +191,46 @@ export function teacherPaperTitle(title, grade, lang = 'zh') {
   const base = studentPaperTitle(title);
   if (!grade) return base;
   return `${base}-${gradeLabel(grade, lang)}`;
+}
+
+const PAPER_LOCALE_LABELS = { zh: '中文', en: '英文', id: '印尼语' };
+const PAPER_LOCALE_ORDER = ['zh', 'en', 'id'];
+
+/** 从 snapshot_json 检测已入库的答卷语言（有题干即算具备） */
+export function paperLocaleCodes(paper) {
+  const snap = paper?.snapshot_json;
+  const found = new Set();
+  if (Array.isArray(snap)) {
+    for (const q of snap) {
+      const loc = q?.locales;
+      if (!loc || typeof loc !== 'object') continue;
+      for (const code of PAPER_LOCALE_ORDER) {
+        if (loc[code]?.stem) found.add(code);
+      }
+    }
+  }
+  if (found.size) return PAPER_LOCALE_ORDER.filter((c) => found.has(c));
+  const tl = paper?.title_locales;
+  if (tl && typeof tl === 'object') {
+    return PAPER_LOCALE_ORDER.filter((c) => tl[c]);
+  }
+  return ['zh'];
+}
+
+/** 如「中文 · 印尼语」 */
+export function paperLocaleSummary(paper) {
+  return paperLocaleCodes(paper).map((c) => PAPER_LOCALE_LABELS[c] || c).join(' · ');
+}
+
+/** 教师端语言版本徽章 HTML */
+export function paperLocaleBadgesHtml(paper) {
+  const codes = new Set(paperLocaleCodes(paper));
+  return PAPER_LOCALE_ORDER.map((code) => {
+    const on = codes.has(code);
+    const cls = on ? 'lang-on' : 'lang-off';
+    const title = on ? `已含${PAPER_LOCALE_LABELS[code]}题干` : `未含${PAPER_LOCALE_LABELS[code]}`;
+    return `<span class="lang-tag ${cls}" title="${title}">${PAPER_LOCALE_LABELS[code]}</span>`;
+  }).join('');
 }
 
 export function trackLabel(track, lang) {
@@ -199,8 +252,9 @@ export function examLangForTrack(track) {
   return ['zh', 'en', 'id'].includes(n) ? n : 'zh';
 }
 
-export function displaySectionLabel(raw) {
+export function displaySectionLabel(raw, lang = 'zh') {
   if (!raw) return '';
+  if (lang !== 'zh') return String(raw).trim();
   const s = String(raw).replace(/^[一二三四五六七八九十]+、\s*/, '');
   const name = s.replace(/（.*$/, '').trim();
   const parenM = s.match(/（([^）]*)）/);
@@ -215,7 +269,7 @@ export function renderExamWithSections(questions, answers, lang) {
   let html = '';
   let lastLabel = '';
   for (const q of questions || []) {
-    const label = displaySectionLabel(q.section_label || '');
+    const label = displaySectionLabel(q.section_label || '', lang);
     if (label && label !== lastLabel) {
       const sec = q.section || '';
       const cls = sec === '五' ? 'sec-head sec-long' : sec === '四' ? 'sec-head sec-short' : 'sec-head';

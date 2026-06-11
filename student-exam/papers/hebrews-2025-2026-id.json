@@ -1,0 +1,863 @@
+[
+   {
+      "group_id" : "q01",
+      "section" : "一",
+      "type" : "fill",
+      "locales" : {
+         "id" : {
+            "answer_key" : {
+               "answers" : [
+                  "nabi-nabi",
+                  "zaman akhir",
+                  "Anak-Nya",
+                  "cahaya",
+                  "jauh lebih tinggi"
+               ]
+            },
+            "options" : [],
+            "stem" : "Setelah pada zaman dahulu Allah berulang kali dan dalam pelbagai cara berbicara kepada nenek moyang kita dengan perantaraan ____, maka pada ____ ini Ia telah berbicara kepada kita dengan perantaraan ____, yang telah Ia tetapkan sebagai yang berhak menerima segala yang ada. Oleh Dia Allah telah menjadikan alam semesta. Ia adalah ____ kemuliaan Allah dan gambar wujud Allah dan menopang segala yang ada dengan firman-Nya yang penuh kekuasaan. Dan setelah Ia selesai mengadakan penyucian dosa, Ia duduk di sebelah kanan Yang Mahabesar, di tempat yang tinggi, ____ dari pada malaikat-malaikat, sama seperti nama yang dikaruniakan kepada-Nya jauh lebih indah dari pada nama mereka."
+         }
+      },
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "score" : 5,
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      },
+      "sort_order" : 1
+   },
+   {
+      "locales" : {
+         "id" : {
+            "answer_key" : {
+               "answers" : [
+                  "teliti",
+                  "keselamatan yang sebesar itu",
+                  "diberitakan oleh Tuhan",
+                  "mereka yang telah mendengarnya"
+               ]
+            },
+            "options" : [],
+            "stem" : "Karena itu harus lebih ____ kita memperhatikan apa yang telah kita dengar, supaya kita jangan hanyut dibawa arus. Sebab kalau firman yang dikatakan dengan perantaraan malaikat-malaikat tetap berlaku, dan setiap pelanggaran dan ketidaktaatan mendapat balasan yang setimpal, bagaimanakah kita akan luput, jikalau kita menyia-nyiakan ____, yang mula-mula ____ dan oleh ____, kepada kita dengan cara yang dapat dipercayai."
+         }
+      },
+      "group_id" : "q02",
+      "section" : "一",
+      "type" : "fill",
+      "sort_order" : 2,
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "score" : 4,
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      }
+   },
+   {
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      },
+      "score" : 3,
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "sort_order" : 3,
+      "type" : "fill",
+      "section" : "一",
+      "group_id" : "q03",
+      "locales" : {
+         "id" : {
+            "answer_key" : {
+               "answers" : [
+                  "anak-anak",
+                  "berkuasa atas maut",
+                  "seumur hidupnya berada dalam perhambaan oleh karena takutnya kepada maut"
+               ]
+            },
+            "options" : [],
+            "stem" : "Karena ____ itu adalah anak-anak dari darah dan daging, maka Ia juga menjadi sama dengan mereka dan mendapat bagian dalam keadaan mereka, supaya oleh kematian-Nya Ia memusnahkan dia, yaitu Iblis, yang ____; dan supaya dengan jalan demikian Ia membebaskan mereka yang ____."
+         }
+      }
+   },
+   {
+      "locales" : {
+         "id" : {
+            "stem" : "Sebab ____ hidup dan kuat dan lebih tajam dari pada pedang bermata dua mana pun; ia menusuk amat dalam sampai memisahkan jiwa dan roh, sendi-sendi dan sumsum; ia sanggup membedakan pertimbangan dan pikiran hati kita.",
+            "options" : [],
+            "answer_key" : {
+               "answers" : [
+                  "firman Allah"
+               ]
+            }
+         }
+      },
+      "type" : "fill",
+      "group_id" : "q04",
+      "section" : "一",
+      "sort_order" : 4,
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      },
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "score" : 1
+   },
+   {
+      "sort_order" : 5,
+      "score" : 2,
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      },
+      "locales" : {
+         "id" : {
+            "answer_key" : {
+               "answers" : [
+                  "mempunyai",
+                  "Imam Besar"
+               ]
+            },
+            "options" : [],
+            "stem" : "Inti segala yang kita bicarakan itu ialah: kita ____ ____ yang demikian, yang duduk di sebelah kanan takhta Yang Mahabesar di sorga."
+         }
+      },
+      "group_id" : "q05",
+      "section" : "一",
+      "type" : "fill"
+   },
+   {
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      },
+      "score" : 4,
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "sort_order" : 6,
+      "type" : "fill",
+      "section" : "一",
+      "group_id" : "q06",
+      "locales" : {
+         "id" : {
+            "stem" : "Tetapi Kristus telah datang sebagai Imam Besar untuk ____: Ia telah melintasi kemah yang lebih besar dan yang lebih sempurna, yang bukan dibuat oleh tangan manusia, — artinya yang tidak termasuk ciptaan ini, — dan Ia telah masuk ____ untuk selama-lamanya ke dalam tempat yang kudus bukan dengan membawa darah domba jantan dan darah anak lembu, tetapi dengan membawa ____. Dan dengan itu Ia telah mendapat kelepasan yang ____.",
+            "answer_key" : {
+               "answers" : [
+                  "hal-hal yang baik yang akan datang",
+                  "satu kali",
+                  "darah-Nya sendiri",
+                  "kekal"
+               ]
+            },
+            "options" : []
+         }
+      }
+   },
+   {
+      "section" : "一",
+      "group_id" : "q07",
+      "type" : "fill",
+      "locales" : {
+         "id" : {
+            "options" : [],
+            "answer_key" : {
+               "answers" : [
+                  "segala sesuatu yang kita harapkan",
+                  "segala sesuatu yang tidak kita lihat",
+                  "firman Allah"
+               ]
+            },
+            "stem" : "Iman adalah dasar dari ____ dan bukti dari ____. Sebab oleh imanlah telah diberikan kesaksian kepada nenek moyang kita. Karena iman kita mengerti, bahwa alam semesta telah dijadikan oleh ____, sehingga apa yang kita lihat telah terjadi dari apa yang tidak dapat kita lihat."
+         }
+      },
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "score" : 3,
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      },
+      "sort_order" : 7
+   },
+   {
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      },
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "score" : 3,
+      "sort_order" : 8,
+      "type" : "fill",
+      "group_id" : "q08",
+      "section" : "一",
+      "locales" : {
+         "id" : {
+            "stem" : "Dalam iman mereka semua ini telah mati sebagai orang-orang yang tidak memperoleh ____ itu, tetapi yang hanya dari jauh melihatnya dan melambai-lambai kepadanya dan yang mengakui, bahwa mereka adalah ____ dan pendatang di bumi ini. Sebab mereka yang berkata demikian menyatakan, bahwa mereka dengan rindu mencari suatu tanah air. Dan kalau sekiranya dalam hal itu mereka ingat akan tanah asal, yang telah mereka tinggalkan, maka mereka cukup mempunyai kesempatan untuk pulang ke situ. Tetapi sekarang mereka merindukan ____ yaitu satu tanah air sorgawi. Sebab itu Allah tidak malu disebut Allah mereka, karena Ia telah mempersiapkan sebuah kota bagi mereka.",
+            "options" : [],
+            "answer_key" : {
+               "answers" : [
+                  "apa yang dijanjikan",
+                  "orang asing",
+                  "tanah air yang lebih baik"
+               ]
+            }
+         }
+      }
+   },
+   {
+      "sort_order" : 9,
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "score" : 4,
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      },
+      "locales" : {
+         "id" : {
+            "stem" : "Karena kita mempunyai banyak ____, bagaikan awan yang mengelilingi kita, marilah kita menanggalkan semua beban dan ____ yang begitu merintangi kita, dan berlomba dengan tekun dalam perlombaan yang diwajibkan bagi kita. Marilah kita melakukannya dengan mata yang tertuju kepada Yesus, yang ____, yang dengan mengabaikan kehinaan tekun memikul salib ganti sukacita yang disediakan bagi Dia, yang sekarang duduk di sebelah kanan takhta Allah. Ingatlah selalu akan Dia, yang tekun menanggung bantahan yang sehebat itu terhadap diri-Nya dari pihak orang-orang berdosa, supaya jangan kamu menjadi ____.",
+            "answer_key" : {
+               "answers" : [
+                  "saksi",
+                  "dosa",
+                  "memimpin kita dalam iman, dan yang membawa iman kita itu kepada kesempurnaan",
+                  "lemah dan putus asa"
+               ]
+            },
+            "options" : []
+         }
+      },
+      "section" : "一",
+      "group_id" : "q09",
+      "type" : "fill"
+   },
+   {
+      "locales" : {
+         "id" : {
+            "options" : [],
+            "answer_key" : {
+               "answers" : [
+                  "kasih karunia"
+               ]
+            },
+            "stem" : "Janganlah kamu disesatkan oleh berbagai-bagai ajaran asing. Sebab yang baik ialah, bahwa hati kamu diperkuat dengan ____ dan bukan dengan pelbagai makanan yang tidak memberi faedah kepada mereka yang menuruti aturan-aturan makanan macam itu."
+         }
+      },
+      "group_id" : "q10",
+      "section" : "一",
+      "type" : "fill",
+      "sort_order" : 10,
+      "section_label" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "score" : 1,
+      "section_labels" : {
+         "id" : "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      }
+   },
+   {
+      "sort_order" : 11,
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      },
+      "score" : 1,
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "locales" : {
+         "id" : {
+            "stem" : "Ayat Perjanjian Lama yang dikutip dalam \"Anak-Ku Engkau! Engkau telah Kuperanakkan pada hari ini\" adalah:",
+            "answer_key" : {
+               "answer_index" : 1
+            },
+            "options" : [
+               "2 Samuel 7:14",
+               "Mazmur 2:7",
+               "Mazmur 102:25",
+               "Mazmur 110:1"
+            ]
+         }
+      },
+      "type" : "single",
+      "section" : "二",
+      "group_id" : "q11"
+   },
+   {
+      "type" : "single",
+      "section" : "二",
+      "group_id" : "q12",
+      "locales" : {
+         "id" : {
+            "stem" : "Manakah dari berikut ini yang bukan identitas, tugas, atau ciri malaikat:",
+            "answer_key" : {
+               "answer_index" : 2
+            },
+            "options" : [
+               "Roh yang melayani",
+               "Untuk sementara waktu lebih tinggi dari Yesus",
+               "Melayani seluruh umat manusia",
+               "Menyampaikan firman Allah"
+            ]
+         }
+      },
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      },
+      "score" : 1,
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "sort_order" : 12
+   },
+   {
+      "locales" : {
+         "id" : {
+            "stem" : "Manakah dari berikut ini yang bukan merupakan perbandingan yang dibahas dalam kitab ini:",
+            "answer_key" : {
+               "answer_index" : 1
+            },
+            "options" : [
+               "Yesus dan malaikat-malaikat",
+               "Yesus dan Daud",
+               "Peraturan Melkisedek dan peraturan Harun",
+               "Perjanjian baru dan perjanjian lama"
+            ]
+         }
+      },
+      "group_id" : "q13",
+      "section" : "二",
+      "type" : "single",
+      "sort_order" : 13,
+      "score" : 1,
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      }
+   },
+   {
+      "sort_order" : 14,
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      },
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "score" : 1,
+      "locales" : {
+         "id" : {
+            "stem" : "Manakah dari berikut ini yang bukan merupakan masalah para penerima surat:",
+            "options" : [
+               "Kelambanan",
+               "Ketidakpercayaan",
+               "Cinta akan dunia",
+               "Penyembahan berhala"
+            ],
+            "answer_key" : {
+               "answer_index" : 3
+            }
+         }
+      },
+      "type" : "single",
+      "group_id" : "q14",
+      "section" : "二"
+   },
+   {
+      "section" : "二",
+      "group_id" : "q15",
+      "type" : "single",
+      "locales" : {
+         "id" : {
+            "stem" : "Manakah dari berikut ini yang bukan merupakan ciri Melkisedek:",
+            "options" : [
+               "Raja",
+               "Imam",
+               "Nabi",
+               "Hidup selama-lamanya"
+            ],
+            "answer_key" : {
+               "answer_index" : 2
+            }
+         }
+      },
+      "score" : 1,
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      },
+      "sort_order" : 15
+   },
+   {
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      },
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "score" : 1,
+      "sort_order" : 16,
+      "type" : "single",
+      "section" : "二",
+      "group_id" : "q16",
+      "locales" : {
+         "id" : {
+            "stem" : "Manakah dari berikut ini yang harus kita kejar untuk masuk ke dalamnya:",
+            "answer_key" : {
+               "answer_index" : 2
+            },
+            "options" : [
+               "Asas-asas pertama dari ajaran Kristus",
+               "Dasar",
+               "Kedewasaan penuh",
+               "Asas-asas pokok dari penyataan Allah"
+            ]
+         }
+      }
+   },
+   {
+      "sort_order" : 17,
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      },
+      "score" : 1,
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "locales" : {
+         "id" : {
+            "stem" : "Mengapa imam-imam menurut peraturan Harun diwariskan dari generasi ke generasi:",
+            "answer_key" : {
+               "answer_index" : 0
+            },
+            "options" : [
+               "Karena terhalang oleh kematian",
+               "Karena suku Lewi adalah anak sulung Israel",
+               "Karena tuntutan hukum Taurat",
+               "Karena berkat dan peninggian dari Allah"
+            ]
+         }
+      },
+      "type" : "single",
+      "group_id" : "q17",
+      "section" : "二"
+   },
+   {
+      "sort_order" : 18,
+      "score" : 1,
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      },
+      "locales" : {
+         "id" : {
+            "answer_key" : {
+               "answer_index" : 0
+            },
+            "options" : [
+               "Mezbah korban bakaran",
+               "Kaki dian",
+               "Mezbah pembakaran ukupan dari emas",
+               "Tabut perjanjian"
+            ],
+            "stem" : "Manakah dari berikut ini yang bukan merupakan perlengkapan di dalam Kemah Suci:"
+         }
+      },
+      "section" : "二",
+      "group_id" : "q18",
+      "type" : "single"
+   },
+   {
+      "sort_order" : 19,
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      },
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "score" : 1,
+      "locales" : {
+         "id" : {
+            "answer_key" : {
+               "answer_index" : 3
+            },
+            "options" : [
+               "Mengejar kekudusan",
+               "Menanggung didikan",
+               "Taat kepada para pemimpin",
+               "Menjauhi penyembahan berhala"
+            ],
+            "stem" : "Manakah dari berikut ini yang bukan merupakan nasihat dari kitab ini:"
+         }
+      },
+      "type" : "single",
+      "group_id" : "q19",
+      "section" : "二"
+   },
+   {
+      "sort_order" : 20,
+      "section_label" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "score" : 1,
+      "section_labels" : {
+         "id" : "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      },
+      "locales" : {
+         "id" : {
+            "options" : [
+               "Risalah teologis",
+               "Khotbah penginjilan",
+               "Sastra apokaliptik",
+               "Surat"
+            ],
+            "answer_key" : {
+               "answer_index" : 3
+            },
+            "stem" : "Apakah jenis sastra Surat Ibrani:"
+         }
+      },
+      "section" : "二",
+      "group_id" : "q20",
+      "type" : "single"
+   },
+   {
+      "locales" : {
+         "id" : {
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "options" : [],
+            "stem" : "Allah menjadikan alam semesta dengan perantaraan malaikat-malaikat."
+         }
+      },
+      "type" : "truefalse",
+      "section" : "三",
+      "group_id" : "q21",
+      "sort_order" : 21,
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "score" : 1,
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+   },
+   {
+      "section" : "三",
+      "group_id" : "q22",
+      "type" : "truefalse",
+      "locales" : {
+         "id" : {
+            "stem" : "Pokok utama yang dibahas Surat Ibrani adalah ketransendenan Yesus.",
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            }
+         }
+      },
+      "score" : 1,
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "sort_order" : 22
+   },
+   {
+      "score" : 1,
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "sort_order" : 23,
+      "group_id" : "q23",
+      "section" : "三",
+      "type" : "truefalse",
+      "locales" : {
+         "id" : {
+            "stem" : "Kata \"manusia\" dalam Mazmur 8 \"Apakah manusia, sehingga Engkau mengingatnya?\" secara langsung menunjuk kepada manusia ciptaan.",
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "options" : []
+         }
+      }
+   },
+   {
+      "sort_order" : 24,
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "score" : 1,
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "locales" : {
+         "id" : {
+            "stem" : "Orang-orang Kristen pada zaman penulis sudah dilahirkan kembali oleh Roh Kudus, berbeda dengan umat Allah dalam Perjanjian Lama, sehingga mereka sudah masuk ke dalam perhentian.",
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            }
+         }
+      },
+      "type" : "truefalse",
+      "group_id" : "q24",
+      "section" : "三"
+   },
+   {
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "score" : 1,
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "sort_order" : 25,
+      "type" : "truefalse",
+      "group_id" : "q25",
+      "section" : "三",
+      "locales" : {
+         "id" : {
+            "stem" : "\"Jika mereka murtad, tidak mungkin lagi mereka dibaharui sehingga mereka bertobat, sebab mereka menyalibkan lagi Anak Allah bagi diri mereka dan menghina-Nya di muka umum.\" (Ibrani 6:6) Ini hanyalah peringatan pastoral, dan bukan berarti bahwa keselamatan dapat hilang.",
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : true
+            }
+         }
+      }
+   },
+   {
+      "section" : "三",
+      "group_id" : "q26",
+      "type" : "truefalse",
+      "locales" : {
+         "id" : {
+            "stem" : "Yesus menjadi imam bukan melalui sumpah.",
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "options" : []
+         }
+      },
+      "score" : 1,
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "sort_order" : 26
+   },
+   {
+      "sort_order" : 27,
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "score" : 1,
+      "locales" : {
+         "id" : {
+            "stem" : "Yesus sebagai Imam Besar, sekarang masih terus mempersembahkan korban bagi kita.",
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            }
+         }
+      },
+      "type" : "truefalse",
+      "section" : "三",
+      "group_id" : "q27"
+   },
+   {
+      "locales" : {
+         "id" : {
+            "options" : [],
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "stem" : "Abraham dan tokoh-tokoh kuno lainnya adalah pahlawan-pahlawan iman, karena itu sebelum mereka mati, mereka semua telah memperoleh apa yang dijanjikan Allah."
+         }
+      },
+      "type" : "truefalse",
+      "group_id" : "q28",
+      "section" : "三",
+      "sort_order" : 28,
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "score" : 1
+   },
+   {
+      "locales" : {
+         "id" : {
+            "answer_key" : {
+               "answer_bool" : true
+            },
+            "options" : [],
+            "stem" : "Hukum Taurat hanyalah bayangan saja dari keselamatan yang akan datang, bukan hakikat dari barang-barang itu sendiri."
+         }
+      },
+      "type" : "truefalse",
+      "section" : "三",
+      "group_id" : "q29",
+      "sort_order" : 29,
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "score" : 1,
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+   },
+   {
+      "sort_order" : 30,
+      "section_label" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "score" : 1,
+      "section_labels" : {
+         "id" : "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      },
+      "locales" : {
+         "id" : {
+            "answer_key" : {
+               "answer_bool" : false
+            },
+            "options" : [],
+            "stem" : "Perjanjian Lama ditetapkan oleh Allah, karena itu tidak memiliki kekurangan."
+         }
+      },
+      "group_id" : "q30",
+      "section" : "三",
+      "type" : "truefalse"
+   },
+   {
+      "essay_kind" : "short",
+      "group_id" : "q31",
+      "section" : "四",
+      "type" : "essay",
+      "locales" : {
+         "id" : {
+            "answer_key" : {},
+            "options" : [],
+            "stem" : "Apa ciri-ciri perhentian Allah? Apakah kita hari ini sudah masuk ke dalam perhentian itu?"
+         }
+      },
+      "score" : 2,
+      "section_label" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "section_labels" : {
+         "id" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      },
+      "sort_order" : 31
+   },
+   {
+      "locales" : {
+         "id" : {
+            "answer_key" : {},
+            "options" : [],
+            "stem" : "Firman Allah hidup dan kuat — apakah yang dijelaskan oleh pernyataan ini?"
+         }
+      },
+      "type" : "essay",
+      "section" : "四",
+      "group_id" : "q32",
+      "essay_kind" : "short",
+      "sort_order" : 32,
+      "section_labels" : {
+         "id" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      },
+      "section_label" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "score" : 2
+   },
+   {
+      "sort_order" : 33,
+      "section_labels" : {
+         "id" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      },
+      "score" : 2,
+      "section_label" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "locales" : {
+         "id" : {
+            "stem" : "Yesus sebagai Imam Besar, di manakah Ia melayani?",
+            "answer_key" : {},
+            "options" : []
+         }
+      },
+      "type" : "essay",
+      "essay_kind" : "short",
+      "group_id" : "q33",
+      "section" : "四"
+   },
+   {
+      "section_label" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "score" : 2,
+      "section_labels" : {
+         "id" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      },
+      "sort_order" : 34,
+      "group_id" : "q34",
+      "section" : "四",
+      "essay_kind" : "short",
+      "type" : "essay",
+      "locales" : {
+         "id" : {
+            "answer_key" : {},
+            "options" : [],
+            "stem" : "Jelaskan secara singkat: kemah bagian pertama dan kemah bagian kedua masing-masing menunjuk kepada masa apa."
+         }
+      }
+   },
+   {
+      "sort_order" : 35,
+      "score" : 2,
+      "section_label" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "section_labels" : {
+         "id" : "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      },
+      "locales" : {
+         "id" : {
+            "answer_key" : {},
+            "options" : [],
+            "stem" : "Jelaskan secara singkat dampak/khasiat yang dihasilkan oleh pelayanan Kristus sebagai Imam Besar."
+         }
+      },
+      "essay_kind" : "short",
+      "section" : "四",
+      "group_id" : "q35",
+      "type" : "essay"
+   },
+   {
+      "type" : "essay",
+      "group_id" : "q36",
+      "section" : "五",
+      "essay_kind" : "long",
+      "locales" : {
+         "id" : {
+            "stem" : "Tuliskan: (1) nomor pasal dan ayat yang menjadi dasar pembagian struktur kitab ini. Berdasarkan itu, tuliskan (2) struktur kitab ini, dan (3) beberapa tema besarnya.",
+            "options" : [],
+            "answer_key" : {}
+         }
+      },
+      "section_labels" : {
+         "id" : "V. Soal Esai (setiap soal 10 poin, total 40 poin)"
+      },
+      "section_label" : "V. Soal Esai (setiap soal 10 poin, total 40 poin)",
+      "score" : 10,
+      "sort_order" : 36
+   },
+   {
+      "sort_order" : 37,
+      "section_label" : "V. Soal Esai (setiap soal 10 poin, total 40 poin)",
+      "score" : 10,
+      "section_labels" : {
+         "id" : "V. Soal Esai (setiap soal 10 poin, total 40 poin)"
+      },
+      "locales" : {
+         "id" : {
+            "answer_key" : {},
+            "options" : [],
+            "stem" : "Analisislah: (1) tujuan penulis menulis Surat Ibrani. Analisislah (2) bagaimana penulis berusaha mencapai tujuan tersebut, serta (3) sumbangan atau pencerahan besar dari cara penulisan surat ini bagi teologi pastoral."
+         }
+      },
+      "group_id" : "q37",
+      "section" : "五",
+      "essay_kind" : "long",
+      "type" : "essay"
+   },
+   {
+      "score" : 10,
+      "section_label" : "V. Soal Esai (setiap soal 10 poin, total 40 poin)",
+      "section_labels" : {
+         "id" : "V. Soal Esai (setiap soal 10 poin, total 40 poin)"
+      },
+      "sort_order" : 38,
+      "essay_kind" : "long",
+      "group_id" : "q38",
+      "section" : "五",
+      "type" : "essay",
+      "locales" : {
+         "id" : {
+            "answer_key" : {},
+            "options" : [],
+            "stem" : "Analisislah secara konkret: (1) Bagaimana seharusnya kita memahami \"Sebab itu marilah kita tinggalkan asas-asas pertama dari ajaran tentang Kristus dan beralih kepada perkembangannya yang penuh. Janganlah kita meletakkan lagi dasar...\" (Ibrani 6:1)? (2) Apa pencerahan dari pemahaman ini bagi pelayanan pastoral? Berdasarkan hal itu, (3) apakah keputusan Anda?"
+         }
+      }
+   },
+   {
+      "type" : "essay",
+      "section" : "五",
+      "group_id" : "q39",
+      "essay_kind" : "long",
+      "locales" : {
+         "id" : {
+            "stem" : "Melalui pembelajaran Surat Ibrani kali ini, jelaskan secara konkret bagaimana Anda sekarang memahami (1) \"iman, pengharapan, dan kasih\" orang Kristen, serta (2) hubungan antara iman-pengharapan-kasih orang Kristen dengan Injil. Berdasarkan pemahaman ini, ceritakanlah secara konkret (3) hasil/keuntungan yang Anda peroleh dari pembelajaran Surat Ibrani.",
+            "answer_key" : {},
+            "options" : []
+         }
+      },
+      "section_labels" : {
+         "id" : "V. Soal Esai (setiap soal 10 poin, total 40 poin)"
+      },
+      "section_label" : "V. Soal Esai (setiap soal 10 poin, total 40 poin)",
+      "score" : 10,
+      "sort_order" : 39
+   }
+]
