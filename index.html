@@ -469,6 +469,25 @@ function partitionApplicantsByExamLang(aps){
   (aps||[]).forEach(ap=>{const L=getApplicantExamLang(ap);(by[L]||by.zh).push(ap);});
   return by;
 }
+const PIPELINE_TRACKS=[
+  {id:'all',label:'全部'},
+  {id:'zh',label:'中文班'},
+  {id:'en',label:'英文班'},
+  {id:'id',label:'印尼语班'},
+  {id:'ai',label:'AI项目'},
+  {id:'np',label:'尼泊尔'},
+];
+function applicantPipelineTrack(ap){
+  const c=String(ap.campus_code||'').toLowerCase();
+  if(c==='np') return 'np';
+  if(c==='ai') return 'ai';
+  const lang=getApplicantExamLang(ap);
+  return ['en','id'].includes(lang)?lang:'zh';
+}
+function filterApplicantsByPipelineTrack(aps,track){
+  if(!track||track==='all') return aps||[];
+  return (aps||[]).filter(a=>applicantPipelineTrack(a)===track);
+}
 function pipelineStageCountBreakdown(aps){
   const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='id');
   const np=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='np').length;
@@ -1337,6 +1356,7 @@ const A = {
   adminDataLoading: false, // 职员登录/恢复会话：先出工作台壳，再异步拉 applicants/slots/records
   staffCacheCount: 0, // 管理端本地缓存条数（用于“秒开”提示）
   pipelineShareUrl: null, // 招生看板只读分享链接（免登录）
+  pipelineTrack: 'all', // 申请人看板筛选：all | zh | en | id | ai | np
 
   // Applicant exam state
   examStarted: false,
@@ -5494,9 +5514,17 @@ function renderPipelineShareCard(){
 function wirePipelineShareUi(){
   if(A.adminTab!=='pipeline'||(A.role!=='admin'&&A.role!=='teacher')) return;
   const inp=document.getElementById('pipeline-share-url');
-  if(!inp) return;
+  const trackSel=document.getElementById('pipeline-track-filter');
+  if(!inp&&!trackSel) return;
   const url=ensurePipelineShareUrl();
-  inp.value=url;
+  if(inp) inp.value=url;
+  if(trackSel&&!trackSel.dataset.wired){
+    trackSel.dataset.wired='1';
+    trackSel.addEventListener('change',e=>{
+      A.pipelineTrack=e.target.value||'all';
+      render();
+    });
+  }
   const wireBtn=(id, fn)=>{
     const el=document.getElementById(id);
     if(!el || el.dataset.wired) return;
@@ -5520,6 +5548,11 @@ function wirePipelineShareUi(){
 function renderPipeline(){
   const isAd=A.role==='admin';
   const canAddAp=isAd||(A.role==='teacher'&&!isVisaOpsStaff());
+  const track=A.pipelineTrack||'all';
+  const filtered=filterApplicantsByPipelineTrack(A.allApplicants,track);
+  const trackSelHtml=`<select id="pipeline-track-filter" class="sel" style="min-width:140px;margin:0">${PIPELINE_TRACKS.map(t=>
+    `<option value="${t.id}"${t.id===track?' selected':''}>${esc(t.label)}</option>`
+  ).join('')}</select><span class="t12 c-gray5">${track==='all'?'共 '+filtered.length+' 人':'本类 '+filtered.length+' 人'}</span>`;
   const cardHtml=(ap)=>`<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
             ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
             ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
@@ -5531,12 +5564,13 @@ function renderPipeline(){
   const emptyHtml=`<div class="pipeline-col-empty">暂无</div>`;
   return `<div>
     ${renderPipelineShareCard()}
-    ${canAddAp?`<div class="row g2 pipeline-toolbar">
-      <button class="btn btn-primary" data-action="show-add-ap-modal" style="min-height:44px">➕ 手动添加申请人</button>
-    </div>`:''}
+    <div class="row g2 pipeline-toolbar wrap" style="align-items:center;margin-bottom:12px">
+      ${canAddAp?`<button class="btn btn-primary" data-action="show-add-ap-modal" style="min-height:44px">➕ 手动添加申请人</button>`:''}
+      ${trackSelHtml}
+    </div>
     <div class="kanban">
     ${STAGES.map(sg=>{
-      const aps=A.allApplicants.filter(a=>a.stage===sg.id);
+      const aps=filtered.filter(a=>a.stage===sg.id);
       const colClass='kanban-col kanban-col-interview';
       const interviewSort=(a,b)=>{
         const d=applicantInterviewSlotTs(a)-applicantInterviewSlotTs(b);
@@ -7388,21 +7422,10 @@ const PIPELINE_REPORT_STAGES=[
   {id:'apply',label:'报名'},{id:'exam',label:'笔试'},{id:'interview',label:'面试'},
   {id:'result',label:'预录取'},{id:'materials',label:'资料'},{id:'visa',label:'签证'},{id:'complete',label:'完成'},
 ];
-const PR_TRACKS=[
-  {id:'all',label:'全部'},{id:'zh',label:'中文班'},{id:'en',label:'英文班'},
-  {id:'id',label:'印尼语班'},{id:'ai',label:'AI项目'},{id:'np',label:'尼泊尔'},
-];
 let prSnapshot=null;
 let prTrack='all';
-function prApplicantTrack(ap){
-  const c=String(ap.campus_code||'').toLowerCase();
-  if(c==='np') return 'np';
-  if(c==='ai') return 'ai';
-  return ['en','id'].includes(ap.exam_lang)?ap.exam_lang:'zh';
-}
 function prFilterApps(apps){
-  if(prTrack==='all') return apps;
-  return apps.filter(a=>prApplicantTrack(a)===prTrack);
+  return filterApplicantsByPipelineTrack(apps,prTrack);
 }
 function prComputeStats(list){
   return [
@@ -7441,7 +7464,7 @@ function prRenderShell(){
   document.getElementById('pr-root').innerHTML=`
     ${prRenderStats(apps)}
     <div class="pr-toolbar">
-      <select class="pr-sel" id="pr-track-filter">${PR_TRACKS.map(t=>
+      <select class="pr-sel" id="pr-track-filter">${PIPELINE_TRACKS.map(t=>
         `<option value="${t.id}"${t.id===prTrack?' selected':''}>${esc(t.label)}</option>`
       ).join('')}</select>
       <button class="btn btn-outline btn-sm" type="button" id="pr-refresh">刷新</button>
