@@ -281,6 +281,16 @@ export function renderExamWithSections(questions, answers, lang) {
   return html;
 }
 
+/** 简答/论述答题框：按分值与题型给足书写空间（如 25 分、300–500 字卷） */
+export function essayTextareaSpec(q) {
+  const score = Number(q?.score) || 0;
+  const kind = q?.essay_kind || 'short';
+  if (kind === 'long') return { rows: 18, sizeCls: 'essay-lg' };
+  if (score >= 20) return { rows: 16, sizeCls: 'essay-xl' };
+  if (score >= 10) return { rows: 12, sizeCls: 'essay-md' };
+  return { rows: 6, sizeCls: 'essay-sm' };
+}
+
 export function renderQuestionHtml(q, answers, lang) {
   const gid = q.group_id;
   const cur = answers[gid];
@@ -307,8 +317,8 @@ export function renderQuestionHtml(q, answers, lang) {
       `<input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" placeholder="${i + 1}">`
     ).join('');
   } else if (q.type === 'essay') {
-    const rows = q.essay_kind === 'long' ? 12 : 5;
-    body = `<textarea class="textarea essay-${q.essay_kind || 'short'}" rows="${rows}" data-gid="${esc(gid)}" data-kind="essay" placeholder="">${esc(cur || '')}</textarea>`;
+    const { rows, sizeCls } = essayTextareaSpec(q);
+    body = `<textarea class="textarea essay-area ${sizeCls}" rows="${rows}" data-gid="${esc(gid)}" data-kind="essay" placeholder="">${esc(cur || '')}</textarea>`;
   } else if (q.type === 'dictation') {
     body = `<textarea class="textarea" rows="5" data-gid="${esc(gid)}" data-kind="dictation" placeholder="">${esc(cur || '')}</textarea>`;
   } else {
