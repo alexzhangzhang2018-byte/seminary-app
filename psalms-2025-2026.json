@@ -1,0 +1,784 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "耶和华的律法",
+            "有福"
+          ]
+        },
+        "stem": "不从恶人的计谋，不站罪人的道路，不坐亵慢人的座位，惟喜爱____，昼夜思想，这人便为____！他要像一棵树栽在溪水旁，按时候结果子，叶子也不枯干。凡他所做的尽都顺利。(诗篇 1:1-3)"
+      },
+      "en": {
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "law of the LORD",
+            "blessed"
+          ]
+        },
+        "stem": "Psalm 1:1-3 Blessed is the man who walks not in the counsel of the wicked, nor stands in the way of sinners, nor sits in the seat of scoffers; but his delight is in the ____, and on his law he meditates day and night. This person is ____! He is like a tree planted by streams of water that yields its fruit in its season, and its leaf does not wither."
+      },
+      "id": {
+        "stem": "____ orang yang tidak berjalan menurut nasihat orang fasik, yang tidak berdiri di jalan orang berdosa, dan yang tidak duduk dalam kumpulan pencemooh, tetapi yang kesukaannya ialah ____, dan yang merenungkan Taurat itu siang dan malam. Ia seperti pohon, yang ditanam di tepi aliran air, yang menghasilkan buahnya pada musimnya, dan yang tidak layu daunnya; apa saja yang diperbuatnya berhasil.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "Berbahagialah",
+            "Taurat Tuhan"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "那时，他要在怒中责备他们，在烈怒中惊吓他们，说：我已经立我的____在锡安－我的圣山上了。____说：我要传圣旨。耶和华曾对我说：你是我的____，我今日生你。(诗篇 2:5-7)",
+        "answer_key": {
+          "answers": [
+            "君",
+            "受膏者",
+            "儿子"
+          ]
+        },
+        "options": []
+      },
+      "en": {
+        "answer_key": {
+          "answers": [
+            "King",
+            "Son"
+          ]
+        },
+        "stem": "Psalm 2:5-7 Then he will speak to them in his wrath, and terrify them in his fury, saying, \"As for me, I have set my ____ on Zion, my holy hill.\" I will tell of the decree: The LORD said to me, \"You are my ____; today I have begotten you.\"",
+        "options": []
+      },
+      "id": {
+        "stem": "Maka berkatalah Ia kepada mereka dalam murka-Nya dan mengejutkan mereka dalam kehangatan amarah-Nya: \"Akulah yang telah melantik ____-Ku di Sion, gunung-Ku yang kudus!\" Aku mau menceritakan tentang ketetapan Tuhan; Ia berkata kepadaku: \"____-Ku engkau! Engkau telah Kuperanakkan pada hari ini.\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "raja",
+            "Anak"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "当以嘴____子，恐怕他发怒，你们便在道中灭亡，因为他的怒气快要发作。凡投靠他的，都是____的。(诗篇 2:12)",
+        "answer_key": {
+          "answers": [
+            "亲",
+            "有福"
+          ]
+        },
+        "options": []
+      },
+      "en": {
+        "stem": "Psalm 2:12 ____ the Son, lest he be angry, and you perish in the way, for his wrath is quickly kindled. ____ are all who take refuge in him.",
+        "answer_key": {
+          "answers": [
+            "Kiss",
+            "Blessed"
+          ]
+        },
+        "options": []
+      },
+      "id": {
+        "stem": "____ kaki-Nya dengan gemetar, supaya Ia jangan murka dan kamu binasa di jalan, sebab mudah sekali murka-Nya menyala. ____ semua orang yang berlindung pada-Nya!",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "Ciumlah",
+            "Berbahagialah"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "牧者"
+          ]
+        },
+        "stem": "耶和华是我的____，我必不至缺乏。他使我躺卧在青草地上，领我在可安歇的水边。他使我的灵魂苏醒，为自己的名引导我走义路。(诗篇 23:1-3)"
+      },
+      "en": {
+        "answer_key": {
+          "answers": [
+            "shepherd"
+          ]
+        },
+        "stem": "Psalm 23:1-3 The LORD is my ____; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul. He leads me in paths of righteousness for his name's sake.",
+        "options": []
+      },
+      "id": {
+        "stem": "Mazmur Daud. Tuhan adalah ____, takkan kekurangan aku. Ia membaringkan aku di padang yang berumput hijau, Ia membimbing aku ke air yang tenang; Ia menyegarkan jiwaku. Ia menuntun aku di jalan yang benar oleh karena nama-Nya.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "gembalaku"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q05",
+    "sort_order": 5,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "answer_key": {
+          "answers": [
+            "筵席",
+            "福杯"
+          ]
+        },
+        "options": [],
+        "stem": "在我敌人面前，你为我摆设____；你用油膏了我的头，使我的____满溢。(诗篇 23:5)"
+      },
+      "en": {
+        "answer_key": {
+          "answers": [
+            "table",
+            "cup"
+          ]
+        },
+        "stem": "Psalm 23:5 You prepare a ____ before me in the presence of my enemies; you anoint my head with oil; my ____ overflows.",
+        "options": []
+      },
+      "id": {
+        "stem": "Engkau menyediakan ____ bagiku, di hadapan lawanku; Engkau mengurapi kepalaku dengan minyak; ____ penuh melimpah.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "hidangan",
+            "pialaku"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q06",
+    "sort_order": 6,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "神啊，____切慕你，如鹿切慕溪水。(诗篇 42:1)",
+        "answer_key": {
+          "answers": [
+            "我的心"
+          ]
+        },
+        "options": []
+      },
+      "en": {
+        "options": [],
+        "stem": "Psalm 42:1 As a deer pants for flowing streams, so pants ____ for you, O God.",
+        "answer_key": {
+          "answers": [
+            "my soul"
+          ]
+        }
+      },
+      "id": {
+        "stem": "Seperti rusa yang merindukan sungai yang berair, demikianlah ____ merindukan Engkau, ya Allah.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "jiwaku"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q07",
+    "sort_order": 7,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "神啊，求你按你的____怜恤我，按你丰盛的慈悲涂抹我的过犯。求你将我的____洗除净尽，并洁除我的罪。因为我知道我的过犯，我的罪常在我面前。我向你犯罪，惟独得罪了你，在你眼前行了这恶，以致你责备我的时候显为____；判断我的时候显为清正。(诗篇 51:1-4)",
+        "answer_key": {
+          "answers": [
+            "慈爱",
+            "罪孽",
+            "公义"
+          ]
+        },
+        "options": []
+      },
+      "en": {
+        "stem": "Psalm 51:1-4 Have mercy on me, O God, according to your ____; according to your abundant mercy blot out my transgressions. Wash me thoroughly from ____, and cleanse me from my sin! For I know my transgressions, and my sin is ever before me. Against you, you only, have I sinned and done what is evil in your sight, so that you may be ____ in your words and blameless in your judgment.",
+        "answer_key": {
+          "answers": [
+            "steadfast love",
+            "my iniquity",
+            "justified"
+          ]
+        },
+        "options": []
+      },
+      "id": {
+        "stem": "Kasihanilah aku, ya Allah, menurut ____-Mu, hapuskanlah pelanggaranku menurut rahmat-Mu yang besar! Bersihkanlah aku seluruhnya dari ____, dan tahirkanlah aku dari dosaku! Sebab aku sendiri sadar akan pelanggaranku, aku senantiasa bergumul dengan dosaku. Terhadap Engkau, terhadap Engkau sajalah aku telah berdosa dan melakukan apa yang Kauanggap jahat, supaya Engkau ____ dalam putusan-Mu, bersih dalam penghukuman-Mu.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "kasih setia",
+            "kesalahanku",
+            "ternyata adil"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q08",
+    "sort_order": 8,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "我与我所拣选的人立了约，向我的仆人____起了誓：我要建立你的后裔，直到永远；要建立你的宝座，直到万代。（细拉）(诗篇 89:3-4)",
+        "answer_key": {
+          "answers": [
+            "大卫"
+          ]
+        },
+        "options": []
+      },
+      "en": {
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "David"
+          ]
+        },
+        "stem": "Psalm 89:3-4 You have said, \"I have made a covenant with my chosen one; I have sworn to ____ my servant: I will establish your offspring forever, and build your throne for all generations.\" Selah"
+      },
+      "id": {
+        "stem": "Engkau telah berkata: \"Telah Kuikat perjanjian dengan orang pilihan-Ku, Aku telah bersumpah kepada ____, hamba-Ku: Untuk selama-lamanya Aku hendak menegakkan anak cucumu, dan membangun takhtamu turun-temurun.\" Sela",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "Daud"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q09",
+    "sort_order": 9,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "我观看你指头所造的天，并你所陈设的____，便说：人算什么，你竟顾念他！世人算什么，你竟眷顾他！(诗篇 8:3-4)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "月亮星宿"
+          ]
+        }
+      },
+      "en": {
+        "options": [],
+        "stem": "Psalm 8:3-4 When I look at your heavens, the work of your fingers, ____, which you have set in place, what is man that you are mindful of him, and the son of man that you care for him?",
+        "answer_key": {
+          "answers": [
+            "the moon and the stars"
+          ]
+        }
+      },
+      "id": {
+        "stem": "Jika aku melihat langit-Mu, buatan jari-Mu, ____ yang Kautempatkan: apakah manusia, sehingga Engkau mengingatnya? Apakah anak manusia, sehingga Engkau mengindahkannya?",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "bulan dan bintang-bintang"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q10",
+    "sort_order": 10,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "answer_key": {
+          "answers": [
+            "产业"
+          ]
+        },
+        "options": [],
+        "stem": "耶和华是我的____，是我杯中的份；我所得的，你为我持守。(诗篇 16:5)"
+      },
+      "en": {
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "portion"
+          ]
+        },
+        "stem": "Psalm 16:5 The LORD is my chosen ____ and my cup; you hold my lot."
+      },
+      "id": {
+        "stem": "Ya Tuhan, Engkaulah ____ dan pialaku, Engkau sendirilah yang meneguhkan bagian yang diundikan kepadaku.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "bagian warisanku"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q11",
+    "sort_order": 11,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "活人之地"
+          ]
+        },
+        "stem": "主啊，你救我的命免了死亡，救我的眼免了流泪，救我的脚免了跌倒。我要在耶和华面前行____。(诗篇 116:8-9)"
+      },
+      "en": {
+        "stem": "Psalm 116:8-9 For you have delivered my soul from death, my eyes from tears, my feet from stumbling; I will walk before the LORD in ____.",
+        "answer_key": {
+          "answers": [
+            "the land of the living"
+          ]
+        },
+        "options": []
+      },
+      "id": {
+        "stem": "Ya, Engkau telah meluputkan aku dari pada maut, dan mataku dari pada air mata, dan kakiku dari pada tersandung. Aku boleh berjalan di hadapan Tuhan, di ____.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "negeri orang-orang hidup"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q12",
+    "sort_order": 12,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "耶和华的声音震破香柏树；耶和华震碎黎巴嫩的____。他也使之跳跃如牛犊，使黎巴嫩和西连跳跃如野牛犊。(诗篇 29:5-6)",
+        "answer_key": {
+          "answers": [
+            "香柏树"
+          ]
+        },
+        "options": []
+      },
+      "en": {
+        "stem": "Psalm 29:5-6 The voice of the LORD breaks the cedars; the LORD breaks the ____ of Lebanon. He makes Lebanon to skip like a calf, and Sirion like a young wild ox.",
+        "answer_key": {
+          "answers": [
+            "cedars"
+          ]
+        },
+        "options": []
+      },
+      "id": {
+        "stem": "Suara Tuhan mematahkan pohon aras, bahkan, Tuhan menumbangkan ____. Ia membuat gunung Libanon melompat-lompat seperti anak lembu, dan gunung Siryon seperti anak banteng.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "pohon aras Libanon"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q13",
+    "sort_order": 13,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "section_label": "一、经文填空 （每空1分，共20分）",
+    "section_labels": {
+      "zh": "一、经文填空 （每空1分，共20分）",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
+    },
+    "locales": {
+      "zh": {
+        "answer_key": {
+          "answers": [
+            "欢呼收割"
+          ]
+        },
+        "options": [],
+        "stem": "流泪撒种的，必____！(诗篇 126:5)"
+      },
+      "en": {
+        "options": [],
+        "stem": "Psalm 126:5 Those who sow in tears shall ____!",
+        "answer_key": {
+          "answers": [
+            "reap with shouts of joy"
+          ]
+        }
+      },
+      "id": {
+        "stem": "Orang-orang yang menabur dengan mencucurkan air mata, akan ____.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "menuai dengan bersorak-sorai"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "group_id": "q14",
+    "sort_order": 14,
+    "type": "essay",
+    "section": "二",
+    "score": 5,
+    "section_label": "二、诗篇小标题（每题5分，共20分）",
+    "section_labels": {
+      "zh": "二、诗篇小标题（每题5分，共20分）",
+      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)",
+      "id": "II. Judul/Catatan Kepala Mazmur (setiap soal 5 poin, total 20 poin)"
+    },
+    "essay_kind": "short",
+    "locales": {
+      "zh": {
+        "stem": "请简述以下诗篇小标题所包含的元素并解释。\n\n诗篇51 大卫与拔示巴同室以后，先知拿单来见他，他作这诗，交与伶长。",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "answer_key": {},
+        "stem": "Briefly identify the elements contained in each of the following Psalm superscriptions and explain them.\n\nPsalm 51 — To the choirmaster. A Psalm of David, when Nathan the prophet went to him, after he had gone in to Bathsheba.",
+        "options": []
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat unsur-unsur yang terkandung dalam judul/catatan kepala Mazmur berikut ini, dan berikan penjelasannya.\n\nMazmur 51 — Untuk pemimpin biduan. Mazmur dari Daud, ketika nabi Natan datang kepadanya setelah ia menghampiri Batsyeba.",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q15",
+    "sort_order": 15,
+    "type": "essay",
+    "section": "二",
+    "score": 5,
+    "section_label": "二、诗篇小标题（每题5分，共20分）",
+    "section_labels": {
+      "zh": "二、诗篇小标题（每题5分，共20分）",
+      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)",
+      "id": "II. Judul/Catatan Kepala Mazmur (setiap soal 5 poin, total 20 poin)"
+    },
+    "essay_kind": "short",
+    "locales": {
+      "zh": {
+        "answer_key": {},
+        "options": [],
+        "stem": "请简述以下诗篇小标题所包含的元素并解释。\n\n诗篇22 交与伶长。调用朝鹿。大卫的诗。"
+      },
+      "en": {
+        "options": [],
+        "stem": "Briefly identify the elements contained in each of the following Psalm superscriptions and explain them.\n\nPsalm 22 — To the choirmaster: according to The Doe of the Dawn. A Psalm of David.",
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat unsur-unsur yang terkandung dalam judul/catatan kepala Mazmur berikut ini, dan berikan penjelasannya.\n\nMazmur 22 — Untuk pemimpin biduan. Menurut lagu: \"Rusa di kala fajar.\" Mazmur Daud.",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q16",
+    "sort_order": 16,
+    "type": "essay",
+    "section": "二",
+    "score": 5,
+    "section_label": "二、诗篇小标题（每题5分，共20分）",
+    "section_labels": {
+      "zh": "二、诗篇小标题（每题5分，共20分）",
+      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)",
+      "id": "II. Judul/Catatan Kepala Mazmur (setiap soal 5 poin, total 20 poin)"
+    },
+    "essay_kind": "short",
+    "locales": {
+      "zh": {
+        "answer_key": {},
+        "options": [],
+        "stem": "请简述以下诗篇小标题所包含的元素并解释。\n\n诗篇90 神人摩西的祷告。"
+      },
+      "en": {
+        "answer_key": {},
+        "stem": "Briefly identify the elements contained in each of the following Psalm superscriptions and explain them.\n\nPsalm 90 — A Prayer of Moses, the man of God.",
+        "options": []
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat unsur-unsur yang terkandung dalam judul/catatan kepala Mazmur berikut ini, dan berikan penjelasannya.\n\nMazmur 90 — Doa Musa, abdi Allah.",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q17",
+    "sort_order": 17,
+    "type": "essay",
+    "section": "二",
+    "score": 5,
+    "section_label": "二、诗篇小标题（每题5分，共20分）",
+    "section_labels": {
+      "zh": "二、诗篇小标题（每题5分，共20分）",
+      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)",
+      "id": "II. Judul/Catatan Kepala Mazmur (setiap soal 5 poin, total 20 poin)"
+    },
+    "essay_kind": "short",
+    "locales": {
+      "zh": {
+        "answer_key": {},
+        "options": [],
+        "stem": "请简述以下诗篇小标题所包含的元素并解释。\n\n诗篇134 上行之诗"
+      },
+      "en": {
+        "options": [],
+        "stem": "Briefly identify the elements contained in each of the following Psalm superscriptions and explain them.\n\nPsalm 134 — A Song of Ascents.",
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat unsur-unsur yang terkandung dalam judul/catatan kepala Mazmur berikut ini, dan berikan penjelasannya.\n\nMazmur 134 — Nyanyian ziarah.",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q18",
+    "sort_order": 18,
+    "type": "essay",
+    "section": "三",
+    "score": 20,
+    "section_label": "三、诗篇结构（20分）",
+    "section_labels": {
+      "zh": "三、诗篇结构（20分）",
+      "en": "III. The Structure of the Psalter (20 points)",
+      "id": "III. Struktur Kitab Mazmur (20 poin)"
+    },
+    "essay_kind": "long",
+    "locales": {
+      "zh": {
+        "stem": "请简述诗篇的编辑结构和内容。（章节分卷正确10分，分卷内容和主线正确10分）",
+        "answer_key": {},
+        "options": []
+      },
+      "en": {
+        "answer_key": {},
+        "stem": "III. The Structure of the Psalter (20 points)\nBriefly describe the editorial structure and content of the book of Psalms. (Correct division into books with chapter ranges: 10 points; correct content and main theological thread of each book: 10 points)",
+        "options": []
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat struktur penyusunan dan isi Kitab Mazmur. (Pembagian jilid dengan rentang pasal yang tepat: 10 poin; isi setiap jilid dan benang merah teologisnya yang tepat: 10 poin)",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q19",
+    "sort_order": 19,
+    "type": "essay",
+    "section": "四",
+    "score": 20,
+    "section_label": "四、简答题（40分）",
+    "section_labels": {
+      "zh": "四、简答题（40分）",
+      "en": "IV. Short Answer Questions (40 points)",
+      "id": "IV. Soal Jawaban Singkat (40 poin)"
+    },
+    "essay_kind": "long",
+    "locales": {
+      "zh": {
+        "options": [],
+        "answer_key": {},
+        "stem": "请分析诗篇29的内容并解释和新约圣经的关联。"
+      },
+      "en": {
+        "answer_key": {},
+        "stem": "Analyze the content of Psalm 29 and explain its connection to the New Testament.",
+        "options": []
+      },
+      "id": {
+        "stem": "Analisislah isi Mazmur 29 dan jelaskan kaitannya dengan Perjanjian Baru. (20 poin)",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q20",
+    "sort_order": 20,
+    "type": "essay",
+    "section": "四",
+    "score": 20,
+    "section_label": "四、简答题（40分）",
+    "section_labels": {
+      "zh": "四、简答题（40分）",
+      "en": "IV. Short Answer Questions (40 points)",
+      "id": "IV. Soal Jawaban Singkat (40 poin)"
+    },
+    "essay_kind": "long",
+    "locales": {
+      "zh": {
+        "stem": "请说明诗篇第五卷的结构构成和内容。",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "Describe the structural composition and content of Book V of the Psalter.",
+        "answer_key": {},
+        "options": []
+      },
+      "id": {
+        "stem": "Jelaskan struktur dan isi dari Jilid Kelima Kitab Mazmur. (20 poin)",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  }
+]
