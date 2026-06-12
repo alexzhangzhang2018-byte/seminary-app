@@ -93,7 +93,7 @@ a{color:#4f46e5}
 import {
   createSb, SESSION_KEY, LANG_KEY, t, esc, fmtTime, fmtTimer,
   gradeLabel, trackLabel, classTrackOptions, examLangForTrack,
-  studentPaperTitle, examContentLang,
+  resolvePaperDisplayTitle, examContentLang,
   renderExamWithSections, collectAnswers, installProctor,
 } from './shared.js';
 
@@ -383,7 +383,15 @@ function renderCheckin() {
 function renderSchedule() {
   const L = S.uiLang;
   const ci = S.checkIn;
+  const examL = examLangForTrack(ci?.class_track);
   const rows = (S.schedule || []).map((sub) => {
+    const subTitle = resolvePaperDisplayTitle({
+      paper_title: sub.paper_display_title || sub.paper_title,
+      title_locales: sub.title_locales,
+      subject_name: sub.subject_name,
+      course_code: sub.course_code,
+      exam_lang: examL,
+    }, examL);
     const ws = sub.window_status;
     const tagCls = ws === 'open' ? 'tag-open' : ws === 'ended' ? 'tag-end' : 'tag-up';
     const tagTxt = t(L, `window_${ws}`);
@@ -400,7 +408,7 @@ function renderSchedule() {
     }
     return `<div class="sub-row">
       <div>
-        <div style="font-weight:700">${esc(sub.subject_name)}</div>
+        <div style="font-weight:700">${esc(subTitle)}</div>
         <div style="font-size:12px;color:#6b7280;margin-top:4px">${fmtTime(sub.start_at, L)} – ${fmtTime(sub.end_at, L)} · ${esc(st)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -418,10 +426,18 @@ function renderSchedule() {
 function renderCover() {
   const L = S.uiLang;
   const sub = S.subject;
+  const examL = examLangForTrack(S.checkIn?.class_track);
+  const subTitle = resolvePaperDisplayTitle({
+    paper_title: sub.paper_display_title || sub.paper_title,
+    title_locales: sub.title_locales,
+    subject_name: sub.subject_name,
+    course_code: sub.course_code,
+    exam_lang: examL,
+  }, examL);
   return `<div class="card">
     <h2>${esc(t(L, 'cover_title'))}</h2>
     <div class="cover-grid">
-      <div class="cover-line"><strong>${esc(t(L, 'subject'))}</strong><span>${esc(sub.subject_name)}</span></div>
+      <div class="cover-line"><strong>${esc(t(L, 'subject'))}</strong><span>${esc(subTitle)}</span></div>
       <div class="cover-line"><strong>${esc(t(L, 'grade'))}</strong><span>${esc(gradeLabel(S.checkIn?.grade, L))}</span></div>
       <div class="cover-line"><strong>${esc(t(L, 'class_track'))}</strong><span>${esc(trackLabel(S.checkIn?.class_track, L))}</span></div>
       <div class="cover-line"><strong>${esc(t(L, 'cover_name'))}</strong>
@@ -437,7 +453,13 @@ function renderExam() {
   const examL = examContentLang(S.checkIn, S.paper);
   const qs = S.paper?.questions || [];
   const html = renderExamWithSections(qs, S.answers, examL);
-  const paperName = studentPaperTitle(S.paper?.paper_title || S.subject?.subject_name || '', examL);
+  const paperName = resolvePaperDisplayTitle({
+    paper_title: S.paper?.paper_title,
+    title_locales: S.paper?.title_locales,
+    subject_name: S.subject?.subject_name,
+    course_code: S.paper?.course_code || S.subject?.course_code,
+    exam_lang: examL,
+  }, examL);
   return `<div class="timer-bar">
     <span>${esc(t(uiL, 'timer'))}</span>
     <span class="t" id="timer-d">${fmtTimer(S.timerSec)}</span>

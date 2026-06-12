@@ -167,19 +167,57 @@ export function gradeLabel(g, lang) {
   return t(lang, `grade${g}`);
 }
 
-const PAPER_TITLE_FALLBACK = {
-  诗篇: { en: 'Psalm', id: 'Mazmur' },
-  希伯来书: { en: 'Hebrews', id: 'Ibrani' },
-  Psalm: { zh: '诗篇', id: 'Mazmur' },
-  Hebrews: { zh: '希伯来书', id: 'Ibrani' },
+/** 课程卷名三语（与答卷语言 exam_lang 一致，非界面语言切换） */
+export const COURSE_TITLE_LOCALES = {
+  希伯来书: { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
+  诗篇: { zh: '诗篇', en: 'Psalms', id: 'Mazmur' },
+  启示录: { zh: '启示录', en: 'Revelation', id: 'Wahyu' },
+  撒母耳记: { zh: '撒母耳记', en: 'Samuel', id: 'Samuel' },
+  HEB: { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
+  PSA: { zh: '诗篇', en: 'Psalms', id: 'Mazmur' },
+  REV: { zh: '启示录', en: 'Revelation', id: 'Wahyu' },
+  SAM: { zh: '撒母耳记', en: 'Samuel', id: 'Samuel' },
 };
 
-/** 学生端卷名：按答卷语言；去掉学年后缀 */
+function normPaperLang(lang) {
+  return ['zh', 'en', 'id'].includes(lang) ? lang : 'zh';
+}
+
+function stripYearSuffix(title) {
+  return String(title || '').replace(/\s+\d{4}-\d{4}\s*$/, '').trim();
+}
+
+/** 由课程名 / 课程代码推断 title_locales */
+export function inferTitleLocales(title, courseCode) {
+  const base = stripYearSuffix(title);
+  const code = String(courseCode || '').trim().toUpperCase();
+  if (COURSE_TITLE_LOCALES[code]) return { ...COURSE_TITLE_LOCALES[code] };
+  if (COURSE_TITLE_LOCALES[base]) return { ...COURSE_TITLE_LOCALES[base] };
+  for (const locs of Object.values(COURSE_TITLE_LOCALES)) {
+    if (Object.values(locs).some((v) => v === base)) return { ...locs };
+  }
+  return { zh: base };
+}
+
+/**
+ * 学生端卷名：跟随答卷语言（英文班→英文卷名，印尼语班→印尼语卷名）
+ * meta: { paper_title?, title?, subject_name?, title_locales?, course_code?, exam_lang? }
+ */
+export function resolvePaperDisplayTitle(meta, lang = 'zh') {
+  const L = normPaperLang(lang);
+  const m = typeof meta === 'string' ? { title: meta } : (meta || {});
+  const loc = m.title_locales && typeof m.title_locales === 'object' ? m.title_locales : null;
+  if (loc?.[L]) return loc[L];
+  if (m.paper_title && m.exam_lang === L) return stripYearSuffix(m.paper_title);
+  const raw = stripYearSuffix(m.paper_title || m.title || m.subject_name || '');
+  if (!raw) return '';
+  const inferred = inferTitleLocales(raw, m.course_code);
+  return inferred[L] || inferred.zh || raw;
+}
+
+/** @deprecated 使用 resolvePaperDisplayTitle */
 export function studentPaperTitle(title, lang = 'zh') {
-  if (!title) return '';
-  const base = String(title).replace(/\s+\d{4}-\d{4}\s*$/, '').trim();
-  if (lang === 'zh') return PAPER_TITLE_FALLBACK[base]?.zh || base;
-  return PAPER_TITLE_FALLBACK[base]?.[lang] || base;
+  return resolvePaperDisplayTitle({ title }, lang);
 }
 
 export function examContentLang(checkIn, paper) {
@@ -188,7 +226,7 @@ export function examContentLang(checkIn, paper) {
 
 /** 教师端卷名：科目 + 年级（如「希伯来书-一年级」） */
 export function teacherPaperTitle(title, grade, lang = 'zh') {
-  const base = studentPaperTitle(title);
+  const base = resolvePaperDisplayTitle({ title }, lang);
   if (!grade) return base;
   return `${base}-${gradeLabel(grade, lang)}`;
 }
