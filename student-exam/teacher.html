@@ -113,6 +113,7 @@ function dayErrorText(code) {
   const map = {
     forbidden: '无权限',
     day_not_found: '考试日不存在',
+    day_not_closed: '仅可删除已结束的考试日（请先在「考试管理」一键终止）',
     date_exists: '该日期已有考试日',
   };
   return map[code] || code;
@@ -585,13 +586,15 @@ function renderAdmin() {
       <h2>考试管理</h2>
       <p class="muted" style="margin-bottom:12px;line-height:1.65;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
         <strong>一键终止考试</strong>：立即关闭所选考试日，并强制交卷所有进行中的答卷。<br>
-        <strong>清空考生记录</strong>：删除该日全部签到与答卷，便于重新测试。<span style="color:#b91c1c">此操作不可恢复，请谨慎使用。</span>
+        <strong>删除考试日</strong>：仅适用于状态为 <code>closed</code>（已结束）的考试日；将永久删除该日全部签到、答卷与成绩，并从成绩列表下拉中移除。<br>
+        <strong>清除测试账号</strong>：仅删除测试用签到与答卷（姓名 <strong>张</strong>、手机尾号 <strong>5668</strong>），不影响其他考生。
       </p>
       <label class="muted">选择考试日</label>
       <select class="sel" id="admin-day">${dayOpts || '<option value="">— 暂无考试日 —</option>'}</select>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
         <button class="btn btn-danger" type="button" id="btn-end-day">一键终止考试</button>
-        <button class="btn btn-o" type="button" id="btn-clear-students" style="border-color:#fca5a5;color:#dc2626">清空考生记录</button>
+        <button class="btn btn-o" type="button" id="btn-delete-day" style="border-color:#fca5a5;color:#dc2626">删除已结束的考试日</button>
+        <button class="btn btn-o" type="button" id="btn-clear-test-student" style="border-color:#fca5a5;color:#dc2626">清除测试账号（张 / 5668）</button>
       </div>
       <p class="muted" id="admin-status" style="margin-top:12px"></p>
     </div>`;
@@ -613,20 +616,60 @@ function renderAdmin() {
     }
   };
 
-  document.getElementById('btn-clear-students').onclick = async () => {
-    const id = document.getElementById('admin-day').value;
+  document.getElementById('btn-delete-day').onclick = async () => {
+    const sel = document.getElementById('admin-day');
+    const id = sel.value;
     if (!id) { toast('请选择考试日'); return; }
-    if (!confirm('确定清空该考试日全部考生签到与答卷？此操作不可恢复。')) return;
-    const res = await sb.rpc('staff_student_exam_clear_day_students', { p_exam_day_id: id });
+    const day = S.days.find((d) => d.id === id);
+    const label = day ? `${day.title}（${day.exam_date}）` : '该考试日';
+    if (day?.status !== 'closed') {
+      toast('只能删除已结束的考试日；请先点「一键终止考试」');
+      return;
+    }
+    if (!confirm(`确定永久删除「${label}」？\n\n将删除该日全部签到、答卷与成绩，且无法恢复。`)) return;
+    const res = await sb.rpc('staff_student_exam_delete_day', { p_exam_day_id: id });
     const st = document.getElementById('admin-status');
     if (res.data?.ok) {
-      st.textContent = `已删除 ${res.data.deleted_check_ins ?? 0} 条签到记录（含关联答卷）。`;
-      toast('考生记录已清空');
+      st.textContent = `已删除考试日「${res.data.title || label}」。`;
+      toast('考试日已删除');
+      if (S.selectedDayId === id) S.selectedDayId = null;
       await loadAll();
       render();
     } else {
-      st.textContent = res.data?.error || res.error?.message || '失败';
-      toast('操作失败');
+      const err = res.data?.error || res.error?.message || '失败';
+      st.textContent = dayErrorText(err) || err;
+      if (err.includes('Could not find') || err.includes('does not exist')) {
+        toast('请先在 Supabase 执行迁移 20260613100000_student_exam_delete_day.sql');
+      } else {
+        toast(dayErrorText(err) || '删除失败');
+      }
+    }
+  };
+
+  document.getElementById('btn-clear-test-student').onclick = async () => {
+    const id = document.getElementById('admin-day').value;
+    if (!id) { toast('请选择考试日'); return; }
+    if (!confirm('确定清除测试账号「张 / 尾号 5668」在该考试日的签到与答卷？其他考生不受影响。')) return;
+    const res = await sb.rpc('staff_student_exam_clear_test_student', {
+      p_exam_day_id: id,
+      p_full_name: '张',
+      p_phone_last4: '5668',
+    });
+    const st = document.getElementById('admin-status');
+    if (res.data?.ok) {
+      const n = res.data.deleted_check_ins ?? 0;
+      st.textContent = n
+        ? `已删除测试账号 ${res.data.full_name} / ${res.data.phone_last4} 的 ${n} 条签到（含关联答卷）。`
+        : '未找到匹配的测试账号记录（张 / 5668）。';
+      toast(n ? '测试记录已清除' : '无匹配记录');
+      await loadAll();
+      render();
+    } else {
+      const err = res.data?.error || res.error?.message || '失败';
+      st.textContent = err === 'forbidden' ? '无权限' : err;
+      toast(err.includes('does not exist') || err.includes('Could not find')
+        ? '请先在 Supabase 执行迁移 20260611160000_student_exam_clear_test_student.sql'
+        : '操作失败');
     }
   };
 }
