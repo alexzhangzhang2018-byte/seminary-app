@@ -125,7 +125,7 @@ footer a{color:#9ca3af}
       </div>
       <div class="fld">
         <label for="f-secret"><span id="ui-secret-label"></span><span class="req">*</span></label>
-        <input class="inp" id="f-secret" type="text" autocomplete="off" spellcheck="false">
+        <input class="inp" id="f-secret" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="4">
         <div class="err-msg" id="e-secret"></div>
       </div>
       <div class="btn-row">
@@ -329,7 +329,8 @@ footer a{color:#9ca3af}
     s('ui-success-p').textContent  = st('sch.success_p');
     s('ui-go-status').textContent  = st('sch.go_status');
     s('ui-go-status2').textContent = st('sch.go_status');
-    s('f-no').placeholder    = st('sch.no_ph');
+    s('f-no').placeholder       = st('sch.no_ph');
+    if (s('f-secret').placeholder !== undefined) s('f-secret').placeholder = st('sch.secret_ph');
 
     // 语言切换高亮
     document.querySelectorAll('#lang-switch button').forEach(function (b) {
@@ -351,8 +352,8 @@ footer a{color:#9ca3af}
     s('e-no').textContent     = '';
     s('e-secret').textContent = '';
 
-    if (!no)     { s('e-no').textContent = lang === 'zh' ? '请填写申请编号' : (lang === 'id' ? 'Wajib diisi' : 'Required'); return; }
-    if (!secret) { s('e-secret').textContent = lang === 'zh' ? '请填写邮箱或 WhatsApp 后 4 位' : (lang === 'id' ? 'Wajib diisi' : 'Required'); return; }
+    if (!no)     { s('e-no').textContent = lang === 'zh' ? '请填写姓名' : (lang === 'id' ? 'Nama wajib diisi' : 'Name is required'); return; }
+    if (!secret) { s('e-secret').textContent = lang === 'zh' ? '请填写 WhatsApp 后 4 位' : (lang === 'id' ? '4 digit wajib' : 'Last 4 digits required'); return; }
 
     var btn = s('btn-verify');
     btn.disabled = true;
@@ -374,13 +375,13 @@ footer a{color:#9ca3af}
           return;
         }
 
-        // 验证通过：拿到申请信息
-        verified = { application_no: no, status: d.status };
-
-        // 查出姓名（再次调用 lookup 会拿到 status，但没有 full_name）
-        // 姓名需要另一个 RPC 或者我们从 continuing application 里拿
-        // 简化：只显示 application_no，姓名不显示
-        showVerifiedBar(no, '');
+        verified = {
+          application_no: d.application_no || no,
+          full_name: d.full_name || '',
+          status: d.status,
+          secret: secret
+        };
+        showVerifiedBar(verified.application_no, verified.full_name);
         handleAdmittedState(d);
       })
       .catch(function (e) {
@@ -466,8 +467,8 @@ footer a{color:#9ca3af}
     s('btn-submit').disabled = true;
     s('ui-submit-btn').innerHTML = '<span class="spinner"></span> ' + st('sch.submitting');
 
-    var no     = s('f-no') && s('f-no').value.trim() !== '' ? s('f-no').value.trim() : (verified && verified.application_no);
-    var secret = s('f-secret') && s('f-secret').value.trim() !== '' ? s('f-secret').value.trim() : '';
+    var no     = (verified && verified.application_no) || (s('f-no') && s('f-no').value.trim());
+    var secret = (verified && verified.secret) || (s('f-secret') && s('f-secret').value.trim());
 
     supa.rpc('submit_continuing_scholarship', {
       p_payload: {
