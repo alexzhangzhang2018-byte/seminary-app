@@ -478,7 +478,7 @@ const PIPELINE_TRACKS=[
   {id:'np',label:'尼泊尔'},
 ];
 function applicantPipelineTrack(ap){
-  const c=String(ap.campus_code||'').toLowerCase();
+  const c=getApplicantCampusCode(ap);
   if(c==='np') return 'np';
   if(c==='ai') return 'ai';
   const lang=getApplicantExamLang(ap);
@@ -4129,8 +4129,24 @@ function pastorLetterUploadOk(sch){
   if(!sch||(sch.guarantee_type||'deposit')!=='pastor_letter') return true;
   return !!(sch.pastor_letter_upload_data&&String(sch.pastor_letter_upload_data).length>32);
 }
-/** 就读校区：id 印尼美晟；np 南亚-尼泊尔（加德满都）；ai AI项目 */
+/** 根据籍贯/国家文本推断校区：巴基斯坦→印尼雅加达；尼泊尔→加德满都 */
+function inferCampusCodeFromOriginText(text){
+  const t=String(text||'').toLowerCase();
+  if(!t.trim()) return null;
+  if(/pakistan|pakistani|巴基斯坦|巴基|islamabad|karachi|lahore|punjab|peshawar|rawalpindi|faisalabad|伊斯兰堡|卡拉奇|拉合尔|白沙瓦/.test(t)) return 'id';
+  if(/nepal|尼泊尔|kathmandu|加德满都|pokhara|lalitpur|bhaktapur|博克拉/.test(t)) return 'np';
+  return null;
+}
+function inferCampusCodeFromHometown(hometown){ return inferCampusCodeFromOriginText(hometown); }
+function inferCampusCodeFromApplicant(ap){
+  const blob=[ap?.hometown,ap?.current_country,ap?.residence_country,ap?.country,ap?.nationality]
+    .filter(Boolean).join(' ');
+  return inferCampusCodeFromOriginText(blob);
+}
+/** 就读校区：id 印尼雅加达；np 加德满都；ai AI项目（巴基斯坦籍贯一律归 id） */
 function getApplicantCampusCode(ap){
+  const inferred=inferCampusCodeFromApplicant(ap);
+  if(inferred==='id'||inferred==='np') return inferred;
   const v=String(ap?.campus_code??'').trim().toLowerCase();
   if(v==='np'||v==='nepal'||v==='kathmandu') return 'np';
   if(v==='ai'||v==='ai项目'||v==='ai project') return 'ai';
@@ -6848,8 +6864,11 @@ function bind(){
       if(exam_lang!=='en'&&exam_lang!=='id') exam_lang='zh';
       const conversion_time_raw=document.getElementById('brief-ap-conversion-time')?.value||'';
       const dob_raw=document.getElementById('brief-ap-dob')?.value||'';
+      const hometownVal=(document.getElementById('brief-ap-hometown')?.value||'').trim()||null;
       const campusSel=document.getElementById('brief-ap-campus')?.value||'id';
-      const campus_code=campusSel==='np'?'np':campusSel==='ai'?'ai':'id';
+      let campus_code=campusSel==='np'?'np':campusSel==='ai'?'ai':'id';
+      const inferredCampus=inferCampusCodeFromHometown(hometownVal);
+      if(inferredCampus) campus_code=inferredCampus;
       const payload={
         exam_lang,
         campus_code,
@@ -6857,7 +6876,7 @@ function bind(){
         phone:(document.getElementById('brief-ap-phone')?.value||'').trim()||null,
         email:(document.getElementById('brief-ap-email')?.value||'').trim()||null,
         gender:(document.getElementById('brief-ap-gender')?.value||'')||null,
-        hometown:(document.getElementById('brief-ap-hometown')?.value||'')||null,
+        hometown:hometownVal,
         education:(document.getElementById('brief-ap-education')?.value||'')||null,
         church_name:(document.getElementById('brief-ap-church')?.value||'')||null,
         denomination:(document.getElementById('brief-ap-denom')?.value||'')||null,
@@ -7134,11 +7153,17 @@ function bind(){
     let exam_lang=document.getElementById('edit-ap-exam-lang')?.value || 'zh';
     if(exam_lang!=='en'&&exam_lang!=='id') exam_lang='zh';
 
+    const hometownVal=hometown||null;
+    const apRow=A.allApplicants.find(a=>String(a.id)===String(apid));
+    const inferredCampus=inferCampusCodeFromHometown(hometownVal);
+    let campus_code=apRow?getApplicantCampusCode(apRow):'id';
+    if(inferredCampus) campus_code=inferredCampus;
     const payload={
       exam_lang,
+      campus_code,
       sheet_import_unseen:false,
       gender: gender||null,
-      hometown: hometown||null,
+      hometown: hometownVal,
       education: education||null,
       church_name: church_name||null,
       denomination: denomination||null,
@@ -7157,8 +7182,11 @@ function bind(){
         A.showEditApInfoModal=false;
         A.editApInfoId=null;
         const apRow=A.allApplicants.find(a=>String(a.id)===String(apid));
-        if(apRow) apRow.exam_lang=exam_lang;
-        if(apRow) apRow.sheet_import_unseen=false;
+        if(apRow){
+          Object.assign(apRow,payload);
+          apRow.exam_lang=exam_lang;
+          apRow.sheet_import_unseen=false;
+        }
         await loadAdminData({fast:true});
         render();
       } else {
