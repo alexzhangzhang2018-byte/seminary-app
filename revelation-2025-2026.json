@@ -1,0 +1,126 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "essay",
+    "section": "一",
+    "score": 25.0,
+    "essay_kind": "short",
+    "section_label": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+    "section_labels": {
+      "zh": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+      "id": "Soal jawaban singkat. Setiap soal 25 poin, setiap jawaban 300–500 kata. (Anda boleh membuka Alkitab, tetapi tidak boleh melihat catatan atau diktat kuliah.)",
+      "en": "Short-answer questions. Each question is worth 25 points, with answers of 300–500 characters. (You may consult the Bible, but you may not look at your notes or lecture handouts.)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "基于启示录1:1-3，请阐述启示录是怎样一本书？",
+        "options": [],
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Berdasarkan Wahyu 1:1-3, jelaskanlah: Kitab Wahyu itu kitab yang seperti apa?",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "Based on Revelation 1:1-3, explain: what kind of book is the Book of Revelation?",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "essay",
+    "section": "一",
+    "score": 25.0,
+    "essay_kind": "short",
+    "section_label": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+    "section_labels": {
+      "zh": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+      "id": "Soal jawaban singkat. Setiap soal 25 poin, setiap jawaban 300–500 kata. (Anda boleh membuka Alkitab, tetapi tidak boleh melihat catatan atau diktat kuliah.)",
+      "en": "Short-answer questions. Each question is worth 25 points, with answers of 300–500 characters. (You may consult the Bible, but you may not look at your notes or lecture handouts.)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "启示录5章1节出现的书卷的含义是什么？和启示录后续内容是什么关系？",
+        "options": [],
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Apakah arti dari gulungan kitab yang muncul dalam Wahyu 5:1? Bagaimanakah hubungannya dengan isi Kitab Wahyu selanjutnya?",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "What is the meaning of the scroll that appears in Revelation 5:1? How does it relate to the rest of the Book of Revelation?",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "essay",
+    "section": "一",
+    "score": 25.0,
+    "essay_kind": "short",
+    "section_label": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+    "section_labels": {
+      "zh": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+      "id": "Soal jawaban singkat. Setiap soal 25 poin, setiap jawaban 300–500 kata. (Anda boleh membuka Alkitab, tetapi tidak boleh melihat catatan atau diktat kuliah.)",
+      "en": "Short-answer questions. Each question is worth 25 points, with answers of 300–500 characters. (You may consult the Bible, but you may not look at your notes or lecture handouts.)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "简述启示录中印、号、碗之间的关系？",
+        "options": [],
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat hubungan antara meterai, sangkakala, dan cawan di dalam Kitab Wahyu.",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "Briefly explain the relationship among the seals, trumpets, and bowls in the Book of Revelation.",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "essay",
+    "section": "一",
+    "score": 25.0,
+    "essay_kind": "short",
+    "section_label": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+    "section_labels": {
+      "zh": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+      "id": "Soal jawaban singkat. Setiap soal 25 poin, setiap jawaban 300–500 kata. (Anda boleh membuka Alkitab, tetapi tidak boleh melihat catatan atau diktat kuliah.)",
+      "en": "Short-answer questions. Each question is worth 25 points, with answers of 300–500 characters. (You may consult the Bible, but you may not look at your notes or lecture handouts.)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "请基于全卷书，阐述启示录12-13章中龙、海兽、陆兽的具体含义。",
+        "options": [],
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Berdasarkan keseluruhan kitab, jelaskanlah makna konkret dari naga, binatang yang keluar dari dalam laut, dan binatang yang keluar dari dalam bumi di dalam Wahyu 12–13.",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "Based on the whole book, explain the concrete meaning of the dragon, the beast rising out of the sea, and the beast rising out of the earth in Revelation 12–13.",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  }
+]
