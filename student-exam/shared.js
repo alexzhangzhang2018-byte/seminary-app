@@ -411,16 +411,47 @@ export function formatEssayCountLabel(count, lang = 'zh', hint = null) {
   return `${count}${range} words`;
 }
 
+function essayCountUnitLabel(lang, hint) {
+  const L = ['zh', 'en', 'id'].includes(lang) ? lang : 'zh';
+  if (!hint) return '';
+  if (L === 'zh') return `${hint.min}–${hint.max} 字`;
+  if (L === 'id') return `${hint.min}–${hint.max} kata`;
+  return `${hint.min}–${hint.max} words`;
+}
+
+function essayCountTipLabel(lang) {
+  const L = ['zh', 'en', 'id'].includes(lang) ? lang : 'zh';
+  if (L === 'zh') return '字数偏少';
+  if (L === 'id') return 'Terlalu sedikit';
+  return 'Below suggested length';
+}
+
+function essayCountWrittenLabel(count, lang) {
+  const L = ['zh', 'en', 'id'].includes(lang) ? lang : 'zh';
+  if (L === 'zh') return `已写 <span class="essay-count-n">${count}</span>`;
+  if (L === 'id') return `<span class="essay-count-n">${count}</span> kata`;
+  return `<span class="essay-count-n">${count}</span> words`;
+}
+
 function updateEssayCounter(ta, lang) {
   const hint = parseEssayLengthHint(ta.dataset.sectionLabel || '', lang);
   const n = essayCountUnits(ta.value, lang);
   const el = ta.parentElement?.querySelector('.essay-count');
   if (!el) return;
-  el.textContent = formatEssayCountLabel(n, lang, hint);
   el.classList.remove('essay-count-ok', 'essay-count-low');
-  if (!hint || n === 0) return;
-  if (n >= hint.min) el.classList.add('essay-count-ok');
-  else el.classList.add('essay-count-low');
+  if (!hint) {
+    el.textContent = formatEssayCountLabel(n, lang, null);
+    return;
+  }
+  const state = n > 0 && n < hint.min ? 'low' : (n >= hint.min ? 'ok' : 'neutral');
+  if (state === 'low') el.classList.add('essay-count-low');
+  if (state === 'ok') el.classList.add('essay-count-ok');
+  const req = esc(essayCountUnitLabel(lang, hint));
+  const written = essayCountWrittenLabel(n, lang);
+  const tip = state === 'low'
+    ? `<span class="essay-count-tip">${esc(essayCountTipLabel(lang))}</span> `
+    : '';
+  el.innerHTML = `${tip}${written} / <span class="essay-count-req">${req}</span>`;
 }
 
 /** 绑定简答题字数统计（考试页 render 后调用） */
