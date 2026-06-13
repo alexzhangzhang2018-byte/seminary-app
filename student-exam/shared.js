@@ -6,6 +6,34 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 export const SESSION_KEY = 'mms_student_exam_token_v1';
 export const LANG_KEY = 'mms_student_exam_lang_v1';
+export const COVER_CONFIRMED_KEY = 'mms_student_exam_cover_v1';
+
+export function coverConfirmedStorageKey(examDayId, token) {
+  return `${examDayId || ''}:${token || ''}`;
+}
+
+export function isCoverConfirmed(examDayId, token) {
+  if (!examDayId || !token) return false;
+  try {
+    const raw = localStorage.getItem(COVER_CONFIRMED_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    return data?.key === coverConfirmedStorageKey(examDayId, token);
+  } catch {
+    return false;
+  }
+}
+
+export function setCoverConfirmed(examDayId, token) {
+  if (!examDayId || !token) return;
+  localStorage.setItem(COVER_CONFIRMED_KEY, JSON.stringify({
+    key: coverConfirmedStorageKey(examDayId, token),
+  }));
+}
+
+export function clearCoverConfirmed() {
+  localStorage.removeItem(COVER_CONFIRMED_KEY);
+}
 
 export function createSb() {
   if (typeof supabase === 'undefined') return null;
@@ -41,8 +69,16 @@ export const UI = {
     btn_continue: '继续答题',
     btn_done: '已完成',
     cover_title: '请确认卷头信息',
+    cover_hint: '今日只需确认一次。确认后将进入所选科目；其他科目不再重复确认。',
+    cover_entering: '即将进入',
     cover_name: '姓名',
     cover_confirm: '确认无误，开始答题',
+    btn_edit_checkin: '修改签到信息',
+    btn_save_checkin: '保存修改',
+    btn_cancel_edit: '返回科目列表',
+    checkin_edit_hint: '尚未开始任何科目时可修改姓名、年级与试卷语言。保存后返回科目列表。',
+    checkin_saved: '签到信息已更新',
+    err_check_in_locked: '已有科目开始或交卷，无法修改试卷语言',
     submit: '交卷',
     submitted_ok: '答卷已提交，谢谢！',
     timer: '剩余时间',
@@ -81,8 +117,16 @@ export const UI = {
     btn_continue: 'Continue',
     btn_done: 'Done',
     cover_title: 'Confirm cover sheet',
+    cover_hint: 'Confirm once today. After this you can enter each subject without repeating.',
+    cover_entering: 'Entering',
     cover_name: 'Name',
     cover_confirm: 'Confirm & start',
+    btn_edit_checkin: 'Edit check-in',
+    btn_save_checkin: 'Save changes',
+    btn_cancel_edit: 'Back to schedule',
+    checkin_edit_hint: 'You may edit name, year, and paper language before starting any subject.',
+    checkin_saved: 'Check-in updated',
+    err_check_in_locked: 'Cannot change paper language after a subject has started or been submitted',
     submit: 'Submit',
     submitted_ok: 'Submitted. Thank you!',
     timer: 'Time left',
@@ -121,8 +165,16 @@ export const UI = {
     btn_continue: 'Lanjutkan',
     btn_done: 'Selesai',
     cover_title: 'Konfirmasi identitas',
+    cover_hint: 'Cukup konfirmasi sekali hari ini. Mata kuliah lain tidak perlu konfirmasi ulang.',
+    cover_entering: 'Akan masuk',
     cover_name: 'Nama',
     cover_confirm: 'Konfirmasi & mulai',
+    btn_edit_checkin: 'Ubah check-in',
+    btn_save_checkin: 'Simpan perubahan',
+    btn_cancel_edit: 'Kembali ke jadwal',
+    checkin_edit_hint: 'Sebelum mulai mata kuliah apa pun, Anda dapat mengubah nama, angkatan, dan bahasa kertas ujian.',
+    checkin_saved: 'Check-in diperbarui',
+    err_check_in_locked: 'Tidak dapat mengubah bahasa setelah ada mata kuliah yang dimulai atau dikumpulkan',
     submit: 'Kumpulkan',
     submitted_ok: 'Terkirim. Terima kasih!',
     timer: 'Sisa waktu',

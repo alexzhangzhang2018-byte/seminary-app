@@ -98,6 +98,7 @@ import {
   gradeLabel, trackLabel, classTrackOptions, examLangForTrack,
   resolvePaperDisplayTitle, examContentLang,
   renderExamWithSections, collectAnswers, installProctor, installEssayCounters,
+  isCoverConfirmed, setCoverConfirmed, clearCoverConfirmed,
 } from './shared.js';
 
 const sb = createSb();
@@ -116,6 +117,7 @@ const S = {
   timerSec: 0,
   timerTotal: 0,
   timerWarn10m: false,
+  editingCheckIn: false,
 };
 
 let timerIv = null;
@@ -165,6 +167,31 @@ function getCheckInTrack() {
   return document.querySelector('input[name="f-track"]:checked')?.value || 'zh';
 }
 
+function canEditCheckIn() {
+  return !(S.schedule || []).some((s) =>
+    s.attempt_status === 'in_progress' || s.attempt_status === 'submitted'
+  );
+}
+
+function rpcErrorText(code) {
+  const key = {
+    check_in_locked: 'err_check_in_locked',
+    phone_last4_required: 'phone_last4',
+    not_found: 'err',
+  }[code];
+  return key ? t(S.uiLang, key) : code;
+}
+
+function goEditCheckIn() {
+  if (!canEditCheckIn()) {
+    toast(t(S.uiLang, 'err_check_in_locked'), false);
+    return;
+  }
+  S.editingCheckIn = true;
+  S.view = 'checkin';
+  render();
+}
+
 async function doCheckIn(resume = false) {
   const name = document.getElementById('f-name')?.value?.trim();
   const grade = +document.getElementById('f-grade')?.value;
@@ -172,6 +199,35 @@ async function doCheckIn(resume = false) {
   const examLang = examLangForTrack(classTrack);
   const pl4 = document.getElementById('f-pl4')?.value?.trim() || null;
   if (!name) { toast(t(S.uiLang, 'full_name') + '?', false); return; }
+
+  if (S.editingCheckIn && S.token && !resume) {
+    if (!canEditCheckIn()) {
+      toast(t(S.uiLang, 'err_check_in_locked'), false);
+      S.editingCheckIn = false;
+      S.view = 'schedule';
+      render();
+      return;
+    }
+    const { data, error } = await sb.rpc('student_exam_update_check_in', {
+      p_token: S.token,
+      p_full_name: name,
+      p_grade: grade,
+      p_class_track: classTrack,
+      p_phone_last4: pl4,
+      p_ui_lang: S.uiLang,
+      p_exam_lang: examLang,
+    });
+    if (error || !data?.ok) {
+      toast(rpcErrorText(data?.error) || t(S.uiLang, 'err'), false);
+      return;
+    }
+    S.checkIn = data.check_in;
+    clearCoverConfirmed();
+    S.editingCheckIn = false;
+    await refreshSchedule();
+    toast(t(S.uiLang, 'checkin_saved'));
+    return;
+  }
 
   let rpc, args;
   if (resume && pl4) {
@@ -193,12 +249,14 @@ async function doCheckIn(resume = false) {
 
   const { data, error } = await sb.rpc(rpc, args);
   if (error || !data?.ok) {
-    toast(data?.error || t(S.uiLang, 'err'), false);
+    toast(rpcErrorText(data?.error) || t(S.uiLang, 'err'), false);
     return;
   }
   S.token = data.check_in.session_token;
   localStorage.setItem(SESSION_KEY, S.token);
   S.checkIn = data.check_in;
+  if (!data.resumed) clearCoverConfirmed();
+  S.editingCheckIn = false;
   await refreshSchedule();
 }
 
@@ -228,21 +286,30 @@ async function openCover(subjectId) {
   }
   S.subject = sub;
   if (sub.attempt_status === 'in_progress' && sub.attempt_id) {
-    await resumeAttempt(sub);
+    await enterExam(sub, S.checkIn?.full_name);
+    return;
+  }
+  if (isCoverConfirmed(S.examDay?.id, S.token)) {
+    await enterExam(sub, S.checkIn?.full_name);
     return;
   }
   S.view = 'cover';
   render();
 }
 
-async function resumeAttempt(sub) {
-  const { data: startData } = await sb.rpc('student_exam_start_attempt', {
+async function enterExam(sub, displayName) {
+  const name = displayName?.trim();
+  if (!name) return;
+  const { data, error } = await sb.rpc('student_exam_start_attempt', {
     p_token: S.token,
     p_day_subject_id: sub.id,
-    p_display_name: S.checkIn.full_name,
+    p_display_name: name,
   });
-  if (!startData?.ok) { toast(startData?.error || t(S.uiLang, 'err'), false); return; }
-  S.attempt = startData.attempt;
+  if (error || !data?.ok) {
+    toast(data?.error || t(S.uiLang, 'err'), false);
+    return;
+  }
+  S.attempt = data.attempt;
   S.answers = S.attempt.answers_json || {};
   S.proctorFlags = S.attempt.proctor_flags || 0;
   const paperRes = await sb.rpc('student_exam_get_paper', { p_token: S.token, p_day_subject_id: sub.id });
@@ -264,46 +331,11 @@ async function resumeAttempt(sub) {
   });
 }
 
-async function startExam() {
+async function confirmCoverAndStart() {
   const displayName = document.getElementById('cover-name')?.value?.trim();
   if (!displayName) return;
-  const { data, error } = await sb.rpc('student_exam_start_attempt', {
-    p_token: S.token,
-    p_day_subject_id: S.subject.id,
-    p_display_name: displayName,
-  });
-  if (error || !data?.ok) {
-    toast(data?.error || t(S.uiLang, 'err'), false);
-    return;
-  }
-  S.attempt = data.attempt;
-  S.answers = S.attempt.answers_json || {};
-  S.proctorFlags = S.attempt.proctor_flags || 0;
-
-  const paperRes = await sb.rpc('student_exam_get_paper', {
-    p_token: S.token,
-    p_day_subject_id: S.subject.id,
-  });
-  if (!paperRes.data?.ok) {
-    toast(t(S.uiLang, 'err'), false);
-    return;
-  }
-  S.paper = paperRes.data;
-  S.subject = { ...S.subject, ...paperRes.data.subject };
-
-  const endMs = new Date(S.subject.end_at).getTime();
-  S.timerSec = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
-  S.timerTotal = S.timerSec;
-  S.timerWarn10m = false;
-  S.view = 'exam';
-  render();
-  startTimer();
-  startDraftSave();
-  installProctor(() => {
-    if (S.view !== 'exam') return;
-    S.proctorFlags++;
-    toast(t(S.uiLang, 'proctor_warn'), false);
-  });
+  setCoverConfirmed(S.examDay?.id, S.token);
+  await enterExam(S.subject, displayName);
 }
 
 function startTimer() {
@@ -368,9 +400,10 @@ async function submitExam(submitType = 'manual') {
 
 function renderCheckin() {
   const L = S.uiLang;
+  const editing = S.editingCheckIn;
   return `<div class="card">
     <h2>${esc(t(L, 'checkin_title'))}</h2>
-    <p class="hint">${esc(t(L, 'checkin_hint'))}</p>
+    <p class="hint">${esc(t(L, editing ? 'checkin_edit_hint' : 'checkin_hint'))}</p>
     <div class="fld"><label>${esc(t(L, 'full_name'))}</label>
       <input class="inp" id="f-name" value="${esc(S.checkIn?.full_name || '')}"></div>
     <div class="fld"><label>${esc(t(L, 'class_track'))}</label>
@@ -386,10 +419,12 @@ function renderCheckin() {
         ${[1, 2, 3].map((g) => `<option value="${g}"${S.checkIn?.grade === g ? ' selected' : ''}>${esc(gradeLabel(g, L))}</option>`).join('')}
       </select></div>
     <div class="fld"><label>${esc(t(L, 'phone_last4'))}</label>
-      <input class="inp" id="f-pl4" inputmode="numeric" maxlength="4" placeholder="1234"></div>
+      <input class="inp" id="f-pl4" inputmode="numeric" maxlength="4" placeholder="1234" value="${esc(S.checkIn?.phone_last4 || '')}"></div>
     <div class="btn-row">
-      <button class="btn btn-p" id="btn-checkin">${esc(t(L, 'btn_checkin'))}</button>
-      <button class="btn btn-o" id="btn-resume">${esc(t(L, 'btn_resume'))}</button>
+      <button class="btn btn-p" id="btn-checkin">${esc(t(L, editing ? 'btn_save_checkin' : 'btn_checkin'))}</button>
+      ${editing
+        ? `<button class="btn btn-o" id="btn-cancel-edit">${esc(t(L, 'btn_cancel_edit'))}</button>`
+        : `<button class="btn btn-o" id="btn-resume">${esc(t(L, 'btn_resume'))}</button>`}
     </div>
   </div>`;
 }
@@ -433,6 +468,7 @@ function renderSchedule() {
   return `<div class="card">
     <h2>${esc(t(L, 'schedule_title'))}</h2>
     <p class="hint">${esc(t(L, 'hello'))}，<strong>${esc(ci?.full_name)}</strong> · ${esc(gradeLabel(ci?.grade, L))} · ${esc(trackLabel(ci?.class_track, L))}</p>
+    ${canEditCheckIn() ? `<div class="btn-row" style="margin-bottom:12px"><button class="btn btn-o" id="btn-edit-checkin">${esc(t(L, 'btn_edit_checkin'))}</button></div>` : ''}
     ${rows || '<p class="hint">—</p>'}
   </div>`;
 }
@@ -450,8 +486,9 @@ function renderCover() {
   }, examL);
   return `<div class="card">
     <h2>${esc(t(L, 'cover_title'))}</h2>
+    <p class="hint">${esc(t(L, 'cover_hint'))}</p>
     <div class="cover-grid">
-      <div class="cover-line"><strong>${esc(t(L, 'subject'))}</strong><span>${esc(subTitle)}</span></div>
+      <div class="cover-line"><strong>${esc(t(L, 'cover_entering'))}</strong><span>${esc(subTitle)}</span></div>
       <div class="cover-line"><strong>${esc(t(L, 'grade'))}</strong><span>${esc(gradeLabel(S.checkIn?.grade, L))}</span></div>
       <div class="cover-line"><strong>${esc(t(L, 'class_track'))}</strong><span>${esc(trackLabel(S.checkIn?.class_track, L))}</span></div>
       <div class="cover-line"><strong>${esc(t(L, 'cover_name'))}</strong>
@@ -528,10 +565,16 @@ function bind() {
   bindTrackPills();
   document.getElementById('btn-checkin')?.addEventListener('click', () => doCheckIn(false));
   document.getElementById('btn-resume')?.addEventListener('click', () => doCheckIn(true));
+  document.getElementById('btn-edit-checkin')?.addEventListener('click', goEditCheckIn);
+  document.getElementById('btn-cancel-edit')?.addEventListener('click', () => {
+    S.editingCheckIn = false;
+    S.view = 'schedule';
+    render();
+  });
   document.querySelectorAll('[data-open]').forEach((el) => {
     el.addEventListener('click', () => openCover(el.dataset.open));
   });
-  document.getElementById('btn-cover-start')?.addEventListener('click', startExam);
+  document.getElementById('btn-cover-start')?.addEventListener('click', confirmCoverAndStart);
   document.getElementById('btn-submit')?.addEventListener('click', () => submitExam('manual'));
   document.getElementById('btn-back-sched')?.addEventListener('click', async () => {
     clearInterval(timerIv);
