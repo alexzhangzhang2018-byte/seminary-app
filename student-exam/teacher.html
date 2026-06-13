@@ -48,6 +48,10 @@ tr.sel{background:#eef2ff;cursor:pointer}
 .lang-tag{font-size:11px;padding:2px 7px;border-radius:6px;font-weight:700;white-space:nowrap}
 .lang-tag.lang-on{background:#dcfce7;color:#15803d;border:1px solid #86efac}
 .lang-tag.lang-off{background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0;text-decoration:line-through}
+.track-chks{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:8px 0 4px}
+.track-chks label{display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;white-space:nowrap}
+.track-chks input{width:16px;height:16px;margin:0}
+.track-chk-actions{margin-top:4px}
 </style>
 </head>
 <body>
@@ -80,7 +84,7 @@ tr.sel{background:#eef2ff;cursor:pointer}
 <script type="module">
 import {
   createSb, esc, trackLabel, teacherPaperTitle,
-  paperLocaleBadgesHtml, paperLocaleSummary,
+  paperLocaleBadgesHtml, paperLocaleSummary, paperLocaleCodes,
 } from './shared.js';
 
 function trackLabelZh(track) {
@@ -486,18 +490,44 @@ function paperSelectHtml(selectedId) {
   return `<option value="">— 选择试卷 —</option>${opts}`;
 }
 
-function subjectRowHtml() {
+function subjectRowHtml(opts = {}) {
+  const { zh = true, en = true, id = true } = opts;
   return `<div class="sub-row" style="margin-bottom:12px;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
     <div class="grid2">
       <div><label class="muted">科目名称</label><input class="inp sub-name" placeholder="如：启示录"></div>
       <div><label class="muted">绑定试卷 <span style="color:#dc2626">*</span></label><select class="sel sub-paper">${paperSelectHtml()}</select></div>
       <div><label class="muted">年级</label><input class="inp sub-grade" type="number" min="1" max="3" value="1"></div>
-      <div><label class="muted">班级</label><select class="sel sub-track"><option value="zh">中文班</option><option value="en">英文班</option><option value="id">印尼语班</option></select></div>
+      <div>
+        <label class="muted">班级（可多选，同一时段三语同考）</label>
+        <div class="track-chks">
+          <label><input type="checkbox" class="sub-track-chk" value="zh"${zh ? ' checked' : ''}> 中文班</label>
+          <label><input type="checkbox" class="sub-track-chk" value="en"${en ? ' checked' : ''}> 英文班</label>
+          <label><input type="checkbox" class="sub-track-chk" value="id"${id ? ' checked' : ''}> 印尼语班</label>
+        </div>
+        <div class="track-chk-actions">
+          <button type="button" class="btn btn-o btn-sm btn-track-all">全选三语</button>
+        </div>
+      </div>
       <div><label class="muted">开始时间</label><input class="inp sub-start" type="datetime-local"></div>
       <div><label class="muted">结束时间</label><input class="inp sub-end" type="datetime-local"></div>
     </div>
   </div>`;
 }
+
+function bindSubjectRowActions(root) {
+  (root || document).querySelectorAll('.btn-track-all').forEach((btn) => {
+    btn.onclick = () => {
+      const row = btn.closest('.sub-row');
+      row?.querySelectorAll('.sub-track-chk').forEach((c) => { c.checked = true; });
+    };
+  });
+}
+
+function selectedTracksFromRow(row) {
+  return [...row.querySelectorAll('.sub-track-chk:checked')].map((c) => c.value);
+}
+
+const TRACK_LABELS = { zh: '中文', en: '英文', id: '印尼语' };
 
 function parseLocalDatetime(val) {
   if (!val) return null;
@@ -515,9 +545,12 @@ function renderDays() {
       ${noPaperWarn}
       <input class="inp" id="d-title" placeholder="例如：2026 春季期末考">
       <input class="inp" id="d-date" type="date">
-      <p class="muted" style="margin-bottom:12px;line-height:1.65">同一时段可为中文班、英文班、印尼语班各排一门不同科目：点「+ 添加科目」增加一行，选不同班级与试卷，开始/结束时间可相同。</p>
+      <p class="muted" style="margin-bottom:12px;line-height:1.65">同一科目、同一时段若三语班级都要考：在一行里勾选「中文班 / 英文班 / 印尼语班」（默认三语全选），填一次时间与试卷即可；保存时自动拆成三条排考。也可只勾选一个班。</p>
       <div id="sub-rows">${subjectRowHtml()}</div>
-      <button class="btn btn-o" id="btn-add-sub" type="button">+ 添加科目</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <button class="btn btn-o" id="btn-add-sub" type="button">+ 添加科目</button>
+        <button class="btn btn-o" id="btn-add-sub-tri" type="button">+ 添加科目（三语同考）</button>
+      </div>
       <div style="margin-top:10px"><button class="btn" id="btn-save-day">保存考试日</button></div>
     </div>
     <div class="card">
@@ -527,8 +560,16 @@ function renderDays() {
     </div>`;
 
   document.getElementById('btn-add-sub').onclick = () => {
-    document.getElementById('sub-rows').insertAdjacentHTML('beforeend', subjectRowHtml());
+    document.getElementById('sub-rows').insertAdjacentHTML('beforeend', subjectRowHtml({ zh: true, en: false, id: false }));
+    bindSubjectRowActions(document.getElementById('sub-rows'));
   };
+
+  document.getElementById('btn-add-sub-tri').onclick = () => {
+    document.getElementById('sub-rows').insertAdjacentHTML('beforeend', subjectRowHtml({ zh: true, en: true, id: true }));
+    bindSubjectRowActions(document.getElementById('sub-rows'));
+  };
+
+  bindSubjectRowActions(document.getElementById('sub-rows'));
 
   document.getElementById('btn-save-day').onclick = async () => {
     if (!S.papers.length) {
@@ -537,23 +578,33 @@ function renderDays() {
     }
     const rows = [...document.querySelectorAll('.sub-row')];
     const subjects = [];
+    let sort = 0;
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const subject_name = row.querySelector('.sub-name')?.value?.trim();
       const paper_id = row.querySelector('.sub-paper')?.value;
       const grade = +row.querySelector('.sub-grade')?.value;
-      const class_track = row.querySelector('.sub-track')?.value;
+      const tracks = selectedTracksFromRow(row);
       const startRaw = row.querySelector('.sub-start')?.value;
       const endRaw = row.querySelector('.sub-end')?.value;
       const start_at = parseLocalDatetime(startRaw);
       const end_at = parseLocalDatetime(endRaw);
-      const empty = !subject_name && !paper_id && !startRaw && !endRaw;
+      const empty = !subject_name && !paper_id && !startRaw && !endRaw && !tracks.length;
       if (empty) continue;
       if (!subject_name) { toast(`第 ${i + 1} 门：请填写科目名称`); return; }
       if (!paper_id) { toast(`第 ${i + 1} 门「${subject_name}」：请选择试卷`); return; }
+      if (!tracks.length) { toast(`第 ${i + 1} 门「${subject_name}」：请至少勾选一个班级`); return; }
       if (!start_at || !end_at) { toast(`第 ${i + 1} 门「${subject_name}」：请填写开始/结束时间`); return; }
       if (end_at <= start_at) { toast(`第 ${i + 1} 门「${subject_name}」：结束时间须晚于开始时间`); return; }
-      subjects.push({ subject_name, paper_id, grade, class_track, start_at, end_at, sort_order: i });
+      const paper = S.papers.find((p) => p.id === paper_id);
+      const locales = new Set(paper ? paperLocaleCodes(paper) : []);
+      for (const class_track of tracks) {
+        if (paper && !locales.has(class_track)) {
+          toast(`第 ${i + 1} 门「${subject_name}」：试卷不含${TRACK_LABELS[class_track]}题干，请换卷或取消勾选`);
+          return;
+        }
+        subjects.push({ subject_name, paper_id, grade, class_track, start_at, end_at, sort_order: sort++ });
+      }
     }
     if (!subjects.length) { toast('请至少填写一门完整科目（含试卷与时间）'); return; }
     const title = document.getElementById('d-title')?.value?.trim();
