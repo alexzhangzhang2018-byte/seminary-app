@@ -229,6 +229,7 @@ export const COURSE_TITLE_LOCALES = {
   启示录: { zh: '启示录', en: 'Revelation', id: 'Wahyu' },
   撒母耳记: { zh: '撒母耳记', en: 'Samuel', id: 'Samuel' },
   HEB: { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
+  'HEB-S': { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
   PSA: { zh: '诗篇', en: 'Psalms', id: 'Mazmur' },
   REV: { zh: '启示录', en: 'Revelation', id: 'Wahyu' },
   SAM: { zh: '撒母耳记', en: 'Samuel', id: 'Samuel' },
@@ -242,12 +243,18 @@ function stripYearSuffix(title) {
   return String(title || '').replace(/\s+\d{4}-\d{4}\s*$/, '').trim();
 }
 
+function stripPaperTitleSuffix(title) {
+  return stripYearSuffix(title).replace(/[（(]简单版[)）]\s*$/, '').trim();
+}
+
 /** 由课程名 / 课程代码推断 title_locales */
 export function inferTitleLocales(title, courseCode) {
-  const base = stripYearSuffix(title);
+  const base = stripPaperTitleSuffix(title);
   const code = String(courseCode || '').trim().toUpperCase();
+  if (code === 'HEB-S') return { ...COURSE_TITLE_LOCALES.HEB };
   if (COURSE_TITLE_LOCALES[code]) return { ...COURSE_TITLE_LOCALES[code] };
   if (COURSE_TITLE_LOCALES[base]) return { ...COURSE_TITLE_LOCALES[base] };
+  if (base.startsWith('希伯来书')) return { ...COURSE_TITLE_LOCALES.HEB };
   for (const locs of Object.values(COURSE_TITLE_LOCALES)) {
     if (Object.values(locs).some((v) => v === base)) return { ...locs };
   }
