@@ -1811,7 +1811,7 @@ function toast(msg,ok=true){
 // ── 申请人：本地会话 + 笔试草稿（刷新免重复登录、答题进度可恢复）────────────────
 const APPLICANT_SESSION_KEY='seminary_portal_applicant_v1';
 // v2：避免历史空缓存/旧结构把看板锁死在 0（升级 key 直接让旧缓存自动失效）
-const STAFF_CACHE_KEY='seminary_portal_staff_cache_v5';
+const STAFF_CACHE_KEY='seminary_portal_staff_cache_v6';
 
 function loadStaffCache(){
   try{
@@ -1852,6 +1852,7 @@ function saveStaffCache(){
       scholarship_review_note: ap.scholarship_review_note,
       campus_code: ap.campus_code,
       language_proficiency: ap.language_proficiency,
+      hometown: ap.hometown,
     }));
     localStorage.setItem(STAFF_CACHE_KEY, JSON.stringify({ts:Date.now(), allApplicants: lite}));
   }catch(_){}
@@ -2068,7 +2069,7 @@ const APPLICANTS_STAFF_LIST_COLS_MIN =
 // 首屏极简列表：不含 scholarship_form_json（大 JSON 仍走 v1 / phase2）；含批复标量便于顶栏与奖学金页摘要
 const APPLICANTS_STAFF_LIST_COLS_LITE =
   'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row,'+
-  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,campus_code,language_proficiency';
+  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,campus_code,language_proficiency,hometown';
 /** lite 主查询失败时回退（与历史版本一致，列最少） */
 const APPLICANTS_STAFF_LIST_COLS_LITE_FALLBACK =
   'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row';
@@ -4164,6 +4165,11 @@ function applicantCampusTagHtml(ap){
   if(c==='ai') return mkTag('#ede9fe','#6d28d9','AI');
   return '';
 }
+function applicantHometownDisplay(ap){
+  const v=[ap?.hometown,ap?.nationality,ap?.current_country,ap?.residence_country,ap?.country]
+    .map(x=>String(x||'').trim()).find(Boolean);
+  return v||'';
+}
 function computeSurveyAlertFromSurveyJson(sur){
   const drug=String(sur.drug_history||sur.drug_hist||sur.substance_history||'').toLowerCase()==='yes';
   const drugDet=String(sur.drug_detail||sur.drug_detail_line||sur.substance_detail||'').trim();
@@ -5572,7 +5578,7 @@ function renderPipeline(){
   const cardHtml=(ap)=>{
     const isNpCampus=getApplicantCampusCode(ap)==='np';
     const contactLines=isNpCampus
-      ? `${ap.phone?`<div class="t11 c-gray4 mb1">📞 ${esc(ap.phone)}</div>`:''}${ap.hometown?`<div class="t11 c-gray5">籍贯 ${esc(ap.hometown)}</div>`:''}`
+      ? `${ap.phone?`<div class="t11 c-gray4 mb1">📞 ${esc(ap.phone)}</div>`:''}<div class="t11 c-gray5">籍贯 ${esc(applicantHometownDisplay(ap)||'—')}</div>`
       : `<div class="t11 c-gray5 mb1 row g1 wrap" style="align-items:center">${esc(examLangLabelShort(getApplicantExamLang(ap)))}${applicantCampusTagHtml(ap)}</div>${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}`;
     return `<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
             ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
