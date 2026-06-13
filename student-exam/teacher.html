@@ -269,9 +269,12 @@ async function openGrading(attemptId) {
   const blocks = items.map((gi) => {
     const q = (data.paper || []).find((x) => x.group_id === gi.group_id);
     const loc = q?.locales?.[data.check_in.exam_lang] || q?.locales?.zh || {};
+    const ref = loc.answer_key?.reference;
     return `<div class="grade-box" data-gid="${esc(gi.group_id)}">
       <div class="muted">第 ${gi.sort_order} 题 · 满分 ${gi.max_score}</div>
       <div style="margin:8px 0;font-weight:600">${esc(loc.stem || '')}</div>
+      ${ref ? `<div class="muted">参考答案：</div>
+      <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:13px">${esc(ref)}</div>` : ''}
       <div class="muted">学生作答：</div>
       <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#f8fafc;border-radius:8px">${esc(gi.answer_text || '（未作答）')}</div>
       <div class="grade-score-row">
