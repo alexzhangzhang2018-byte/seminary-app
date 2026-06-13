@@ -286,9 +286,10 @@ export function examContentLang(checkIn, paper) {
   return paper?.exam_lang || checkIn?.exam_lang || 'zh';
 }
 
-/** 教师端卷名：科目 + 年级（如「希伯来书-一年级」） */
+/** 教师端卷名：保留版本标识，如「希伯来书-简单版-一年级」 */
 export function teacherPaperTitle(title, grade, lang = 'zh') {
-  const base = resolvePaperDisplayTitle({ title }, lang);
+  let base = stripYearSuffix(title);
+  base = base.replace(/[（(]简单版[)）]/, '-简单版');
   if (!grade) return base;
   return `${base}-${gradeLabel(grade, lang)}`;
 }
