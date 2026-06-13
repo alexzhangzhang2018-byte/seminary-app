@@ -4170,6 +4170,63 @@ function applicantHometownDisplay(ap){
     .map(x=>String(x||'').trim()).find(Boolean);
   return v||'';
 }
+/** 手机号区号 → 国家/地区（看板卡片一眼识别用） */
+const PHONE_DIAL_COUNTRY_ZH={
+  '86':'中国','852':'香港','853':'澳门','886':'台湾',
+  '91':'印度','977':'尼泊尔','880':'孟加拉国','92':'巴基斯坦','975':'不丹','94':'斯里兰卡',
+  '62':'印尼','63':'菲律宾','66':'泰国','84':'越南','855':'柬埔寨','856':'老挝','95':'缅甸',
+  '60':'马来西亚','65':'新加坡','81':'日本','82':'韩国',
+  '971':'阿联酋','974':'卡塔尔','966':'沙特','965':'科威特','973':'巴林','968':'阿曼',
+  '234':'尼日利亚','254':'肯尼亚','233':'加纳','256':'乌干达','255':'坦桑尼亚',
+  '880':'孟加拉国',
+};
+const PHONE_TEXT_COUNTRY_ZH={
+  bangladesh:'孟加拉国',india:'印度',nepal:'尼泊尔',pakistan:'巴基斯坦',china:'中国',
+  indonesia:'印尼',philippines:'菲律宾',bhutan:'不丹',myanmar:'缅甸',thailand:'泰国',
+  vietnam:'越南',srilanka:'斯里兰卡',malaysia:'马来西亚',singapore:'新加坡',
+};
+function inferCountryLabelFromOriginText(text){
+  const t=String(text||'').toLowerCase();
+  if(!t.trim()) return '';
+  if(/pakistan|pakistani|巴基斯坦|islamabad|karachi|lahore|punjab|peshawar|伊斯兰堡|卡拉奇|拉合尔/.test(t)) return '巴基斯坦';
+  if(/nepal|尼泊尔|kathmandu|加德满都|pokhara|博克拉/.test(t)) return '尼泊尔';
+  if(/bangladesh|孟加拉|dhaka|chittagong|达卡/.test(t)) return '孟加拉国';
+  if(/india|indian|印度|jharkhand|dehradun|roorkee|muzaffarnagar|godda|bihar|delhi|mumbai|kolkata|uttar|pradesh|haryana|punjab,\s*india/.test(t)) return '印度';
+  if(/china|中国|黑龙江|江苏|北京|上海|广东|四川|浙江|福建|山东|河南|河北|湖北|湖南|安徽|江西|辽宁|吉林|陕西|甘肃|云南|贵州|海南|内蒙古|广西|西藏|宁夏|新疆|台湾|香港|澳门/.test(t)) return '中国';
+  if(/indonesia|印尼|jakarta|雅加达|manado|tolikara|surabaya|bandung|medan|papua|irian/.test(t)) return '印尼';
+  if(/philippines|菲律宾|manila|cebu/.test(t)) return '菲律宾';
+  if(/sri\s*lanka|斯里兰卡|colombo/.test(t)) return '斯里兰卡';
+  if(/myanmar|缅甸|yangon/.test(t)) return '缅甸';
+  if(/thailand|泰国|bangkok/.test(t)) return '泰国';
+  if(/vietnam|越南|hanoi|ho chi minh/.test(t)) return '越南';
+  if(/bhutan|不丹/.test(t)) return '不丹';
+  if(/uae|emirates|阿联酋|dubai|abu dhabi/.test(t)) return '阿联酋';
+  return '';
+}
+function inferCountryLabelFromPhone(phone){
+  const raw=String(phone||'').trim();
+  if(!raw) return '';
+  const textHit=raw.match(/^([a-z][a-z\s]{2,20})/i);
+  if(textHit){
+    const key=textHit[1].toLowerCase().replace(/\s/g,'');
+    if(PHONE_TEXT_COUNTRY_ZH[key]) return PHONE_TEXT_COUNTRY_ZH[key];
+    const fromText=inferCountryLabelFromOriginText(textHit[1]);
+    if(fromText) return fromText;
+  }
+  let digits=raw.replace(/[^\d+]/g,'');
+  if(digits.startsWith('00')) digits=digits.slice(2);
+  if(digits.startsWith('+')) digits=digits.slice(1);
+  const codes=Object.keys(PHONE_DIAL_COUNTRY_ZH).sort((a,b)=>b.length-a.length);
+  for(const code of codes){
+    if(digits.startsWith(code)) return PHONE_DIAL_COUNTRY_ZH[code];
+  }
+  return '';
+}
+function applicantCountryLabel(ap){
+  return inferCountryLabelFromPhone(ap?.phone)
+    || inferCountryLabelFromOriginText(applicantHometownDisplay(ap))
+    || '';
+}
 function computeSurveyAlertFromSurveyJson(sur){
   const drug=String(sur.drug_history||sur.drug_hist||sur.substance_history||'').toLowerCase()==='yes';
   const drugDet=String(sur.drug_detail||sur.drug_detail_line||sur.substance_detail||'').trim();
@@ -5577,8 +5634,9 @@ function renderPipeline(){
   ).join('')}</select><span class="t12 c-gray5">${track==='all'?'共 '+filtered.length+' 人':'本类 '+filtered.length+' 人'}</span>`;
   const cardHtml=(ap)=>{
     const isNpCampus=getApplicantCampusCode(ap)==='np';
+    const countryLbl=isNpCampus?applicantCountryLabel(ap):'';
     const contactLines=isNpCampus
-      ? `${ap.phone?`<div class="t11 c-gray4 mb1">📞 ${esc(ap.phone)}</div>`:''}<div class="t11 c-gray5">籍贯 ${esc(applicantHometownDisplay(ap)||'—')}</div>`
+      ? `${ap.phone?`<div class="t11 c-gray4 mb1">📞 ${esc(ap.phone)}</div>`:''}${countryLbl?`<div class="t11 c-gray5">${esc(countryLbl)}</div>`:''}`
       : `<div class="t11 c-gray5 mb1 row g1 wrap" style="align-items:center">${esc(examLangLabelShort(getApplicantExamLang(ap)))}${applicantCampusTagHtml(ap)}</div>${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}`;
     return `<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
             ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
