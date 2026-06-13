@@ -113,7 +113,7 @@ function dayErrorText(code) {
   const map = {
     forbidden: '无权限',
     day_not_found: '考试日不存在',
-    day_not_closed: '仅可删除已结束的考试日（请先在「考试管理」一键终止）',
+    day_not_closed: '考试日不存在或已删除',
     date_exists: '该日期已有考试日',
   };
   return map[code] || code;
@@ -586,14 +586,14 @@ function renderAdmin() {
       <h2>考试管理</h2>
       <p class="muted" style="margin-bottom:12px;line-height:1.65;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
         <strong>一键终止考试</strong>：立即关闭所选考试日，并强制交卷所有进行中的答卷。<br>
-        <strong>删除考试日</strong>：仅适用于状态为 <code>closed</code>（已结束）的考试日；将永久删除该日全部签到、答卷与成绩，并从成绩列表下拉中移除。<br>
+        <strong>删除考试日</strong>：永久删除该日全部排考、签到与答卷（未开始或进行中均可删，用于重新排考）。<br>
         <strong>清除测试账号</strong>：仅删除测试用签到与答卷（姓名 <strong>张</strong>、手机尾号 <strong>5668</strong>），不影响其他考生。
       </p>
       <label class="muted">选择考试日</label>
       <select class="sel" id="admin-day">${dayOpts || '<option value="">— 暂无考试日 —</option>'}</select>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
         <button class="btn btn-danger" type="button" id="btn-end-day">一键终止考试</button>
-        <button class="btn btn-o" type="button" id="btn-delete-day" style="border-color:#fca5a5;color:#dc2626">删除已结束的考试日</button>
+        <button class="btn btn-o" type="button" id="btn-delete-day" style="border-color:#fca5a5;color:#dc2626">删除考试日</button>
         <button class="btn btn-o" type="button" id="btn-clear-test-student" style="border-color:#fca5a5;color:#dc2626">清除测试账号（张 / 5668）</button>
       </div>
       <p class="muted" id="admin-status" style="margin-top:12px"></p>
@@ -611,8 +611,9 @@ function renderAdmin() {
       await loadAll();
       render();
     } else {
-      st.textContent = res.data?.error || res.error?.message || '失败';
-      toast('操作失败');
+      const err = res.data?.error || res.error?.message || '失败';
+      st.textContent = dayErrorText(err) || err;
+      toast(err.includes('23514') ? '终止失败：考试尚未开始，请改用「删除考试日」' : (dayErrorText(err) || '操作失败'));
     }
   };
 
@@ -622,11 +623,7 @@ function renderAdmin() {
     if (!id) { toast('请选择考试日'); return; }
     const day = S.days.find((d) => d.id === id);
     const label = day ? `${day.title}（${day.exam_date}）` : '该考试日';
-    if (day?.status !== 'closed') {
-      toast('只能删除已结束的考试日；请先点「一键终止考试」');
-      return;
-    }
-    if (!confirm(`确定永久删除「${label}」？\n\n将删除该日全部签到、答卷与成绩，且无法恢复。`)) return;
+    if (!confirm(`确定永久删除「${label}」？\n\n将删除该日全部排考、签到与答卷，且无法恢复。`)) return;
     const res = await sb.rpc('staff_student_exam_delete_day', { p_exam_day_id: id });
     const st = document.getElementById('admin-status');
     if (res.data?.ok) {
