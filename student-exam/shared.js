@@ -46,6 +46,7 @@ export const UI = {
     submit: '交卷',
     submitted_ok: '答卷已提交，谢谢！',
     timer: '剩余时间',
+    timer_10m: '距离自动交卷还剩约 10 分钟，请抓紧完成并检查答案。',
     proctor_warn: '检测到切屏（已记录）',
     no_exam: '今日暂无安排的考试，请联系教务。',
     err: '操作失败，请重试',
@@ -85,6 +86,7 @@ export const UI = {
     submit: 'Submit',
     submitted_ok: 'Submitted. Thank you!',
     timer: 'Time left',
+    timer_10m: 'About 10 minutes left before auto-submit. Please finish and review your answers.',
     proctor_warn: 'Tab switch recorded',
     no_exam: 'No exam scheduled today.',
     err: 'Something went wrong',
@@ -124,6 +126,7 @@ export const UI = {
     submit: 'Kumpulkan',
     submitted_ok: 'Terkirim. Terima kasih!',
     timer: 'Sisa waktu',
+    timer_10m: 'Sekitar 10 menit lagi ujian akan dikumpulkan otomatis. Selesaikan dan periksa jawaban Anda.',
     proctor_warn: 'Pindah tab tercatat',
     no_exam: 'Tidak ada ujian hari ini.',
     err: 'Gagal',
@@ -329,6 +332,59 @@ export function essayTextareaSpec(q) {
   return { rows: 6, sizeCls: 'essay-sm' };
 }
 
+/** 简答字数：中文按字符（不计空白），英/印尼语按词 */
+export function essayCountUnits(text, lang = 'zh') {
+  const s = String(text || '');
+  if (lang === 'zh') return s.replace(/\s/g, '').length;
+  const words = s.trim().split(/\s+/).filter(Boolean);
+  return words.length;
+}
+
+export function parseEssayLengthHint(sectionLabel, lang = 'zh') {
+  const lbl = String(sectionLabel || '');
+  let m = lbl.match(/(\d+)\s*[–\-]\s*(\d+)\s*字/);
+  if (m) return { min: +m[1], max: +m[2], unit: 'char' };
+  m = lbl.match(/(\d+)\s*[–\-]\s*(\d+)\s*kata/i);
+  if (m) return { min: +m[1], max: +m[2], unit: 'word' };
+  m = lbl.match(/(\d+)\s*[–\-]\s*(\d+)\s*(?:words?|characters?)/i);
+  if (m) return { min: +m[1], max: +m[2], unit: lang === 'zh' ? 'char' : 'word' };
+  return null;
+}
+
+export function formatEssayCountLabel(count, lang = 'zh', hint = null) {
+  const L = ['zh', 'en', 'id'].includes(lang) ? lang : 'zh';
+  const range = hint ? ` / ${hint.min}–${hint.max}` : '';
+  if (L === 'zh') return `已写 ${count}${range} 字`;
+  if (L === 'id') return `${count}${range} kata`;
+  return `${count}${range} words`;
+}
+
+function updateEssayCounter(ta, lang) {
+  const hint = parseEssayLengthHint(ta.dataset.sectionLabel || '', lang);
+  const n = essayCountUnits(ta.value, lang);
+  const el = ta.parentElement?.querySelector('.essay-count');
+  if (!el) return;
+  el.textContent = formatEssayCountLabel(n, lang, hint);
+  el.classList.remove('essay-count-ok', 'essay-count-low');
+  if (!hint || n === 0) return;
+  if (n >= hint.min) el.classList.add('essay-count-ok');
+  else el.classList.add('essay-count-low');
+}
+
+/** 绑定简答题字数统计（考试页 render 后调用） */
+export function installEssayCounters(root, lang = 'zh') {
+  if (!root) return;
+  root.querySelectorAll('textarea[data-kind="essay"]').forEach((ta) => {
+    if (ta.dataset.countBound === '1') {
+      updateEssayCounter(ta, lang);
+      return;
+    }
+    ta.dataset.countBound = '1';
+    ta.addEventListener('input', () => updateEssayCounter(ta, lang));
+    updateEssayCounter(ta, lang);
+  });
+}
+
 export function renderQuestionHtml(q, answers, lang) {
   const gid = q.group_id;
   const cur = answers[gid];
@@ -356,7 +412,11 @@ export function renderQuestionHtml(q, answers, lang) {
     ).join('');
   } else if (q.type === 'essay') {
     const { rows, sizeCls } = essayTextareaSpec(q);
-    body = `<textarea class="textarea essay-area ${sizeCls}" rows="${rows}" data-gid="${esc(gid)}" data-kind="essay" placeholder="">${esc(cur || '')}</textarea>`;
+    const secLbl = esc(q.section_label || '');
+    body = `<div class="essay-wrap">
+      <textarea class="textarea essay-area ${sizeCls}" rows="${rows}" data-gid="${esc(gid)}" data-kind="essay" data-section-label="${secLbl}" placeholder="">${esc(cur || '')}</textarea>
+      <div class="essay-count" aria-live="polite"></div>
+    </div>`;
   } else if (q.type === 'dictation') {
     body = `<textarea class="textarea" rows="5" data-gid="${esc(gid)}" data-kind="dictation" placeholder="">${esc(cur || '')}</textarea>`;
   } else {

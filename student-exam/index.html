@@ -61,6 +61,9 @@ a{color:#4f46e5}
 .q-no{font-weight:800;color:#4f46e5}
 .q-score{font-size:12px;color:#6b7280}
 .q-stem{font-size:16px;line-height:1.7;margin-bottom:12px;white-space:pre-wrap}
+.essay-wrap .essay-count{font-size:12px;color:#6b7280;margin-top:8px;text-align:right;font-variant-numeric:tabular-nums}
+.essay-count-ok{color:#15803d;font-weight:600}
+.essay-count-low{color:#b45309;font-weight:600}
 .opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;cursor:pointer}
 .opt input{margin-top:3px}
 .cover-grid{display:grid;gap:10px;margin:14px 0}
@@ -94,7 +97,7 @@ import {
   createSb, SESSION_KEY, LANG_KEY, t, esc, fmtTime, fmtTimer,
   gradeLabel, trackLabel, classTrackOptions, examLangForTrack,
   resolvePaperDisplayTitle, examContentLang,
-  renderExamWithSections, collectAnswers, installProctor,
+  renderExamWithSections, collectAnswers, installProctor, installEssayCounters,
 } from './shared.js';
 
 const sb = createSb();
@@ -112,6 +115,7 @@ const S = {
   proctorFlags: 0,
   timerSec: 0,
   timerTotal: 0,
+  timerWarn10m: false,
 };
 
 let timerIv = null;
@@ -248,6 +252,7 @@ async function resumeAttempt(sub) {
   const endMs = new Date(S.subject.end_at).getTime();
   S.timerSec = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
   S.timerTotal = S.timerSec;
+  S.timerWarn10m = false;
   S.view = 'exam';
   render();
   startTimer();
@@ -289,6 +294,7 @@ async function startExam() {
   const endMs = new Date(S.subject.end_at).getTime();
   S.timerSec = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
   S.timerTotal = S.timerSec;
+  S.timerWarn10m = false;
   S.view = 'exam';
   render();
   startTimer();
@@ -302,12 +308,20 @@ async function startExam() {
 
 function startTimer() {
   clearInterval(timerIv);
+  if (S.timerSec <= 600 && !S.timerWarn10m) {
+    S.timerWarn10m = true;
+    toast(t(S.uiLang, 'timer_10m'), false);
+  }
   timerIv = setInterval(() => {
     S.timerSec--;
     const d = document.getElementById('timer-d');
     const f = document.getElementById('timer-fill');
     if (d) d.textContent = fmtTimer(S.timerSec);
     if (f && S.timerTotal) f.style.width = `${((S.timerTotal - S.timerSec) / S.timerTotal) * 100}%`;
+    if (S.timerSec <= 600 && !S.timerWarn10m) {
+      S.timerWarn10m = true;
+      toast(t(S.uiLang, 'timer_10m'), false);
+    }
     if (S.timerSec <= 0) submitExam('timeout');
   }, 1000);
 }
@@ -494,6 +508,9 @@ function render() {
   else if (S.view === 'done') html = renderDone();
   app.innerHTML = html;
   bind();
+  if (S.view === 'exam') {
+    installEssayCounters(document.getElementById('exam-root'), examContentLang(S.checkIn, S.paper));
+  }
 }
 
 function bindTrackPills() {
