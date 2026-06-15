@@ -6,6 +6,34 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 export const SESSION_KEY = 'mms_student_exam_token_v1';
 export const LANG_KEY = 'mms_student_exam_lang_v1';
+export const COVER_CONFIRMED_KEY = 'mms_student_exam_cover_v1';
+
+export function coverConfirmedStorageKey(examDayId, token) {
+  return `${examDayId || ''}:${token || ''}`;
+}
+
+export function isCoverConfirmed(examDayId, token) {
+  if (!examDayId || !token) return false;
+  try {
+    const raw = localStorage.getItem(COVER_CONFIRMED_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    return data?.key === coverConfirmedStorageKey(examDayId, token);
+  } catch {
+    return false;
+  }
+}
+
+export function setCoverConfirmed(examDayId, token) {
+  if (!examDayId || !token) return;
+  localStorage.setItem(COVER_CONFIRMED_KEY, JSON.stringify({
+    key: coverConfirmedStorageKey(examDayId, token),
+  }));
+}
+
+export function clearCoverConfirmed() {
+  localStorage.removeItem(COVER_CONFIRMED_KEY);
+}
 
 export function createSb() {
   if (typeof supabase === 'undefined') return null;
@@ -20,10 +48,10 @@ export const UI = {
     full_name: '姓名',
     grade: '年级',
     grade1: '一年级', grade2: '二年级', grade3: '三年级',
-    class_track: '班级',
-    track_zh: '中文班',
-    track_en: '英文班',
-    track_id: '印尼语班',
+    class_track: '试卷语言',
+    track_zh: '中文',
+    track_en: '英文',
+    track_id: '印尼语',
     exam_lang: '答卷语言',
     phone_last4: '手机/WhatsApp 后 4 位（选填，换设备时恢复）',
     btn_checkin: '签到并开始',
@@ -41,14 +69,29 @@ export const UI = {
     btn_continue: '继续答题',
     btn_done: '已完成',
     cover_title: '请确认卷头信息',
+    cover_hint: '今日只需确认一次。确认后将进入所选科目；其他科目不再重复确认。',
+    cover_entering: '即将进入',
     cover_name: '姓名',
     cover_confirm: '确认无误，开始答题',
+    btn_edit_checkin: '修改签到信息',
+    btn_save_checkin: '保存修改',
+    btn_cancel_edit: '返回科目列表',
+    checkin_edit_hint: '尚未开始任何科目时可修改姓名、年级与试卷语言。保存后返回科目列表。',
+    checkin_saved: '签到信息已更新',
+    err_check_in_locked: '已有科目开始或交卷，无法修改试卷语言',
     submit: '交卷',
     submitted_ok: '答卷已提交，谢谢！',
     timer: '剩余时间',
+    timer_10m: '距离自动交卷还剩约 10 分钟，请抓紧完成并检查答案。',
     proctor_warn: '检测到切屏（已记录）',
     no_exam: '今日暂无安排的考试，请联系教务。',
     err: '操作失败，请重试',
+    err_submit: '交卷失败，正在重试…',
+    err_submit_fail: '交卷失败，请保持页面打开并多次点击「交卷」，或联系教务',
+    err_submit_network: '网络繁忙，请稍等几秒后再次点击「交卷」',
+    err_window_closed: '考试已结束过久，请联系教务协助交卷',
+    err_submitting: '正在提交答卷，请勿关闭页面…',
+    btn_submit_retry: '再次交卷',
     loading: '加载中…',
     back_schedule: '返回日程',
   },
@@ -59,10 +102,10 @@ export const UI = {
     full_name: 'Full name',
     grade: 'Year',
     grade1: 'Year 1', grade2: 'Year 2', grade3: 'Year 3',
-    class_track: 'Class',
-    track_zh: 'Chinese class',
-    track_en: 'English class',
-    track_id: 'Indonesian class',
+    class_track: 'Exam paper language',
+    track_zh: 'Chinese',
+    track_en: 'English',
+    track_id: 'Indonesian',
     exam_lang: 'Exam language',
     phone_last4: 'Last 4 digits of phone/WhatsApp (optional)',
     btn_checkin: 'Check in',
@@ -80,14 +123,29 @@ export const UI = {
     btn_continue: 'Continue',
     btn_done: 'Done',
     cover_title: 'Confirm cover sheet',
+    cover_hint: 'Confirm once today. After this you can enter each subject without repeating.',
+    cover_entering: 'Entering',
     cover_name: 'Name',
     cover_confirm: 'Confirm & start',
+    btn_edit_checkin: 'Edit check-in',
+    btn_save_checkin: 'Save changes',
+    btn_cancel_edit: 'Back to schedule',
+    checkin_edit_hint: 'You may edit name, year, and paper language before starting any subject.',
+    checkin_saved: 'Check-in updated',
+    err_check_in_locked: 'Cannot change paper language after a subject has started or been submitted',
     submit: 'Submit',
     submitted_ok: 'Submitted. Thank you!',
     timer: 'Time left',
+    timer_10m: 'About 10 minutes left before auto-submit. Please finish and review your answers.',
     proctor_warn: 'Tab switch recorded',
     no_exam: 'No exam scheduled today.',
     err: 'Something went wrong',
+    err_submit: 'Submit failed, retrying…',
+    err_submit_fail: 'Submit failed. Keep this page open and tap Submit again, or contact the office.',
+    err_submit_network: 'Network busy. Wait a few seconds and tap Submit again.',
+    err_window_closed: 'Exam window closed. Please contact the office.',
+    err_submitting: 'Submitting… Please do not close this page.',
+    btn_submit_retry: 'Submit again',
     loading: 'Loading…',
     back_schedule: 'Back to schedule',
   },
@@ -98,10 +156,10 @@ export const UI = {
     full_name: 'Nama lengkap',
     grade: 'Angkatan',
     grade1: 'Tahun 1', grade2: 'Tahun 2', grade3: 'Tahun 3',
-    class_track: 'Kelas',
-    track_zh: 'Kelas Bahasa Cina',
-    track_en: 'Kelas Bahasa Inggris',
-    track_id: 'Kelas Bahasa Indonesia',
+    class_track: 'Bahasa kertas ujian',
+    track_zh: 'Bahasa Cina',
+    track_en: 'Bahasa Inggris',
+    track_id: 'Bahasa Indonesia',
     exam_lang: 'Bahasa ujian',
     phone_last4: '4 digit terakhir HP/WhatsApp (opsional)',
     btn_checkin: 'Check-in',
@@ -119,14 +177,29 @@ export const UI = {
     btn_continue: 'Lanjutkan',
     btn_done: 'Selesai',
     cover_title: 'Konfirmasi identitas',
+    cover_hint: 'Cukup konfirmasi sekali hari ini. Mata kuliah lain tidak perlu konfirmasi ulang.',
+    cover_entering: 'Akan masuk',
     cover_name: 'Nama',
     cover_confirm: 'Konfirmasi & mulai',
+    btn_edit_checkin: 'Ubah check-in',
+    btn_save_checkin: 'Simpan perubahan',
+    btn_cancel_edit: 'Kembali ke jadwal',
+    checkin_edit_hint: 'Sebelum mulai mata kuliah apa pun, Anda dapat mengubah nama, angkatan, dan bahasa kertas ujian.',
+    checkin_saved: 'Check-in diperbarui',
+    err_check_in_locked: 'Tidak dapat mengubah bahasa setelah ada mata kuliah yang dimulai atau dikumpulkan',
     submit: 'Kumpulkan',
     submitted_ok: 'Terkirim. Terima kasih!',
     timer: 'Sisa waktu',
+    timer_10m: 'Sekitar 10 menit lagi ujian akan dikumpulkan otomatis. Selesaikan dan periksa jawaban Anda.',
     proctor_warn: 'Pindah tab tercatat',
     no_exam: 'Tidak ada ujian hari ini.',
     err: 'Gagal',
+    err_submit: 'Gagal mengumpulkan, mencoba lagi…',
+    err_submit_fail: 'Gagal mengumpulkan. Biarkan halaman terbuka dan tekan lagi, atau hubungi kantor.',
+    err_submit_network: 'Jaringan sibuk. Tunggu beberapa detik lalu tekan Kumpulkan lagi.',
+    err_window_closed: 'Waktu ujian sudah lewat. Hubungi kantor.',
+    err_submitting: 'Mengirim jawaban… Jangan tutup halaman.',
+    btn_submit_retry: 'Kumpulkan lagi',
     loading: 'Memuat…',
     back_schedule: 'Kembali ke jadwal',
   },
@@ -174,6 +247,7 @@ export const COURSE_TITLE_LOCALES = {
   启示录: { zh: '启示录', en: 'Revelation', id: 'Wahyu' },
   撒母耳记: { zh: '撒母耳记', en: 'Samuel', id: 'Samuel' },
   HEB: { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
+  'HEB-S': { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
   PSA: { zh: '诗篇', en: 'Psalms', id: 'Mazmur' },
   REV: { zh: '启示录', en: 'Revelation', id: 'Wahyu' },
   SAM: { zh: '撒母耳记', en: 'Samuel', id: 'Samuel' },
@@ -187,12 +261,18 @@ function stripYearSuffix(title) {
   return String(title || '').replace(/\s+\d{4}-\d{4}\s*$/, '').trim();
 }
 
+function stripPaperTitleSuffix(title) {
+  return stripYearSuffix(title).replace(/[（(]简单版[)）]\s*$/, '').trim();
+}
+
 /** 由课程名 / 课程代码推断 title_locales */
 export function inferTitleLocales(title, courseCode) {
-  const base = stripYearSuffix(title);
+  const base = stripPaperTitleSuffix(title);
   const code = String(courseCode || '').trim().toUpperCase();
+  if (code === 'HEB-S') return { ...COURSE_TITLE_LOCALES.HEB };
   if (COURSE_TITLE_LOCALES[code]) return { ...COURSE_TITLE_LOCALES[code] };
   if (COURSE_TITLE_LOCALES[base]) return { ...COURSE_TITLE_LOCALES[base] };
+  if (base.startsWith('希伯来书')) return { ...COURSE_TITLE_LOCALES.HEB };
   for (const locs of Object.values(COURSE_TITLE_LOCALES)) {
     if (Object.values(locs).some((v) => v === base)) return { ...locs };
   }
@@ -224,9 +304,10 @@ export function examContentLang(checkIn, paper) {
   return paper?.exam_lang || checkIn?.exam_lang || 'zh';
 }
 
-/** 教师端卷名：科目 + 年级（如「希伯来书-一年级」） */
+/** 教师端卷名：保留版本标识，如「希伯来书-简单版-一年级」 */
 export function teacherPaperTitle(title, grade, lang = 'zh') {
-  const base = resolvePaperDisplayTitle({ title }, lang);
+  let base = stripYearSuffix(title);
+  base = base.replace(/[（(]简单版[)）]/, '-简单版');
   if (!grade) return base;
   return `${base}-${gradeLabel(grade, lang)}`;
 }
@@ -356,17 +437,47 @@ export function formatEssayCountLabel(count, lang = 'zh', hint = null) {
   return `${count}${range} words`;
 }
 
+function essayCountUnitLabel(lang, hint) {
+  const L = ['zh', 'en', 'id'].includes(lang) ? lang : 'zh';
+  if (!hint) return '';
+  if (L === 'zh') return `${hint.min}–${hint.max} 字`;
+  if (L === 'id') return `${hint.min}–${hint.max} kata`;
+  return `${hint.min}–${hint.max} words`;
+}
+
+function essayCountTipLabel(lang) {
+  const L = ['zh', 'en', 'id'].includes(lang) ? lang : 'zh';
+  if (L === 'zh') return '字数偏少';
+  if (L === 'id') return 'Terlalu sedikit';
+  return 'Below suggested length';
+}
+
+function essayCountWrittenLabel(count, lang) {
+  const L = ['zh', 'en', 'id'].includes(lang) ? lang : 'zh';
+  if (L === 'zh') return `已写 <span class="essay-count-n">${count}</span>`;
+  if (L === 'id') return `<span class="essay-count-n">${count}</span> kata`;
+  return `<span class="essay-count-n">${count}</span> words`;
+}
+
 function updateEssayCounter(ta, lang) {
   const hint = parseEssayLengthHint(ta.dataset.sectionLabel || '', lang);
   const n = essayCountUnits(ta.value, lang);
   const el = ta.parentElement?.querySelector('.essay-count');
   if (!el) return;
-  el.textContent = formatEssayCountLabel(n, lang, hint);
-  el.classList.remove('essay-count-ok', 'essay-count-low', 'essay-count-high');
-  if (!hint || n === 0) return;
-  if (n >= hint.min && n <= hint.max) el.classList.add('essay-count-ok');
-  else if (n < hint.min) el.classList.add('essay-count-low');
-  else if (n > hint.max) el.classList.add('essay-count-high');
+  el.classList.remove('essay-count-ok', 'essay-count-low');
+  if (!hint) {
+    el.textContent = formatEssayCountLabel(n, lang, null);
+    return;
+  }
+  const state = n > 0 && n < hint.min ? 'low' : (n >= hint.min ? 'ok' : 'neutral');
+  if (state === 'low') el.classList.add('essay-count-low');
+  if (state === 'ok') el.classList.add('essay-count-ok');
+  const req = esc(essayCountUnitLabel(lang, hint));
+  const written = essayCountWrittenLabel(n, lang);
+  const tip = state === 'low'
+    ? `<span class="essay-count-tip">${esc(essayCountTipLabel(lang))}</span> `
+    : '';
+  el.innerHTML = `${tip}${written} / <span class="essay-count-req">${req}</span>`;
 }
 
 /** 绑定简答题字数统计（考试页 render 后调用） */
