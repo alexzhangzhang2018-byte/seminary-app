@@ -105,7 +105,7 @@ import {
   gradeLabel, trackLabel, classTrackOptions, examLangForTrack,
   resolvePaperDisplayTitle, examContentLang,
   renderExamWithSections, collectAnswers, installProctor, installEssayCounters,
-  isCoverConfirmed, setCoverConfirmed, clearCoverConfirmed,
+  isCoverConfirmed, setCoverConfirmed, clearCoverConfirmed, withTimeout,
 } from './shared.js';
 
 const sb = createSb();
@@ -125,6 +125,7 @@ const S = {
   timerTotal: 0,
   timerWarn10m: false,
   editingCheckIn: false,
+  submitting: false,
 };
 
 let timerIv = null;
@@ -148,26 +149,38 @@ function setLang(lang) {
 }
 
 async function loadToday() {
-  if (!sb) { toast('Database unavailable', false); return; }
-  const { data, error } = await sb.rpc('student_exam_get_today');
-  if (error || !data?.ok) {
-    S.examDay = null;
-    S.view = 'no_exam';
+  if (!sb) {
+    S.view = 'boot_err';
     return;
   }
-  S.examDay = data.exam_day;
-  if (S.token) {
-    const sch = await sb.rpc('student_exam_get_schedule', { p_token: S.token });
-    if (sch.data?.ok) {
-      S.checkIn = sch.data.check_in;
-      S.schedule = sch.data.subjects || [];
-      S.view = 'schedule';
+  S.view = 'loading';
+  render();
+  try {
+    const { data, error } = await withTimeout(sb.rpc('student_exam_get_today'), 28000);
+    if (error) throw error;
+    if (!data?.ok) {
+      S.examDay = null;
+      S.view = 'no_exam';
       return;
     }
-    S.token = null;
-    localStorage.removeItem(SESSION_KEY);
+    S.examDay = data.exam_day;
+    if (S.token) {
+      const sch = await withTimeout(sb.rpc('student_exam_get_schedule', { p_token: S.token }), 28000);
+      if (sch.data?.ok) {
+        S.checkIn = sch.data.check_in;
+        S.schedule = sch.data.subjects || [];
+        S.view = 'schedule';
+        return;
+      }
+      S.token = null;
+      localStorage.removeItem(SESSION_KEY);
+    }
+    S.view = 'checkin';
+  } catch (e) {
+    console.warn('loadToday', e);
+    S.view = 'boot_err';
+    toast(t(S.uiLang, 'err_load_fail'), false);
   }
-  S.view = 'checkin';
 }
 
 function getCheckInTrack() {
@@ -184,9 +197,38 @@ function rpcErrorText(code) {
   const key = {
     check_in_locked: 'err_check_in_locked',
     phone_last4_required: 'phone_last4',
+    window_closed: 'err_window_closed',
+    submit_failed: 'err_submit_fail',
     not_found: 'err',
   }[code];
   return key ? t(S.uiLang, key) : code;
+}
+
+function isNetworkError(err) {
+  const m = String(err?.message || err || '').toLowerCase();
+  return m.includes('fetch') || m.includes('network') || m.includes('timeout') || m.includes('failed to load');
+}
+
+async function rpcWithRetry(fn, payload, { tries = 5, delayMs = 2000 } = {}) {
+  let lastErr = null;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const { data, error } = await sb.rpc(fn, payload);
+      if (!error && data?.ok !== false) return { data, error: null };
+      if (data?.ok === false && data?.error === 'already_submitted') return { data, error: null };
+      if (data?.ok === false && !isNetworkError({ message: data?.error })) {
+        return { data, error: error || { message: data?.error } };
+      }
+      lastErr = error || { message: data?.error || 'rpc_fail' };
+    } catch (e) {
+      lastErr = e;
+    }
+    if (i < tries - 1) {
+      toast(t(S.uiLang, 'err_submit'), false);
+      await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+  return { data: null, error: lastErr };
 }
 
 function goEditCheckIn() {
@@ -383,24 +425,39 @@ async function saveDraft() {
 }
 
 async function submitExam(submitType = 'manual') {
+  if (S.submitting) return;
+  S.submitting = true;
   clearInterval(timerIv);
   clearInterval(draftIv);
   const root = document.getElementById('exam-root');
   S.answers = collectAnswers(root);
-  const { data, error } = await sb.rpc('student_exam_submit', {
+  const btn = document.getElementById('btn-submit');
+  if (btn) { btn.disabled = true; btn.textContent = t(S.uiLang, 'err_submitting'); }
+  toast(t(S.uiLang, 'err_submitting'), true);
+
+  const { data, error } = await rpcWithRetry('student_exam_submit', {
     p_token: S.token,
     p_attempt_id: S.attempt.id,
     p_answers: S.answers,
     p_proctor_flags: S.proctorFlags,
     p_submit_type: submitType,
-  });
-  if (error || !data?.ok) {
+  }, { tries: submitType === 'timeout' ? 8 : 5, delayMs: 2500 });
+
+  S.submitting = false;
+  if (btn) { btn.disabled = false; btn.textContent = t(S.uiLang, 'submit'); }
+
+  if (error || (!data?.ok && !data?.already)) {
     if (data?.error !== 'already_submitted') {
-      toast(data?.error || t(S.uiLang, 'err'), false);
+      const msg = data?.error
+        ? rpcErrorText(data.error)
+        : (isNetworkError(error) ? t(S.uiLang, 'err_submit_network') : t(S.uiLang, 'err_submit_fail'));
+      toast(msg, false);
+      startDraftSave();
       return;
     }
   }
   S.view = 'done';
+  toast(t(S.uiLang, 'submitted_ok'));
   await refreshSchedule();
   render();
 }
@@ -543,7 +600,8 @@ function renderDone() {
 function render() {
   const app = document.getElementById('app');
   let html = '';
-  if (S.view === 'loading') html = `<div class="card"><p>${esc(t(S.uiLang, 'loading'))}</p></div>`;
+  if (S.view === 'loading') html = `<div class="card"><p>${esc(t(S.uiLang, 'loading'))}</p><p class="hint">${esc(t(S.uiLang, 'loading_slow'))}</p><button class="btn btn-o" id="btn-reload-today">${esc(t(S.uiLang, 'btn_retry_load'))}</button></div>`;
+  else if (S.view === 'boot_err') html = `<div class="card"><p>${esc(t(S.uiLang, 'err_load_fail'))}</p><p class="hint">${esc(t(S.uiLang, 'loading_slow'))}</p><button class="btn btn-p" id="btn-reload-today">${esc(t(S.uiLang, 'btn_retry_load'))}</button></div>`;
   else if (S.view === 'no_exam') html = `<div class="card"><p>${esc(t(S.uiLang, 'no_exam'))}</p></div>`;
   else if (S.view === 'checkin') html = renderCheckin();
   else if (S.view === 'schedule') html = renderSchedule();
@@ -570,6 +628,7 @@ function bindTrackPills() {
 
 function bind() {
   bindTrackPills();
+  document.getElementById('btn-reload-today')?.addEventListener('click', () => loadToday().then(render));
   document.getElementById('btn-checkin')?.addEventListener('click', () => doCheckIn(false));
   document.getElementById('btn-resume')?.addEventListener('click', () => doCheckIn(true));
   document.getElementById('btn-edit-checkin')?.addEventListener('click', goEditCheckIn);

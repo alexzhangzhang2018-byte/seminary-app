@@ -37,7 +37,25 @@ export function clearCoverConfirmed() {
 
 export function createSb() {
   if (typeof supabase === 'undefined') return null;
-  return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const timedFetch = (url, options = {}) => {
+    const ctrl = new AbortController();
+    const ms = Number(options.__timeoutMs) > 0 ? Number(options.__timeoutMs) : 28000;
+    const { __timeoutMs, ...rest } = options;
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { ...rest, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+  };
+  return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { fetch: timedFetch },
+  });
+}
+
+export function withTimeout(promise, ms = 28000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('timeout')), ms);
+    }),
+  ]);
 }
 
 export const UI = {
@@ -86,7 +104,16 @@ export const UI = {
     proctor_warn: '检测到切屏（已记录）',
     no_exam: '今日暂无安排的考试，请联系教务。',
     err: '操作失败，请重试',
+    err_submit: '交卷失败，正在重试…',
+    err_submit_fail: '交卷失败，请保持页面打开并多次点击「交卷」，或联系教务',
+    err_submit_network: '网络繁忙，请稍等几秒后再次点击「交卷」',
+    err_window_closed: '考试已结束过久，请联系教务协助交卷',
+    err_submitting: '正在提交答卷，请勿关闭页面…',
+    btn_submit_retry: '再次交卷',
     loading: '加载中…',
+    loading_slow: '服务器繁忙，请稍候或点击下方重新加载',
+    btn_retry_load: '重新加载',
+    err_load_fail: '无法连接考试服务器，请检查网络后重试',
     back_schedule: '返回日程',
   },
   en: {
@@ -134,7 +161,16 @@ export const UI = {
     proctor_warn: 'Tab switch recorded',
     no_exam: 'No exam scheduled today.',
     err: 'Something went wrong',
+    err_submit: 'Submit failed, retrying…',
+    err_submit_fail: 'Submit failed. Keep this page open and tap Submit again, or contact the office.',
+    err_submit_network: 'Network busy. Wait a few seconds and tap Submit again.',
+    err_window_closed: 'Exam window closed. Please contact the office.',
+    err_submitting: 'Submitting… Please do not close this page.',
+    btn_submit_retry: 'Submit again',
     loading: 'Loading…',
+    loading_slow: 'Server busy. Please wait or tap Reload below.',
+    btn_retry_load: 'Reload',
+    err_load_fail: 'Cannot reach exam server. Check network and retry.',
     back_schedule: 'Back to schedule',
   },
   id: {
@@ -182,7 +218,16 @@ export const UI = {
     proctor_warn: 'Pindah tab tercatat',
     no_exam: 'Tidak ada ujian hari ini.',
     err: 'Gagal',
+    err_submit: 'Gagal mengumpulkan, mencoba lagi…',
+    err_submit_fail: 'Gagal mengumpulkan. Biarkan halaman terbuka dan tekan lagi, atau hubungi kantor.',
+    err_submit_network: 'Jaringan sibuk. Tunggu beberapa detik lalu tekan Kumpulkan lagi.',
+    err_window_closed: 'Waktu ujian sudah lewat. Hubungi kantor.',
+    err_submitting: 'Mengirim jawaban… Jangan tutup halaman.',
+    btn_submit_retry: 'Kumpulkan lagi',
     loading: 'Memuat…',
+    loading_slow: 'Server sibuk. Tunggu atau tekan Muat ulang.',
+    btn_retry_load: 'Muat ulang',
+    err_load_fail: 'Tidak dapat terhubung ke server ujian. Periksa jaringan.',
     back_schedule: 'Kembali ke jadwal',
   },
 };
