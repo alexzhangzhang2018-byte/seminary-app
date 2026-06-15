@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>内部考试 · 教师端</title>
+<script src="/vendor/supabase.js"></script>
+<script src="/vendor/jszip.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;color:#1e293b;font-size:14px}
+button,input,textarea,select{font:inherit}
+a{color:#4f46e5}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.hdr h1{font-size:18px;font-weight:800}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;font-weight:600}
+.tab.on{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px;margin-bottom:14px}
+.card h2{font-size:15px;font-weight:800;margin-bottom:12px}
+.inp,.sel,.textarea{width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;margin-bottom:8px}
+.textarea{min-height:160px;font-family:ui-monospace,monospace;font-size:12px}
+.btn{padding:9px 16px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:#4f46e5;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-o{background:#fff;color:#4f46e5;border:1px solid #c7d2fe}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid #f1f5f9;text-align:left}
+th{font-size:11px;color:#64748b;text-transform:uppercase}
+tr.sel{background:#eef2ff;cursor:pointer}
+.tag{font-size:11px;padding:3px 8px;border-radius:999px;font-weight:700}
+.tag-pending{background:#fef3c7;color:#92400e}
+.tag-done{background:#dcfce7;color:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+.grade-box{border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px}
+.grade-box.obj-ok{border-color:#86efac;background:#f0fdf4}
+.grade-box.obj-part{border-color:#fde68a;background:#fffbeb}
+.grade-box.obj-miss{border-color:#fecaca;background:#fef2f2}
+.grade-sec{margin:18px 0 10px;font-size:13px;font-weight:800;color:#475569}
+.grade-sec:first-child{margin-top:0}
+.obj-score{font-weight:800;font-size:13px}
+.obj-score.ok{color:#15803d}
+.obj-score.part{color:#b45309}
+.obj-score.miss{color:#b91c1c}
+.grade-score-row{display:flex;align-items:center;gap:10px;margin:12px 0 0}
+.grade-score-row label{font-weight:700;font-size:14px;white-space:nowrap}
+.grade-score-inp{width:72px;padding:8px 6px;font-size:26px;font-weight:800;text-align:center;border:1px solid #cbd5e1;border-radius:8px;margin:0;background:#fff}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:8px}
+.muted{color:#64748b;font-size:12px}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-danger:hover{background:#b91c1c}
+.admin-warn{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px;margin-bottom:12px;color:#991b1b;font-size:13px;line-height:1.6}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transition:.2s;z-index:9}
+.toast.show{opacity:1}
+.lang-tags{display:flex;gap:4px;flex-wrap:wrap}
+.lang-tag{font-size:11px;padding:2px 7px;border-radius:6px;font-weight:700;white-space:nowrap}
+.lang-tag.lang-on{background:#dcfce7;color:#15803d;border:1px solid #86efac}
+.lang-tag.lang-off{background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0;text-decoration:line-through}
+.track-chks{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:8px 0 4px}
+.track-chks label{display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;white-space:nowrap}
+.track-chks input{width:16px;height:16px;margin:0}
+.track-chk-actions{margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <h1>内部考试 · 教师端</h1>
+    <div id="auth-area"></div>
+  </div>
+  <div id="login-panel" class="card" style="max-width:400px">
+    <h2>教务登录</h2>
+    <input class="inp" id="login-email" type="email" placeholder="邮箱">
+    <input class="inp" id="login-pw" type="password" placeholder="密码">
+    <button class="btn" id="btn-login">登录</button>
+    <p class="muted" style="margin-top:10px">使用招生系统同一教务账号（admin / teacher）</p>
+  </div>
+  <div id="main-panel" style="display:none">
+    <div class="tabs">
+      <button class="tab on" data-tab="grades">成绩</button>
+      <button class="tab" data-tab="papers">题库/试卷</button>
+      <button class="tab" data-tab="days">考试日</button>
+      <button class="tab" data-tab="admin">考试管理</button>
+    </div>
+    <div id="tab-grades"></div>
+    <div id="tab-papers" style="display:none"></div>
+    <div id="tab-days" style="display:none"></div>
+    <div id="tab-admin" style="display:none"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script type="module">
+import {
+  createSb, esc, trackLabel, teacherPaperTitle,
+  paperLocaleBadgesHtml, paperLocaleSummary, paperLocaleCodes, withTimeout,
+  isObjectiveType, paperHasObjective, isAllSubjectivePaper,
+  questionLocale, gradeOneQuestion, formatStudentAnswer, formatCorrectAnswer,
+  mergeGradingItems,
+} from './shared.js?v=202606151400';
+
+function trackLabelZh(track) {
+  return trackLabel(track, 'zh');
+}
+import { docxFileToSnapshot, mergeSnapshotsByIndex } from './docx-import.js';
+
+const sb = createSb();
+const S = {
+  user: null,
+  profile: null,
+  tab: 'grades',
+  days: [],
+  papers: [],
+  subjects: [],
+  selectedDayId: null,
+  selectedSubjectId: null,
+  attempts: [],
+  gradingAttempt: null,
+};
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function dayErrorText(code) {
+  const map = {
+    forbidden: '无权限',
+    day_not_found: '考试日不存在',
+    day_not_closed: '考试日不存在或已删除',
+    date_exists: '该日期已有考试日',
+  };
+  return map[code] || code;
+}
+
+function messageForStaffAuthError(err) {
+  const raw = String(err?.message || err || '');
+  const low = raw.toLowerCase();
+  const code = String(err?.code || '');
+  if (low.includes('email not confirmed') || code === 'email_not_confirmed') {
+    return '该邮箱尚未验证：请在 Supabase → Authentication 中将该用户标为已确认（Confirm email）。';
+  }
+  if (low.includes('too many request') || code === 'over_request_rate_limit') {
+    return '尝试过于频繁，请几分钟后再试。';
+  }
+  if (low.includes('invalid login') || low.includes('invalid_grant') || low.includes('invalid credentials')) {
+    return '邮箱或密码不正确。若尚未开通：请管理员在 Supabase → Authentication 添加用户；初始密码常用 392766。';
+  }
+  if (low.includes('fetch') || low.includes('network') || low.includes('failed to fetch') || low.includes('timeout') || low.includes('abort')) {
+    return '网络连接超时，请检查网络后刷新重试（考试日高峰期 Supabase 可能较慢）。';
+  }
+  return raw || '登录失败';
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  if (!email || !pw) { toast('请填写邮箱和密码'); return; }
+  const btn = document.getElementById('btn-login');
+  const prevLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '登录中…';
+  try {
+    const { data, error } = await withTimeout(
+      sb.auth.signInWithPassword({ email, password: pw }),
+      35000,
+    );
+    if (error) { toast(messageForStaffAuthError(error)); return; }
+    S.user = data.user;
+    try {
+      for (let i = 0; i < 5; i++) {
+        const { data: sw } = await withTimeout(sb.auth.getSession(), 8000);
+        if (sw?.session) break;
+        await new Promise((r) => setTimeout(r, 100));
+      }
+    } catch (_) {}
+    const profRes = await withTimeout(
+      sb.from('profiles').select('*').eq('id', data.user.id).single(),
+      20000,
+    );
+    const prof = profRes.data;
+    const profErr = profRes.error;
+    S.profile = prof;
+    if (profErr || !prof) {
+      toast('登录成功，但未找到教务档案。请联系管理员绑定 profiles。');
+      await sb.auth.signOut();
+      return;
+    }
+    if (!['admin', 'teacher'].includes(prof?.role)) {
+      toast(`无权限（当前角色：${prof?.role || '未知'}）。需 admin 或 teacher。`);
+      await sb.auth.signOut();
+      return;
+    }
+    document.getElementById('login-panel').style.display = 'none';
+    document.getElementById('main-panel').style.display = 'block';
+    document.getElementById('auth-area').innerHTML = `<span class="muted">${esc(prof.display_name || email)}</span> <button class="btn-o btn" id="btn-logout" style="margin-left:8px;padding:6px 12px">退出</button>`;
+    document.getElementById('btn-logout').onclick = async () => {
+      await sb.auth.signOut();
+      location.reload();
+    };
+    await loadAll();
+  } catch (e) {
+    toast(messageForStaffAuthError(e));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = prevLabel;
+  }
+}
+
+async function loadAll() {
+  const [d, p] = await Promise.all([
+    sb.rpc('staff_student_exam_list_days'),
+    sb.rpc('staff_student_exam_list_papers'),
+  ]);
+  S.days = d.data?.days || [];
+  if (p.error) {
+    console.warn('list_papers', p.error);
+    toast('加载试卷失败：' + (p.error.message || '请确认已执行数据库迁移'));
+  }
+  S.papers = p.data?.papers || [];
+  if (!S.papers.length) {
+    const { data: rows } = await sb.from('student_exam_papers')
+      .select('id,title,grade,status,total_score,snapshot_json,title_locales,course_code')
+      .order('updated_at', { ascending: false });
+    if (rows?.length) S.papers = rows;
+  }
+  if (!S.selectedDayId && S.days[0]) S.selectedDayId = S.days[0].id;
+  await loadSubjectsForDay();
+  render();
+}
+
+async function loadSubjectsForDay() {
+  S.subjects = [];
+  if (!S.selectedDayId) return;
+  const { data } = await sb.from('student_exam_day_subjects')
+    .select('id,subject_name,grade,class_track,start_at,end_at,sort_order,paper_id')
+    .eq('exam_day_id', S.selectedDayId)
+    .order('sort_order');
+  S.subjects = data || [];
+  if (!S.selectedSubjectId && S.subjects[0]) S.selectedSubjectId = S.subjects[0].id;
+  if (S.selectedSubjectId) await loadAttempts();
+}
+
+async function loadAttempts() {
+  if (!S.selectedSubjectId) { S.attempts = []; return; }
+  const { data } = await sb.rpc('staff_student_exam_list_attempts', { p_day_subject_id: S.selectedSubjectId });
+  S.attempts = data?.attempts || [];
+}
+
+function gradingStatusLabel(status) {
+  if (status === 'done') return '已阅';
+  if (status === 'partial') return '阅卷中';
+  if (status === 'none') return '机评';
+  return '待阅';
+}
+
+function gradingStatusClass(status) {
+  if (status === 'done' || status === 'none') return 'tag-done';
+  return 'tag-pending';
+}
+
+function renderGrades() {
+  const dayOpts = S.days.map((d) =>
+    `<option value="${d.id}"${d.id === S.selectedDayId ? ' selected' : ''}>${esc(d.title)} (${d.exam_date})</option>`
+  ).join('');
+  const subOpts = S.subjects.map((s) =>
+    `<option value="${s.id}"${s.id === S.selectedSubjectId ? ' selected' : ''}>${esc(s.subject_name)} · ${s.grade}年级 · ${esc(trackLabelZh(s.class_track))}</option>`
+  ).join('');
+  const subj = S.subjects.find((s) => s.id === S.selectedSubjectId);
+  const allSubjSubject = subj && /启示录|撒母耳|revelation|samuel|wahyu/i.test(subj.subject_name || '');
+  const rows = S.attempts.map((a) => {
+    const gs = gradingStatusClass(a.grading_status);
+    const gt = allSubjSubject && a.grading_status === 'none' ? '待阅' : gradingStatusLabel(a.grading_status);
+    const objCol = allSubjSubject ? '—' : (a.objective_score ?? '—');
+    return `<tr class="sel" data-aid="${a.id}">
+      <td>${esc(a.display_name)}</td>
+      <td>${a.grade}</td>
+      <td>${esc(trackLabelZh(a.class_track))}</td>
+      <td>${esc(a.exam_lang)}</td>
+      <td>${objCol}</td>
+      <td>${a.subjective_score ?? '—'}</td>
+      <td><strong>${a.total_score ?? '—'}</strong></td>
+      <td><span class="tag ${gs}">${gt}</span></td>
+      <td>${a.proctor_flags || 0}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tab-grades').innerHTML = `
+    <div class="card">
+      <h2>成绩列表</h2>
+      <div class="grid2">
+        <select class="sel" id="sel-day">${dayOpts || '<option>暂无考试日</option>'}</select>
+        <select class="sel" id="sel-subject">${subOpts || '<option>暂无科目</option>'}</select>
+      </div>
+      <button class="btn btn-o" id="btn-export-csv" style="margin:8px 0">导出 CSV</button>
+      <table>
+        <thead><tr>
+          <th>姓名</th><th>年级</th><th>班级</th><th>语言</th><th>客观</th><th>主观</th><th>总分</th><th>阅卷</th><th>切屏</th>
+        </tr></thead>
+        <tbody>${rows || '<tr><td colspan="8" class="muted">暂无答卷</td></tr>'}</tbody>
+      </table>
+    </div>
+    <div id="grade-panel"></div>`;
+
+  document.getElementById('sel-day')?.addEventListener('change', async (e) => {
+    S.selectedDayId = e.target.value;
+    S.selectedSubjectId = null;
+    await loadSubjectsForDay();
+    render();
+  });
+  document.getElementById('sel-subject')?.addEventListener('change', async (e) => {
+    S.selectedSubjectId = e.target.value;
+    await loadAttempts();
+    render();
+  });
+  document.querySelectorAll('[data-aid]').forEach((tr) => {
+    tr.addEventListener('click', () => openGrading(tr.dataset.aid));
+  });
+  document.getElementById('btn-export-csv')?.addEventListener('click', exportCsv);
+}
+
+function exportCsv() {
+  const hdr = ['姓名', '年级', '班级', '语言', '客观分', '主观分', '总分', '阅卷状态', '切屏', '交卷时间'];
+  const lines = S.attempts.map((a) => [
+    a.display_name, a.grade, trackLabelZh(a.class_track), a.exam_lang,
+    a.objective_score ?? '', a.subjective_score ?? '', a.total_score ?? '',
+    a.grading_status, a.proctor_flags ?? 0, a.submitted_at ?? '',
+  ].map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','));
+  const blob = new Blob(['\uFEFF' + hdr.join(',') + '\n' + lines.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'exam-grades.csv';
+  a.click();
+}
+
+async function openGrading(attemptId) {
+  const { data } = await sb.rpc('staff_student_exam_get_attempt', { p_attempt_id: attemptId });
+  if (!data?.ok) { toast('加载失败'); return; }
+  S.gradingAttempt = data;
+
+  const paper = Array.isArray(data.paper) ? data.paper : [];
+  const lang = data.check_in?.exam_lang || 'zh';
+  const answers = data.attempt?.answers_json || {};
+  const allSubjective = isAllSubjectivePaper(paper);
+  const hasObjective = paperHasObjective(paper);
+  const subjectiveItems = mergeGradingItems(paper, answers, data.grading_items || []);
+
+  const objectiveBlocks = hasObjective
+    ? paper
+      .filter((q) => isObjectiveType(q.type))
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      .map((q) => {
+        const loc = questionLocale(q, lang);
+        const userAns = answers[q.group_id];
+        const earned = gradeOneQuestion(q.type, q.score, userAns, loc.answer_key, lang);
+        const max = Number(q.score) || 0;
+        const cls = earned >= max - 0.001 ? 'obj-ok' : earned > 0 ? 'obj-part' : 'obj-miss';
+        const scoreCls = earned >= max - 0.001 ? 'ok' : earned > 0 ? 'part' : 'miss';
+        return `<div class="grade-box ${cls}">
+          <div class="muted">第 ${q.sort_order} 题 · 客观题 · 满分 ${max}</div>
+          <div style="margin:8px 0;font-weight:600;white-space:pre-wrap">${esc(loc.stem || '')}</div>
+          <div class="muted">标准答案：</div>
+          <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:13px">${esc(formatCorrectAnswer(q, lang))}</div>
+          <div class="muted">学生作答：</div>
+          <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#f8fafc;border-radius:8px">${esc(formatStudentAnswer(q, userAns, lang))}</div>
+          <div class="obj-score ${scoreCls}">机评得分：${earned} / ${max}</div>
+        </div>`;
+      }).join('')
+    : '';
+
+  const subjectiveBlocks = subjectiveItems.map((gi) => {
+    const q = paper.find((x) => x.group_id === gi.group_id);
+    const loc = questionLocale(q, lang);
+    const ref = loc.answer_key?.reference;
+    return `<div class="grade-box" data-gid="${esc(gi.group_id)}">
+      <div class="muted">第 ${gi.sort_order} 题 · 主观题 · 满分 ${gi.max_score}</div>
+      <div style="margin:8px 0;font-weight:600;white-space:pre-wrap">${esc(loc.stem || '')}</div>
+      ${ref ? `<div class="muted">参考答案：</div>
+      <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:13px">${esc(ref)}</div>` : ''}
+      <div class="muted">学生作答：</div>
+      <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#f8fafc;border-radius:8px">${esc(gi.answer_text || '（未作答）')}</div>
+      <div class="grade-score-row">
+        <label for="score-${esc(gi.group_id)}">得分</label>
+        <input class="grade-score-inp" id="score-${esc(gi.group_id)}" type="number" min="0" max="${gi.max_score}" step="0.5" data-score value="${gi.score ?? ''}" inputmode="decimal">
+        <span class="muted">/ ${gi.max_score} 分</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  if (!subjectiveItems.length && !hasObjective) {
+    document.getElementById('grade-panel').innerHTML = `<div class="card"><p class="muted">该答卷暂无题目数据</p></div>`;
+    return;
+  }
+
+  const summary = allSubjective
+    ? `<p class="muted">全主观题试卷 · 请逐题评分</p>`
+    : hasObjective
+      ? `<p class="muted">客观题已机评（${data.attempt.objective_score ?? 0} 分）· 主观题请教师评分</p>`
+      : `<p class="muted">客观分：${data.attempt.objective_score ?? '—'}</p>`;
+
+  document.getElementById('grade-panel').innerHTML = `
+    <div class="card">
+      <h2>阅卷 · ${esc(data.attempt.display_name)}</h2>
+      <p class="muted">签到：${esc(data.check_in.full_name)} · ${esc(lang)}</p>
+      ${summary}
+      ${hasObjective ? `<div class="grade-sec">客观题（系统机评，仅供查阅）</div>${objectiveBlocks}` : ''}
+      ${subjectiveItems.length ? `<div class="grade-sec">${hasObjective ? '主观题（教师评分）' : '主观题作答'}</div>${subjectiveBlocks}` : ''}
+      ${subjectiveItems.length ? '<button class="btn" id="btn-save-grade">保存主观题评分</button>' : ''}
+    </div>`;
+
+  document.getElementById('btn-save-grade')?.addEventListener('click', async () => {
+    const payload = [...document.querySelectorAll('.grade-box[data-gid]')].map((box) => ({
+      group_id: box.dataset.gid,
+      score: box.querySelector('[data-score]').value,
+    }));
+    const res = await sb.rpc('staff_student_exam_grade', {
+      p_attempt_id: attemptId,
+      p_items: payload,
+    });
+    if (res.data?.ok) {
+      toast('已保存');
+      await loadAttempts();
+      render();
+      openGrading(attemptId);
+    } else toast(res.data?.error || '保存失败');
+  });
+}
+
+function renderPapers() {
+  const list = S.papers.map((p) =>
+    `<tr data-pid="${p.id}">
+      <td>${esc(teacherPaperTitle(p.title, p.grade))}</td>
+      <td><div class="lang-tags">${paperLocaleBadgesHtml(p)}</div></td>
+      <td>${p.grade}</td><td>${p.total_score}</td><td>${esc(p.status)}</td>
+      <td>${(p.snapshot_json || []).length} 题</td>
+      <td><button class="btn btn-o btn-sm btn-del-paper" type="button" data-pid="${p.id}">删除</button></td>
+    </tr>`
+  ).join('');
+  const sample = JSON.stringify([
+    {
+      group_id: 'demo-1',
+      sort_order: 1,
+      type: 'single',
+      section: 'A',
+      score: 2,
+      locales: {
+        zh: { stem: '示例单选题：……', options: ['A', 'B', 'C'], answer_key: { answer_index: 1 } },
+        en: { stem: 'Sample MCQ…', options: ['A', 'B', 'C'], answer_key: { answer_index: 1 } },
+        id: { stem: 'Contoh pilihan ganda…', options: ['A', 'B', 'C'], answer_key: { answer_index: 1 } },
+      },
+    },
+    {
+      group_id: 'demo-essay',
+      sort_order: 2,
+      type: 'essay',
+      section: 'B',
+      score: 10,
+      locales: {
+        zh: { stem: '论述题：请阐述……', options: [], answer_key: {} },
+        en: { stem: 'Essay: explain…', options: [], answer_key: {} },
+        id: { stem: 'Esai: jelaskan…', options: [], answer_key: {} },
+      },
+    },
+  ], null, 2);
+
+  document.getElementById('tab-papers').innerHTML = `
+    <div class="card">
+      <h2>从 Word 导入试卷（推荐）</h2>
+      <p class="muted" style="margin-bottom:12px;line-height:1.65">
+        支持两种 Word 格式：<br>
+        <strong>课程卷</strong>（如希伯来书）：一、经文填空【】　二、单选　三、判断　四、简答　五、论述<br>
+        <strong>诗篇卷</strong>：一、经文填空【】　二、诗篇小标题　三、诗篇结构　四、简答题（可分别上传中/英 .docx 后保存）<br>
+        <strong>招生卷</strong>：一、填空题{答案}　二、单选题…（题干末尾标答案字母）<br>
+        「考试版」无标准答案也可导入答题；客观题需另备答案卷或在 JSON 里补 <code>answer_key</code> 后才能机评。
+      </p>
+      <input class="inp" id="p-title" placeholder="试卷标题（如：启示录）">
+      <select class="sel" id="p-grade"><option value="1">一年级</option><option value="2">二年级</option><option value="3">三年级</option></select>
+      <div class="grid2" style="margin-top:8px">
+        <div><label class="muted">中文卷 .docx</label><input type="file" id="f-docx-zh" accept=".docx"></div>
+        <div><label class="muted">英文卷 .docx（可选）</label><input type="file" id="f-docx-en" accept=".docx"></div>
+        <div><label class="muted">印尼语卷 .docx（可选）</label><input type="file" id="f-docx-id" accept=".docx"></div>
+      </div>
+      <div class="btn-row" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" type="button" id="btn-import-docx">从 Word 解析到下方</button>
+        <button class="btn btn-o" type="button" id="btn-load-hebrews">加载内置：希伯来书（中/印尼）</button>
+        <button class="btn btn-o" type="button" id="btn-load-psalms">加载内置：诗篇（中/英）</button>
+        <span class="muted" id="import-status"></span>
+      </div>
+      <p class="muted" style="margin-top:8px">上传<strong>答案版</strong> .docx 可自动识别填空【答案】、单选（ B ）、判断（✓/×）。</p>
+    </div>
+    <div class="card">
+      <h2>检查 / 保存（JSON 可手改）</h2>
+      <input class="inp" id="p-course" placeholder="课程代码（可选）">
+      <textarea class="textarea" id="p-json" placeholder="解析后题目会出现在这里">${esc(sample)}</textarea>
+      <button class="btn" id="btn-save-paper">保存试卷</button>
+    </div>
+    <div class="card">
+      <h2>已有试卷</h2>
+      <p class="muted" style="margin-bottom:10px">绿色为已入库语言版本；灰色删除线为尚未包含该语言题干。排考时请为各班级选择含对应语言的试卷。</p>
+      <table><thead><tr><th>标题</th><th>语言版本</th><th>年级</th><th>总分</th><th>状态</th><th>题数</th><th></th></tr></thead>
+      <tbody>${list || '<tr><td colspan="7" class="muted">暂无</td></tr>'}</tbody></table>
+    </div>`;
+
+  document.querySelectorAll('.btn-del-paper').forEach((btn) => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      const pid = btn.dataset.pid;
+      const row = S.papers.find((p) => p.id === pid);
+      if (!confirm(`确定删除试卷「${row?.title || ''}」？`)) return;
+      const res = await sb.rpc('staff_student_exam_delete_paper', { p_id: pid });
+      if (res.data?.ok) { toast('已删除'); await loadAll(); render(); }
+      else if (res.data?.error === 'paper_in_use') toast('该试卷已被考试日引用，无法删除');
+      else toast(res.data?.error || res.error?.message || '删除失败');
+    };
+  });
+
+  document.getElementById('btn-load-hebrews').onclick = async () => {
+    try {
+      const r = await fetch('./papers/hebrews-2025-2026.json');
+      const snap = await r.json();
+      document.getElementById('p-json').value = JSON.stringify(snap, null, 2);
+      document.getElementById('p-title').value = '希伯来书';
+      document.getElementById('p-grade').value = '1';
+      document.getElementById('p-course').value = 'HEB';
+      document.getElementById('import-status').textContent = `已加载 ${snap.length} 题（中文 + 印尼语，含客观题答案）`;
+      toast('希伯来书试卷已加载（中/印尼语），点「保存试卷」入库');
+    } catch (e) {
+      toast('加载失败：' + (e.message || e));
+    }
+  };
+
+  document.getElementById('btn-load-psalms').onclick = async () => {
+    try {
+      const r = await fetch('./papers/psalms-2025-2026.json');
+      const snap = await r.json();
+      document.getElementById('p-json').value = JSON.stringify(snap, null, 2);
+      document.getElementById('p-title').value = '诗篇';
+      document.getElementById('p-grade').value = '1';
+      document.getElementById('p-course').value = 'PSA';
+      document.getElementById('import-status').textContent = `已加载 ${snap.length} 题（中+英，满分 100）`;
+      toast('诗篇试卷已加载，点「保存试卷」入库');
+    } catch (e) {
+      toast('加载失败：' + (e.message || e));
+    }
+  };
+
+  document.getElementById('btn-import-docx').onclick = async () => {
+    const status = document.getElementById('import-status');
+    status.textContent = '解析中…';
+    try {
+      const parts = [];
+      const zh = document.getElementById('f-docx-zh').files[0];
+      const en = document.getElementById('f-docx-en').files[0];
+      const idf = document.getElementById('f-docx-id').files[0];
+      if (!zh && !en && !idf) { toast('请至少选择一个 .docx 文件'); status.textContent = ''; return; }
+      let totalNeedKey = 0;
+      let fmt = '';
+      for (const [file, lang] of [[zh, 'zh'], [en, 'en'], [idf, 'id']]) {
+        if (!file) continue;
+        const r = await docxFileToSnapshot(file, lang);
+        parts.push({ lang, snapshot: r.snapshot });
+        totalNeedKey = Math.max(totalNeedKey, r.needsAnswerKey || 0);
+        fmt = r.format || fmt;
+      }
+      const merged = parts.length === 1 ? parts[0].snapshot : mergeSnapshotsByIndex(parts);
+      document.getElementById('p-json').value = JSON.stringify(merged, null, 2);
+      const title = document.getElementById('p-title');
+      const src = zh || en || idf;
+      if (!title.value.trim() && src) title.value = src.name.replace(/\.docx$/i, '');
+      status.textContent = `已解析 ${merged.length} 题（${fmt === 'course' ? '课程卷' : '招生卷'}）`;
+      if (totalNeedKey > 0) {
+        toast(`已解析 ${merged.length} 题；其中 ${totalNeedKey} 道客观题缺标准答案，需补答案卷或教师阅卷`);
+      } else {
+        toast('Word 已解析，请检查后保存');
+      }
+    } catch (e) {
+      console.error(e);
+      status.textContent = '';
+      toast(e.message || '解析失败', false);
+    }
+  };
+
+  document.getElementById('btn-save-paper').onclick = async () => {
+    let snap;
+    try { snap = JSON.parse(document.getElementById('p-json').value); }
+    catch { toast('JSON 格式错误'); return; }
+    const res = await sb.rpc('staff_student_exam_upsert_paper', {
+      p_id: null,
+      p_title: document.getElementById('p-title').value,
+      p_grade: +document.getElementById('p-grade').value,
+      p_course_code: document.getElementById('p-course').value,
+      p_snapshot_json: snap,
+      p_status: 'published',
+    });
+    if (res.data?.ok) { toast('试卷已保存'); await loadAll(); }
+    else toast(res.data?.error || '失败');
+  };
+}
+
+function paperSelectHtml(selectedId) {
+  if (!S.papers.length) {
+    return '<option value="">— 请先到「题库/试卷」创建试卷 —</option>';
+  }
+  const opts = S.papers.map((p) => {
+    const langs = paperLocaleSummary(p);
+    const suffix = langs ? ` [${langs}]` : '';
+    return `<option value="${p.id}"${p.id === selectedId ? ' selected' : ''}>${esc(teacherPaperTitle(p.title, p.grade))}${esc(suffix)}</option>`;
+  }).join('');
+  return `<option value="">— 选择试卷 —</option>${opts}`;
+}
+
+function subjectRowHtml(opts = {}) {
+  const { zh = true, en = true, id = true } = opts;
+  return `<div class="sub-row" style="margin-bottom:12px;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
+    <div class="grid2">
+      <div><label class="muted">科目名称</label><input class="inp sub-name" placeholder="如：启示录"></div>
+      <div><label class="muted">绑定试卷 <span style="color:#dc2626">*</span></label><select class="sel sub-paper">${paperSelectHtml()}</select></div>
+      <div><label class="muted">年级</label><input class="inp sub-grade" type="number" min="1" max="3" value="1"></div>
+      <div>
+        <label class="muted">班级（可多选，同一时段三语同考）</label>
+        <div class="track-chks">
+          <label><input type="checkbox" class="sub-track-chk" value="zh"${zh ? ' checked' : ''}> 中文班</label>
+          <label><input type="checkbox" class="sub-track-chk" value="en"${en ? ' checked' : ''}> 英文班</label>
+          <label><input type="checkbox" class="sub-track-chk" value="id"${id ? ' checked' : ''}> 印尼语班</label>
+        </div>
+        <div class="track-chk-actions">
+          <button type="button" class="btn btn-o btn-sm btn-track-all">全选三语</button>
+        </div>
+      </div>
+      <div><label class="muted">开始时间</label><input class="inp sub-start" type="datetime-local"></div>
+      <div><label class="muted">结束时间</label><input class="inp sub-end" type="datetime-local"></div>
+    </div>
+  </div>`;
+}
+
+function bindSubjectRowActions(root) {
+  (root || document).querySelectorAll('.btn-track-all').forEach((btn) => {
+    btn.onclick = () => {
+      const row = btn.closest('.sub-row');
+      row?.querySelectorAll('.sub-track-chk').forEach((c) => { c.checked = true; });
+    };
+  });
+}
+
+function selectedTracksFromRow(row) {
+  return [...row.querySelectorAll('.sub-track-chk:checked')].map((c) => c.value);
+}
+
+const TRACK_LABELS = { zh: '中文', en: '英文', id: '印尼语' };
+
+function parseLocalDatetime(val) {
+  if (!val) return null;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function renderDays() {
+  const noPaperWarn = S.papers.length
+    ? ''
+    : '<p class="muted" style="margin-bottom:12px;padding:10px;background:#fef3c7;border-radius:8px;color:#92400e">⚠️ 还没有试卷。请先到上方 <strong>题库/试卷</strong> 标签保存至少一份试卷，再回来排考。</p>';
+  document.getElementById('tab-days').innerHTML = `
+    <div class="card">
+      <h2>创建考试日</h2>
+      ${noPaperWarn}
+      <input class="inp" id="d-title" placeholder="例如：2026 春季期末考">
+      <input class="inp" id="d-date" type="date">
+      <p class="muted" style="margin-bottom:12px;line-height:1.65">同一科目、同一时段若三语班级都要考：在一行里勾选「中文班 / 英文班 / 印尼语班」（默认三语全选），填一次时间与试卷即可；保存时自动拆成三条排考。也可只勾选一个班。</p>
+      <div id="sub-rows">${subjectRowHtml()}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <button class="btn btn-o" id="btn-add-sub" type="button">+ 添加科目</button>
+        <button class="btn btn-o" id="btn-add-sub-tri" type="button">+ 添加科目（三语同考）</button>
+      </div>
+      <div style="margin-top:10px"><button class="btn" id="btn-save-day">保存考试日</button></div>
+    </div>
+    <div class="card">
+      <h2>已有考试日</h2>
+      <ul>${S.days.map((d) => `<li>${esc(d.title)} — ${d.exam_date} (${d.status})${d.status === 'closed' ? ' · 同日保存可覆盖重启' : ''}</li>`).join('') || '<li class="muted">暂无</li>'}</ul>
+      <p class="muted" style="margin-top:8px">每天只能有一个考试日；若日期已存在，保存时将覆盖科目并重新启用。</p>
+    </div>`;
+
+  document.getElementById('btn-add-sub').onclick = () => {
+    document.getElementById('sub-rows').insertAdjacentHTML('beforeend', subjectRowHtml({ zh: true, en: false, id: false }));
+    bindSubjectRowActions(document.getElementById('sub-rows'));
+  };
+
+  document.getElementById('btn-add-sub-tri').onclick = () => {
+    document.getElementById('sub-rows').insertAdjacentHTML('beforeend', subjectRowHtml({ zh: true, en: true, id: true }));
+    bindSubjectRowActions(document.getElementById('sub-rows'));
+  };
+
+  bindSubjectRowActions(document.getElementById('sub-rows'));
+
+  document.getElementById('btn-save-day').onclick = async () => {
+    if (!S.papers.length) {
+      toast('请先到「题库/试卷」创建并保存至少一份试卷');
+      return;
+    }
+    const rows = [...document.querySelectorAll('.sub-row')];
+    const subjects = [];
+    let sort = 0;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const subject_name = row.querySelector('.sub-name')?.value?.trim();
+      const paper_id = row.querySelector('.sub-paper')?.value;
+      const grade = +row.querySelector('.sub-grade')?.value;
+      const tracks = selectedTracksFromRow(row);
+      const startRaw = row.querySelector('.sub-start')?.value;
+      const endRaw = row.querySelector('.sub-end')?.value;
+      const start_at = parseLocalDatetime(startRaw);
+      const end_at = parseLocalDatetime(endRaw);
+      const empty = !subject_name && !paper_id && !startRaw && !endRaw && !tracks.length;
+      if (empty) continue;
+      if (!subject_name) { toast(`第 ${i + 1} 门：请填写科目名称`); return; }
+      if (!paper_id) { toast(`第 ${i + 1} 门「${subject_name}」：请选择试卷`); return; }
+      if (!tracks.length) { toast(`第 ${i + 1} 门「${subject_name}」：请至少勾选一个班级`); return; }
+      if (!start_at || !end_at) { toast(`第 ${i + 1} 门「${subject_name}」：请填写开始/结束时间`); return; }
+      if (end_at <= start_at) { toast(`第 ${i + 1} 门「${subject_name}」：结束时间须晚于开始时间`); return; }
+      const paper = S.papers.find((p) => p.id === paper_id);
+      const locales = new Set(paper ? paperLocaleCodes(paper) : []);
+      for (const class_track of tracks) {
+        if (paper && !locales.has(class_track)) {
+          toast(`第 ${i + 1} 门「${subject_name}」：试卷不含${TRACK_LABELS[class_track]}题干，请换卷或取消勾选`);
+          return;
+        }
+        subjects.push({ subject_name, paper_id, grade, class_track, start_at, end_at, sort_order: sort++ });
+      }
+    }
+    if (!subjects.length) { toast('请至少填写一门完整科目（含试卷与时间）'); return; }
+    const title = document.getElementById('d-title')?.value?.trim();
+    const examDate = document.getElementById('d-date')?.value;
+    if (!title) { toast('请填写考试日名称'); return; }
+    if (!examDate) { toast('请选择考试日期'); return; }
+    const existing = S.days.find((d) => d.exam_date === examDate);
+    if (existing && !confirm(`该日期已有考试日「${existing.title}」（${existing.status}），将覆盖科目安排并重新启用。继续？`)) return;
+    const res = await sb.rpc('staff_student_exam_upsert_day', {
+      p_id: null,
+      p_title: title,
+      p_exam_date: examDate,
+      p_status: 'active',
+      p_subjects: subjects,
+    });
+    if (res.data?.ok) {
+      toast(res.data.reused_date ? '考试日已更新（同日覆盖）' : '考试日已创建');
+      await loadAll();
+      render();
+    } else toast(dayErrorText(res.data?.error) || res.error?.message || '失败');
+  };
+}
+
+function renderAdmin() {
+  const dayOpts = S.days.map((d) =>
+    `<option value="${d.id}">${esc(d.title)} — ${d.exam_date} (${d.status})</option>`
+  ).join('');
+  document.getElementById('tab-admin').innerHTML = `
+    <div class="card">
+      <h2>考试管理</h2>
+      <p class="muted" style="margin-bottom:12px;line-height:1.65;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
+        <strong>一键终止考试</strong>：立即关闭所选考试日，并强制交卷所有进行中的答卷。<br>
+        <strong>删除考试日</strong>：永久删除该日全部排考、签到与答卷（未开始或进行中均可删，用于重新排考）。<br>
+        <strong>清除测试账号</strong>：仅删除测试用签到与答卷（姓名 <strong>张</strong>、手机尾号 <strong>5668</strong>），不影响其他考生。
+      </p>
+      <label class="muted">选择考试日</label>
+      <select class="sel" id="admin-day">${dayOpts || '<option value="">— 暂无考试日 —</option>'}</select>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn btn-danger" type="button" id="btn-end-day">一键终止考试</button>
+        <button class="btn btn-o" type="button" id="btn-delete-day" style="border-color:#fca5a5;color:#dc2626">删除考试日</button>
+        <button class="btn btn-o" type="button" id="btn-clear-test-student" style="border-color:#fca5a5;color:#dc2626">清除测试账号（张 / 5668）</button>
+      </div>
+      <p class="muted" id="admin-status" style="margin-top:12px"></p>
+    </div>`;
+
+  document.getElementById('btn-end-day').onclick = async () => {
+    const id = document.getElementById('admin-day').value;
+    if (!id) { toast('请选择考试日'); return; }
+    if (!confirm('确定终止该考试日？所有未交卷学生将被强制交卷，且无法再开考。')) return;
+    const res = await sb.rpc('staff_student_exam_end_day', { p_exam_day_id: id });
+    const st = document.getElementById('admin-status');
+    if (res.data?.ok) {
+      st.textContent = `已终止。强制交卷 ${res.data.forced_submit_count ?? 0} 份。`;
+      toast('考试已终止');
+      await loadAll();
+      render();
+    } else {
+      const err = res.data?.error || res.error?.message || '失败';
+      st.textContent = dayErrorText(err) || err;
+      toast(err.includes('23514') ? '终止失败：考试尚未开始，请改用「删除考试日」' : (dayErrorText(err) || '操作失败'));
+    }
+  };
+
+  document.getElementById('btn-delete-day').onclick = async () => {
+    const sel = document.getElementById('admin-day');
+    const id = sel.value;
+    if (!id) { toast('请选择考试日'); return; }
+    const day = S.days.find((d) => d.id === id);
+    const label = day ? `${day.title}（${day.exam_date}）` : '该考试日';
+    if (!confirm(`确定永久删除「${label}」？\n\n将删除该日全部排考、签到与答卷，且无法恢复。`)) return;
+    const res = await sb.rpc('staff_student_exam_delete_day', { p_exam_day_id: id });
+    const st = document.getElementById('admin-status');
+    if (res.data?.ok) {
+      st.textContent = `已删除考试日「${res.data.title || label}」。`;
+      toast('考试日已删除');
+      if (S.selectedDayId === id) S.selectedDayId = null;
+      await loadAll();
+      render();
+    } else {
+      const err = res.data?.error || res.error?.message || '失败';
+      st.textContent = dayErrorText(err) || err;
+      if (err.includes('Could not find') || err.includes('does not exist')) {
+        toast('请先在 Supabase 执行迁移 20260613100000_student_exam_delete_day.sql');
+      } else {
+        toast(dayErrorText(err) || '删除失败');
+      }
+    }
+  };
+
+  document.getElementById('btn-clear-test-student').onclick = async () => {
+    const id = document.getElementById('admin-day').value;
+    if (!id) { toast('请选择考试日'); return; }
+    if (!confirm('确定清除测试账号「张 / 尾号 5668」在该考试日的签到与答卷？其他考生不受影响。')) return;
+    const res = await sb.rpc('staff_student_exam_clear_test_student', {
+      p_exam_day_id: id,
+      p_full_name: '张',
+      p_phone_last4: '5668',
+    });
+    const st = document.getElementById('admin-status');
+    if (res.data?.ok) {
+      const n = res.data.deleted_check_ins ?? 0;
+      st.textContent = n
+        ? `已删除测试账号 ${res.data.full_name} / ${res.data.phone_last4} 的 ${n} 条签到（含关联答卷）。`
+        : '未找到匹配的测试账号记录（张 / 5668）。';
+      toast(n ? '测试记录已清除' : '无匹配记录');
+      await loadAll();
+      render();
+    } else {
+      const err = res.data?.error || res.error?.message || '失败';
+      st.textContent = err === 'forbidden' ? '无权限' : err;
+      toast(err.includes('does not exist') || err.includes('Could not find')
+        ? '请先在 Supabase 执行迁移 20260611160000_student_exam_clear_test_student.sql'
+        : '操作失败');
+    }
+  };
+}
+
+function render() {
+  document.querySelectorAll('.tab').forEach((t) => {
+    t.classList.toggle('on', t.dataset.tab === S.tab);
+  });
+  document.getElementById('tab-grades').style.display = S.tab === 'grades' ? 'block' : 'none';
+  document.getElementById('tab-papers').style.display = S.tab === 'papers' ? 'block' : 'none';
+  document.getElementById('tab-days').style.display = S.tab === 'days' ? 'block' : 'none';
+  document.getElementById('tab-admin').style.display = S.tab === 'admin' ? 'block' : 'none';
+  if (S.tab === 'grades') renderGrades();
+  if (S.tab === 'papers') renderPapers();
+  if (S.tab === 'days') renderDays();
+  if (S.tab === 'admin') renderAdmin();
+}
+
+document.querySelectorAll('.tab').forEach((t) => {
+  t.addEventListener('click', () => { S.tab = t.dataset.tab; render(); });
+});
+document.getElementById('btn-login').addEventListener('click', login);
+
+withTimeout(sb.auth.getSession(), 20000).then(async ({ data }) => {
+  if (!data?.session?.user) return;
+  S.user = data.session.user;
+  const { data: prof } = await withTimeout(
+    sb.from('profiles').select('*').eq('id', S.user.id).single(),
+    20000,
+  );
+  if (!['admin', 'teacher'].includes(prof?.role)) return;
+  S.profile = prof;
+  document.getElementById('login-panel').style.display = 'none';
+  document.getElementById('main-panel').style.display = 'block';
+  document.getElementById('auth-area').innerHTML = `<span class="muted">${esc(prof.display_name || S.user.email)}</span> <button class="btn-o btn" id="btn-logout" style="margin-left:8px;padding:6px 12px">退出</button>`;
+  document.getElementById('btn-logout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  await loadAll();
+}).catch(() => {});
+</script>
+</body>
+</html>
