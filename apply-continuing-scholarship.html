@@ -96,6 +96,24 @@ a{color:#4f46e5;text-decoration:none}a:hover{text-decoration:underline}
 
 footer{text-align:center;color:#9ca3af;font-size:11.5px;margin-top:20px}
 footer a{color:#9ca3af}
+
+/* 截止日横幅 */
+.deadline-banner{border-radius:14px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.deadline-banner.active{background:#fff7ed;border:1px solid #fb923c}
+.deadline-banner.expired{background:#fef2f2;border:1px solid #fca5a5}
+.deadline-banner .dl-icon{font-size:22px;flex-shrink:0}
+.deadline-banner .dl-body{flex:1;min-width:0}
+.deadline-banner .dl-title{font-size:13px;font-weight:700;color:#9a3412;margin-bottom:4px}
+.deadline-banner.expired .dl-title{color:#b91c1c}
+.deadline-banner .dl-date{font-size:12px;color:#c2410c;margin-bottom:6px}
+.deadline-banner.expired .dl-date{color:#b91c1c}
+.countdown{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cd-unit{display:inline-flex;flex-direction:column;align-items:center;background:#fff;border:1px solid #fed7aa;border-radius:8px;padding:4px 10px;min-width:44px}
+.cd-num{font-size:18px;font-weight:800;color:#c2410c;line-height:1.2;font-variant-numeric:tabular-nums}
+.cd-lab{font-size:9px;color:#9a3412;letter-spacing:.3px;text-transform:uppercase}
+.deadline-banner.expired .cd-num{color:#b91c1c}
+.deadline-banner.expired .cd-unit{border-color:#fca5a5}
+.expired-msg{font-size:14px;font-weight:800;color:#b91c1c}
 </style>
 </head>
 <body>
@@ -111,6 +129,22 @@ footer a{color:#9ca3af}
         <button data-lang="zh" class="active">中文</button>
         <button data-lang="id">ID</button>
         <button data-lang="en">EN</button>
+      </div>
+    </div>
+
+    <!-- 截止日横幅 -->
+    <div class="deadline-banner active" id="deadline-banner">
+      <div class="dl-icon">⏰</div>
+      <div class="dl-body">
+        <div class="dl-title" id="dl-title"></div>
+        <div class="dl-date" id="dl-date"></div>
+        <div class="countdown" id="countdown">
+          <div class="cd-unit"><span class="cd-num" id="cd-d">--</span><span class="cd-lab" id="cd-d-lab"></span></div>
+          <div class="cd-unit"><span class="cd-num" id="cd-h">--</span><span class="cd-lab" id="cd-h-lab"></span></div>
+          <div class="cd-unit"><span class="cd-num" id="cd-m">--</span><span class="cd-lab" id="cd-m-lab"></span></div>
+          <div class="cd-unit"><span class="cd-num" id="cd-s">--</span><span class="cd-lab" id="cd-s-lab"></span></div>
+        </div>
+        <div class="expired-msg" id="expired-msg" style="display:none"></div>
       </div>
     </div>
 
@@ -272,6 +306,8 @@ footer a{color:#9ca3af}
   var supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
   var CL = window.CL;
+  var SCH_DEADLINE = new Date((CL && CL.SCH_DEADLINE_ISO) || '2026-06-19T22:00:00+07:00');
+  var scholarshipDeadlinePassed = false;
 
   // ── 状态 ────────────────────────────────────────────────────
   var lang = CL.pickLang(navigator.language);
@@ -293,6 +329,49 @@ footer a{color:#9ca3af}
 
   function showEl(id) { s(id).style.display = ''; }
   function hideEl(id) { s(id).style.display = 'none'; }
+
+  function isScholarshipDeadlinePassed() {
+    return CL.isScholarshipDeadlinePassed ? CL.isScholarshipDeadlinePassed() : (new Date() > SCH_DEADLINE);
+  }
+
+  function updateDeadlineBanner() {
+    scholarshipDeadlinePassed = isScholarshipDeadlinePassed();
+    var banner = s('deadline-banner');
+    if (!banner) return;
+
+    s('dl-title').textContent = st('sch.deadline_title');
+    s('dl-date').textContent  = st('sch.deadline_date');
+    s('cd-d-lab').textContent = st('sch.deadline_d');
+    s('cd-h-lab').textContent = st('sch.deadline_h');
+    s('cd-m-lab').textContent = st('sch.deadline_m');
+    s('cd-s-lab').textContent = st('sch.deadline_s');
+
+    var diff = SCH_DEADLINE - new Date();
+    if (diff <= 0) {
+      banner.className = 'deadline-banner expired';
+      s('countdown').style.display = 'none';
+      s('expired-msg').style.display = '';
+      s('expired-msg').textContent = st('sch.deadline_expired');
+      var btnSubmit = s('btn-submit');
+      if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.title = st('sch.deadline_expired'); }
+      return;
+    }
+
+    banner.className = 'deadline-banner active';
+    s('countdown').style.display = '';
+    s('expired-msg').style.display = 'none';
+
+    var totalSec = Math.floor(diff / 1000);
+    var sec = totalSec % 60;
+    var min = Math.floor(totalSec / 60) % 60;
+    var hr  = Math.floor(totalSec / 3600) % 24;
+    var day = Math.floor(totalSec / 86400);
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    s('cd-d').textContent = day;
+    s('cd-h').textContent = pad(hr);
+    s('cd-m').textContent = pad(min);
+    s('cd-s').textContent = pad(sec);
+  }
 
   // ── 语言渲染 ─────────────────────────────────────────────────
   function render() {
@@ -342,6 +421,7 @@ footer a{color:#9ca3af}
         status: (CL.STATUS_LABEL[lang] && CL.STATUS_LABEL[lang][verified.status]) || verified.status
       });
     }
+    updateDeadlineBanner();
   }
 
   // ── 验证身份 ─────────────────────────────────────────────────
@@ -416,6 +496,10 @@ footer a{color:#9ca3af}
       showEl('already-submitted-block');
       s('ui-already-submitted-msg').textContent = st('sch.already_submitted');
       s('ui-go-status').textContent = st('sch.go_status');
+    } else if (isScholarshipDeadlinePassed()) {
+      showEl('already-submitted-block');
+      s('ui-already-submitted-msg').textContent = st('sch.deadline_expired');
+      s('ui-go-status').textContent = st('sch.go_status');
     } else {
       showEl('step-form');
       checkSubmitReady();
@@ -438,13 +522,17 @@ footer a{color:#9ca3af}
     var amount    = parseFloat(s('f-amount').value);
     var committed = s('f-commitment').checked;
     var signName  = s('f-sign-name').value.trim();
-    var ok = !isNaN(amount) && amount > 0 && committed && signName.length > 0;
+    var ok = !isScholarshipDeadlinePassed() && !isNaN(amount) && amount > 0 && committed && signName.length > 0;
     s('btn-submit').disabled = !ok || submitting;
   }
 
   // ── 提交奖学金申请 ───────────────────────────────────────────
   function doSubmit() {
     if (submitting || !verified) return;
+    if (isScholarshipDeadlinePassed()) {
+      toast(st('sch.err.deadline'), true);
+      return;
+    }
 
     s('e-amount').textContent   = '';
     s('e-sign-name').textContent = '';
@@ -492,6 +580,7 @@ footer a{color:#9ca3af}
           not_admitted:      st('sch.err.not_admitted'),
           invalid_amount:    st('sch.err.amount'),
           commitment_name_required: st('sch.err.name'),
+          deadline_passed:   st('sch.err.deadline'),
         }[d && d.error] || (d && d.error) || 'Error';
         toast(msg, true);
         s('btn-submit').disabled = false;
@@ -582,6 +671,8 @@ footer a{color:#9ca3af}
   })();
 
   render();
+  updateDeadlineBanner();
+  setInterval(updateDeadlineBanner, 1000);
 })();
 </script>
 </body>

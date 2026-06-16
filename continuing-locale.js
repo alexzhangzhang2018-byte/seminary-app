@@ -470,6 +470,12 @@
       'sch.err.name':        '请填写签名姓名',
       'sch.err.already':     '您已提交过奖学金申请',
       'sch.err.not_admitted':'您的申请尚未被录取',
+      'sch.err.deadline':    '奖学金申请已截止，无法提交',
+      'sch.deadline_title':  '奖学金申请截止时间',
+      'sch.deadline_date':   '2026年6月19日（周五）晚 10:00（印尼时间 WIB）',
+      'sch.deadline_expired':'🚫 奖学金申请已截止',
+      'sch.deadline_notice': '⏰ 请在 2026年6月19日（周五）晚 10:00（WIB）前提交奖学金申请。',
+      'sch.deadline_d': '天', 'sch.deadline_h': '时', 'sch.deadline_m': '分', 'sch.deadline_s': '秒',
     },
     id: {
       'sch.page_title':      'MMS · Permohonan Beasiswa Program Lanjutan',
@@ -515,6 +521,12 @@
       'sch.err.name':        'Masukkan nama tanda tangan',
       'sch.err.already':     'Anda sudah mengajukan beasiswa',
       'sch.err.not_admitted':'Permohonan Anda belum diterima',
+      'sch.err.deadline':    'Batas waktu permohonan beasiswa telah berakhir',
+      'sch.deadline_title':  'Batas waktu permohonan beasiswa',
+      'sch.deadline_date':   'Jumat, 19 Juni 2026, pukul 22:00 WIB',
+      'sch.deadline_expired':'🚫 Permohonan beasiswa telah ditutup',
+      'sch.deadline_notice': '⏰ Ajukan beasiswa sebelum Jumat, 19 Juni 2026, pukul 22:00 WIB.',
+      'sch.deadline_d': 'hari', 'sch.deadline_h': 'jam', 'sch.deadline_m': 'mnt', 'sch.deadline_s': 'dtk',
     },
     en: {
       'sch.page_title':      'MMS · Advanced Program Scholarship Application',
@@ -560,6 +572,12 @@
       'sch.err.name':        'Please enter your signature name',
       'sch.err.already':     'You have already submitted a scholarship application',
       'sch.err.not_admitted':'Your application has not been admitted yet',
+      'sch.err.deadline':    'The scholarship application deadline has passed',
+      'sch.deadline_title':  'Scholarship application deadline',
+      'sch.deadline_date':   'Friday, June 19, 2026 at 10:00 PM (WIB)',
+      'sch.deadline_expired':'🚫 Scholarship applications are now closed',
+      'sch.deadline_notice': '⏰ Please submit your scholarship application by Friday, June 19, 2026, 10:00 PM (WIB).',
+      'sch.deadline_d': 'days', 'sch.deadline_h': 'hrs', 'sch.deadline_m': 'min', 'sch.deadline_s': 'sec',
     },
   };
 
@@ -585,5 +603,9 @@
     LANGS: ['zh', 'id', 'en'],
     STATUSES: ['submitted', 'under_review', 'interview', 'admitted', 'waitlist', 'rejected'],
     SCH_STATUSES: ['submitted', 'approved', 'rejected'],
+    SCH_DEADLINE_ISO: '2026-06-19T22:00:00+07:00',
+    isScholarshipDeadlinePassed: function () {
+      return new Date() > new Date('2026-06-19T22:00:00+07:00');
+    },
   };
 })(typeof window !== 'undefined' ? window : this);
