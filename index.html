@@ -202,32 +202,6 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 /* Toast */
 .toast{position:fixed;bottom:24px;right:24px;background:#1f2937;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;max-width:min(420px,calc(100vw - 32px))}
 .toast.show{opacity:1}
-/* 公开招生看板 /pipeline-report */
-body.pr-body{background:#f4f5ff;margin:0}
-.pr-wrap{max-width:100%;margin:0 auto;padding:16px 14px 32px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;font-size:14px;line-height:1.45}
-.pr-hdr{margin-bottom:12px}.pr-hdr h1{font-size:18px;font-weight:800;margin:0}
-.pr-sub{font-size:12px;color:#64748b;margin-top:4px}
-.pr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
-.pr-stat-card{background:#fff;border-radius:14px;border:1px solid #f3f4f6;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.pr-stat-val{font-size:28px;font-weight:800;line-height:1.1}
-.pr-stat-lbl{font-size:11px;color:#9ca3af;margin-top:4px}
-.pr-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
-.pr-sel{padding:8px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;font:inherit;min-width:140px}
-.pr-board{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch}
-.pr-col{flex:0 0 168px;min-width:156px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;display:flex;flex-direction:column;max-height:72vh}
-.pr-col-h{padding:8px 10px;font-weight:700;font-size:12px;color:#475569;background:#f8fafc;border-radius:12px 12px 0 0;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;gap:4px;align-items:baseline}
-.pr-col-n{background:#e2e8f0;color:#64748b;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;flex-shrink:0}
-.pr-col-body{overflow-y:auto;flex:1}
-.pr-row{padding:7px 10px;border-bottom:1px solid #f8fafc}
-.pr-row:last-child{border-bottom:none}
-.pr-row .n{font-weight:600;font-size:12px;line-height:1.35;word-break:break-word}
-.pr-row .s{font-size:11px;margin-top:2px;color:#4f46e5;font-weight:700}
-.pr-row .s.none{color:#cbd5e1;font-weight:400}
-.pr-col-empty{padding:12px 8px;font-size:11px;color:#cbd5e1;text-align:center}
-.pr-load,.pr-err{padding:24px;text-align:center}.pr-err{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:12px}
-.pr-cnt{font-size:12px;color:#64748b;margin-left:auto}
-.pr-note{font-size:11px;color:#94a3b8;margin-top:10px;text-align:center}
-@media(max-width:600px){.pr-stats{grid-template-columns:repeat(2,1fr);gap:8px}.pr-stat-card{padding:10px 6px}}
 
 /* Notif preview */
 .notif-preview{background:rgba(0,0,0,.03);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7;color:#374151;margin-top:8px;border-left:3px solid #c7d2fe;white-space:pre-line}
@@ -1356,7 +1330,6 @@ const A = {
   loginMode: null,   // 'applicant' | 'staff'
   adminDataLoading: false, // 职员登录/恢复会话：先出工作台壳，再异步拉 applicants/slots/records
   staffCacheCount: 0, // 管理端本地缓存条数（用于“秒开”提示）
-  pipelineShareUrl: null, // 招生看板只读分享链接（免登录）
   pipelineTrack: 'all', // 申请人看板筛选：all | zh | en | id | ai | np
 
   // Applicant exam state
@@ -5572,56 +5545,14 @@ function renderAdmin(){
   </div>`;
 }
 
-function buildPipelineReportUrl(){
-  return new URL('pipeline-report.html', window.location.href).href;
-}
-function ensurePipelineShareUrl(){
-  if(!A.pipelineShareUrl) A.pipelineShareUrl=buildPipelineReportUrl();
-  return A.pipelineShareUrl;
-}
-function renderPipelineShareCard(){
-  const url=ensurePipelineShareUrl();
-  return `<div class="card p4 mb4" style="background:linear-gradient(135deg,#f0fdf4,#ecfeff);border-color:#bbf7d0">
-    <div class="fw7 c-gray8 t14 mb2">📤 招生看板分享（免登录）</div>
-    <div class="t12 c-gray5 mb3 lh16">老师无需登录，打开固定链接即可查看当前申请人及各阶段进度。请仅发给内部老师。</div>
-    <div class="row g2 wrap" style="align-items:center">
-      <input id="pipeline-share-url" class="inp flex1" readonly value="${esc(url)}" style="margin:0;font-size:12px">
-      <button class="btn btn-primary btn-sm" type="button" id="btn-pipeline-share-copy">复制链接</button>
-      <button class="btn btn-outline btn-sm" type="button" id="btn-pipeline-share-open">预览</button>
-    </div>
-  </div>`;
-}
-function wirePipelineShareUi(){
+function wirePipelineTrackFilter(){
   if(A.adminTab!=='pipeline'||(A.role!=='admin'&&A.role!=='teacher')) return;
-  const inp=document.getElementById('pipeline-share-url');
   const trackSel=document.getElementById('pipeline-track-filter');
-  if(!inp&&!trackSel) return;
-  const url=ensurePipelineShareUrl();
-  if(inp) inp.value=url;
-  if(trackSel&&!trackSel.dataset.wired){
-    trackSel.dataset.wired='1';
-    trackSel.addEventListener('change',e=>{
-      A.pipelineTrack=e.target.value||'all';
-      render();
-    });
-  }
-  const wireBtn=(id, fn)=>{
-    const el=document.getElementById(id);
-    if(!el || el.dataset.wired) return;
-    el.dataset.wired='1';
-    el.addEventListener('click', fn);
-  };
-  wireBtn('btn-pipeline-share-copy', async()=>{
-    try{
-      await navigator.clipboard.writeText(url);
-      toast('链接已复制，可发给老师');
-    }catch(e){
-      inp.select();
-      try{ document.execCommand('copy'); toast('链接已复制'); }catch(_){ toast('请手动复制链接',false); }
-    }
-  });
-  wireBtn('btn-pipeline-share-open', ()=>{
-    window.open(url,'_blank','noopener');
+  if(!trackSel||trackSel.dataset.wired) return;
+  trackSel.dataset.wired='1';
+  trackSel.addEventListener('change',e=>{
+    A.pipelineTrack=e.target.value||'all';
+    render();
   });
 }
 
@@ -5649,7 +5580,6 @@ function renderPipeline(){
   };
   const emptyHtml=`<div class="pipeline-col-empty">暂无</div>`;
   return `<div>
-    ${renderPipelineShareCard()}
     <div class="row g2 pipeline-toolbar wrap" style="align-items:center;margin-bottom:12px">
       ${canAddAp?`<button class="btn btn-primary" data-action="show-add-ap-modal" style="min-height:44px">➕ 手动添加申请人</button>`:''}
       ${trackSelHtml}
@@ -6272,7 +6202,7 @@ function render(){
   if(A.role==='applicant'&&A.applicant?.stage==='exam'&&A.examStarted&&!A.examSubmitted) startTimer();
   syncInterviewSlotPoll();
   syncStaffApplicantsPoll();
-  wirePipelineShareUi();
+  wirePipelineTrackFilter();
 }
 
 // 弹窗遮罩：仅点击灰色背景才关闭（避免手机端误触内容区导致弹窗关闭、保存失败）
@@ -7510,103 +7440,6 @@ function bind(){
 }
 
 // ══════════════════════════════════════════════════════════════
-// 公开招生看板（免登录，/pipeline-report.html 或 ?pipeline-report=1）
-// ══════════════════════════════════════════════════════════════
-function isPublicPipelineReportPage(){
-  if(new URLSearchParams(location.search).get('pipeline-report')==='1') return true;
-  return /\/pipeline-report(?:\.html)?\/?$/i.test(location.pathname||'');
-}
-const PIPELINE_REPORT_STAGES=[
-  {id:'apply',label:'报名'},{id:'exam',label:'笔试'},{id:'interview',label:'面试'},
-  {id:'result',label:'预录取'},{id:'materials',label:'资料'},{id:'visa',label:'签证'},{id:'complete',label:'完成'},
-];
-let prSnapshot=null;
-let prTrack='all';
-function prFilterApps(apps){
-  return filterApplicantsByPipelineTrack(apps,prTrack);
-}
-function prComputeStats(list){
-  return [
-    {label:'总申请人',value:list.length,color:'#4f46e5'},
-    {label:'待笔试',value:list.filter(a=>a.stage==='exam').length,color:'#2563eb'},
-    {label:'待面试',value:list.filter(a=>a.stage==='interview').length,color:'#7c3aed'},
-    {label:'资料/签证',value:list.filter(a=>['materials','visa','complete'].includes(a.stage)).length,color:'#16a34a'},
-  ];
-}
-function prRenderStats(apps){
-  const stats=prComputeStats(prFilterApps(apps));
-  return `<div class="pr-stats" id="pr-stats-row">${stats.map(s=>
-    `<div class="pr-stat-card"><div class="pr-stat-val" style="color:${s.color}">${s.value}</div><div class="pr-stat-lbl">${esc(s.label)}</div></div>`
-  ).join('')}</div>`;
-}
-function prScoreHtml(ap){
-  if(ap.exam_score!=null&&ap.exam_score!=='') return `<div class="s">${esc(ap.exam_score)} 分</div>`;
-  return '<div class="s none">—</div>';
-}
-function prRenderBoard(apps){
-  const list=prFilterApps(apps);
-  if(!list.length) return '<div class="pr-col-empty" style="padding:24px">该分类下暂无申请人</div>';
-  return PIPELINE_REPORT_STAGES.map(st=>{
-    const inStage=list.filter(a=>a.stage===st.id)
-      .sort((a,b)=>String(a.display_name).localeCompare(String(b.display_name),'zh'));
-    const body=inStage.length
-      ? inStage.map(ap=>`<div class="pr-row"><div class="n">${esc(ap.display_name)}</div>${prScoreHtml(ap)}</div>`).join('')
-      : '<div class="pr-col-empty">—</div>';
-    return `<div class="pr-col"><div class="pr-col-h"><span>${esc(st.label)}</span><span class="pr-col-n">${inStage.length}</span></div><div class="pr-col-body">${body}</div></div>`;
-  }).join('');
-}
-function prRenderShell(){
-  const apps=prSnapshot?.applicants||[];
-  const at=prSnapshot?.generated_at?new Date(prSnapshot.generated_at):null;
-  document.getElementById('pr-subline').textContent=at?`更新于 ${at.toLocaleString('zh-CN',{hour12:false})}`:'按阶段横向查看';
-  document.getElementById('pr-root').innerHTML=`
-    ${prRenderStats(apps)}
-    <div class="pr-toolbar">
-      <select class="pr-sel" id="pr-track-filter">${PIPELINE_TRACKS.map(t=>
-        `<option value="${t.id}"${t.id===prTrack?' selected':''}>${esc(t.label)}</option>`
-      ).join('')}</select>
-      <button class="btn btn-outline btn-sm" type="button" id="pr-refresh">刷新</button>
-      <span class="pr-cnt" id="pr-list-cnt">共 ${prFilterApps(apps).length} 人</span>
-    </div>
-    <div class="pr-board" id="pr-board">${prRenderBoard(apps)}</div>`;
-  document.getElementById('pr-track-filter').onchange=(e)=>{
-    prTrack=e.target.value;
-    document.getElementById('pr-stats-row').outerHTML=prRenderStats(apps);
-    document.getElementById('pr-board').innerHTML=prRenderBoard(apps);
-    document.getElementById('pr-list-cnt').textContent=`共 ${prFilterApps(apps).length} 人`;
-  };
-  document.getElementById('pr-refresh').onclick=()=>loadPublicPipelineReport();
-}
-async function loadPublicPipelineReport(){
-  const root=document.getElementById('pr-root');
-  if(!root||!sb) return;
-  root.innerHTML='<div class="pr-load">加载中…</div>';
-  try{
-    const {data,error}=await sb.rpc('pipeline_snapshot_public');
-    if(error) throw error;
-    if(!data?.ok){
-      root.innerHTML='<div class="pr-err">无法加载数据，请确认已在 Supabase 执行迁移 20260611180000_pipeline_public_snapshot_no_token.sql</div>';
-      return;
-    }
-    prSnapshot=data;
-    prRenderShell();
-  }catch(e){
-    root.innerHTML=`<div class="pr-err">加载失败：${esc(e.message||e)}</div>`;
-  }
-}
-function mountPublicPipelineReportPage(){
-  document.title='美村宣教学院 · 招生进度看板';
-  document.body.className='pr-body';
-  document.body.innerHTML=`<div class="pr-wrap">
-    <div class="pr-hdr"><h1>🏫 招生进度看板</h1><div class="pr-sub" id="pr-subline">按阶段横向查看 · 仅供内部老师</div></div>
-    <div id="pr-root"><div class="pr-load">加载中…</div></div>
-    <p class="pr-note">切换班级查看；每列下方为姓名与笔试分（无则显示 —）。</p>
-  </div>`;
-  loadPublicPipelineReport();
-  setInterval(loadPublicPipelineReport,120000);
-}
-
-// ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
 async function init(){
@@ -7682,26 +7515,18 @@ async function init(){
   }
 }
 
-if(isPublicPipelineReportPage()){
-  if(!sb){
-    document.getElementById('root').innerHTML='<div class="p6 tc c-gray6">无法加载 Supabase 客户端</div>';
-  }else{
-    mountPublicPipelineReportPage();
-  }
-}else{
-  init().catch(err=>{
-    console.error(err);
-    try{
-      A.role=null;
-      A.user=null;
-      A.profile=null;
-      A.applicant=null;
-      render();
-    }catch(_){}
-    const msg=err&&err.message?String(err.message):String(err);
-    toast('页面加载异常，已显示登录页。若持续如此，请按 F12 查看控制台错误。'+msg.slice(0,120), false);
-  });
-}
+init().catch(err=>{
+  console.error(err);
+  try{
+    A.role=null;
+    A.user=null;
+    A.profile=null;
+    A.applicant=null;
+    render();
+  }catch(_){}
+  const msg=err&&err.message?String(err.message):String(err);
+  toast('页面加载异常，已显示登录页。若持续如此，请按 F12 查看控制台错误。'+msg.slice(0,120), false);
+});
 </script>
 </body>
 </html>
