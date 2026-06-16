@@ -1511,22 +1511,42 @@ function sortSlotsForApplicantBooking(slots, needLang, profileById, allProfiles)
 
 const mkTag = (bg,color,text) => `<span class="tag" style="background:${bg};color:${color}">${esc(text)}</span>`;
 const mkAv  = (initials,size='md',cls='av-indigo') => `<div class="avatar av-${size} ${cls}">${esc(initials)}</div>`;
-const initials = ap => ap ? ((ap.first_name||'')[0]||(ap.full_name||'?')[0]) : '?';
+/** 中文姓名：若末尾重复了开头的姓（如「姜金育姜」→「姜金育」），去掉尾字 */
+function formatChineseDisplayName(raw){
+  const trimmed=String(raw||'').trim();
+  const compact=trimmed.replace(/\s+/g,'');
+  if(compact.length<3) return trimmed||raw||'';
+  if(!/^[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+$/u.test(compact)) return trimmed||raw||'';
+  if(compact[0]===compact[compact.length-1]) return compact.slice(0,-1);
+  return trimmed||raw||'';
+}
 const fullName = ap => {
   if(!ap) return '未知';
-  if(ap.full_name) return ap.full_name;
-  const f=String(ap.first_name||'').trim();
-  const l=String(ap.last_name||'').trim();
-  if(f&&l) return /[\u4e00-\u9fff]/.test(f+l) ? l+f : f+' '+l;
-  return f||l||'未知';
+  let n;
+  if(ap.full_name) n=ap.full_name;
+  else{
+    const f=String(ap.first_name||'').trim();
+    const l=String(ap.last_name||'').trim();
+    if(f&&l) n=/[\u4e00-\u9fff]/.test(f+l)?l+f:f+' '+l;
+    else n=f||l||'未知';
+  }
+  if(n==='未知') return n;
+  return formatChineseDisplayName(n)||n;
 };
-const normLoginName = s => String(s||'')
-  .trim()
-  .replace(/\s+/g,'')
-  .replace(/[（(].*?[）)]/g,'')
-  .replace(/[·.\-_,，、]/g,'')
-  .normalize('NFKC')
-  .toLowerCase();
+const initials = ap => {
+  if(!ap) return '?';
+  const n=fullName(ap);
+  return (n&&n!=='未知')?n[0]:'?';
+};
+const normLoginName = s => {
+  let t=formatChineseDisplayName(String(s||'').trim())
+    .replace(/\s+/g,'')
+    .replace(/[（(].*?[）)]/g,'')
+    .replace(/[·.\-_,，、]/g,'')
+    .normalize('NFKC')
+    .toLowerCase();
+  return t;
+};
 
 /** 单日列：课表/可约底/空档/已约 各为整条绝对定位块 */
 function buildTeacherDayColHtml(dt, openSlots, booked){
@@ -5289,7 +5309,7 @@ function renderContinuing(){
     const sel = String(A.continuingSelectedId||'')===String(r.id);
     return `<tr style="cursor:pointer${sel?';background:#eef2ff':''}" data-action="continuing-select" data-cid="${r.id}">
       <td style="position:relative">${r.staff_unread?`<span title="未读" style="position:absolute;top:50%;left:6px;transform:translateY(-50%);width:7px;height:7px;background:#ef4444;border-radius:50%"></span>`:''}<span class="mono t12" style="padding-left:${r.staff_unread?'12px':'0'}">${esc(r.application_no||'—')}</span></td>
-      <td class="fw6 c-gray8">${esc(r.full_name||'—')}</td>
+      <td class="fw6 c-gray8">${esc(formatChineseDisplayName(r.full_name)||'—')}</td>
       <td>Y${esc(String(r.target_year||'—'))}</td>
       <td class="t12 c-gray6">${esc(langLab(r.class_lang))}</td>
       <td>${continuingStatusTag(r.status)}</td>
@@ -5426,7 +5446,7 @@ function renderContinuingDetailModal(){
       <div class="row g3 mb4" style="align-items:flex-start">
         <div class="flex1">
           <div class="t11 c-gray5 mb1 mono">${esc(r.application_no||'')}</div>
-          <div class="t20 fw8 c-gray8">${esc(r.full_name||'')}</div>
+          <div class="t20 fw8 c-gray8">${esc(formatChineseDisplayName(r.full_name)||'')}</div>
           <div class="row g2 wrap mt2">
             ${continuingStatusTag(r.status)}
             ${mkTag('#eef2ff','#4f46e5',yearLab)}
