@@ -122,6 +122,8 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 .pipeline-subgroup-campus.pipeline-subgroup-ai .pipeline-subgroup-h{color:#6d28d9}
 .pipeline-subgroup-campus.pipeline-subgroup-np{background:#f0fdf4;border-color:#d1fae5}
 .pipeline-subgroup-campus.pipeline-subgroup-np .pipeline-subgroup-h{color:#047857}
+.pipeline-subgroup-campus.pipeline-subgroup-stu{background:#eff6ff;border-color:#dbeafe}
+.pipeline-subgroup-campus.pipeline-subgroup-stu .pipeline-subgroup-h{color:#1d4ed8}
 .pipeline-col-empty{font-size:11px;color:#d1d5db;text-align:center;padding:20px 8px;border:1px dashed #e5e7eb;border-radius:10px;background:#fafafa}
 .exam-lang-section{margin-bottom:28px}
 .exam-lang-section-h{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e5e7eb}
@@ -387,11 +389,14 @@ function getApplicantUiLang(ap){
   if(x==='en'||x==='id') return x;
   return 'zh';
 }
-/** 申请人看板步骤：印尼语班（笔试语言 id）不含「签证」一站 */
+/** 申请人看板步骤：神学生续读不含签证/完成；印尼语班不含签证 */
 function applicantPipelineStages(ap){
+  if(ap&&getApplicantCampusCode(ap)==='stu') return STAGES.filter(s=>s.id!=='visa'&&s.id!=='complete');
   if(ap&&getApplicantExamLang(ap)==='id') return STAGES.filter(s=>s.id!=='visa');
   return STAGES;
 }
+function isSeminaryStudentAp(ap){ return getApplicantCampusCode(ap)==='stu'; }
+function seminaryStudentMaterialsTerminal(ap){ return isSeminaryStudentAp(ap)&&ap?.stage==='materials'; }
 function examLangLabelShort(lang){
   return ({zh:'中文',en:'English',id:'Indonesia'})[lang]||'中文';
 }
@@ -400,6 +405,7 @@ function examLangPipelineGroupTitle(lang){
 }
 const NP_CAMPUS_PIPELINE_TITLE='尼泊尔（加德满都）· Nepal Campus';
 const AI_CAMPUS_PIPELINE_TITLE='AI项目 · AI Project';
+const STU_CAMPUS_PIPELINE_TITLE='神学生 · Enrolled Students';
 /** 根据姓名字符推测笔试/面试分组（不用 \\p 属性类，避免旧版浏览器整段脚本解析失败导致首页永久转圈） */
 function guessExamLangFromNameString(raw){
   const t=String(raw||'').trim();
@@ -450,12 +456,14 @@ const PIPELINE_TRACKS=[
   {id:'en',label:'英文班'},
   {id:'id',label:'印尼语班'},
   {id:'ai',label:'AI项目'},
+  {id:'stu',label:'神学生'},
   {id:'np',label:'尼泊尔'},
 ];
 function applicantPipelineTrack(ap){
   const c=getApplicantCampusCode(ap);
   if(c==='np') return 'np';
   if(c==='ai') return 'ai';
+  if(c==='stu') return 'stu';
   const lang=getApplicantExamLang(ap);
   return ['en','id'].includes(lang)?lang:'zh';
 }
@@ -467,8 +475,9 @@ function pipelineStageCountBreakdown(aps){
   const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='id');
   const np=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='np').length;
   const ai=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='ai').length;
+  const stu=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='stu').length;
   const by=partitionApplicantsByExamLang(idAps);
-  return {zh:(by.zh||[]).length,en:(by.en||[]).length,id:(by.id||[]).length,np,ai,total:(aps||[]).length};
+  return {zh:(by.zh||[]).length,en:(by.en||[]).length,id:(by.id||[]).length,np,ai,stu,total:(aps||[]).length};
 }
 function renderKanbanSubgroup(title,list,cardHtml,{campus=''}={}){
   if(!list.length) return '';
@@ -483,9 +492,11 @@ function renderKanbanLangSubgroups(aps,cardHtml,emptyHtml,sortFn){
   const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='id');
   const npAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='np').slice().sort(sort);
   const aiAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='ai').slice().sort(sort);
+  const stuAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='stu').slice().sort(sort);
   const by=partitionApplicantsByExamLang(idAps);
   const parts=[
     renderKanbanSubgroup(AI_CAMPUS_PIPELINE_TITLE,aiAps,cardHtml,{campus:'ai'}),
+    renderKanbanSubgroup(STU_CAMPUS_PIPELINE_TITLE,stuAps,cardHtml,{campus:'stu'}),
     ...['zh','en','id'].map(L=>renderKanbanSubgroup(examLangPipelineGroupTitle(L),(by[L]||[]).slice().sort(sort),cardHtml)),
     renderKanbanSubgroup(NP_CAMPUS_PIPELINE_TITLE,npAps,cardHtml,{campus:'np'}),
   ].filter(Boolean);
@@ -3246,6 +3257,10 @@ async function applicantAdvanceFromMaterialsToVisaOrComplete(){
     toast(apLine('请等待教务批复奖学金额度后再进入下一阶段。','Wait for the office to approve your scholarship amount before continuing.','Tunggu kantor menyetujui jumlah beasiswa sebelum melanjutkan.'),false);
     return;
   }
+  if(isSeminaryStudentAp(ap)){
+    toast(apLine('神学生续读：奖学金与入学资料流程已完成，无需签证环节。','Enrolled student: scholarship and documents are complete; no visa step.','Mahasiswa lanjutan: selesai tanpa visa.'),true);
+    return;
+  }
   const idPipe=getApplicantExamLang(ap)==='id';
   const nextStage=idPipe?'complete':'visa';
   const cmsg=idPipe
@@ -4138,25 +4153,39 @@ function inferCampusCodeFromApplicant(ap){
     .filter(Boolean).join(' ');
   return inferCampusCodeFromOriginText(blob);
 }
-/** 就读校区：id 印尼雅加达；np 加德满都；ai AI项目（巴基斯坦籍贯一律归 id） */
+/** 就读校区：id 印尼雅加达；np 加德满都；ai AI项目；stu 神学生续读（巴基斯坦籍贯一律归 id，神学生显式标记除外） */
 function getApplicantCampusCode(ap){
+  const v=String(ap?.campus_code??'').trim().toLowerCase();
+  if(v==='stu'||v==='student'||v==='神学生'||v==='seminary_student') return 'stu';
   const inferred=inferCampusCodeFromApplicant(ap);
   if(inferred==='id'||inferred==='np') return inferred;
-  const v=String(ap?.campus_code??'').trim().toLowerCase();
   if(v==='np'||v==='nepal'||v==='kathmandu') return 'np';
   if(v==='ai'||v==='ai项目'||v==='ai project') return 'ai';
   return 'id';
+}
+function campusCodeFromStaffSelect(sel){
+  if(sel==='np') return 'np';
+  if(sel==='ai') return 'ai';
+  if(sel==='stu') return 'stu';
+  return 'id';
+}
+function applyHometownCampusInference(campus_code,hometown){
+  if(campus_code==='stu'||campus_code==='ai') return campus_code;
+  const inferred=inferCampusCodeFromHometown(hometown);
+  return inferred||campus_code;
 }
 function getApplicantCampusLabel(ap){
   const c=getApplicantCampusCode(ap);
   if(c==='np') return '尼泊尔（加德满都）';
   if(c==='ai') return 'AI项目';
+  if(c==='stu') return '神学生（续读）';
   return '印尼（雅加达）';
 }
 function applicantCampusTagHtml(ap){
   const c=getApplicantCampusCode(ap);
   if(c==='np') return mkTag('#ecfdf5','#047857','尼泊尔');
   if(c==='ai') return mkTag('#ede9fe','#6d28d9','AI');
+  if(c==='stu') return mkTag('#dbeafe','#1d4ed8','神学生');
   return '';
 }
 function applicantHometownDisplay(ap){
@@ -4800,6 +4829,7 @@ function renderMaterials(){
   const appr=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved));
   const campus=getApplicantCampusCode(ap);
   const isNp=campus==='np';
+  const isStu=campus==='stu';
   const finName=sch.financial_proof_filename||sch.income_proof_filename||ap.mat_financial_proof_filename||'';
   const sigName=sch.applicant_signature_filename||'';
   const pasUpName=sch.pastor_letter_upload_filename||'';
@@ -4954,7 +4984,11 @@ function renderMaterials(){
       <button type="button" class="btn btn-outline btn-sm mt3" id="btn-save-mat-sv">${esc(mmsT('保存本表','Save','Simpan'))}</button>
     </div>
     ${submitted
-      ? `<button type="button" class="btn btn-primary btn-full mb3" id="btn-materials-next-stage">${esc(L('进入下一阶段 →','Continue to next step →','Lanjut ke tahap berikutnya →'))}</button>`
+      ? (isStu
+        ? (appr
+          ? `<div class="b1 r12 p3 t13 bg-green50 bc-green200 mb3" style="color:#15803d">${esc(L('✅ 奖学金与入学资料已批复。神学生续读流程到此结束，无需签证环节。','✅ Scholarship and documents approved. Enrolled student track complete — no visa step.','✅ Beasiswa & berkas disetujui. Mahasiswa lanjutan selesai tanpa visa.'))}</div>`
+          : `<div class="b1 r12 p3 t13 bg-indigo50 bc-indigo200 mb3" style="color:#4338ca">${esc(L('✅ 已向教务提交，请等待奖学金批复。批复后本流程即结束（无需签证）。','✅ Submitted; pending approval. No visa step after approval.','✅ Terkirim; menunggu persetujuan. Tanpa visa.'))}</div>`)
+        : `<button type="button" class="btn btn-primary btn-full mb3" id="btn-materials-next-stage">${esc(L('进入下一阶段 →','Continue to next step →','Lanjut ke tahap berikutnya →'))}</button>`)
       : `<button type="button" class="btn btn-primary btn-full mb3" id="btn-materials-submit-review" ${miss>0?'disabled':''}>${esc(L('提交全部资料待教务审核','Submit all for office review','Kirim semua untuk ditinjau'))}</button>`}
     <div class="b1 r12 p3 t13 ${miss===0?'bg-green50 bc-green200':'bg-amber50 bc-amber200'}" style="color:${miss===0?'#15803d':'#92400e'}">
       ${submitted?esc(L('✅ 已向教务提交，请等待批复。','✅ Submitted; pending review.','✅ Terkirim; menunggu.')):miss===0?esc(L('✅ 必填项已齐，可按上方按钮提交审核。','✅ Required items complete.','✅ Lengkap.')):esc(L(isNp?`⚠️ 尚有 ${miss} 项未完成：两表均需保存；奖助表须勾选「费用与资助说明」确认与条款、申请金额须在 $0–$1,000、上传收入/资产证明与电子签。`:`⚠️ 尚有 ${miss} 项未完成：两表均需保存；奖助表须同意条款、上传收入/资产证明与电子签；若选牧师担保信须上传签字扫描件。`,isNp?`⚠️ ${miss} item(s) left: save both forms; scholarship needs fee acknowledgement, amount $0–$1,000, income proof & e-signature.`:`⚠️ ${miss} item(s) left.`,isNp?`⚠️ ${miss} wajib: simpan dua formulir; beasiswa butuh konfirmasi biaya, jumlah $0–$1.000, bukti & tanda tangan.`:`⚠️ ${miss} wajib.`))}
@@ -5614,7 +5648,7 @@ function renderPipeline(){
       };
       const inner=renderKanbanLangSubgroups(aps,cardHtml,emptyHtml,sg.id==='interview'?interviewSort:null);
       const bd=pipelineStageCountBreakdown(aps);
-      const bdLine=`<div class="t10 c-gray4" style="line-height:1.45;margin-top:2px">${bd.ai?`AI ${bd.ai} · `:''}中 ${bd.zh} · En ${bd.en} · Id ${bd.id}${bd.np?` · 尼 ${bd.np}`:''}</div>`;
+      const bdLine=`<div class="t10 c-gray4" style="line-height:1.45;margin-top:2px">${bd.ai?`AI ${bd.ai} · `:''}${bd.stu?`神学生 ${bd.stu} · `:''}中 ${bd.zh} · En ${bd.en} · Id ${bd.id}${bd.np?` · 尼 ${bd.np}`:''}</div>`;
       return `<div class="${colClass}">
         <div style="margin-bottom:10px">
           <div style="display:flex;align-items:center;gap:6px">
@@ -5839,7 +5873,7 @@ function renderApDetailModal(ap){
       </div>`:''}
       <div class="col g2">
         <button class="btn btn-outline btn-full" data-action="view-briefing" data-apid="${ap.id}">📋 查看完整档案</button>
-        ${isAd?`<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>`:''}
+        ${isAd&&!seminaryStudentMaterialsTerminal(ap)?`<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>`:''}
         ${isAd?`<details class="mt2">
           <summary class="t12 fw6 c-gray6" style="cursor:pointer;user-select:none">更多操作</summary>
           <div class="col g2 mt2">
@@ -5945,6 +5979,7 @@ function renderBriefingModal(ap){
                 <option value="id" ${getApplicantCampusCode(ap)==='id'?'selected':''}>印尼（雅加达）</option>
                 <option value="np" ${getApplicantCampusCode(ap)==='np'?'selected':''}>尼泊尔（加德满都）</option>
                 <option value="ai" ${getApplicantCampusCode(ap)==='ai'?'selected':''}>AI项目</option>
+                <option value="stu" ${getApplicantCampusCode(ap)==='stu'?'selected':''}>神学生（续读）</option>
               </select></div>
             <div><div class="t12 fw6 c-gray6 mb1">籍贯</div><input id="brief-ap-hometown" class="inp" style="width:100%" value="${valB(ap.hometown)}" placeholder="籍贯"></div>
             <div><div class="t12 fw6 c-gray6 mb1">学历</div><input id="brief-ap-education" class="inp" style="width:100%" value="${valB(ap.education)}" placeholder="学历"></div>
@@ -6078,7 +6113,7 @@ function renderBriefingModal(ap){
       </div>`:'')}
 
       <div class="row g2 mt5">
-        ${isAd && STAGE_IDX[ap.stage] < STAGE_IDX['complete'] ? `<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>` : ''}
+        ${isAd && STAGE_IDX[ap.stage] < STAGE_IDX['complete'] && !seminaryStudentMaterialsTerminal(ap) ? `<button class="btn btn-primary btn-full" data-action="advance-ap" data-apid="${ap.id}">推进至下一阶段</button>` : ''}
         ${canEditStage?`<button class="btn btn-outline btn-full" data-action="write-record" data-apid="${ap.id}" ${STAGE_IDX[ap.stage] < STAGE_IDX['interview']?'disabled':''}>填写面试记录</button>`:''}
       </div>
       ${isAd?`<div class="row g2 mt3">
@@ -6884,11 +6919,10 @@ function bind(){
       if(exam_lang!=='en'&&exam_lang!=='id') exam_lang='zh';
       const conversion_time_raw=document.getElementById('brief-ap-conversion-time')?.value||'';
       const dob_raw=document.getElementById('brief-ap-dob')?.value||'';
-      const hometownVal=(document.getElementById('brief-ap-hometown')?.value||'').trim()||null;
       const campusSel=document.getElementById('brief-ap-campus')?.value||'id';
-      let campus_code=campusSel==='np'?'np':campusSel==='ai'?'ai':'id';
-      const inferredCampus=inferCampusCodeFromHometown(hometownVal);
-      if(inferredCampus) campus_code=inferredCampus;
+      let campus_code=campusCodeFromStaffSelect(campusSel);
+      const hometownVal=(document.getElementById('brief-ap-hometown')?.value||'').trim()||null;
+      campus_code=applyHometownCampusInference(campus_code,hometownVal);
       const payload={
         exam_lang,
         campus_code,
@@ -7175,9 +7209,8 @@ function bind(){
 
     const hometownVal=hometown||null;
     const apRow=A.allApplicants.find(a=>String(a.id)===String(apid));
-    const inferredCampus=inferCampusCodeFromHometown(hometownVal);
     let campus_code=apRow?getApplicantCampusCode(apRow):'id';
-    if(inferredCampus) campus_code=inferredCampus;
+    campus_code=applyHometownCampusInference(campus_code,hometownVal);
     const payload={
       exam_lang,
       campus_code,
@@ -7303,6 +7336,10 @@ function bind(){
       const idx=STAGE_IDX[ap.stage]||0;
       if(idx>=STAGES.length-1)return;
       let nextStage=STAGES[idx+1].id;
+      if(isSeminaryStudentAp(ap)&&(nextStage==='visa'||nextStage==='complete')){
+        toast('神学生续读在「上传资料」环节结束，无需推进至签证或完成',false);
+        return;
+      }
       if(nextStage==='visa'&&getApplicantExamLang(ap)==='id') nextStage='complete';
       const nextLabel=(STAGES.find(s=>s.id===nextStage)||{}).label||nextStage;
       const {error}=await sb.from('applicants').update({stage:nextStage}).eq('id',ap.id);
