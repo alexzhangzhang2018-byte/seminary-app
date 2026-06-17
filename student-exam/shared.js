@@ -7,6 +7,119 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const SESSION_KEY = 'mms_student_exam_token_v1';
 export const LANG_KEY = 'mms_student_exam_lang_v1';
 export const COVER_CONFIRMED_KEY = 'mms_student_exam_cover_v1';
+export const EXAM_DAY_CACHE_KEY = 'mms_student_exam_day_cache_v1';
+
+/** 数据库繁忙时的应急考试日（按雅加达日期 YYYY-MM-DD） */
+export const EXAM_DAY_EMERGENCY = {
+  '2026-06-15': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+};
+
+export function jakartaTodayYmd() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+}
+
+export function saveExamDayCache(examDay) {
+  if (!examDay?.id) return;
+  try {
+    localStorage.setItem(EXAM_DAY_CACHE_KEY, JSON.stringify({ ts: Date.now(), exam_day: examDay }));
+  } catch (_) {}
+}
+
+export function loadExamDayCache(expectedDate) {
+  try {
+    const raw = localStorage.getItem(EXAM_DAY_CACHE_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    const d = o?.exam_day;
+    if (!d?.id) return null;
+    if (expectedDate && String(d.exam_date) !== String(expectedDate)) return null;
+    return d;
+  } catch (_) {
+    return null;
+  }
+}
+
+/** 直连 Supabase RPC（带 Abort 超时，不依赖 supabase-js 内部队列） */
+export async function rpcDirect(fn, body = {}, timeoutMs = 12000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+      signal: ctrl.signal,
+    });
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) {}
+    if (!res.ok) {
+      const err = new Error(data?.message || data?.error || `HTTP ${res.status}`);
+      err.httpStatus = res.status;
+      throw err;
+    }
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** 带重试的 RPC（高峰时段用直连 fetch，避免 supabase-js 内部排队） */
+export async function rpcCall(fn, body = {}, { timeoutMs = 12000, tries = 3, delayMs = 1200 } = {}) {
+  let lastErr = null;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const data = await rpcDirect(fn, body, timeoutMs);
+      return { data, error: null };
+    } catch (e) {
+      lastErr = e;
+      if (i < tries - 1) await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+  return { data: null, error: lastErr };
+}
+
+export async function resolveExamDay() {
+  const today = jakartaTodayYmd();
+  const fallback = loadExamDayCache(today) || EXAM_DAY_EMERGENCY[today];
+
+  const tryRpc = async (timeoutMs) => {
+    const data = await rpcDirect('student_exam_get_today', {}, timeoutMs);
+    if (data?.ok && data.exam_day) {
+      saveExamDayCache(data.exam_day);
+      return data.exam_day;
+    }
+    if (data?.ok === false && data?.error === 'no_exam_today') return null;
+    throw new Error('student_exam_get_today bad response');
+  };
+
+  const firstTimeout = fallback ? 3000 : 6000;
+  try {
+    const examDay = await tryRpc(firstTimeout);
+    return { examDay, fromFallback: false };
+  } catch (e) {
+    console.warn('resolveExamDay attempt 1', e);
+  }
+
+  if (fallback) return { examDay: fallback, fromFallback: true };
+
+  try {
+    const examDay = await tryRpc(8000);
+    return { examDay, fromFallback: false };
+  } catch (e) {
+    console.warn('resolveExamDay attempt 2', e);
+    return { examDay: null, fromFallback: false };
+  }
+}
 
 export function coverConfirmedStorageKey(examDayId, token) {
   return `${examDayId || ''}:${token || ''}`;
@@ -104,16 +217,22 @@ export const UI = {
     proctor_warn: '检测到切屏（已记录）',
     no_exam: '今日暂无安排的考试，请联系教务。',
     err: '操作失败，请重试',
+    err_checkin_server: '签到服务繁忙，请稍等几秒再试；若仍失败请联系教务',
     err_submit: '交卷失败，正在重试…',
-    err_submit_fail: '交卷失败，请保持页面打开并多次点击「交卷」，或联系教务',
-    err_submit_network: '网络繁忙，请稍等几秒后再次点击「交卷」',
+    err_submit_fail: '交卷未完成，请稍等片刻再点「再次交卷」，勿连续点击',
+    err_submit_network: '网络繁忙，系统已自动重试；请稍等，勿重复点击',
     err_window_closed: '考试已结束过久，请联系教务协助交卷',
-    err_submitting: '正在提交答卷，请勿关闭页面…',
+    err_submitting: '正在提交答卷，请勿重复点击…',
+    submitting_progress: '正在交卷（第 {n}/{total} 次）…',
+    submit_busy: '正在交卷中，请勿重复点击',
+    submit_cooldown: '{s} 秒后可再试',
+    submit_checking: '正在确认是否已交卷…',
     btn_submit_retry: '再次交卷',
     loading: '加载中…',
     loading_slow: '服务器繁忙，请稍候或点击下方重新加载',
     btn_retry_load: '重新加载',
     err_load_fail: '无法连接考试服务器，请检查网络后重试',
+    err_load_offline: '服务器繁忙，已使用离线考试日信息，请继续签到',
     back_schedule: '返回日程',
   },
   en: {
@@ -161,11 +280,16 @@ export const UI = {
     proctor_warn: 'Tab switch recorded',
     no_exam: 'No exam scheduled today.',
     err: 'Something went wrong',
+    err_checkin_server: 'Check-in busy. Wait a few seconds and retry, or contact the office.',
     err_submit: 'Submit failed, retrying…',
-    err_submit_fail: 'Submit failed. Keep this page open and tap Submit again, or contact the office.',
-    err_submit_network: 'Network busy. Wait a few seconds and tap Submit again.',
+    err_submit_fail: 'Not submitted yet. Wait a moment, then tap Submit again once.',
+    err_submit_network: 'Network busy; auto-retrying. Please wait, do not tap repeatedly.',
     err_window_closed: 'Exam window closed. Please contact the office.',
-    err_submitting: 'Submitting… Please do not close this page.',
+    err_submitting: 'Submitting… Please do not tap again.',
+    submitting_progress: 'Submitting ({n}/{total})…',
+    submit_busy: 'Submit in progress. Please wait.',
+    submit_cooldown: 'Retry in {s}s',
+    submit_checking: 'Checking if already submitted…',
     btn_submit_retry: 'Submit again',
     loading: 'Loading…',
     loading_slow: 'Server busy. Please wait or tap Reload below.',
@@ -218,11 +342,16 @@ export const UI = {
     proctor_warn: 'Pindah tab tercatat',
     no_exam: 'Tidak ada ujian hari ini.',
     err: 'Gagal',
+    err_checkin_server: 'Check-in sibuk. Tunggu beberapa detik lalu coba lagi.',
     err_submit: 'Gagal mengumpulkan, mencoba lagi…',
-    err_submit_fail: 'Gagal mengumpulkan. Biarkan halaman terbuka dan tekan lagi, atau hubungi kantor.',
-    err_submit_network: 'Jaringan sibuk. Tunggu beberapa detik lalu tekan Kumpulkan lagi.',
+    err_submit_fail: 'Belum terkirim. Tunggu sebentar, lalu tekan Kumpulkan sekali lagi.',
+    err_submit_network: 'Jaringan sibuk; mencoba otomatis. Tunggu, jangan tekan berulang.',
     err_window_closed: 'Waktu ujian sudah lewat. Hubungi kantor.',
-    err_submitting: 'Mengirim jawaban… Jangan tutup halaman.',
+    err_submitting: 'Mengirim… Jangan tekan berulang.',
+    submitting_progress: 'Mengirim ({n}/{total})…',
+    submit_busy: 'Sedang mengirim. Harap tunggu.',
+    submit_cooldown: 'Coba lagi dalam {s} dtk',
+    submit_checking: 'Memeriksa status pengumpulan…',
     btn_submit_retry: 'Kumpulkan lagi',
     loading: 'Memuat…',
     loading_slow: 'Server sibuk. Tunggu atau tekan Muat ulang.',
@@ -235,6 +364,14 @@ export const UI = {
 export function t(lang, key) {
   const L = UI[lang] || UI.zh;
   return L[key] ?? UI.zh[key] ?? key;
+}
+
+export function tFmt(lang, key, vars = {}) {
+  let s = t(lang, key);
+  for (const [k, v] of Object.entries(vars)) {
+    s = s.replaceAll(`{${k}}`, String(v));
+  }
+  return s;
 }
 
 export function esc(s) {
@@ -525,10 +662,14 @@ export function renderQuestionHtml(q, answers, lang) {
   const gid = q.group_id;
   const cur = answers[gid];
   const no = q.sort_order;
+  const loc = questionLocale(q, lang);
+  const stem = loc.stem ?? q.stem ?? '';
   let body = '';
 
   if (q.type === 'single') {
-    const opts = Array.isArray(q.options) ? q.options : [];
+    const opts = (Array.isArray(loc.options) && loc.options.length)
+      ? loc.options
+      : (Array.isArray(q.options) ? q.options : []);
     body = opts.map((opt, i) => {
       const checked = cur === i ? ' checked' : '';
       return `<label class="opt"><input type="radio" name="q_${gid}" data-gid="${esc(gid)}" data-kind="single" value="${i}"${checked}><span>${esc(opt)}</span></label>`;
@@ -541,7 +682,8 @@ export function renderQuestionHtml(q, answers, lang) {
       return `<label class="opt"><input type="radio" name="q_${gid}" data-gid="${esc(gid)}" data-kind="truefalse" value="${val ? '1' : '0'}"${checked}><span>${esc(opt)}</span></label>`;
     }).join('');
   } else if (q.type === 'fill') {
-    const n = Math.max(1, (Array.isArray(cur) ? cur.length : 0) || (String(q.stem).match(/____/g) || []).length || 1);
+    const stemStr = String(stem);
+    const n = Math.max(1, (Array.isArray(cur) ? cur.length : 0) || (stemStr.match(/____/g) || []).length || 1);
     const arr = Array.isArray(cur) ? cur : [];
     body = Array.from({ length: n }, (_, i) =>
       `<input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" placeholder="${i + 1}">`
@@ -562,7 +704,7 @@ export function renderQuestionHtml(q, answers, lang) {
   const qcls = q.type === 'essay' ? ` q-card essay-${q.essay_kind || 'short'}` : ' q-card';
   return `<div class="${qcls.trim()}" data-qid="${esc(gid)}">
     <div class="q-head"><span class="q-no">${no}</span><span class="q-score">${q.score} ${lang === 'zh' ? '分' : 'pts'}</span></div>
-    <div class="q-stem">${esc(q.stem)}</div>
+    <div class="q-stem">${esc(stem)}</div>
     <div class="q-body">${body}</div>
   </div>`;
 }
@@ -586,6 +728,158 @@ export function collectAnswers(root) {
     answers[el.dataset.gid] = el.value;
   });
   return answers;
+}
+
+/** 客观题题型（系统机评） */
+export const OBJECTIVE_TYPES = new Set(['fill', 'single', 'truefalse', 'match', 'order', 'dictation']);
+
+export function isObjectiveType(type) {
+  return OBJECTIVE_TYPES.has(type);
+}
+
+export function paperHasObjective(paper) {
+  return (paper || []).some((q) => isObjectiveType(q.type));
+}
+
+export function paperHasEssay(paper) {
+  return (paper || []).some((q) => q.type === 'essay');
+}
+
+export function isAllSubjectivePaper(paper) {
+  const qs = paper || [];
+  return qs.length > 0 && qs.every((q) => q.type === 'essay');
+}
+
+export function questionLocale(q, lang) {
+  return q?.locales?.[lang] || q?.locales?.zh || q?.locales?.en || {};
+}
+
+export function normGradeText(text, lang) {
+  let v = String(text ?? '').trim();
+  if (lang === 'zh' || !lang) {
+    return v.replace(/\s+/g, '').replace(/[，。！？、；：“”'']/g, '');
+  }
+  return v.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+}
+
+export function normDictationText(text, lang) {
+  return normGradeText(text, lang);
+}
+
+export function gradeOneQuestion(type, maxScore, userAns, answerKey, lang) {
+  if (type === 'essay') return 0;
+  const score = Number(maxScore) || 0;
+  const key = answerKey || {};
+  let earned = 0;
+
+  if (type === 'single') {
+    if (Number(userAns) === Number(key.answer_index)) earned = score;
+  } else if (type === 'truefalse') {
+    if (Boolean(userAns) === Boolean(key.answer_bool)) earned = score;
+  } else if (type === 'fill') {
+    const uArr = Array.isArray(userAns) ? userAns : [];
+    const eArr = Array.isArray(key.answers) ? key.answers : [];
+    if (eArr.length > 0) {
+      const per = score / eArr.length;
+      eArr.forEach((exp, i) => {
+        if (normGradeText(uArr[i], lang) === normGradeText(exp, lang)) earned += per;
+      });
+    }
+  } else if (type === 'match') {
+    const uArr = Array.isArray(userAns) ? userAns : [];
+    const eArr = Array.isArray(key.answer_map) ? key.answer_map : [];
+    if (eArr.length > 0) {
+      const per = score / eArr.length;
+      eArr.forEach((exp, i) => {
+        if (Number(uArr[i]) === Number(exp)) earned += per;
+      });
+    }
+  } else if (type === 'order') {
+    const uSeq = String(userAns ?? '').toUpperCase().replace(/[^A-Z]/g, '');
+    const eSeq = String(key.correct_seq ?? '').toUpperCase().replace(/[^A-Z]/g, '');
+    if (uSeq && uSeq === eSeq) earned = score;
+  } else if (type === 'dictation') {
+    if (normDictationText(userAns, lang) === normDictationText(key.expected, lang)
+      && normDictationText(key.expected, lang)) earned = score;
+  }
+  return Math.round(earned * 100) / 100;
+}
+
+export function formatStudentAnswer(q, answer, lang) {
+  const loc = questionLocale(q, lang);
+  if (q.type === 'essay' || q.type === 'dictation') {
+    return String(answer ?? '').trim() || '（未作答）';
+  }
+  if (q.type === 'single') {
+    const opts = loc.options || [];
+    const idx = Number(answer);
+    if (Number.isFinite(idx) && opts[idx] != null) return opts[idx];
+    return answer == null ? '（未作答）' : String(answer);
+  }
+  if (q.type === 'truefalse') {
+    if (answer === true || answer === 'true' || answer === 1 || answer === '1') {
+      return lang === 'id' ? 'Benar' : lang === 'en' ? 'True' : '对';
+    }
+    if (answer === false || answer === 'false' || answer === 0 || answer === '0') {
+      return lang === 'id' ? 'Salah' : lang === 'en' ? 'False' : '错';
+    }
+    return '（未作答）';
+  }
+  if (q.type === 'fill') {
+    const arr = Array.isArray(answer) ? answer : [];
+    const blanks = (loc.stem || '').match(/____/g)?.length || arr.length || 1;
+    const parts = [];
+    for (let i = 0; i < blanks; i++) {
+      parts.push(arr[i]?.trim() ? arr[i].trim() : '（空）');
+    }
+    return parts.join(' / ');
+  }
+  if (q.type === 'order') return String(answer ?? '（未作答）');
+  if (q.type === 'match') return JSON.stringify(answer ?? []);
+  return answer == null ? '（未作答）' : String(answer);
+}
+
+export function formatCorrectAnswer(q, lang) {
+  const loc = questionLocale(q, lang);
+  const key = loc.answer_key || {};
+  if (q.type === 'single') {
+    const opts = loc.options || [];
+    const idx = Number(key.answer_index);
+    return opts[idx] != null ? opts[idx] : `选项 ${idx + 1}`;
+  }
+  if (q.type === 'truefalse') {
+    const v = key.answer_bool;
+    return v ? (lang === 'id' ? 'Benar' : lang === 'en' ? 'True' : '对')
+      : (lang === 'id' ? 'Salah' : lang === 'en' ? 'False' : '错');
+  }
+  if (q.type === 'fill') {
+    const arr = Array.isArray(key.answers) ? key.answers : [];
+    return arr.length ? arr.join(' / ') : '—';
+  }
+  if (q.type === 'order') return key.correct_seq || '—';
+  if (q.type === 'dictation') return key.expected || '—';
+  if (key.reference) return key.reference;
+  return '—';
+}
+
+export function mergeGradingItems(paper, answersJson, gradingItems) {
+  const byGid = new Map((gradingItems || []).map((gi) => [gi.group_id, gi]));
+  return (paper || [])
+    .filter((q) => q.type === 'essay')
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    .map((q) => {
+      const existing = byGid.get(q.group_id);
+      const ans = answersJson?.[q.group_id];
+      const answerText = typeof ans === 'string' ? ans : (ans == null ? '' : String(ans));
+      return {
+        group_id: q.group_id,
+        sort_order: q.sort_order,
+        max_score: q.score,
+        answer_text: existing?.answer_text ?? answerText,
+        score: existing?.score ?? null,
+        comment: existing?.comment ?? null,
+      };
+    });
 }
 
 export function installProctor(onFlag) {

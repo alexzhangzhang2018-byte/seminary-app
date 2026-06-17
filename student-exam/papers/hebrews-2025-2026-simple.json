@@ -489,7 +489,12 @@
       },
       "id": {
         "stem": "Ayat Perjanjian Lama yang dikutip dalam \"Anak-Ku Engkau! Engkau telah Kuperanakkan pada hari ini\" adalah:",
-        "options": [],
+        "options": [
+          "2 Samuel 7:14",
+          "Mazmur 2:7",
+          "Mazmur 102:25",
+          "Mazmur 110:1"
+        ],
         "answer_key": {
           "answer_index": 1
         }
@@ -535,7 +540,12 @@
       },
       "id": {
         "stem": "Manakah dari berikut ini yang bukan identitas, tugas, atau ciri malaikat:",
-        "options": [],
+        "options": [
+          "Roh yang melayani",
+          "Untuk sementara waktu lebih tinggi dari Yesus",
+          "Melayani seluruh umat manusia",
+          "Menyampaikan firman Allah"
+        ],
         "answer_key": {
           "answer_index": 2
         }
@@ -581,7 +591,12 @@
       },
       "id": {
         "stem": "Manakah dari berikut ini yang bukan merupakan perbandingan yang dibahas dalam kitab ini:",
-        "options": [],
+        "options": [
+          "Yesus dan malaikat-malaikat",
+          "Yesus dan Daud",
+          "Peraturan Melkisedek dan peraturan Harun",
+          "Perjanjian baru dan perjanjian lama"
+        ],
         "answer_key": {
           "answer_index": 1
         }
@@ -627,7 +642,12 @@
       },
       "id": {
         "stem": "Manakah dari berikut ini yang bukan merupakan masalah para penerima surat:",
-        "options": [],
+        "options": [
+          "Kelambanan",
+          "Ketidakpercayaan",
+          "Cinta akan dunia",
+          "Penyembahan berhala"
+        ],
         "answer_key": {
           "answer_index": 3
         }
@@ -673,7 +693,12 @@
       },
       "id": {
         "stem": "Manakah dari berikut ini yang bukan merupakan ciri Melkisedek:",
-        "options": [],
+        "options": [
+          "Raja",
+          "Imam",
+          "Nabi",
+          "Hidup selama-lamanya"
+        ],
         "answer_key": {
           "answer_index": 2
         }
@@ -719,7 +744,12 @@
       },
       "id": {
         "stem": "Manakah dari berikut ini yang harus kita kejar untuk masuk ke dalamnya:",
-        "options": [],
+        "options": [
+          "Asas-asas pertama dari ajaran Kristus",
+          "Dasar",
+          "Kedewasaan penuh",
+          "Asas-asas pokok dari penyataan Allah"
+        ],
         "answer_key": {
           "answer_index": 2
         }
@@ -765,7 +795,12 @@
       },
       "id": {
         "stem": "Mengapa imam-imam menurut peraturan Harun diwariskan dari generasi ke generasi:",
-        "options": [],
+        "options": [
+          "Karena terhalang oleh kematian",
+          "Karena suku Lewi adalah anak sulung Israel",
+          "Karena tuntutan hukum Taurat",
+          "Karena berkat dan peninggian dari Allah"
+        ],
         "answer_key": {
           "answer_index": 0
         }
@@ -811,7 +846,12 @@
       },
       "id": {
         "stem": "Manakah dari berikut ini yang bukan merupakan perlengkapan di dalam Kemah Suci:",
-        "options": [],
+        "options": [
+          "Mezbah korban bakaran",
+          "Kaki dian",
+          "Mezbah pembakaran ukupan dari emas",
+          "Tabut perjanjian"
+        ],
         "answer_key": {
           "answer_index": 0
         }
@@ -857,7 +897,12 @@
       },
       "id": {
         "stem": "Manakah dari berikut ini yang bukan merupakan nasihat dari kitab ini:",
-        "options": [],
+        "options": [
+          "Mengejar kekudusan",
+          "Menanggung didikan",
+          "Taat kepada para pemimpin",
+          "Menjauhi penyembahan berhala"
+        ],
         "answer_key": {
           "answer_index": 3
         }
@@ -903,7 +948,12 @@
       },
       "id": {
         "stem": "Apakah jenis sastra Surat Ibrani:",
-        "options": [],
+        "options": [
+          "Risalah teologis",
+          "Khotbah penginjilan",
+          "Sastra apokaliptik",
+          "Surat"
+        ],
         "answer_key": {
           "answer_index": 3
         }

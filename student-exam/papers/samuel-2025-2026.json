@@ -1,0 +1,126 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "essay",
+    "section": "一",
+    "score": 25.0,
+    "essay_kind": "short",
+    "section_label": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+    "section_labels": {
+      "zh": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+      "id": "Soal jawaban singkat. Setiap soal 25 poin, setiap jawaban 300–500 kata. (Anda boleh membuka Alkitab, tetapi tidak boleh melihat catatan atau diktat kuliah.)",
+      "en": "Short-answer questions. Each question is worth 25 points, with answers of 300–500 characters. (You may consult the Bible, but you may not look at your notes or lecture handouts.)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "请谈一谈对撒母耳记中建立王政的理解？其意义是什么？",
+        "options": [],
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Jelaskanlah pemahaman Anda tentang penetapan/pendirian sistem kerajaan dalam Kitab Samuel. Apakah maknanya?",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "Discuss your understanding of the establishment of the monarchy in the Books of Samuel. What is its significance?",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "essay",
+    "section": "一",
+    "score": 25.0,
+    "essay_kind": "short",
+    "section_label": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+    "section_labels": {
+      "zh": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+      "id": "Soal jawaban singkat. Setiap soal 25 poin, setiap jawaban 300–500 kata. (Anda boleh membuka Alkitab, tetapi tidak boleh melihat catatan atau diktat kuliah.)",
+      "en": "Short-answer questions. Each question is worth 25 points, with answers of 300–500 characters. (You may consult the Bible, but you may not look at your notes or lecture handouts.)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "哈拿之歌在撒母耳记中的作用？",
+        "options": [],
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Apakah peran Nyanyian Hana di dalam Kitab Samuel?",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "What is the role of Hannah's Song within the Books of Samuel?",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "essay",
+    "section": "一",
+    "score": 25.0,
+    "essay_kind": "short",
+    "section_label": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+    "section_labels": {
+      "zh": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+      "id": "Soal jawaban singkat. Setiap soal 25 poin, setiap jawaban 300–500 kata. (Anda boleh membuka Alkitab, tetapi tidak boleh melihat catatan atau diktat kuliah.)",
+      "en": "Short-answer questions. Each question is worth 25 points, with answers of 300–500 characters. (You may consult the Bible, but you may not look at your notes or lecture handouts.)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "阐述撒母耳记全卷的结构与基本内容？",
+        "options": [],
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Jelaskanlah struktur dan isi pokok dari keseluruhan Kitab Samuel.",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "Explain the structure and basic content of the Books of Samuel as a whole.",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "essay",
+    "section": "一",
+    "score": 25.0,
+    "essay_kind": "short",
+    "section_label": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+    "section_labels": {
+      "zh": "简答题，每题25分，每题300-500字。（可以翻阅圣经，不可以查看笔记和讲义。）",
+      "id": "Soal jawaban singkat. Setiap soal 25 poin, setiap jawaban 300–500 kata. (Anda boleh membuka Alkitab, tetapi tidak boleh melihat catatan atau diktat kuliah.)",
+      "en": "Short-answer questions. Each question is worth 25 points, with answers of 300–500 characters. (You may consult the Bible, but you may not look at your notes or lecture handouts.)"
+    },
+    "locales": {
+      "zh": {
+        "stem": "谈谈学习撒母耳记的主要收获。",
+        "options": [],
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Ceritakanlah hasil/keuntungan utama yang Anda peroleh dari pembelajaran Kitab Samuel.",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "Share the main lessons and insights you have gained from studying the Books of Samuel.",
+        "options": [],
+        "answer_key": {}
+      }
+    }
+  }
+]

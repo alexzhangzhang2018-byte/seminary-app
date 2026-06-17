@@ -8,7 +8,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -36,6 +37,19 @@
         },
         "options": [],
         "stem": "Setelah pada zaman dahulu Allah berulang kali dan dalam pelbagai cara berbicara kepada nenek moyang kita dengan perantaraan ____, maka pada ____ ini Ia telah berbicara kepada kita dengan perantaraan ____, yang telah Ia tetapkan sebagai yang berhak menerima segala yang ada. Oleh Dia Allah telah menjadikan alam semesta. Ia adalah ____ kemuliaan Allah dan gambar wujud Allah dan menopang segala yang ada dengan firman-Nya yang penuh kekuasaan. Dan setelah Ia selesai mengadakan penyucian dosa, Ia duduk di sebelah kanan Yang Mahabesar, di tempat yang tinggi, ____ dari pada malaikat-malaikat, sama seperti nama yang dikaruniakan kepada-Nya jauh lebih indah dari pada nama mereka."
+      },
+      "en": {
+        "stem": "Hebrews 1:1-4 Long ago, at many times and in many ways, God spoke to our fathers by ____, but in ____ he has spoken to us by ____, whom he appointed the heir of all things, through whom also he created the world. He is the ____ of the glory of God and the exact imprint of his nature, and he upholds the universe by the word of his power. After making purification for sins, he sat down at the right hand of the Majesty on high, having become ____ angels as the name he has inherited is more excellent than theirs.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "the prophets",
+            "these last days",
+            "his Son",
+            "radiance",
+            "as much superior to"
+          ]
+        }
       }
     }
   },
@@ -48,7 +62,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -74,6 +89,18 @@
         },
         "options": [],
         "stem": "Karena itu harus lebih ____ kita memperhatikan apa yang telah kita dengar, supaya kita jangan hanyut dibawa arus. Sebab kalau firman yang dikatakan dengan perantaraan malaikat-malaikat tetap berlaku, dan setiap pelanggaran dan ketidaktaatan mendapat balasan yang setimpal, bagaimanakah kita akan luput, jikalau kita menyia-nyiakan ____, yang mula-mula ____ dan oleh ____, kepada kita dengan cara yang dapat dipercayai."
+      },
+      "en": {
+        "stem": "Hebrews 2:1-3 Therefore we must pay ____ to what we have heard, lest we drift away from it. For since the message declared by angels proved to be reliable, and every transgression or disobedience received a just retribution, how shall we escape if we neglect ____? It was declared at first ____, and it was attested to us by ____.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "much closer attention",
+            "such a great salvation",
+            "by the Lord",
+            "those who heard"
+          ]
+        }
       }
     }
   },
@@ -86,7 +113,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -110,6 +138,17 @@
         },
         "options": [],
         "stem": "Karena ____ itu adalah anak-anak dari darah dan daging, maka Ia juga menjadi sama dengan mereka dan mendapat bagian dalam keadaan mereka, supaya oleh kematian-Nya Ia memusnahkan dia, yaitu Iblis, yang ____; dan supaya dengan jalan demikian Ia membebaskan mereka yang ____."
+      },
+      "en": {
+        "stem": "Hebrews 2:14-15 Since therefore ____ share in flesh and blood, he himself likewise partook of the same things, that through death he might destroy the one who ____, that is, the devil, and deliver all those who ____.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "the children",
+            "has the power of death",
+            "through fear of death were subject to lifelong slavery"
+          ]
+        }
       }
     }
   },
@@ -122,7 +161,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -142,6 +182,15 @@
             "firman Allah"
           ]
         }
+      },
+      "en": {
+        "stem": "Hebrews 4:12 For ____ is living and active, sharper than any two-edged sword, ...",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "the word of God"
+          ]
+        }
       }
     }
   },
@@ -154,7 +203,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -176,6 +226,16 @@
         },
         "options": [],
         "stem": "Inti segala yang kita bicarakan itu ialah: kita ____ ____ yang demikian, yang duduk di sebelah kanan takhta Yang Mahabesar di sorga."
+      },
+      "en": {
+        "stem": "Hebrews 8:1 Now the point in what we are saying is this: we ____ such ____, one who is seated at the right hand of the throne of the Majesty in heaven,",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "have",
+            "a high priest"
+          ]
+        }
       }
     }
   },
@@ -188,7 +248,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -214,6 +275,18 @@
           ]
         },
         "options": []
+      },
+      "en": {
+        "stem": "Hebrews 9:11-12 But when Christ appeared as a high priest of ____, then through the greater and more perfect tent (not made with hands, that is, not of this creation) he entered ____ into the holy places, not by means of the blood of goats and calves but by means of ____, thus securing an ____ redemption.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "the good things that have come",
+            "once for all",
+            "his own blood",
+            "eternal"
+          ]
+        }
       }
     }
   },
@@ -226,7 +299,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -250,6 +324,17 @@
           ]
         },
         "stem": "Iman adalah dasar dari ____ dan bukti dari ____. Sebab oleh imanlah telah diberikan kesaksian kepada nenek moyang kita. Karena iman kita mengerti, bahwa alam semesta telah dijadikan oleh ____, sehingga apa yang kita lihat telah terjadi dari apa yang tidak dapat kita lihat."
+      },
+      "en": {
+        "stem": "Hebrews 11:1-3 Now faith is the assurance of ____, the conviction of ____. For by it the people of old received their commendation. By faith we understand that the universe was created by ____, so that what is seen was not made out of things that are visible.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "things hoped for",
+            "things not seen",
+            "the word of God"
+          ]
+        }
       }
     }
   },
@@ -262,7 +347,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -286,6 +372,17 @@
             "tanah air yang lebih baik"
           ]
         }
+      },
+      "en": {
+        "stem": "Hebrews 11:13-16 These all died in faith, not having received ____, but having seen them and greeted them from afar, and having acknowledged that they were ____ and exiles on the earth. For people who speak thus make it clear that they are seeking a homeland. If they had been thinking of that land from which they had gone out, they would have had opportunity to return. But as it is, they desire ____, that is, a heavenly one. Therefore God is not ashamed to be called their God, for he has prepared for them a city.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "the things promised",
+            "strangers",
+            "a better country"
+          ]
+        }
       }
     }
   },
@@ -298,7 +395,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -324,6 +422,18 @@
           ]
         },
         "options": []
+      },
+      "en": {
+        "stem": "Hebrews 12:1-3 Therefore, since we are surrounded by so great a cloud of ____, let us also lay aside every weight, and ____ which clings so closely, and let us run with endurance the race that is set before us, looking to Jesus, ____ of our faith, who for the joy that was set before him endured the cross, despising the shame, and is seated at the right hand of the throne of God. Consider him who endured from sinners such hostility against himself, so that you may not grow ____.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "witnesses",
+            "sin",
+            "the founder and perfecter",
+            "weary or fainthearted"
+          ]
+        }
       }
     }
   },
@@ -336,7 +446,8 @@
     "section_label": "一、经文填空 （每空1分，共30分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共30分）",
-      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)"
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 30 poin)",
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 30 points total)"
     },
     "locales": {
       "zh": {
@@ -356,6 +467,15 @@
           ]
         },
         "stem": "Janganlah kamu disesatkan oleh berbagai-bagai ajaran asing. Sebab yang baik ialah, bahwa hati kamu diperkuat dengan ____ dan bukan dengan pelbagai makanan yang tidak memberi faedah kepada mereka yang menuruti aturan-aturan makanan macam itu."
+      },
+      "en": {
+        "stem": "Hebrews 13:9 Do not be led away by diverse and strange teachings, for it is good for the heart to be strengthened by ____, not by foods, which have not benefited those devoted to them.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "grace"
+          ]
+        }
       }
     }
   },
@@ -368,7 +488,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -394,6 +515,13 @@
           "Mazmur 102:25",
           "Mazmur 110:1"
         ]
+      },
+      "en": {
+        "stem": "The Old Testament passage quoted in \"You are my Son, today I have begotten you\" is:A. 2 Samuel 7:14 B. Psalm 2:7 C. Psalm 102:25 D. Psalm 110:1",
+        "options": [],
+        "answer_key": {
+          "answer_index": 1
+        }
       }
     }
   },
@@ -406,7 +534,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -432,6 +561,13 @@
           "Melayani seluruh umat manusia",
           "Menyampaikan firman Allah"
         ]
+      },
+      "en": {
+        "stem": "Which of the following is not an identity, duty, or characteristic of angels:A. Ministering spirits B. Temporarily greater than Jesus C. Serving all humanity D. Delivering the word of God",
+        "options": [],
+        "answer_key": {
+          "answer_index": 2
+        }
       }
     }
   },
@@ -444,7 +580,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -470,6 +607,13 @@
           "Peraturan Melkisedek dan peraturan Harun",
           "Perjanjian baru dan perjanjian lama"
         ]
+      },
+      "en": {
+        "stem": "Which of the following is not one of the contrasts discussed in this book:A. Jesus and the angels B. Jesus and David C. The order of Melchizedek and the order of Aaron D. The new covenant and the former covenant",
+        "options": [],
+        "answer_key": {
+          "answer_index": 1
+        }
       }
     }
   },
@@ -482,7 +626,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -508,6 +653,13 @@
         "answer_key": {
           "answer_index": 3
         }
+      },
+      "en": {
+        "stem": "Which of the following does not describe a problem of the recipients of this letter:A. Sluggishness B. Unbelief C. Love of the world D. Idolatry",
+        "options": [],
+        "answer_key": {
+          "answer_index": 3
+        }
       }
     }
   },
@@ -520,7 +672,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -546,6 +699,13 @@
         "answer_key": {
           "answer_index": 2
         }
+      },
+      "en": {
+        "stem": "Which of the following is not a characteristic of Melchizedek:A. King B. Priest C. Prophet D. Living forever",
+        "options": [],
+        "answer_key": {
+          "answer_index": 2
+        }
       }
     }
   },
@@ -558,7 +718,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -584,6 +745,13 @@
           "Kedewasaan penuh",
           "Asas-asas pokok dari penyataan Allah"
         ]
+      },
+      "en": {
+        "stem": "Which of the following is what we strive to enter:A. The elementary doctrine of Christ B. The foundation C. Maturity D. The basic principles of the oracles of God",
+        "options": [],
+        "answer_key": {
+          "answer_index": 2
+        }
       }
     }
   },
@@ -596,7 +764,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -622,6 +791,13 @@
           "Karena tuntutan hukum Taurat",
           "Karena berkat dan peninggian dari Allah"
         ]
+      },
+      "en": {
+        "stem": "Why is the Aaronic priesthood passed down from generation to generation:A. Because they were prevented by death from continuing in office B. Because the tribe of Levi served as the firstborn of Israel C. Because the law required it D. Because of God's blessing and exaltation",
+        "options": [],
+        "answer_key": {
+          "answer_index": 0
+        }
       }
     }
   },
@@ -634,7 +810,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -660,6 +837,13 @@
           "Tabut perjanjian"
         ],
         "stem": "Manakah dari berikut ini yang bukan merupakan perlengkapan di dalam Kemah Suci:"
+      },
+      "en": {
+        "stem": "Which of the following is not part of the furnishings inside the tabernacle:A. The altar of burnt offering B. The lampstand C. The golden altar of incense D. The ark of the covenant",
+        "options": [],
+        "answer_key": {
+          "answer_index": 0
+        }
       }
     }
   },
@@ -672,7 +856,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -698,6 +883,13 @@
           "Menjauhi penyembahan berhala"
         ],
         "stem": "Manakah dari berikut ini yang bukan merupakan nasihat dari kitab ini:"
+      },
+      "en": {
+        "stem": "Which of the following is not an exhortation in this book:A. Pursuing holiness B. Enduring discipline C. Obeying your leaders D. Fleeing from idols",
+        "options": [],
+        "answer_key": {
+          "answer_index": 3
+        }
       }
     }
   },
@@ -710,7 +902,8 @@
     "section_label": "二、单项选择题 （每题1分，共10分）",
     "section_labels": {
       "zh": "二、单项选择题 （每题1分，共10分）",
-      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)"
+      "id": "II. Soal Pilihan Ganda (setiap soal 1 poin, total 10 poin)",
+      "en": "II. Multiple Choice (1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -736,6 +929,16 @@
           "answer_index": 3
         },
         "stem": "Apakah jenis sastra Surat Ibrani:"
+      },
+      "en": {
+        "stem": "What is the literary genre of the Letter to the Hebrews:A.",
+        "options": [
+          "theological treatise B. An evangelistic sermon C. Apocalyptic literature D.",
+          "letter (epistle)"
+        ],
+        "answer_key": {
+          "answer_index": 3
+        }
       }
     }
   },
@@ -748,7 +951,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -764,6 +968,13 @@
         },
         "options": [],
         "stem": "Allah menjadikan alam semesta dengan perantaraan malaikat-malaikat."
+      },
+      "en": {
+        "stem": "God created the world through the angels.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
       }
     }
   },
@@ -776,7 +987,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -788,6 +1000,13 @@
       },
       "id": {
         "stem": "Pokok utama yang dibahas Surat Ibrani adalah ketransendenan Yesus.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      },
+      "en": {
+        "stem": "The main point discussed in the Letter to the Hebrews is the transcendence of Jesus.",
         "options": [],
         "answer_key": {
           "answer_bool": false
@@ -804,7 +1023,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -820,6 +1040,13 @@
           "answer_bool": false
         },
         "options": []
+      },
+      "en": {
+        "stem": "The word \"man\" in Psalm 8, \"What is man that you are mindful of him?\" directly refers to created humanity.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
       }
     }
   },
@@ -832,7 +1059,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -844,6 +1072,13 @@
       },
       "id": {
         "stem": "Orang-orang Kristen pada zaman penulis sudah dilahirkan kembali oleh Roh Kudus, berbeda dengan umat Allah dalam Perjanjian Lama, sehingga mereka sudah masuk ke dalam perhentian.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      },
+      "en": {
+        "stem": "Christians in the author's day had already been regenerated by the Holy Spirit, unlike the people of God in the Old Testament, and therefore had already entered into the rest.",
         "options": [],
         "answer_key": {
           "answer_bool": false
@@ -860,7 +1095,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -872,6 +1108,13 @@
       },
       "id": {
         "stem": "\"Jika mereka murtad, tidak mungkin lagi mereka dibaharui sehingga mereka bertobat, sebab mereka menyalibkan lagi Anak Allah bagi diri mereka dan menghina-Nya di muka umum.\" (Ibrani 6:6) Ini hanyalah peringatan pastoral, dan bukan berarti bahwa keselamatan dapat hilang.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      },
+      "en": {
+        "stem": "\"...and then have fallen away, to restore them again to repentance, since they are crucifying once again the Son of God to their own harm and holding him up to contempt.\" (Hebrews 6:6) — This is only a pastoral warning, and does not mean that salvation can be lost.",
         "options": [],
         "answer_key": {
           "answer_bool": true
@@ -888,7 +1131,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -904,6 +1148,13 @@
           "answer_bool": false
         },
         "options": []
+      },
+      "en": {
+        "stem": "Jesus became a priest not by the swearing of an oath.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
       }
     }
   },
@@ -916,7 +1167,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -928,6 +1180,13 @@
       },
       "id": {
         "stem": "Yesus sebagai Imam Besar, sekarang masih terus mempersembahkan korban bagi kita.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      },
+      "en": {
+        "stem": "Jesus as High Priest is still offering sacrifices for us now.",
         "options": [],
         "answer_key": {
           "answer_bool": false
@@ -944,7 +1203,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -960,6 +1220,13 @@
           "answer_bool": false
         },
         "stem": "Abraham dan tokoh-tokoh kuno lainnya adalah pahlawan-pahlawan iman, karena itu sebelum mereka mati, mereka semua telah memperoleh apa yang dijanjikan Allah."
+      },
+      "en": {
+        "stem": "Abraham and the other ancients were all heroes of faith, and therefore they all received what God had promised before they died.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
       }
     }
   },
@@ -972,7 +1239,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -988,6 +1256,13 @@
         },
         "options": [],
         "stem": "Hukum Taurat hanyalah bayangan saja dari keselamatan yang akan datang, bukan hakikat dari barang-barang itu sendiri."
+      },
+      "en": {
+        "stem": "The law contains only a shadow of the good things to come, not the true form of these realities.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
       }
     }
   },
@@ -1000,7 +1275,8 @@
     "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
     "section_labels": {
       "zh": "三、判断题（请在括号内打✓或×，每题1分，共10分）",
-      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)"
+      "id": "III. Soal Benar atau Salah (Berilah tanda ✓ atau × dalam kurung; setiap soal 1 poin, total 10 poin)",
+      "en": "III. True or False (Mark ✓ or × in the parentheses; 1 point per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -1016,6 +1292,13 @@
         },
         "options": [],
         "stem": "Perjanjian Lama ditetapkan oleh Allah, karena itu tidak memiliki kekurangan."
+      },
+      "en": {
+        "stem": "The Old Covenant was established by God, and therefore had no fault.",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
       }
     }
   },
@@ -1029,7 +1312,8 @@
     "section_label": "四、简答题（每题2分，共10分）",
     "section_labels": {
       "zh": "四、简答题（每题2分，共10分）",
-      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "en": "IV. Short Answer Questions (2 points per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -1041,6 +1325,11 @@
         "answer_key": {},
         "options": [],
         "stem": "Apa ciri-ciri perhentian Allah? Apakah kita hari ini sudah masuk ke dalam perhentian itu?"
+      },
+      "en": {
+        "stem": "What are the characteristics of God's rest? Have we today entered into that rest?",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -1054,7 +1343,8 @@
     "section_label": "四、简答题（每题2分，共10分）",
     "section_labels": {
       "zh": "四、简答题（每题2分，共10分）",
-      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "en": "IV. Short Answer Questions (2 points per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -1066,6 +1356,11 @@
         "answer_key": {},
         "options": [],
         "stem": "Firman Allah hidup dan kuat — apakah yang dijelaskan oleh pernyataan ini?"
+      },
+      "en": {
+        "stem": "The word of God is living and active — what does this statement teach us?",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -1079,7 +1374,8 @@
     "section_label": "四、简答题（每题2分，共10分）",
     "section_labels": {
       "zh": "四、简答题（每题2分，共10分）",
-      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "en": "IV. Short Answer Questions (2 points per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -1091,6 +1387,11 @@
         "stem": "Yesus sebagai Imam Besar, di manakah Ia melayani?",
         "answer_key": {},
         "options": []
+      },
+      "en": {
+        "stem": "As High Priest, where does Jesus minister?",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -1104,7 +1405,8 @@
     "section_label": "四、简答题（每题2分，共10分）",
     "section_labels": {
       "zh": "四、简答题（每题2分，共10分）",
-      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "en": "IV. Short Answer Questions (2 points per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -1116,6 +1418,11 @@
         "answer_key": {},
         "options": [],
         "stem": "Jelaskan secara singkat: kemah bagian pertama dan kemah bagian kedua masing-masing menunjuk kepada masa apa."
+      },
+      "en": {
+        "stem": "Briefly explain what the first section of the tabernacle and the second section of the tabernacle each refer to in terms of time periods.",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -1129,7 +1436,8 @@
     "section_label": "四、简答题（每题2分，共10分）",
     "section_labels": {
       "zh": "四、简答题（每题2分，共10分）",
-      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)"
+      "id": "IV. Soal Jawaban Singkat (setiap soal 2 poin, total 10 poin)",
+      "en": "IV. Short Answer Questions (2 points per question, 10 points total)"
     },
     "locales": {
       "zh": {
@@ -1141,6 +1449,11 @@
         "answer_key": {},
         "options": [],
         "stem": "Jelaskan secara singkat dampak/khasiat yang dihasilkan oleh pelayanan Kristus sebagai Imam Besar."
+      },
+      "en": {
+        "stem": "Briefly explain the effects accomplished by Christ's ministry as High Priest.",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -1154,7 +1467,8 @@
     "section_label": "五、论述题（每题10分，共40分）",
     "section_labels": {
       "zh": "五、论述题（每题10分，共40分）",
-      "id": "V. Soal Esai (setiap soal 10 poin, total 40 poin)"
+      "id": "V. Soal Esai (setiap soal 10 poin, total 40 poin)",
+      "en": "V. Essay Questions (10 points per question, 40 points total)"
     },
     "locales": {
       "zh": {
@@ -1164,6 +1478,11 @@
       },
       "id": {
         "stem": "Tuliskan: (1) nomor pasal dan ayat yang menjadi dasar pembagian struktur kitab ini. Berdasarkan itu, tuliskan (2) struktur kitab ini, dan (3) beberapa tema besarnya.",
+        "options": [],
+        "answer_key": {}
+      },
+      "en": {
+        "stem": "Write down (1) the chapter and verse numbers on which the structural divisions of this book are based. Based on these, write out (2) the structure of the book, and (3) its several major themes.",
         "options": [],
         "answer_key": {}
       }
@@ -1179,7 +1498,8 @@
     "section_label": "五、论述题（每题10分，共40分）",
     "section_labels": {
       "zh": "五、论述题（每题10分，共40分）",
-      "id": "V. Soal Esai (setiap soal 10 poin, total 40 poin)"
+      "id": "V. Soal Esai (setiap soal 10 poin, total 40 poin)",
+      "en": "V. Essay Questions (10 points per question, 40 points total)"
     },
     "locales": {
       "zh": {
@@ -1191,6 +1511,11 @@
         "answer_key": {},
         "options": [],
         "stem": "Analisislah: (1) tujuan penulis menulis Surat Ibrani. Analisislah (2) bagaimana penulis berusaha mencapai tujuan tersebut, serta (3) sumbangan atau pencerahan besar dari cara penulisan surat ini bagi teologi pastoral."
+      },
+      "en": {
+        "stem": "Analyze (1) the purpose for which the author wrote the Letter to the Hebrews. Analyze (2) how the author seeks to accomplish this purpose, as well as (3) the significant contribution or insight this manner of writing offers to pastoral theology.",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -1204,7 +1529,8 @@
     "section_label": "五、论述题（每题10分，共40分）",
     "section_labels": {
       "zh": "五、论述题（每题10分，共40分）",
-      "id": "V. Soal Esai (setiap soal 10 poin, total 40 poin)"
+      "id": "V. Soal Esai (setiap soal 10 poin, total 40 poin)",
+      "en": "V. Essay Questions (10 points per question, 40 points total)"
     },
     "locales": {
       "zh": {
@@ -1216,6 +1542,11 @@
         "answer_key": {},
         "options": [],
         "stem": "Analisislah secara konkret: (1) Bagaimana seharusnya kita memahami \"Sebab itu marilah kita tinggalkan asas-asas pertama dari ajaran tentang Kristus dan beralih kepada perkembangannya yang penuh. Janganlah kita meletakkan lagi dasar...\" (Ibrani 6:1)? (2) Apa pencerahan dari pemahaman ini bagi pelayanan pastoral? Berdasarkan hal itu, (3) apakah keputusan Anda?"
+      },
+      "en": {
+        "stem": "Analyze concretely: (1) How should we understand \"Therefore let us leave the elementary doctrine of Christ and go on to maturity, not laying again a foundation...\" (Hebrews 6:1)? (2) What is the pastoral insight of such an understanding? Based on this, (3) what is your decision?",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -1229,7 +1560,8 @@
     "section_label": "五、论述题（每题10分，共40分）",
     "section_labels": {
       "zh": "五、论述题（每题10分，共40分）",
-      "id": "V. Soal Esai (setiap soal 10 poin, total 40 poin)"
+      "id": "V. Soal Esai (setiap soal 10 poin, total 40 poin)",
+      "en": "V. Essay Questions (10 points per question, 40 points total)"
     },
     "locales": {
       "zh": {
@@ -1241,6 +1573,11 @@
         "stem": "Melalui pembelajaran Surat Ibrani kali ini, jelaskan secara konkret bagaimana Anda sekarang memahami (1) \"iman, pengharapan, dan kasih\" orang Kristen, serta (2) hubungan antara iman-pengharapan-kasih orang Kristen dengan Injil. Berdasarkan pemahaman ini, ceritakanlah secara konkret (3) hasil/keuntungan yang Anda peroleh dari pembelajaran Surat Ibrani.",
         "answer_key": {},
         "options": []
+      },
+      "en": {
+        "stem": "Through this study of the Letter to the Hebrews, explain concretely how you now understand (1) the Christian's \"faith, hope, and love,\" as well as (2) the relationship between the Christian's faith-hope-love and the gospel. Based on this understanding, share concretely (3) the lessons and insights you have gained from studying the Letter to the Hebrews.",
+        "options": [],
+        "answer_key": {}
       }
     }
   }

@@ -100,19 +100,125 @@ tr.grade-expand td{padding:0;background:#f8fafc;border-bottom:2px solid #c7d2fe;
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<script>
+(function teacherLoginBoot() {
+  var SB_URL = 'https://szjduusewnjxacrbbsdf.supabase.co';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amR1dXNld25qeGFjcmJic2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjMxNjEsImV4cCI6MjA5MDQzOTE2MX0.7Cg_uOp2Q2wtKaZqVnYdMLvnZJEyh6GyE26xXb-UTBw';
+  function toastBoot(msg) {
+    var t = document.getElementById('toast');
+    if (!t) { alert(msg); return; }
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, String(msg).length > 36 ? 5500 : 2800);
+  }
+  function authErrBoot(err) {
+    var raw = String((err && err.message) || err || '');
+    var low = raw.toLowerCase();
+    if (low.indexOf('email not confirmed') >= 0) return '该邮箱尚未验证，请在 Supabase 中将用户标为已确认。';
+    if (low.indexOf('invalid login') >= 0 || low.indexOf('invalid_grant') >= 0 || low.indexOf('invalid credentials') >= 0) {
+      return '邮箱或密码不正确（与招生系统同一账号）。';
+    }
+    if (low.indexOf('fetch') >= 0 || low.indexOf('network') >= 0 || low.indexOf('timeout') >= 0 || low.indexOf('abort') >= 0) {
+      return '网络超时，请换网络或稍后重试。';
+    }
+    return raw || '登录失败';
+  }
+  function withTimeoutBoot(p, ms) {
+    return Promise.race([
+      p,
+      new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, ms); }),
+    ]);
+  }
+  async function doLogin() {
+    if (typeof supabase === 'undefined') {
+      toastBoot('Supabase 未加载：请刷新页面，勿用 WhatsApp 内置浏览器。');
+      return;
+    }
+    var email = (document.getElementById('login-email').value || '').trim();
+    var pw = document.getElementById('login-pw').value || '';
+    if (!email || !pw) { toastBoot('请填写邮箱和密码'); return; }
+    var btn = document.getElementById('btn-login');
+    var prev = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '登录中…';
+    try {
+      var sb = supabase.createClient(SB_URL, SB_KEY);
+      var res = await withTimeoutBoot(sb.auth.signInWithPassword({ email: email, password: pw }), 35000);
+      if (res.error) { toastBoot(authErrBoot(res.error)); return; }
+      var profRes = await withTimeoutBoot(
+        sb.from('profiles').select('*').eq('id', res.data.user.id).single(),
+        20000,
+      );
+      if (profRes.error || !profRes.data) {
+        toastBoot('登录成功，但未找到教务档案（profiles）。');
+        await sb.auth.signOut();
+        return;
+      }
+      if (['admin', 'teacher'].indexOf(profRes.data.role) < 0) {
+        toastBoot('无权限（角色：' + (profRes.data.role || '未知') + '）');
+        await sb.auth.signOut();
+        return;
+      }
+      if (typeof window.__teacherEnterApp === 'function') {
+        await window.__teacherEnterApp(res.data.user, profRes.data, email);
+      } else {
+        window.__pendingTeacherLogin = { user: res.data.user, profile: profRes.data, email: email };
+        toastBoot('主程序仍在加载，请 2 秒后重试；若仍失败请强制刷新并更新 student-exam/shared.js');
+      }
+    } catch (e) {
+      toastBoot(authErrBoot(e));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = prev;
+    }
+  }
+  document.getElementById('btn-login').addEventListener('click', doLogin);
+  document.getElementById('login-pw').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('login-email').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('login-pw').focus();
+  });
+})();
+</script>
 <script type="module">
-import {
-  createSb, esc, trackLabel, teacherPaperTitle,
+(async function teacherAppMain() {
+let createSb, esc, trackLabel, teacherPaperTitle,
   paperLocaleBadgesHtml, paperLocaleSummary, paperLocaleCodes, withTimeout,
   isObjectiveType, paperHasObjective, isAllSubjectivePaper,
   questionLocale, gradeOneQuestion, formatStudentAnswer, formatCorrectAnswer,
-  mergeGradingItems,
-} from './shared.js?v=202606161300';
+  mergeGradingItems;
+let docxFileToSnapshot, mergeSnapshotsByIndex;
+function escBoot(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+try {
+  const mod = await import('./shared.js?v=202606171400');
+  ({
+    createSb, esc, trackLabel, teacherPaperTitle,
+    paperLocaleBadgesHtml, paperLocaleSummary, paperLocaleCodes, withTimeout,
+    isObjectiveType, paperHasObjective, isAllSubjectivePaper,
+    questionLocale, gradeOneQuestion, formatStudentAnswer, formatCorrectAnswer,
+    mergeGradingItems,
+  } = mod);
+  const docxMod = await import('./docx-import.js');
+  docxFileToSnapshot = docxMod.docxFileToSnapshot;
+  mergeSnapshotsByIndex = docxMod.mergeSnapshotsByIndex;
+} catch (e) {
+  const panel = document.getElementById('login-panel');
+  if (panel && !document.getElementById('js-fatal')) {
+    panel.insertAdjacentHTML('beforeend',
+      '<p id="js-fatal" class="admin-warn" style="margin-top:12px">页面脚本加载失败：'
+      + escBoot(String(e.message || e))
+      + '。请将 <strong>student-exam/shared.js</strong> 与 teacher.html 一并部署到 Vercel 后强制刷新。</p>');
+  }
+  console.error('teacher module load', e);
+  return;
+}
 
 function trackLabelZh(track) {
   return trackLabel(track, 'zh');
 }
-import { docxFileToSnapshot, mergeSnapshotsByIndex } from './docx-import.js';
 
 const sb = createSb();
 if (!sb) {
@@ -172,61 +278,20 @@ function messageForStaffAuthError(err) {
   return raw || '登录失败';
 }
 
-async function login() {
-  if (!sb) { toast('系统未就绪：Supabase 未加载，请刷新页面'); return; }
-  const email = document.getElementById('login-email').value.trim();
-  const pw = document.getElementById('login-pw').value;
-  if (!email || !pw) { toast('请填写邮箱和密码'); return; }
-  const btn = document.getElementById('btn-login');
-  const prevLabel = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = '登录中…';
-  try {
-    const { data, error } = await withTimeout(
-      sb.auth.signInWithPassword({ email, password: pw }),
-      35000,
-    );
-    if (error) { toast(messageForStaffAuthError(error)); return; }
-    S.user = data.user;
-    try {
-      for (let i = 0; i < 5; i++) {
-        const { data: sw } = await withTimeout(sb.auth.getSession(), 8000);
-        if (sw?.session) break;
-        await new Promise((r) => setTimeout(r, 100));
-      }
-    } catch (_) {}
-    const profRes = await withTimeout(
-      sb.from('profiles').select('*').eq('id', data.user.id).single(),
-      20000,
-    );
-    const prof = profRes.data;
-    const profErr = profRes.error;
-    S.profile = prof;
-    if (profErr || !prof) {
-      toast('登录成功，但未找到教务档案。请联系管理员绑定 profiles。');
-      await sb.auth.signOut();
-      return;
-    }
-    if (!['admin', 'teacher'].includes(prof?.role)) {
-      toast(`无权限（当前角色：${prof?.role || '未知'}）。需 admin 或 teacher。`);
-      await sb.auth.signOut();
-      return;
-    }
-    document.getElementById('login-panel').style.display = 'none';
-    document.getElementById('main-panel').style.display = 'block';
-    document.getElementById('auth-area').innerHTML = `<span class="muted">${esc(prof.display_name || email)}</span> <button class="btn-o btn" id="btn-logout" style="margin-left:8px;padding:6px 12px">退出</button>`;
-    document.getElementById('btn-logout').onclick = async () => {
-      await sb.auth.signOut();
-      location.reload();
-    };
-    await loadAll();
-  } catch (e) {
-    toast(messageForStaffAuthError(e));
-  } finally {
-    btn.disabled = false;
-    btn.textContent = prevLabel;
-  }
+async function enterApp(user, prof, email) {
+  if (!sb) { toast('系统未就绪：Supabase 未加载'); return; }
+  S.user = user;
+  S.profile = prof;
+  document.getElementById('login-panel').style.display = 'none';
+  document.getElementById('main-panel').style.display = 'block';
+  document.getElementById('auth-area').innerHTML = `<span class="muted">${esc(prof.display_name || email || user.email)}</span> <button class="btn-o btn" id="btn-logout" style="margin-left:8px;padding:6px 12px">退出</button>`;
+  document.getElementById('btn-logout').onclick = async () => {
+    await sb.auth.signOut();
+    location.reload();
+  };
+  await loadAll();
 }
+window.__teacherEnterApp = enterApp;
 
 async function loadAll() {
   const [d, p] = await Promise.all([
@@ -1198,29 +1263,26 @@ function render() {
 document.querySelectorAll('.tab').forEach((t) => {
   t.addEventListener('click', () => { S.tab = t.dataset.tab; render(); });
 });
-document.getElementById('btn-login').addEventListener('click', login);
-document.getElementById('login-pw')?.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') login();
-});
-document.getElementById('login-email')?.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('login-pw')?.focus();
-});
 
-withTimeout(sb.auth.getSession(), 20000).then(async ({ data }) => {
-  if (!data?.session?.user) return;
-  S.user = data.session.user;
-  const { data: prof } = await withTimeout(
-    sb.from('profiles').select('*').eq('id', S.user.id).single(),
-    20000,
-  );
-  if (!['admin', 'teacher'].includes(prof?.role)) return;
-  S.profile = prof;
-  document.getElementById('login-panel').style.display = 'none';
-  document.getElementById('main-panel').style.display = 'block';
-  document.getElementById('auth-area').innerHTML = `<span class="muted">${esc(prof.display_name || S.user.email)}</span> <button class="btn-o btn" id="btn-logout" style="margin-left:8px;padding:6px 12px">退出</button>`;
-  document.getElementById('btn-logout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
-  await loadAll();
-}).catch(() => {});
+if (window.__pendingTeacherLogin) {
+  const p = window.__pendingTeacherLogin;
+  delete window.__pendingTeacherLogin;
+  await enterApp(p.user, p.profile, p.email);
+} else {
+  try {
+    const { data } = await withTimeout(sb.auth.getSession(), 20000);
+    if (data?.session?.user) {
+      const { data: prof } = await withTimeout(
+        sb.from('profiles').select('*').eq('id', data.session.user.id).single(),
+        20000,
+      );
+      if (prof && ['admin', 'teacher'].includes(prof.role)) {
+        await enterApp(data.session.user, prof, data.session.user.email);
+      }
+    }
+  } catch (_) {}
+}
+})();
 </script>
 </body>
 </html>

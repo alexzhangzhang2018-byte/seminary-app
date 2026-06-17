@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>美村宣教学院 · 内部考试</title>
+<meta name="mms-portal" content="student-exam">
+<link rel="preconnect" href="https://szjduusewnjxacrbbsdf.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://szjduusewnjxacrbbsdf.supabase.co">
 <script src="/vendor/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -101,12 +105,27 @@ a{color:#4f46e5}
 <div class="toast" id="toast"></div>
 <script type="module">
 import {
-  createSb, SESSION_KEY, LANG_KEY, t, esc, fmtTime, fmtTimer,
+  createSb, SESSION_KEY, LANG_KEY, t, tFmt, esc, fmtTime, fmtTimer,
   gradeLabel, trackLabel, classTrackOptions, examLangForTrack,
   resolvePaperDisplayTitle, examContentLang,
   renderExamWithSections, collectAnswers, installProctor, installEssayCounters,
   isCoverConfirmed, setCoverConfirmed, clearCoverConfirmed, withTimeout,
-} from './shared.js';
+  resolveExamDay, rpcDirect, rpcCall, saveExamDayCache,
+  EXAM_DAY_EMERGENCY, jakartaTodayYmd, loadExamDayCache,
+} from './shared.js?v=202606152200';
+
+const DRAFT_BASE_MS = 30000;
+const DRAFT_JITTER_MS = 15000;
+const LOCAL_DRAFT_KEY = 'mms_exam_local_draft_v1';
+
+function draftJitterMs() {
+  let j = sessionStorage.getItem('mms_draft_jitter_ms');
+  if (!j) {
+    j = String(Math.floor(Math.random() * DRAFT_JITTER_MS));
+    sessionStorage.setItem('mms_draft_jitter_ms', j);
+  }
+  return DRAFT_BASE_MS + Number(j);
+}
 
 const sb = createSb();
 const S = {
@@ -116,6 +135,7 @@ const S = {
   checkIn: null,
   schedule: [],
   view: 'loading',
+  syncing: false,
   subject: null,
   paper: null,
   attempt: null,
@@ -129,7 +149,10 @@ const S = {
 };
 
 let timerIv = null;
-let draftIv = null;
+let draftTimer = null;
+let submitCooldownUntil = 0;
+let submitCooldownIv = null;
+const SUBMIT_COOLDOWN_MS = 12000;
 
 function toast(msg, ok = true) {
   const el = document.getElementById('toast');
@@ -148,38 +171,68 @@ function setLang(lang) {
   render();
 }
 
+let loadTodayBusy = false;
+
+async function loadScheduleIfToken() {
+  if (!S.token) return;
+  const { data: schData, error } = await rpcCall('student_exam_get_schedule', { p_token: S.token }, { timeoutMs: 10000, tries: 3 });
+  if (!error && schData?.ok) {
+    S.checkIn = schData.check_in;
+    S.schedule = schData.subjects || [];
+    S.view = 'schedule';
+    render();
+    return;
+  }
+  console.warn('get_schedule', error);
+  S.token = null;
+  localStorage.removeItem(SESSION_KEY);
+  S.view = 'checkin';
+  render();
+}
+
 async function loadToday() {
   if (!sb) {
     S.view = 'boot_err';
+    render();
     return;
   }
-  S.view = 'loading';
-  render();
+  if (loadTodayBusy) return;
+  loadTodayBusy = true;
+
+  const today = jakartaTodayYmd();
+  const instant = loadExamDayCache(today) || EXAM_DAY_EMERGENCY[today];
+  if (instant) {
+    S.examDay = instant;
+    S.view = 'checkin';
+    S.syncing = true;
+    render();
+  } else {
+    S.view = 'loading';
+    render();
+  }
+
   try {
-    const { data, error } = await withTimeout(sb.rpc('student_exam_get_today'), 28000);
-    if (error) throw error;
-    if (!data?.ok) {
+    const { examDay, fromFallback } = await resolveExamDay();
+    if (!examDay) {
       S.examDay = null;
       S.view = 'no_exam';
       return;
     }
-    S.examDay = data.exam_day;
-    if (S.token) {
-      const sch = await withTimeout(sb.rpc('student_exam_get_schedule', { p_token: S.token }), 28000);
-      if (sch.data?.ok) {
-        S.checkIn = sch.data.check_in;
-        S.schedule = sch.data.subjects || [];
-        S.view = 'schedule';
-        return;
-      }
-      S.token = null;
-      localStorage.removeItem(SESSION_KEY);
-    }
-    S.view = 'checkin';
+    S.examDay = examDay;
+    if (S.view !== 'schedule') S.view = 'checkin';
+    if (fromFallback) toast(t(S.uiLang, 'err_load_offline'), true);
+    render();
+    await loadScheduleIfToken();
   } catch (e) {
     console.warn('loadToday', e);
-    S.view = 'boot_err';
-    toast(t(S.uiLang, 'err_load_fail'), false);
+    if (!instant) {
+      S.view = 'boot_err';
+      toast(t(S.uiLang, 'err_load_fail'), false);
+    }
+  } finally {
+    loadTodayBusy = false;
+    S.syncing = false;
+    render();
   }
 }
 
@@ -209,26 +262,77 @@ function isNetworkError(err) {
   return m.includes('fetch') || m.includes('network') || m.includes('timeout') || m.includes('failed to load');
 }
 
-async function rpcWithRetry(fn, payload, { tries = 5, delayMs = 2000 } = {}) {
+async function rpcWithRetry(fn, payload, { tries = 5, delayMs = 2000, timeoutMs = 15000, onAttempt } = {}) {
   let lastErr = null;
   for (let i = 0; i < tries; i++) {
-    try {
-      const { data, error } = await sb.rpc(fn, payload);
-      if (!error && data?.ok !== false) return { data, error: null };
-      if (data?.ok === false && data?.error === 'already_submitted') return { data, error: null };
-      if (data?.ok === false && !isNetworkError({ message: data?.error })) {
-        return { data, error: error || { message: data?.error } };
-      }
-      lastErr = error || { message: data?.error || 'rpc_fail' };
-    } catch (e) {
-      lastErr = e;
+    onAttempt?.(i + 1, tries);
+    const { data, error } = await rpcCall(fn, payload, { timeoutMs, tries: 1, delayMs: 0 });
+    if (!error && data?.ok !== false) return { data, error: null };
+    if (data?.ok === false && data?.error === 'already_submitted') return { data, error: null };
+    if (data?.ok === false && !isNetworkError({ message: data?.error })) {
+      return { data, error: error || { message: data?.error } };
     }
+    lastErr = error || { message: data?.error || 'rpc_fail' };
     if (i < tries - 1) {
-      toast(t(S.uiLang, 'err_submit'), false);
       await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
     }
   }
   return { data: null, error: lastErr };
+}
+
+function setSubmitButton(btn, { disabled, text } = {}) {
+  if (!btn) return;
+  btn.disabled = !!disabled;
+  btn.style.pointerEvents = disabled ? 'none' : '';
+  if (text != null) btn.textContent = text;
+}
+
+function startSubmitCooldown(btn) {
+  submitCooldownUntil = Date.now() + SUBMIT_COOLDOWN_MS;
+  clearInterval(submitCooldownIv);
+  const tick = () => {
+    const left = Math.ceil((submitCooldownUntil - Date.now()) / 1000);
+    if (left <= 0) {
+      clearInterval(submitCooldownIv);
+      submitCooldownIv = null;
+      setSubmitButton(btn, {
+        disabled: false,
+        text: t(S.uiLang, 'btn_submit_retry'),
+      });
+      return;
+    }
+    setSubmitButton(btn, {
+      disabled: true,
+      text: tFmt(S.uiLang, 'submit_cooldown', { s: left }),
+    });
+  };
+  tick();
+  submitCooldownIv = setInterval(tick, 500);
+}
+
+async function recoverIfAlreadySubmitted() {
+  if (!S.token || !S.subject?.id) return false;
+  const btn = document.getElementById('btn-submit');
+  setSubmitButton(btn, { disabled: true, text: t(S.uiLang, 'submit_checking') });
+  const { data } = await rpcCall('student_exam_get_schedule', { p_token: S.token }, { timeoutMs: 10000, tries: 2 });
+  const sub = (data?.subjects || []).find((x) => x.id === S.subject.id);
+  if (sub?.attempt_status === 'submitted') {
+    await finishSubmitSuccess();
+    return true;
+  }
+  return false;
+}
+
+async function finishSubmitSuccess() {
+  S.submitting = false;
+  try { sessionStorage.removeItem(LOCAL_DRAFT_KEY); } catch (_) {}
+  clearInterval(submitCooldownIv);
+  submitCooldownIv = null;
+  submitCooldownUntil = 0;
+  S.view = 'done';
+  toast(t(S.uiLang, 'submitted_ok'));
+  await refreshSchedule();
+  render();
 }
 
 function goEditCheckIn() {
@@ -249,68 +353,83 @@ async function doCheckIn(resume = false) {
   const pl4 = document.getElementById('f-pl4')?.value?.trim() || null;
   if (!name) { toast(t(S.uiLang, 'full_name') + '?', false); return; }
 
-  if (S.editingCheckIn && S.token && !resume) {
-    if (!canEditCheckIn()) {
-      toast(t(S.uiLang, 'err_check_in_locked'), false);
+  const btn = document.getElementById('btn-checkin');
+  const resumeBtn = document.getElementById('btn-resume');
+  if (btn) btn.disabled = true;
+  if (resumeBtn) resumeBtn.disabled = true;
+
+  try {
+    if (S.editingCheckIn && S.token && !resume) {
+      if (!canEditCheckIn()) {
+        toast(t(S.uiLang, 'err_check_in_locked'), false);
+        S.editingCheckIn = false;
+        S.view = 'schedule';
+        render();
+        return;
+      }
+      const { data, error } = await rpcCall('student_exam_update_check_in', {
+        p_token: S.token,
+        p_full_name: name,
+        p_grade: grade,
+        p_class_track: classTrack,
+        p_phone_last4: pl4,
+        p_ui_lang: S.uiLang,
+        p_exam_lang: examLang,
+      }, { tries: 4 });
+      if (error || !data?.ok) {
+        toast(rpcErrorText(data?.error) || t(S.uiLang, 'err'), false);
+        return;
+      }
+      S.checkIn = data.check_in;
+      clearCoverConfirmed();
       S.editingCheckIn = false;
-      S.view = 'schedule';
-      render();
+      await refreshSchedule();
+      toast(t(S.uiLang, 'checkin_saved'));
       return;
     }
-    const { data, error } = await sb.rpc('student_exam_update_check_in', {
-      p_token: S.token,
-      p_full_name: name,
-      p_grade: grade,
-      p_class_track: classTrack,
-      p_phone_last4: pl4,
-      p_ui_lang: S.uiLang,
-      p_exam_lang: examLang,
-    });
+
+    let rpc, args;
+    if (resume && pl4) {
+      rpc = 'student_exam_resume';
+      args = { p_exam_day_id: S.examDay.id, p_full_name: name, p_grade: grade, p_phone_last4: pl4, p_class_track: classTrack };
+    } else {
+      rpc = 'student_exam_check_in';
+      args = {
+        p_exam_day_id: S.examDay.id,
+        p_full_name: name,
+        p_grade: grade,
+        p_ui_lang: S.uiLang,
+        p_exam_lang: examLang,
+        p_phone_last4: pl4,
+        p_resume_token: S.token || null,
+        p_class_track: classTrack,
+      };
+    }
+
+    const { data, error } = await rpcCall(rpc, args, { timeoutMs: 15000, tries: 4 });
     if (error || !data?.ok) {
-      toast(rpcErrorText(data?.error) || t(S.uiLang, 'err'), false);
+      const errMsg = data?.error
+        ? rpcErrorText(data.error)
+        : (error?.message?.includes('duplicate key') || error?.message?.includes('internal_no')
+          ? t(S.uiLang, 'err_checkin_server')
+          : (isNetworkError(error) ? t(S.uiLang, 'err_load_fail') : (error?.message || t(S.uiLang, 'err'))));
+      toast(errMsg, false);
       return;
     }
+    S.token = data.check_in.session_token;
+    localStorage.setItem(SESSION_KEY, S.token);
     S.checkIn = data.check_in;
-    clearCoverConfirmed();
+    if (!data.resumed) clearCoverConfirmed();
     S.editingCheckIn = false;
     await refreshSchedule();
-    toast(t(S.uiLang, 'checkin_saved'));
-    return;
+  } finally {
+    if (btn) btn.disabled = false;
+    if (resumeBtn) resumeBtn.disabled = false;
   }
-
-  let rpc, args;
-  if (resume && pl4) {
-    rpc = 'student_exam_resume';
-    args = { p_exam_day_id: S.examDay.id, p_full_name: name, p_grade: grade, p_phone_last4: pl4, p_class_track: classTrack };
-  } else {
-    rpc = 'student_exam_check_in';
-    args = {
-      p_exam_day_id: S.examDay.id,
-      p_full_name: name,
-      p_grade: grade,
-      p_ui_lang: S.uiLang,
-      p_exam_lang: examLang,
-      p_phone_last4: pl4,
-      p_resume_token: S.token || null,
-      p_class_track: classTrack,
-    };
-  }
-
-  const { data, error } = await sb.rpc(rpc, args);
-  if (error || !data?.ok) {
-    toast(rpcErrorText(data?.error) || t(S.uiLang, 'err'), false);
-    return;
-  }
-  S.token = data.check_in.session_token;
-  localStorage.setItem(SESSION_KEY, S.token);
-  S.checkIn = data.check_in;
-  if (!data.resumed) clearCoverConfirmed();
-  S.editingCheckIn = false;
-  await refreshSchedule();
 }
 
 async function refreshSchedule() {
-  const { data } = await sb.rpc('student_exam_get_schedule', { p_token: S.token });
+  const { data } = await rpcCall('student_exam_get_schedule', { p_token: S.token }, { tries: 3 });
   if (data?.ok) {
     S.checkIn = data.check_in;
     S.schedule = data.subjects || [];
@@ -346,25 +465,65 @@ async function openCover(subjectId) {
   render();
 }
 
+const PAPER_CACHE_KEY = 'mms_student_exam_paper_v2';
+
+function paperCacheLooksStale(paper) {
+  const qs = paper?.questions || [];
+  return qs.some((q) => q.type === 'single' && !(Array.isArray(q.options) && q.options.length));
+}
+
+function loadPaperCache(subjectId) {
+  try {
+    const raw = sessionStorage.getItem(PAPER_CACHE_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (o?.subjectId !== subjectId || !o?.paper?.ok) return null;
+    if (paperCacheLooksStale(o.paper)) return null;
+    return o.paper;
+  } catch (_) {}
+  return null;
+}
+
+function savePaperCache(subjectId, paper) {
+  if (!paper?.ok) return;
+  try {
+    sessionStorage.setItem(PAPER_CACHE_KEY, JSON.stringify({ subjectId, paper, ts: Date.now() }));
+  } catch (_) {}
+}
+
 async function enterExam(sub, displayName) {
   const name = displayName?.trim();
   if (!name) return;
-  const { data, error } = await sb.rpc('student_exam_start_attempt', {
+  toast(t(S.uiLang, 'loading'), true);
+  const { data, error } = await rpcCall('student_exam_start_attempt', {
     p_token: S.token,
     p_day_subject_id: sub.id,
     p_display_name: name,
-  });
+  }, { timeoutMs: 15000, tries: 4 });
   if (error || !data?.ok) {
-    toast(data?.error || t(S.uiLang, 'err'), false);
+    toast(rpcErrorText(data?.error) || t(S.uiLang, 'err'), false);
     return;
   }
   S.attempt = data.attempt;
   S.answers = S.attempt.answers_json || {};
-  S.proctorFlags = S.attempt.proctor_flags || 0;
-  const paperRes = await sb.rpc('student_exam_get_paper', { p_token: S.token, p_day_subject_id: sub.id });
-  if (!paperRes.data?.ok) { toast(t(S.uiLang, 'err'), false); return; }
-  S.paper = paperRes.data;
-  S.subject = { ...sub, ...paperRes.data.subject };
+  const localDraft = loadLocalDraft(S.attempt.id);
+  if (localDraft?.answers && Object.keys(localDraft.answers).length > Object.keys(S.answers).length) {
+    S.answers = { ...S.answers, ...localDraft.answers };
+  }
+  S.proctorFlags = S.attempt.proctor_flags || localDraft?.proctorFlags || 0;
+
+  let paperData = loadPaperCache(sub.id);
+  if (!paperData) {
+    const paperRes = await rpcCall('student_exam_get_paper', { p_token: S.token, p_day_subject_id: sub.id }, { timeoutMs: 20000, tries: 4 });
+    if (!paperRes.data?.ok) {
+      toast(t(S.uiLang, 'err'), false);
+      return;
+    }
+    paperData = paperRes.data;
+    savePaperCache(sub.id, paperData);
+  }
+  S.paper = paperData;
+  S.subject = { ...sub, ...paperData.subject };
   const endMs = new Date(S.subject.end_at).getTime();
   S.timerSec = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
   S.timerTotal = S.timerSec;
@@ -407,59 +566,118 @@ function startTimer() {
   }, 1000);
 }
 
-function startDraftSave() {
-  clearInterval(draftIv);
-  draftIv = setInterval(saveDraft, 15000);
+function saveLocalDraft() {
+  if (!S.attempt?.id) return;
+  try {
+    sessionStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify({
+      attemptId: S.attempt.id,
+      answers: S.answers,
+      proctorFlags: S.proctorFlags,
+      ts: Date.now(),
+    }));
+  } catch (_) {}
 }
 
-async function saveDraft() {
-  if (!S.attempt?.id || S.view !== 'exam') return;
+function loadLocalDraft(attemptId) {
+  try {
+    const raw = sessionStorage.getItem(LOCAL_DRAFT_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (o?.attemptId === attemptId && o.answers) return o;
+  } catch (_) {}
+  return null;
+}
+
+function startDraftSave() {
+  clearTimeout(draftTimer);
+  const tick = async () => {
+    await saveDraft();
+    draftTimer = setTimeout(tick, draftJitterMs());
+  };
+  draftTimer = setTimeout(tick, draftJitterMs());
+}
+
+let draftSaving = false;
+async function saveDraft({ silent = true } = {}) {
+  if (!S.attempt?.id || S.view !== 'exam' || draftSaving) return;
+  draftSaving = true;
   const root = document.getElementById('exam-root');
   S.answers = collectAnswers(root);
-  await sb.rpc('student_exam_save_draft', {
-    p_token: S.token,
-    p_attempt_id: S.attempt.id,
-    p_answers: S.answers,
-    p_proctor_flags: S.proctorFlags,
-  });
+  saveLocalDraft();
+  try {
+    const { error } = await rpcCall('student_exam_save_draft', {
+      p_token: S.token,
+      p_attempt_id: S.attempt.id,
+      p_answers: S.answers,
+      p_proctor_flags: S.proctorFlags,
+    }, { timeoutMs: 15000, tries: 2 });
+    if (error && !silent) toast(t(S.uiLang, 'err_submit'), false);
+  } catch (_) {
+    if (!silent) toast(t(S.uiLang, 'err_submit'), false);
+  }
+  draftSaving = false;
 }
 
 async function submitExam(submitType = 'manual') {
-  if (S.submitting) return;
+  if (S.submitting) {
+    if (submitType === 'manual') toast(t(S.uiLang, 'submit_busy'), false);
+    return;
+  }
+  if (submitType === 'manual' && Date.now() < submitCooldownUntil) {
+    toast(t(S.uiLang, 'submit_busy'), false);
+    return;
+  }
+
+  const btn = document.getElementById('btn-submit');
+  if (submitType === 'manual' && await recoverIfAlreadySubmitted()) return;
+
   S.submitting = true;
   clearInterval(timerIv);
-  clearInterval(draftIv);
+  clearTimeout(draftTimer);
   const root = document.getElementById('exam-root');
   S.answers = collectAnswers(root);
-  const btn = document.getElementById('btn-submit');
-  if (btn) { btn.disabled = true; btn.textContent = t(S.uiLang, 'err_submitting'); }
+  setSubmitButton(btn, { disabled: true, text: t(S.uiLang, 'err_submitting') });
   toast(t(S.uiLang, 'err_submitting'), true);
 
+  const tries = submitType === 'timeout' ? 12 : 8;
   const { data, error } = await rpcWithRetry('student_exam_submit', {
     p_token: S.token,
     p_attempt_id: S.attempt.id,
     p_answers: S.answers,
     p_proctor_flags: S.proctorFlags,
     p_submit_type: submitType,
-  }, { tries: submitType === 'timeout' ? 8 : 5, delayMs: 2500 });
+  }, {
+    tries,
+    delayMs: 2000,
+    timeoutMs: 20000,
+    onAttempt: (n, total) => {
+      setSubmitButton(btn, {
+        disabled: true,
+        text: tFmt(S.uiLang, 'submitting_progress', { n, total }),
+      });
+    },
+  });
 
   S.submitting = false;
-  if (btn) { btn.disabled = false; btn.textContent = t(S.uiLang, 'submit'); }
 
   if (error || (!data?.ok && !data?.already)) {
     if (data?.error !== 'already_submitted') {
+      if (await recoverIfAlreadySubmitted()) return;
       const msg = data?.error
         ? rpcErrorText(data.error)
         : (isNetworkError(error) ? t(S.uiLang, 'err_submit_network') : t(S.uiLang, 'err_submit_fail'));
       toast(msg, false);
-      startDraftSave();
+      saveLocalDraft();
+      if (S.view === 'exam' && S.timerSec > 0) {
+        startTimer();
+        startDraftSave();
+      }
+      if (submitType === 'manual') startSubmitCooldown(btn);
+      else setSubmitButton(btn, { disabled: false, text: t(S.uiLang, 'submit') });
       return;
     }
   }
-  S.view = 'done';
-  toast(t(S.uiLang, 'submitted_ok'));
-  await refreshSchedule();
-  render();
+  await finishSubmitSuccess();
 }
 
 function renderCheckin() {
@@ -468,6 +686,7 @@ function renderCheckin() {
   return `<div class="card">
     <h2>${esc(t(L, 'checkin_title'))}</h2>
     <p class="hint">${esc(t(L, editing ? 'checkin_edit_hint' : 'checkin_hint'))}</p>
+    ${S.syncing ? `<p class="hint">${esc(t(L, 'loading_slow'))}</p>` : ''}
     <div class="fld"><label>${esc(t(L, 'full_name'))}</label>
       <input class="inp" id="f-name" value="${esc(S.checkIn?.full_name || '')}"></div>
     <div class="fld"><label>${esc(t(L, 'class_track'))}</label>
@@ -628,7 +847,7 @@ function bindTrackPills() {
 
 function bind() {
   bindTrackPills();
-  document.getElementById('btn-reload-today')?.addEventListener('click', () => loadToday().then(render));
+  document.getElementById('btn-reload-today')?.addEventListener('click', () => loadToday());
   document.getElementById('btn-checkin')?.addEventListener('click', () => doCheckIn(false));
   document.getElementById('btn-resume')?.addEventListener('click', () => doCheckIn(true));
   document.getElementById('btn-edit-checkin')?.addEventListener('click', goEditCheckIn);
@@ -644,7 +863,7 @@ function bind() {
   document.getElementById('btn-submit')?.addEventListener('click', () => submitExam('manual'));
   document.getElementById('btn-back-sched')?.addEventListener('click', async () => {
     clearInterval(timerIv);
-    clearInterval(draftIv);
+    clearTimeout(draftTimer);
     S.view = 'schedule';
     await refreshSchedule();
   });
@@ -654,8 +873,19 @@ document.querySelectorAll('#lang-sw button').forEach((b) => {
   b.addEventListener('click', () => setLang(b.dataset.lang));
 });
 
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && S.view === 'exam') saveDraft({ silent: true });
+});
+window.addEventListener('pagehide', () => {
+  if (S.view === 'exam') {
+    const root = document.getElementById('exam-root');
+    if (root) S.answers = collectAnswers(root);
+    saveLocalDraft();
+  }
+});
+
 setLang(S.uiLang);
-loadToday().then(render);
+loadToday();
 </script>
 </body>
 </html>

@@ -8,7 +8,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -30,6 +31,16 @@
           ]
         },
         "stem": "Psalm 1:1-3 Blessed is the man who walks not in the counsel of the wicked, nor stands in the way of sinners, nor sits in the seat of scoffers; but his delight is in the ____, and on his law he meditates day and night. This person is ____! He is like a tree planted by streams of water that yields its fruit in its season, and its leaf does not wither."
+      },
+      "id": {
+        "stem": "____ orang yang tidak berjalan menurut nasihat orang fasik, yang tidak berdiri di jalan orang berdosa, dan yang tidak duduk dalam kumpulan pencemooh, tetapi yang kesukaannya ialah ____, dan yang merenungkan Taurat itu siang dan malam. Ia seperti pohon, yang ditanam di tepi aliran air, yang menghasilkan buahnya pada musimnya, dan yang tidak layu daunnya; apa saja yang diperbuatnya berhasil.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "Berbahagialah",
+            "Taurat Tuhan"
+          ]
+        }
       }
     }
   },
@@ -42,7 +53,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -65,6 +77,16 @@
         },
         "stem": "Psalm 2:5-7 Then he will speak to them in his wrath, and terrify them in his fury, saying, \"As for me, I have set my ____ on Zion, my holy hill.\" I will tell of the decree: The LORD said to me, \"You are my ____; today I have begotten you.\"",
         "options": []
+      },
+      "id": {
+        "stem": "Maka berkatalah Ia kepada mereka dalam murka-Nya dan mengejutkan mereka dalam kehangatan amarah-Nya: \"Akulah yang telah melantik ____-Ku di Sion, gunung-Ku yang kudus!\" Aku mau menceritakan tentang ketetapan Tuhan; Ia berkata kepadaku: \"____-Ku engkau! Engkau telah Kuperanakkan pada hari ini.\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "raja",
+            "Anak"
+          ]
+        }
       }
     }
   },
@@ -77,7 +99,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -99,6 +122,16 @@
           ]
         },
         "options": []
+      },
+      "id": {
+        "stem": "____ kaki-Nya dengan gemetar, supaya Ia jangan murka dan kamu binasa di jalan, sebab mudah sekali murka-Nya menyala. ____ semua orang yang berlindung pada-Nya!",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "Ciumlah",
+            "Berbahagialah"
+          ]
+        }
       }
     }
   },
@@ -111,7 +144,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -131,6 +165,15 @@
         },
         "stem": "Psalm 23:1-3 The LORD is my ____; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul. He leads me in paths of righteousness for his name's sake.",
         "options": []
+      },
+      "id": {
+        "stem": "Mazmur Daud. Tuhan adalah ____, takkan kekurangan aku. Ia membaringkan aku di padang yang berumput hijau, Ia membimbing aku ke air yang tenang; Ia menyegarkan jiwaku. Ia menuntun aku di jalan yang benar oleh karena nama-Nya.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "gembalaku"
+          ]
+        }
       }
     }
   },
@@ -143,7 +186,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -165,6 +209,16 @@
         },
         "stem": "Psalm 23:5 You prepare a ____ before me in the presence of my enemies; you anoint my head with oil; my ____ overflows.",
         "options": []
+      },
+      "id": {
+        "stem": "Engkau menyediakan ____ bagiku, di hadapan lawanku; Engkau mengurapi kepalaku dengan minyak; ____ penuh melimpah.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "hidangan",
+            "pialaku"
+          ]
+        }
       }
     }
   },
@@ -177,7 +231,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -197,6 +252,15 @@
             "my soul"
           ]
         }
+      },
+      "id": {
+        "stem": "Seperti rusa yang merindukan sungai yang berair, demikianlah ____ merindukan Engkau, ya Allah.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "jiwaku"
+          ]
+        }
       }
     }
   },
@@ -209,7 +273,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -233,6 +298,17 @@
           ]
         },
         "options": []
+      },
+      "id": {
+        "stem": "Kasihanilah aku, ya Allah, menurut ____-Mu, hapuskanlah pelanggaranku menurut rahmat-Mu yang besar! Bersihkanlah aku seluruhnya dari ____, dan tahirkanlah aku dari dosaku! Sebab aku sendiri sadar akan pelanggaranku, aku senantiasa bergumul dengan dosaku. Terhadap Engkau, terhadap Engkau sajalah aku telah berdosa dan melakukan apa yang Kauanggap jahat, supaya Engkau ____ dalam putusan-Mu, bersih dalam penghukuman-Mu.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "kasih setia",
+            "kesalahanku",
+            "ternyata adil"
+          ]
+        }
       }
     }
   },
@@ -245,7 +321,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -265,6 +342,15 @@
           ]
         },
         "stem": "Psalm 89:3-4 You have said, \"I have made a covenant with my chosen one; I have sworn to ____ my servant: I will establish your offspring forever, and build your throne for all generations.\" Selah"
+      },
+      "id": {
+        "stem": "Engkau telah berkata: \"Telah Kuikat perjanjian dengan orang pilihan-Ku, Aku telah bersumpah kepada ____, hamba-Ku: Untuk selama-lamanya Aku hendak menegakkan anak cucumu, dan membangun takhtamu turun-temurun.\" Sela",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "Daud"
+          ]
+        }
       }
     }
   },
@@ -277,7 +363,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -297,6 +384,15 @@
             "the moon and the stars"
           ]
         }
+      },
+      "id": {
+        "stem": "Jika aku melihat langit-Mu, buatan jari-Mu, ____ yang Kautempatkan: apakah manusia, sehingga Engkau mengingatnya? Apakah anak manusia, sehingga Engkau mengindahkannya?",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "bulan dan bintang-bintang"
+          ]
+        }
       }
     }
   },
@@ -309,7 +405,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -329,6 +426,15 @@
           ]
         },
         "stem": "Psalm 16:5 The LORD is my chosen ____ and my cup; you hold my lot."
+      },
+      "id": {
+        "stem": "Ya Tuhan, Engkaulah ____ dan pialaku, Engkau sendirilah yang meneguhkan bagian yang diundikan kepadaku.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "bagian warisanku"
+          ]
+        }
       }
     }
   },
@@ -341,7 +447,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -361,6 +468,15 @@
           ]
         },
         "options": []
+      },
+      "id": {
+        "stem": "Ya, Engkau telah meluputkan aku dari pada maut, dan mataku dari pada air mata, dan kakiku dari pada tersandung. Aku boleh berjalan di hadapan Tuhan, di ____.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "negeri orang-orang hidup"
+          ]
+        }
       }
     }
   },
@@ -373,7 +489,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -393,6 +510,15 @@
           ]
         },
         "options": []
+      },
+      "id": {
+        "stem": "Suara Tuhan mematahkan pohon aras, bahkan, Tuhan menumbangkan ____. Ia membuat gunung Libanon melompat-lompat seperti anak lembu, dan gunung Siryon seperti anak banteng.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "pohon aras Libanon"
+          ]
+        }
       }
     }
   },
@@ -405,7 +531,8 @@
     "section_label": "一、经文填空 （每空1分，共20分）",
     "section_labels": {
       "zh": "一、经文填空 （每空1分，共20分）",
-      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)"
+      "en": "I. Scripture Fill-in-the-Blank (1 point per blank, 20 points total)",
+      "id": "I. Mengisi Bagian yang Kosong dari Ayat Alkitab (setiap kotak kosong 1 poin, total 20 poin)"
     },
     "locales": {
       "zh": {
@@ -425,6 +552,15 @@
             "reap with shouts of joy"
           ]
         }
+      },
+      "id": {
+        "stem": "Orang-orang yang menabur dengan mencucurkan air mata, akan ____.",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "menuai dengan bersorak-sorai"
+          ]
+        }
       }
     }
   },
@@ -437,7 +573,8 @@
     "section_label": "二、诗篇小标题（每题5分，共20分）",
     "section_labels": {
       "zh": "二、诗篇小标题（每题5分，共20分）",
-      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)"
+      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)",
+      "id": "II. Judul/Catatan Kepala Mazmur (setiap soal 5 poin, total 20 poin)"
     },
     "essay_kind": "short",
     "locales": {
@@ -450,6 +587,11 @@
         "answer_key": {},
         "stem": "Briefly identify the elements contained in each of the following Psalm superscriptions and explain them.\n\nPsalm 51 — To the choirmaster. A Psalm of David, when Nathan the prophet went to him, after he had gone in to Bathsheba.",
         "options": []
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat unsur-unsur yang terkandung dalam judul/catatan kepala Mazmur berikut ini, dan berikan penjelasannya.\n\nMazmur 51 — Untuk pemimpin biduan. Mazmur dari Daud, ketika nabi Natan datang kepadanya setelah ia menghampiri Batsyeba.",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -462,7 +604,8 @@
     "section_label": "二、诗篇小标题（每题5分，共20分）",
     "section_labels": {
       "zh": "二、诗篇小标题（每题5分，共20分）",
-      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)"
+      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)",
+      "id": "II. Judul/Catatan Kepala Mazmur (setiap soal 5 poin, total 20 poin)"
     },
     "essay_kind": "short",
     "locales": {
@@ -474,6 +617,11 @@
       "en": {
         "options": [],
         "stem": "Briefly identify the elements contained in each of the following Psalm superscriptions and explain them.\n\nPsalm 22 — To the choirmaster: according to The Doe of the Dawn. A Psalm of David.",
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat unsur-unsur yang terkandung dalam judul/catatan kepala Mazmur berikut ini, dan berikan penjelasannya.\n\nMazmur 22 — Untuk pemimpin biduan. Menurut lagu: \"Rusa di kala fajar.\" Mazmur Daud.",
+        "options": [],
         "answer_key": {}
       }
     }
@@ -487,7 +635,8 @@
     "section_label": "二、诗篇小标题（每题5分，共20分）",
     "section_labels": {
       "zh": "二、诗篇小标题（每题5分，共20分）",
-      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)"
+      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)",
+      "id": "II. Judul/Catatan Kepala Mazmur (setiap soal 5 poin, total 20 poin)"
     },
     "essay_kind": "short",
     "locales": {
@@ -500,6 +649,11 @@
         "answer_key": {},
         "stem": "Briefly identify the elements contained in each of the following Psalm superscriptions and explain them.\n\nPsalm 90 — A Prayer of Moses, the man of God.",
         "options": []
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat unsur-unsur yang terkandung dalam judul/catatan kepala Mazmur berikut ini, dan berikan penjelasannya.\n\nMazmur 90 — Doa Musa, abdi Allah.",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -512,7 +666,8 @@
     "section_label": "二、诗篇小标题（每题5分，共20分）",
     "section_labels": {
       "zh": "二、诗篇小标题（每题5分，共20分）",
-      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)"
+      "en": "II. Psalm Superscriptions (5 points per question, 20 points total)",
+      "id": "II. Judul/Catatan Kepala Mazmur (setiap soal 5 poin, total 20 poin)"
     },
     "essay_kind": "short",
     "locales": {
@@ -524,6 +679,11 @@
       "en": {
         "options": [],
         "stem": "Briefly identify the elements contained in each of the following Psalm superscriptions and explain them.\n\nPsalm 134 — A Song of Ascents.",
+        "answer_key": {}
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat unsur-unsur yang terkandung dalam judul/catatan kepala Mazmur berikut ini, dan berikan penjelasannya.\n\nMazmur 134 — Nyanyian ziarah.",
+        "options": [],
         "answer_key": {}
       }
     }
@@ -537,7 +697,8 @@
     "section_label": "三、诗篇结构（20分）",
     "section_labels": {
       "zh": "三、诗篇结构（20分）",
-      "en": "III. The Structure of the Psalter (20 points)"
+      "en": "III. The Structure of the Psalter (20 points)",
+      "id": "III. Struktur Kitab Mazmur (20 poin)"
     },
     "essay_kind": "long",
     "locales": {
@@ -550,6 +711,11 @@
         "answer_key": {},
         "stem": "III. The Structure of the Psalter (20 points)\nBriefly describe the editorial structure and content of the book of Psalms. (Correct division into books with chapter ranges: 10 points; correct content and main theological thread of each book: 10 points)",
         "options": []
+      },
+      "id": {
+        "stem": "Jelaskan secara singkat struktur penyusunan dan isi Kitab Mazmur. (Pembagian jilid dengan rentang pasal yang tepat: 10 poin; isi setiap jilid dan benang merah teologisnya yang tepat: 10 poin)",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -562,7 +728,8 @@
     "section_label": "四、简答题（40分）",
     "section_labels": {
       "zh": "四、简答题（40分）",
-      "en": "IV. Short Answer Questions (40 points)"
+      "en": "IV. Short Answer Questions (40 points)",
+      "id": "IV. Soal Jawaban Singkat (40 poin)"
     },
     "essay_kind": "long",
     "locales": {
@@ -575,6 +742,11 @@
         "answer_key": {},
         "stem": "Analyze the content of Psalm 29 and explain its connection to the New Testament.",
         "options": []
+      },
+      "id": {
+        "stem": "Analisislah isi Mazmur 29 dan jelaskan kaitannya dengan Perjanjian Baru. (20 poin)",
+        "options": [],
+        "answer_key": {}
       }
     }
   },
@@ -587,7 +759,8 @@
     "section_label": "四、简答题（40分）",
     "section_labels": {
       "zh": "四、简答题（40分）",
-      "en": "IV. Short Answer Questions (40 points)"
+      "en": "IV. Short Answer Questions (40 points)",
+      "id": "IV. Soal Jawaban Singkat (40 poin)"
     },
     "essay_kind": "long",
     "locales": {
@@ -600,6 +773,11 @@
         "stem": "Describe the structural composition and content of Book V of the Psalter.",
         "answer_key": {},
         "options": []
+      },
+      "id": {
+        "stem": "Jelaskan struktur dan isi dari Jilid Kelima Kitab Mazmur. (20 poin)",
+        "options": [],
+        "answer_key": {}
       }
     }
   }
