@@ -431,8 +431,8 @@ function guessExamLangFromLanguageProficiency(ap){
   const t=String(ap?.language_proficiency||'').toLowerCase().trim();
   if(!t) return null;
   if(/indonesia|indonesian|bahasa\s*indonesia|bhs\.?\s*indo|印尼|印度尼西亚/.test(t)) return 'id';
-  if(/english|inggris|bahasa\s*inggris|英文|英语/.test(t)&&!/indonesia|indonesian|印尼/.test(t)) return 'en';
   if(/chinese|mandarin|中文|汉语|普通话|华语|国语/.test(t)) return 'zh';
+  if(/english|inggris|bahasa\s*inggris|英文|英语/.test(t)&&!/indonesia|indonesian|印尼/.test(t)) return 'en';
   return null;
 }
 function guessExamLangFromApplication(ap){
@@ -440,11 +440,10 @@ function guessExamLangFromApplication(ap){
 }
 function shouldAutoSetExamLang(ap,inferred){
   if(!inferred||getApplicantExamLang(ap)===inferred) return false;
-  // 仅对新导入（小红点）或尚未明确设置语言的记录自动填写；不覆盖教务手动修改
+  // 仅对新导入（小红点）或库中尚未设置 exam_lang 时自动填写；不覆盖教务已保存的设置
   if(ap.sheet_import_unseen) return true;
   const raw=String(ap?.exam_lang||'').toLowerCase();
   if(!raw||raw==='') return true;
-  if(raw==='zh') return inferred!=='zh';
   return false;
 }
 function partitionApplicantsByExamLang(aps){
