@@ -115,6 +115,10 @@ function trackLabelZh(track) {
 import { docxFileToSnapshot, mergeSnapshotsByIndex } from './docx-import.js';
 
 const sb = createSb();
+if (!sb) {
+  document.getElementById('login-panel').insertAdjacentHTML('beforeend',
+    '<p class="admin-warn" style="margin-top:12px">无法加载 Supabase（/vendor/supabase.js）。请刷新或换网络；若从 WhatsApp 内打开请改用 Chrome/Safari。</p>');
+}
 const S = {
   user: null,
   profile: null,
@@ -135,7 +139,8 @@ function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  const ms = String(msg).length > 40 ? 5500 : 2800;
+  setTimeout(() => t.classList.remove('show'), ms);
 }
 
 function dayErrorText(code) {
@@ -168,6 +173,7 @@ function messageForStaffAuthError(err) {
 }
 
 async function login() {
+  if (!sb) { toast('系统未就绪：Supabase 未加载，请刷新页面'); return; }
   const email = document.getElementById('login-email').value.trim();
   const pw = document.getElementById('login-pw').value;
   if (!email || !pw) { toast('请填写邮箱和密码'); return; }
@@ -1193,6 +1199,12 @@ document.querySelectorAll('.tab').forEach((t) => {
   t.addEventListener('click', () => { S.tab = t.dataset.tab; render(); });
 });
 document.getElementById('btn-login').addEventListener('click', login);
+document.getElementById('login-pw')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') login();
+});
+document.getElementById('login-email')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('login-pw')?.focus();
+});
 
 withTimeout(sb.auth.getSession(), 20000).then(async ({ data }) => {
   if (!data?.session?.user) return;
