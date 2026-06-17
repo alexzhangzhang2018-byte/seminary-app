@@ -28,12 +28,31 @@ table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:8px 10px;border-bottom:1px solid #f1f5f9;text-align:left}
 th{font-size:11px;color:#64748b;text-transform:uppercase}
 tr.sel{background:#eef2ff;cursor:pointer}
+tr.sel.on{background:#dbeafe;box-shadow:inset 3px 0 0 #4f46e5}
+tr.grade-expand td{padding:0;background:#f8fafc;border-bottom:2px solid #c7d2fe;vertical-align:top}
+.grade-inline{padding:14px 16px 18px}
+.grade-nav{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.grade-inline .card{margin:0;border:none;box-shadow:none;padding:0;background:transparent}
+.grade-inline h2{font-size:15px;margin-bottom:8px}
+.ocr-card{border:1px dashed #c7d2fe;border-radius:12px;padding:14px;margin:12px 0 16px;background:#fafbff}
+.ocr-card .textarea{min-height:120px;font-size:13px;margin-top:8px}
+.answer-edit{min-height:140px;font-size:13px;margin:8px 0 10px}
+.obj-panel{margin-top:10px}
 .tag{font-size:11px;padding:3px 8px;border-radius:999px;font-weight:700}
 .tag-pending{background:#fef3c7;color:#92400e}
 .tag-done{background:#dcfce7;color:#15803d}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:800px){.grid2{grid-template-columns:1fr}}
 .grade-box{border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px}
+.grade-box.obj-ok{border-color:#86efac;background:#f0fdf4}
+.grade-box.obj-part{border-color:#fde68a;background:#fffbeb}
+.grade-box.obj-miss{border-color:#fecaca;background:#fef2f2}
+.grade-sec{margin:18px 0 10px;font-size:13px;font-weight:800;color:#475569}
+.grade-sec:first-child{margin-top:0}
+.obj-score{font-weight:800;font-size:13px}
+.obj-score.ok{color:#15803d}
+.obj-score.part{color:#b45309}
+.obj-score.miss{color:#b91c1c}
 .grade-score-row{display:flex;align-items:center;gap:10px;margin:12px 0 0}
 .grade-score-row label{font-weight:700;font-size:14px;white-space:nowrap}
 .grade-score-inp{width:72px;padding:8px 6px;font-size:26px;font-weight:800;text-align:center;border:1px solid #cbd5e1;border-radius:8px;margin:0;background:#fff}
@@ -85,7 +104,10 @@ tr.sel{background:#eef2ff;cursor:pointer}
 import {
   createSb, esc, trackLabel, teacherPaperTitle,
   paperLocaleBadgesHtml, paperLocaleSummary, paperLocaleCodes, withTimeout,
-} from './shared.js';
+  isObjectiveType, paperHasObjective, isAllSubjectivePaper,
+  questionLocale, gradeOneQuestion, formatStudentAnswer, formatCorrectAnswer,
+  mergeGradingItems,
+} from './shared.js?v=202606161300';
 
 function trackLabelZh(track) {
   return trackLabel(track, 'zh');
@@ -103,7 +125,10 @@ const S = {
   selectedDayId: null,
   selectedSubjectId: null,
   attempts: [],
+  expandedAttemptId: null,
   gradingAttempt: null,
+  gradingLoading: false,
+  showObjective: false,
 };
 
 function toast(msg) {
@@ -237,6 +262,88 @@ async function loadAttempts() {
   S.attempts = data?.attempts || [];
 }
 
+function gradingStatusLabel(status) {
+  if (status === 'done') return '已阅';
+  if (status === 'partial') return '阅卷中';
+  if (status === 'none') return '机评';
+  return '待阅';
+}
+
+function gradingStatusClass(status) {
+  if (status === 'done' || status === 'none') return 'tag-done';
+  return 'tag-pending';
+}
+
+function clearStudentErrorText(err) {
+  if (err === 'forbidden') return '无权限';
+  if (err === 'full_name_required') return '请填写姓名';
+  if (err === 'phone_last4_required') return '手机后四位须为 4 位数字';
+  if (err === 'not_found') return '未找到该考生记录';
+  return err || '操作失败';
+}
+
+async function deleteStudentRecord({ checkInId, examDayId, fullName, phoneLast4 }) {
+  if (checkInId) {
+    const byId = await sb.rpc('staff_student_exam_delete_check_in', { p_check_in_id: checkInId });
+    if (byId.data?.ok) return byId;
+    const missing = byId.error?.message?.includes('Could not find') || byId.error?.message?.includes('does not exist');
+    if (!missing) return byId;
+  }
+  return sb.rpc('staff_student_exam_clear_check_in', {
+    p_exam_day_id: examDayId,
+    p_full_name: fullName,
+    p_phone_last4: phoneLast4 || null,
+  });
+}
+
+function subjectNameFlags(name) {
+  const n = String(name || '');
+  return {
+    allSubjective: /启示录|撒母耳|revelation|samuel|wahyu/i.test(n),
+    allowAnswerEdit: /撒母耳|samuel/i.test(n),
+    allowPaperOcr: /启示录|revelation|wahyu/i.test(n),
+  };
+}
+
+function currentSubjectFlags() {
+  const subj = S.subjects.find((s) => s.id === S.selectedSubjectId);
+  return subjectNameFlags(subj?.subject_name);
+}
+
+let tesseractLoadPromise = null;
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve();
+  if (!tesseractLoadPromise) {
+    tesseractLoadPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('tesseract_load_fail'));
+      document.head.appendChild(s);
+    });
+  }
+  return tesseractLoadPromise;
+}
+
+function applyOcrSplitToForm(raw, paper) {
+  const essays = (paper || []).filter((q) => q.type === 'essay')
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  if (!essays.length) return 0;
+  const text = String(raw || '').trim();
+  if (!text) return 0;
+  let chunks = text.split(/\n(?=\s*(?:第?\s*[0-9一二三四五六七八九十]+[\s\.、\)）]|（[0-9]+）|\([0-9]+\)))/);
+  if (chunks.length <= 1) chunks = text.split(/\n{2,}/).filter((c) => c.trim());
+  let n = 0;
+  essays.forEach((q, i) => {
+    const ta = document.querySelector(`[data-answer-edit][data-gid="${q.group_id}"]`);
+    const chunk = (chunks[i] || (i === 0 && chunks.length === 1 ? text : '')).trim();
+    if (!ta || !chunk) return;
+    ta.value = chunk.replace(/^(?:第?\s*)?[0-9一二三四五六七八九十]+[\s\.、\)）]\s*/, '').trim();
+    n++;
+  });
+  return n;
+}
+
 function renderGrades() {
   const dayOpts = S.days.map((d) =>
     `<option value="${d.id}"${d.id === S.selectedDayId ? ' selected' : ''}>${esc(d.title)} (${d.exam_date})</option>`
@@ -244,20 +351,29 @@ function renderGrades() {
   const subOpts = S.subjects.map((s) =>
     `<option value="${s.id}"${s.id === S.selectedSubjectId ? ' selected' : ''}>${esc(s.subject_name)} · ${s.grade}年级 · ${esc(trackLabelZh(s.class_track))}</option>`
   ).join('');
-  const rows = S.attempts.map((a) => {
-    const gs = a.grading_status === 'done' || a.grading_status === 'none' ? 'tag-done' : 'tag-pending';
-    const gt = a.grading_status === 'none' ? '仅客观' : a.grading_status === 'done' ? '已阅' : '待阅';
-    return `<tr class="sel" data-aid="${a.id}">
+  const subj = S.subjects.find((s) => s.id === S.selectedSubjectId);
+  const allSubjSubject = subj && /启示录|撒母耳|revelation|samuel|wahyu/i.test(subj.subject_name || '');
+  const rows = S.attempts.flatMap((a) => {
+    const gs = gradingStatusClass(a.grading_status);
+    const gt = allSubjSubject && a.grading_status === 'none' ? '待阅' : gradingStatusLabel(a.grading_status);
+    const objCol = allSubjSubject ? '—' : (a.objective_score ?? '—');
+    const isOn = a.id === S.expandedAttemptId;
+    const head = `<tr class="sel${isOn ? ' on' : ''}" data-aid="${a.id}">
       <td>${esc(a.display_name)}</td>
       <td>${a.grade}</td>
       <td>${esc(trackLabelZh(a.class_track))}</td>
       <td>${esc(a.exam_lang)}</td>
-      <td>${a.objective_score ?? '—'}</td>
+      <td>${objCol}</td>
       <td>${a.subjective_score ?? '—'}</td>
       <td><strong>${a.total_score ?? '—'}</strong></td>
       <td><span class="tag ${gs}">${gt}</span></td>
       <td>${a.proctor_flags || 0}</td>
     </tr>`;
+    if (!isOn) return [head];
+    const panel = S.gradingLoading
+      ? '<p class="muted">加载答卷中…</p>'
+      : (S.gradingAttempt?.attempt?.id === a.id ? buildGradingPanelHtml(S.gradingAttempt, a.id) : '<p class="muted">加载答卷中…</p>');
+    return [head, `<tr class="grade-expand" data-expand-for="${a.id}"><td colspan="9"><div class="grade-inline">${panel}</div></td></tr>`];
   }).join('');
 
   document.getElementById('tab-grades').innerHTML = `
@@ -272,26 +388,318 @@ function renderGrades() {
         <thead><tr>
           <th>姓名</th><th>年级</th><th>班级</th><th>语言</th><th>客观</th><th>主观</th><th>总分</th><th>阅卷</th><th>切屏</th>
         </tr></thead>
-        <tbody>${rows || '<tr><td colspan="8" class="muted">暂无答卷</td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="9" class="muted">暂无答卷</td></tr>'}</tbody>
       </table>
-    </div>
-    <div id="grade-panel"></div>`;
+    </div>`;
 
   document.getElementById('sel-day')?.addEventListener('change', async (e) => {
     S.selectedDayId = e.target.value;
     S.selectedSubjectId = null;
+    S.expandedAttemptId = null;
+    S.gradingAttempt = null;
     await loadSubjectsForDay();
     render();
   });
   document.getElementById('sel-subject')?.addEventListener('change', async (e) => {
     S.selectedSubjectId = e.target.value;
+    S.expandedAttemptId = null;
+    S.gradingAttempt = null;
     await loadAttempts();
     render();
   });
-  document.querySelectorAll('[data-aid]').forEach((tr) => {
+  document.querySelectorAll('tr.sel[data-aid]').forEach((tr) => {
     tr.addEventListener('click', () => openGrading(tr.dataset.aid));
   });
+  if (S.expandedAttemptId) bindGradePanelEvents(S.expandedAttemptId);
   document.getElementById('btn-export-csv')?.addEventListener('click', exportCsv);
+}
+
+function scrollToExpanded(attemptId) {
+  requestAnimationFrame(() => {
+    const row = document.querySelector(`tr[data-expand-for="${attemptId}"]`);
+    row?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+}
+
+function buildGradingPanelHtml(data, attemptId) {
+  const paper = Array.isArray(data.paper) ? data.paper : [];
+  const lang = data.check_in?.exam_lang || 'zh';
+  const answers = data.attempt?.answers_json || {};
+  const flags = currentSubjectFlags();
+  const canEditAnswers = flags.allowAnswerEdit || flags.allowPaperOcr;
+  const allSubjective = isAllSubjectivePaper(paper);
+  const hasObjective = paperHasObjective(paper);
+  const subjectiveItems = mergeGradingItems(paper, answers, data.grading_items || []);
+
+  if (!subjectiveItems.length && !hasObjective) {
+    return '<p class="muted">该答卷暂无题目数据</p>';
+  }
+
+  const objectiveBlocks = hasObjective
+    ? paper
+      .filter((q) => isObjectiveType(q.type))
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      .map((q) => {
+        const loc = questionLocale(q, lang);
+        const userAns = answers[q.group_id];
+        const earned = gradeOneQuestion(q.type, q.score, userAns, loc.answer_key, lang);
+        const max = Number(q.score) || 0;
+        const cls = earned >= max - 0.001 ? 'obj-ok' : earned > 0 ? 'obj-part' : 'obj-miss';
+        const scoreCls = earned >= max - 0.001 ? 'ok' : earned > 0 ? 'part' : 'miss';
+        return `<div class="grade-box ${cls}">
+          <div class="muted">第 ${q.sort_order} 题 · 客观题 · 满分 ${max}</div>
+          <div style="margin:8px 0;font-weight:600;white-space:pre-wrap">${esc(loc.stem || '')}</div>
+          <div class="muted">标准答案：</div>
+          <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:13px">${esc(formatCorrectAnswer(q, lang))}</div>
+          <div class="muted">学生作答：</div>
+          <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#f8fafc;border-radius:8px">${esc(formatStudentAnswer(q, userAns, lang))}</div>
+          <div class="obj-score ${scoreCls}">机评得分：${earned} / ${max}</div>
+        </div>`;
+      }).join('')
+    : '';
+
+  const subjectiveBlocks = subjectiveItems.map((gi) => {
+    const q = paper.find((x) => x.group_id === gi.group_id);
+    const loc = questionLocale(q, lang);
+    const ref = loc.answer_key?.reference;
+    const ansText = gi.answer_text || answers[gi.group_id] || '';
+    const answerHtml = canEditAnswers
+      ? `<textarea class="textarea answer-edit" data-answer-edit data-gid="${esc(gi.group_id)}" rows="8">${esc(ansText)}</textarea>`
+      : `<div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#f8fafc;border-radius:8px">${esc(ansText || '（未作答）')}</div>`;
+    return `<div class="grade-box" data-gid="${esc(gi.group_id)}">
+      <div class="muted">第 ${gi.sort_order} 题 · 主观题 · 满分 ${gi.max_score}</div>
+      <div style="margin:8px 0;font-weight:600;white-space:pre-wrap">${esc(loc.stem || '')}</div>
+      ${ref ? `<div class="muted">参考答案：</div>
+      <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:13px">${esc(ref)}</div>` : ''}
+      <div class="muted">学生作答${canEditAnswers ? '（可编辑补录）' : ''}：</div>
+      ${answerHtml}
+      <div class="grade-score-row">
+        <label for="score-${esc(gi.group_id)}">得分</label>
+        <input class="grade-score-inp" id="score-${esc(gi.group_id)}" type="number" min="0" max="${gi.max_score}" step="0.5" data-score value="${gi.score ?? ''}" inputmode="decimal">
+        <span class="muted">/ ${gi.max_score} 分</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const summary = allSubjective
+    ? `<p class="muted">全主观题试卷 · 请逐题评分${canEditAnswers ? '（可先补录学生作答）' : ''}</p>`
+    : hasObjective
+      ? `<p class="muted">客观题已机评（${data.attempt.objective_score ?? 0} 分）· 主观题请教师评分</p>`
+      : `<p class="muted">客观分：${data.attempt.objective_score ?? '—'}</p>`;
+
+  const idx = S.attempts.findIndex((x) => x.id === attemptId);
+  const nav = `<div class="grade-nav">
+    <button type="button" class="btn btn-o btn-sm" id="btn-grade-prev"${idx <= 0 ? ' disabled' : ''}>↑ 上一份</button>
+    <button type="button" class="btn btn-o btn-sm" id="btn-grade-next"${idx >= S.attempts.length - 1 ? ' disabled' : ''}>下一份 ↓</button>
+    <button type="button" class="btn btn-danger btn-sm" id="btn-delete-student" style="margin-left:auto">删除该学员今日全部记录</button>
+  </div>`;
+
+  const ci = data.check_in || {};
+  const ciMeta = [
+    ci.internal_no ? `学号 ${ci.internal_no}` : '',
+    ci.full_name ? `签到 ${ci.full_name}` : '',
+    ci.phone_last4 ? `尾号 ${ci.phone_last4}` : '',
+    ci.grade ? `${ci.grade}年级` : '',
+    ci.class_track ? trackLabelZh(ci.class_track) : '',
+  ].filter(Boolean).join(' · ');
+
+  const ocrBlock = flags.allowPaperOcr ? `
+    <div class="ocr-card">
+      <h3>📷 纸质答卷 · 拍照识别</h3>
+      <p class="muted">上传答卷照片，自动识别文字后填入下方各题。识别结果请核对修改，再点「保存补录答案」。</p>
+      <input type="file" id="ocr-files" accept="image/*" multiple>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button type="button" class="btn btn-o btn-sm" id="btn-ocr-run">识别选中图片</button>
+        <button type="button" class="btn btn-o btn-sm" id="btn-ocr-split">按题号填入各题</button>
+      </div>
+      <textarea class="textarea" id="ocr-raw" placeholder="识别出的全文将显示在这里，可手工修改后再填入各题…"></textarea>
+    </div>` : '';
+
+  const objectiveSection = hasObjective ? `
+    <div class="obj-collapsed">
+      <button type="button" class="btn btn-o btn-sm" id="btn-toggle-obj">
+        ${S.showObjective ? '收起客观题' : `查看客观题（机评 ${data.attempt.objective_score ?? 0} 分）`}
+      </button>
+      <div class="obj-panel" id="obj-panel" style="display:${S.showObjective ? 'block' : 'none'}">
+        <div class="grade-sec">客观题（系统机评，仅供查阅）</div>
+        ${objectiveBlocks}
+      </div>
+    </div>` : '';
+
+  const saveAnswersBtn = canEditAnswers
+    ? '<button type="button" class="btn btn-o" id="btn-save-answers" style="margin-right:8px">保存补录答案</button>'
+    : '';
+
+  return `
+    <div class="card" data-grade-panel="${attemptId}">
+      ${nav}
+      <h2>阅卷 · ${esc(data.attempt.display_name)}</h2>
+      <p class="muted">${esc(ciMeta)}</p>
+      ${flags.allowAnswerEdit ? '<p class="muted" style="margin-bottom:8px">系统故障导致答案未保存时，可在下方逐题补录学生手写/口述内容，保存后再评分。</p>' : ''}
+      ${summary}
+      ${ocrBlock}
+      ${objectiveSection}
+      ${subjectiveItems.length ? `<div class="grade-sec">${hasObjective ? '主观题（教师评分）' : '主观题作答'}</div>${subjectiveBlocks}` : ''}
+      <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px">
+        ${saveAnswersBtn}
+        ${subjectiveItems.length ? '<button type="button" class="btn" id="btn-save-grade">保存主观题评分</button>' : ''}
+      </div>
+    </div>`;
+}
+
+function collectAnswerEdits(attemptId) {
+  const out = {};
+  document.querySelectorAll(`tr[data-expand-for="${attemptId}"] [data-answer-edit]`).forEach((el) => {
+    if (el.dataset.gid) out[el.dataset.gid] = el.value;
+  });
+  return out;
+}
+
+async function saveAnswerEdits(attemptId) {
+  const answers = collectAnswerEdits(attemptId);
+  if (!Object.keys(answers).length) { toast('没有可保存的答案'); return false; }
+  const res = await sb.rpc('staff_student_exam_update_answers', {
+    p_attempt_id: attemptId,
+    p_answers: answers,
+    p_mark_submitted: true,
+  });
+  if (res.data?.ok) {
+    toast('补录答案已保存');
+    await loadAttempts();
+    return true;
+  }
+  const err = res.data?.error || res.error?.message || '保存失败';
+  if (err.includes('Could not find') || err.includes('does not exist')) {
+    toast('请先在 Supabase 执行迁移 20260616130000_student_exam_staff_update_answers.sql');
+  } else {
+    toast(err);
+  }
+  return false;
+}
+
+function bindGradePanelEvents(attemptId) {
+  const idx = S.attempts.findIndex((x) => x.id === attemptId);
+  document.getElementById('btn-grade-prev')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (idx > 0) openGrading(S.attempts[idx - 1].id);
+  });
+  document.getElementById('btn-grade-next')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (idx < S.attempts.length - 1) openGrading(S.attempts[idx + 1].id);
+  });
+  document.getElementById('btn-toggle-obj')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    S.showObjective = !S.showObjective;
+    if (S.tab === 'grades') renderGrades();
+  });
+  document.getElementById('btn-save-answers')?.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (await saveAnswerEdits(attemptId)) await openGrading(attemptId, { keepOpen: true });
+  });
+  document.getElementById('btn-ocr-run')?.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const input = document.getElementById('ocr-files');
+    const files = [...(input?.files || [])];
+    if (!files.length) { toast('请先选择答卷照片'); return; }
+    const btn = document.getElementById('btn-ocr-run');
+    const prev = btn?.textContent;
+    if (btn) { btn.disabled = true; btn.textContent = '识别中…'; }
+    try {
+      await loadTesseract();
+      const lang = S.gradingAttempt?.check_in?.exam_lang === 'id' ? 'ind+eng' : 'chi_sim+eng';
+      let all = '';
+      for (const file of files) {
+        const { data: { text } } = await window.Tesseract.recognize(file, lang);
+        all += (all ? '\n\n' : '') + (text || '').trim();
+      }
+      const ta = document.getElementById('ocr-raw');
+      if (ta) ta.value = all;
+      toast(all ? '识别完成，请核对文字' : '未识别到文字，请换更清晰的照片');
+    } catch (err) {
+      console.warn(err);
+      toast('识别失败，请手工输入或换更清晰照片');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = prev; }
+    }
+  });
+  document.getElementById('btn-ocr-split')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const raw = document.getElementById('ocr-raw')?.value || '';
+    const paper = S.gradingAttempt?.paper || [];
+    const n = applyOcrSplitToForm(raw, paper);
+    toast(n ? `已填入 ${n} 道题，请核对后保存` : '未能按题号拆分，请手工复制到各题');
+  });
+  document.getElementById('btn-save-grade')?.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const payload = [...document.querySelectorAll(`tr[data-expand-for="${attemptId}"] .grade-box[data-gid]`)]
+      .map((box) => ({
+        group_id: box.dataset.gid,
+        score: box.querySelector('[data-score]').value,
+      }));
+    const res = await sb.rpc('staff_student_exam_grade', {
+      p_attempt_id: attemptId,
+      p_items: payload,
+    });
+    if (res.data?.ok) {
+      toast('已保存');
+      await loadAttempts();
+      await openGrading(attemptId);
+    } else toast(res.data?.error || '保存失败');
+  });
+  document.getElementById('btn-delete-student')?.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const ci = S.gradingAttempt?.check_in;
+    if (!ci || !S.selectedDayId) { toast('无法获取考生信息'); return; }
+    const label = [ci.full_name, ci.internal_no, ci.phone_last4 ? `尾号${ci.phone_last4}` : ''].filter(Boolean).join(' / ');
+    if (!confirm(`确定删除「${label}」今日全部签到与答卷？\n\n该学员所有科目记录将被清除，可重新签到。此操作不可恢复。`)) return;
+    const res = await deleteStudentRecord({
+      checkInId: ci.id,
+      examDayId: S.selectedDayId,
+      fullName: ci.full_name,
+      phoneLast4: ci.phone_last4,
+    });
+    if (res.data?.ok) {
+      toast('已删除该学员今日记录');
+      S.expandedAttemptId = null;
+      S.gradingAttempt = null;
+      await loadAttempts();
+      render();
+    } else {
+      const err = res.data?.error || res.error?.message || '失败';
+      toast(clearStudentErrorText(err));
+    }
+  });
+}
+
+async function openGrading(attemptId, { keepOpen = false } = {}) {
+  if (!keepOpen && S.expandedAttemptId === attemptId && S.gradingAttempt?.attempt?.id === attemptId && !S.gradingLoading) {
+    S.expandedAttemptId = null;
+    S.gradingAttempt = null;
+    S.showObjective = false;
+    if (S.tab === 'grades') renderGrades();
+    else render();
+    return;
+  }
+  if (S.expandedAttemptId !== attemptId) S.showObjective = false;
+  S.expandedAttemptId = attemptId;
+  S.gradingAttempt = null;
+  S.gradingLoading = true;
+  if (S.tab === 'grades') renderGrades();
+  else render();
+
+  const { data } = await sb.rpc('staff_student_exam_get_attempt', { p_attempt_id: attemptId });
+  S.gradingLoading = false;
+  if (!data?.ok) {
+    toast('加载失败');
+    S.expandedAttemptId = null;
+    if (S.tab === 'grades') renderGrades();
+    else render();
+    return;
+  }
+  S.gradingAttempt = data;
+  if (S.tab === 'grades') renderGrades();
+  else render();
+  scrollToExpanded(attemptId);
 }
 
 function exportCsv() {
@@ -306,59 +714,6 @@ function exportCsv() {
   a.href = URL.createObjectURL(blob);
   a.download = 'exam-grades.csv';
   a.click();
-}
-
-async function openGrading(attemptId) {
-  const { data } = await sb.rpc('staff_student_exam_get_attempt', { p_attempt_id: attemptId });
-  if (!data?.ok) { toast('加载失败'); return; }
-  S.gradingAttempt = data;
-  const items = data.grading_items || [];
-  if (!items.length) {
-    document.getElementById('grade-panel').innerHTML = `<div class="card"><p class="muted">该答卷无主观题，客观分：${data.attempt.objective_score ?? '—'}</p></div>`;
-    return;
-  }
-  const blocks = items.map((gi) => {
-    const q = (data.paper || []).find((x) => x.group_id === gi.group_id);
-    const loc = q?.locales?.[data.check_in.exam_lang] || q?.locales?.zh || {};
-    const ref = loc.answer_key?.reference;
-    return `<div class="grade-box" data-gid="${esc(gi.group_id)}">
-      <div class="muted">第 ${gi.sort_order} 题 · 满分 ${gi.max_score}</div>
-      <div style="margin:8px 0;font-weight:600">${esc(loc.stem || '')}</div>
-      ${ref ? `<div class="muted">参考答案：</div>
-      <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:13px">${esc(ref)}</div>` : ''}
-      <div class="muted">学生作答：</div>
-      <div style="white-space:pre-wrap;margin:6px 0 10px;padding:10px;background:#f8fafc;border-radius:8px">${esc(gi.answer_text || '（未作答）')}</div>
-      <div class="grade-score-row">
-        <label for="score-${esc(gi.group_id)}">得分</label>
-        <input class="grade-score-inp" id="score-${esc(gi.group_id)}" type="number" min="0" max="${gi.max_score}" step="0.5" data-score value="${gi.score ?? ''}" inputmode="decimal">
-        <span class="muted">/ ${gi.max_score} 分</span>
-      </div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('grade-panel').innerHTML = `
-    <div class="card">
-      <h2>阅卷 · ${esc(data.attempt.display_name)}</h2>
-      <p class="muted">签到：${esc(data.check_in.full_name)} · 客观 ${data.attempt.objective_score ?? 0} 分</p>
-      ${blocks}
-      <button class="btn" id="btn-save-grade">保存评分</button>
-    </div>`;
-
-  document.getElementById('btn-save-grade').onclick = async () => {
-    const payload = [...document.querySelectorAll('.grade-box')].map((box) => ({
-      group_id: box.dataset.gid,
-      score: box.querySelector('[data-score]').value,
-    }));
-    const res = await sb.rpc('staff_student_exam_grade', {
-      p_attempt_id: attemptId,
-      p_items: payload,
-    });
-    if (res.data?.ok) {
-      toast('已保存');
-      await loadAttempts();
-      render();
-    } else toast('保存失败');
-  };
 }
 
 function renderPapers() {
@@ -692,10 +1047,19 @@ function renderAdmin() {
       <p class="muted" style="margin-bottom:12px;line-height:1.65;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
         <strong>一键终止考试</strong>：立即关闭所选考试日，并强制交卷所有进行中的答卷。<br>
         <strong>删除考试日</strong>：永久删除该日全部排考、签到与答卷（未开始或进行中均可删，用于重新排考）。<br>
-        <strong>清除测试账号</strong>：仅删除测试用签到与答卷（姓名 <strong>张</strong>、手机尾号 <strong>5668</strong>），不影响其他考生。
+        <strong>清除考生记录</strong>：删除指定学员今日签到与全部科目答卷（填错姓名/年级/语言时使用，学生可重新签到）。<br>
+        <strong>清除测试账号</strong>：快捷清除测试用记录（姓名 <strong>张</strong>、手机尾号 <strong>5668</strong>）。
       </p>
       <label class="muted">选择考试日</label>
       <select class="sel" id="admin-day">${dayOpts || '<option value="">— 暂无考试日 —</option>'}</select>
+      <div class="admin-warn" style="margin-top:14px">
+        <strong>清除考生记录</strong>（填错信息、需让学生重新签到时）
+        <div class="grid2" style="margin-top:10px;gap:10px">
+          <input class="inp" id="clear-name" placeholder="考生姓名（与签到时一致）" style="margin:0">
+          <input class="inp" id="clear-pl4" placeholder="手机/WhatsApp 后 4 位（建议填写）" inputmode="numeric" maxlength="4" style="margin:0">
+        </div>
+        <button class="btn btn-danger" type="button" id="btn-clear-student" style="margin-top:10px">清除该考生今日记录</button>
+      </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
         <button class="btn btn-danger" type="button" id="btn-end-day">一键终止考试</button>
         <button class="btn btn-o" type="button" id="btn-delete-day" style="border-color:#fca5a5;color:#dc2626">删除考试日</button>
@@ -745,6 +1109,41 @@ function renderAdmin() {
       } else {
         toast(dayErrorText(err) || '删除失败');
       }
+    }
+  };
+
+  document.getElementById('btn-clear-student').onclick = async () => {
+    const id = document.getElementById('admin-day').value;
+    const name = document.getElementById('clear-name').value.trim();
+    const pl4 = document.getElementById('clear-pl4').value.trim();
+    if (!id) { toast('请选择考试日'); return; }
+    if (!name) { toast('请填写考生姓名'); return; }
+    const label = pl4 ? `${name} / 尾号${pl4}` : name;
+    if (!confirm(`确定清除「${label}」在该考试日的全部签到与答卷？\n\n学生可重新签到，此操作不可恢复。`)) return;
+    const res = await sb.rpc('staff_student_exam_clear_check_in', {
+      p_exam_day_id: id,
+      p_full_name: name,
+      p_phone_last4: pl4 || null,
+    });
+    const st = document.getElementById('admin-status');
+    if (res.data?.ok) {
+      const n = res.data.deleted_check_ins ?? 0;
+      st.textContent = n
+        ? `已删除 ${res.data.full_name}${res.data.phone_last4 ? ` / 尾号${res.data.phone_last4}` : ''} 的签到与全部答卷。`
+        : `未找到匹配记录：${name}${pl4 ? ` / 尾号${pl4}` : ''}。请核对姓名与手机后四位。`;
+      toast(n ? '考生记录已清除' : '未找到匹配记录');
+      if (n) {
+        document.getElementById('clear-name').value = '';
+        document.getElementById('clear-pl4').value = '';
+      }
+      await loadAll();
+      render();
+    } else {
+      const err = res.data?.error || res.error?.message || '失败';
+      st.textContent = clearStudentErrorText(err);
+      toast(err.includes('does not exist') || err.includes('Could not find')
+        ? '请先在 Supabase 执行迁移 20260615110000_student_exam_clear_check_in_by_name.sql'
+        : clearStudentErrorText(err));
     }
   };
 
