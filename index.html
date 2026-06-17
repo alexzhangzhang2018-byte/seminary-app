@@ -227,6 +227,8 @@ html{overflow-x:hidden}
   .toast{left:50%;right:auto;bottom:max(20px,env(safe-area-inset-bottom,20px));transform:translateX(-50%);text-align:center}
   /* 手机：「添加申请人」按钮固定在顶部，避免被看板横向滚动挤掉视线 */
   .pipeline-toolbar{position:sticky;top:0;z-index:12;background:#f4f5ff;padding:10px 0 12px;margin:-4px 0 8px;border-bottom:1px solid #e5e7eb}
+.applicant-search-inp{min-height:40px}
+.applicant-search-wrap .btn{padding:6px 10px;min-height:36px}
 }
 
 /* 考试页面：全平台字体 17px，手机电脑统一，阅读舒适 */
@@ -470,6 +472,36 @@ function applicantPipelineTrack(ap){
 function filterApplicantsByPipelineTrack(aps,track){
   if(!track||track==='all') return aps||[];
   return (aps||[]).filter(a=>applicantPipelineTrack(a)===track);
+}
+function applicantSearchNorm(q){ return String(q||'').trim().toLowerCase(); }
+function applicantPhoneDigits(ap){ return String(ap?.phone||'').replace(/\D/g,''); }
+function applicantMatchesSearch(ap,rawQ){
+  const q=applicantSearchNorm(rawQ);
+  if(!q) return true;
+  const qDigits=q.replace(/\D/g,'');
+  const stageLab=(STAGES.find(s=>s.id===ap?.stage)||{}).label||ap?.stage||'';
+  const blob=[
+    fullName(ap), ap?.first_name, ap?.last_name, ap?.full_name,
+    ap?.phone, ap?.email, ap?.phone_last4,
+    ap?.hometown, ap?.church_name, ap?.denomination, ap?.language_proficiency,
+    stageLab, getApplicantCampusLabel(ap), examLangLabelShort(getApplicantExamLang(ap)),
+  ].filter(Boolean).join(' ').toLowerCase();
+  if(blob.includes(q)) return true;
+  if(qDigits.length>=3&&applicantPhoneDigits(ap).includes(qDigits)) return true;
+  if(qDigits.length===4&&String(ap?.phone_last4||'')===qDigits) return true;
+  return false;
+}
+function filterApplicantsBySearch(aps,q){
+  if(!applicantSearchNorm(q)) return aps||[];
+  return (aps||[]).filter(a=>applicantMatchesSearch(a,q));
+}
+function renderApplicantSearchBar(id){
+  const q=A.applicantSearch||'';
+  const elId=id||'applicant-search';
+  return `<div class="applicant-search-wrap row g2" style="align-items:center;flex:1;min-width:min(100%,200px);max-width:380px">
+    <input type="search" id="${elId}" class="inp applicant-search-inp" placeholder="搜索姓名、手机、邮箱、教会…" value="${esc(q)}" autocomplete="off" style="margin:0">
+    ${q?`<button type="button" class="btn btn-ghost btn-sm" id="${elId}-clear" title="清除搜索">✕</button>`:''}
+  </div>`;
 }
 function pipelineStageCountBreakdown(aps){
   const idAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='id');
@@ -1342,6 +1374,7 @@ const A = {
   adminDataLoading: false, // 职员登录/恢复会话：先出工作台壳，再异步拉 applicants/slots/records
   staffCacheCount: 0, // 管理端本地缓存条数（用于“秒开”提示）
   pipelineTrack: 'all', // 申请人看板筛选：all | zh | en | id | ai | np
+  applicantSearch: '', // 教务搜索：姓名/手机/邮箱等
 
   // Applicant exam state
   examStarted: false,
@@ -5609,15 +5642,51 @@ function wirePipelineTrackFilter(){
     render();
   });
 }
+function wireApplicantSearch(inputId){
+  if(A.role!=='admin'&&A.role!=='teacher') return;
+  const elId=inputId||'applicant-search';
+  const el=document.getElementById(elId);
+  if(!el||el.dataset.wired) return;
+  el.dataset.wired='1';
+  let debounce=null;
+  const apply=v=>{
+    A.applicantSearch=v;
+    const hadFocus=document.activeElement===el;
+    const pos=el.selectionStart;
+    render();
+    if(hadFocus){
+      requestAnimationFrame(()=>{
+        const n=document.getElementById(elId);
+        if(!n) return;
+        n.focus();
+        try{ n.setSelectionRange(pos,pos); }catch(_){}
+      });
+    }
+  };
+  el.addEventListener('input',e=>{
+    const v=e.target.value;
+    clearTimeout(debounce);
+    debounce=setTimeout(()=>apply(v),180);
+  });
+  el.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){ e.preventDefault(); apply(''); }
+  });
+  document.getElementById(elId+'-clear')?.addEventListener('click',()=>apply(''));
+}
 
 function renderPipeline(){
   const isAd=A.role==='admin';
   const canAddAp=isAd||(A.role==='teacher'&&!isVisaOpsStaff());
   const track=A.pipelineTrack||'all';
-  const filtered=filterApplicantsByPipelineTrack(A.allApplicants,track);
+  const searchQ=A.applicantSearch||'';
+  let filtered=filterApplicantsByPipelineTrack(A.allApplicants,track);
+  filtered=filterApplicantsBySearch(filtered,searchQ);
+  const countHint=searchQ
+    ?`搜索「${searchQ}」· ${filtered.length} 人`
+    :(track==='all'?'共 '+filtered.length+' 人':'本类 '+filtered.length+' 人');
   const trackSelHtml=`<select id="pipeline-track-filter" class="sel" style="min-width:140px;margin:0">${PIPELINE_TRACKS.map(t=>
     `<option value="${t.id}"${t.id===track?' selected':''}>${esc(t.label)}</option>`
-  ).join('')}</select><span class="t12 c-gray5">${track==='all'?'共 '+filtered.length+' 人':'本类 '+filtered.length+' 人'}</span>`;
+  ).join('')}</select><span class="t12 c-gray5">${esc(countHint)}</span>`;
   const cardHtml=(ap)=>{
     const isNpCampus=getApplicantCampusCode(ap)==='np';
     const countryLbl=isNpCampus?applicantCountryLabel(ap):'';
@@ -5636,8 +5705,10 @@ function renderPipeline(){
   return `<div>
     <div class="row g2 pipeline-toolbar wrap" style="align-items:center;margin-bottom:12px">
       ${canAddAp?`<button class="btn btn-primary" data-action="show-add-ap-modal" style="min-height:44px">➕ 手动添加申请人</button>`:''}
+      ${renderApplicantSearchBar('pipeline-search')}
       ${trackSelHtml}
     </div>
+    ${searchQ&&!filtered.length?`<div class="b1 bc-amber200 bg-amber50 r12 p3 mb3 t13" style="color:#92400e">未找到与「${esc(searchQ)}」匹配的申请人，请换关键词或清除搜索。</div>`:''}
     <div class="kanban">
     ${STAGES.map(sg=>{
       const aps=filtered.filter(a=>a.stage===sg.id);
@@ -5706,6 +5777,8 @@ function renderAddApModal(){
 
 function renderExams(){
   const canAdvance=A.role==='admin';
+  const searchQ=A.applicantSearch||'';
+  const baseList=filterApplicantsBySearch(A.allApplicants,searchQ);
   const rowHtml=(ap)=>{
     const done=ap.exam_score!=null,waiting=!done&&STAGE_IDX[ap.stage]>=STAGE_IDX['exam'];
     const ss=done?{bg:'#dcfce7',c:'#15803d',t:'已完成'}:waiting?{bg:'#fef3c7',c:'#92400e',t:'待笔试'}:{bg:'#f3f4f6',c:'#6b7280',t:'未开始'};
@@ -5721,7 +5794,7 @@ function renderExams(){
   };
   const langOrder=[{k:'zh',title:'中文笔试',tag:'#4f46e5'},{k:'en',title:'English',tag:'#d97706'},{k:'id',title:'Bahasa Indonesia',tag:'#0d9488'}];
   const sections=langOrder.map(({k,title,tag})=>{
-    const list=A.allApplicants.filter(a=>getApplicantExamLang(a)===k).sort(compareExamPageApplicants);
+    const list=baseList.filter(a=>getApplicantExamLang(a)===k).sort(compareExamPageApplicants);
     return `<div class="exam-lang-section card" style="overflow:hidden;padding:0;border:none;box-shadow:none;background:transparent">
       <div class="exam-lang-section-h">
         <span>${esc(title)}</span>
@@ -5734,17 +5807,24 @@ function renderExams(){
       </div>
     </div>`;
   }).join('');
-  return `<div class="maxw-2xl col g4">${sections}
+  return `<div class="maxw-2xl col g4">
+    <div class="row g2 wrap" style="align-items:center;margin-bottom:4px">${renderApplicantSearchBar('exams-search')}${searchQ?`<span class="t12 c-gray5">${baseList.length} 人</span>`:''}</div>
+    ${searchQ&&!baseList.length?`<div class="b1 bc-amber200 bg-amber50 r12 p3 t13" style="color:#92400e">未找到与「${esc(searchQ)}」匹配的申请人。</div>`:''}
+    ${sections}
     <div class="t12 c-gray5 lh16">排序：每语言组内优先显示<strong>已笔试、面试尚未完结</strong>（成绩由高到低），其次<strong>笔试与面试流程已走完</strong>（成绩由高到低），再次无成绩/未考，最后<strong>已拒绝</strong>。成绩请在「档案」中录入或修改。</div>
   </div>`;
 }
 
 function renderSchedule(){
   const isAd=A.role==='admin';
+  const searchQ=A.applicantSearch||'';
   const claimedIds = new Set(
     A.allApplicants.filter(a=>a.interview_slot_id).map(a=>String(a.interview_slot_id)),
   );
-  const booked=A.allApplicants.filter(a=>a.interview_slot_id).sort((a,b)=>{
+  const booked=filterApplicantsBySearch(
+    A.allApplicants.filter(a=>a.interview_slot_id),
+    searchQ
+  ).sort((a,b)=>{
     const ma=interviewSlotSortMs(resolveSlotForApplicant(a));
     const mb=interviewSlotSortMs(resolveSlotForApplicant(b));
     if(ma!==mb) return ma-mb;
@@ -5759,6 +5839,7 @@ function renderSchedule(){
     return d!==0?d:String(a.id||'').localeCompare(String(b.id||''));
   });
   return `<div class="col g4 maxw-2xl">
+    <div class="row g2 wrap" style="align-items:center;margin-bottom:4px">${renderApplicantSearchBar('schedule-search')}${searchQ?`<span class="t12 c-gray5">已预约 ${booked.length} 人</span>`:''}</div>
     <div>
       <div class="fw7 c-gray8 t14 mb3">已预约面试（${booked.length}人）· 按时间近→远</div>
       ${booked.map(ap=>{
@@ -6258,6 +6339,7 @@ function render(){
   syncInterviewSlotPoll();
   syncStaffApplicantsPoll();
   wirePipelineTrackFilter();
+  wireApplicantSearch(A.adminTab==='pipeline'?'pipeline-search':A.adminTab==='exams'?'exams-search':A.adminTab==='schedule'?'schedule-search':'applicant-search');
 }
 
 // 弹窗遮罩：仅点击灰色背景才关闭（避免手机端误触内容区导致弹窗关闭、保存失败）
