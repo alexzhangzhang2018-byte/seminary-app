@@ -68,6 +68,17 @@ a{color:#4f46e5}
 .q-stem{font-size:16px;line-height:1.7;margin-bottom:12px;white-space:pre-wrap}
 .fill-blanks{display:flex;flex-direction:column;gap:10px}
 .fill-blanks .inp{width:100%}
+.fill-blanks.labeled .fill-row{display:flex;align-items:center;gap:10px}
+.fill-blanks.labeled .fill-label{min-width:4.5em;font-weight:600;color:#374151;white-space:nowrap}
+.fill-blanks.labeled .fill-row .inp{flex:1}
+.fill-blanks.labeled.contrast .fill-label{min-width:3em;text-align:right}
+.fill-blanks.labeled .fill-dash{color:#6b7280;font-weight:600;white-space:nowrap}
+.fill-inline-stem{line-height:2}
+.inp-inline{display:inline-block;width:4.5em;min-width:3.5em;max-width:12em;padding:6px 8px;margin:0 2px;vertical-align:baseline;font-size:15px}
+.fill-table{width:100%;border-collapse:collapse;margin-top:4px;font-size:14px}
+.fill-table th,.fill-table td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left}
+.fill-table th{background:#f8fafc;font-weight:700}
+.fill-table .inp{margin:0}
 .essay-wrap .essay-count{font-size:12px;color:#6b7280;margin-top:10px;text-align:right;font-variant-numeric:tabular-nums;line-height:1.5}
 .essay-wrap .essay-count .essay-count-n{font-weight:700;color:#374151}
 .essay-wrap .essay-count .essay-count-req{font-weight:600}
@@ -118,7 +129,7 @@ import {
   resolveExamDay, rpcDirect, rpcCall, saveExamDayCache,
   EXAM_DAY_EMERGENCY, jakartaTodayYmd, loadExamDayCache,
   scheduleHasActionableExam,
-} from './shared.js?v=202606221200';
+} from './shared.js?v=202606221300';
 
 const DRAFT_BASE_MS = 30000;
 const DRAFT_JITTER_MS = 15000;
@@ -538,7 +549,7 @@ async function openCover(subjectId) {
   render();
 }
 
-const PAPER_CACHE_KEY = 'mms_student_exam_paper_v5';
+const PAPER_CACHE_KEY = 'mms_student_exam_paper_v6';
 
 function paperCacheLooksStale(paper) {
   const qs = paper?.questions || [];
@@ -949,6 +960,7 @@ function ensureFillBlankInputs(root) {
   if (!root) return;
   const qs = S.paper?.questions || [];
   root.querySelectorAll('.q-card').forEach((card) => {
+    if (card.querySelector('.fill-table, .fill-blanks.labeled, .fill-inline-stem')) return;
     const qid = card.dataset.qid;
     const q = qs.find((x) => x.group_id === qid);
     const stemEl = card.querySelector('.q-stem');

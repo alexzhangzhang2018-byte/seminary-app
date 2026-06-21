@@ -846,15 +846,43 @@ export function installEssayCounters(root, lang = 'zh') {
   });
 }
 
+export function questionFillMeta(q, lang) {
+  const loc = questionLocale(q, lang);
+  return {
+    stem: loc.stem ?? q?.stem ?? '',
+    blank_labels: loc.blank_labels || q?.blank_labels,
+    fill_layout: loc.fill_layout || q?.fill_layout,
+    table_headers: loc.table_headers || q?.table_headers,
+    table_rows: loc.table_rows || q?.table_rows,
+  };
+}
+
 export function fillBlankCount(q, stem = '') {
+  const meta = questionFillMeta(q, 'zh');
+  const labels = meta.blank_labels;
+  if (Array.isArray(labels) && labels.length) return labels.length;
+  if (meta.fill_layout === 'table' && Array.isArray(meta.table_rows)) return meta.table_rows.length;
   const n = Number(q?.blank_count);
   if (n > 0) return n;
-  const stemStr = String(stem || '');
+  const stemStr = String(stem || meta.stem || '');
   const fromStem = (stemStr.match(/____/g) || []).length;
   if (fromStem > 0) return fromStem;
-  const loc = q?.locales ? Object.values(q.locales).find((l) => l?.answer_key?.answers?.length) : null;
+  const loc = questionLocale(q, 'zh');
   const fromKey = loc?.answer_key?.answers?.length || 0;
   return Math.max(1, fromKey || 1);
+}
+
+function renderInlineFillStem(stem, gid, arr) {
+  const parts = String(stem || '').split('____');
+  const n = parts.length - 1;
+  let html = '';
+  for (let i = 0; i < parts.length; i++) {
+    html += esc(parts[i]);
+    if (i < n) {
+      html += `<input class="inp inp-inline" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" aria-label="${i + 1}">`;
+    }
+  }
+  return html;
 }
 
 export function renderQuestionHtml(q, answers, lang) {
@@ -864,6 +892,8 @@ export function renderQuestionHtml(q, answers, lang) {
   const loc = questionLocale(q, lang);
   const stem = loc.stem ?? q.stem ?? '';
   let body = '';
+  let stemContent = esc(stem);
+  let stemCls = 'q-stem';
 
   if (q.type === 'single') {
     const opts = (Array.isArray(loc.options) && loc.options.length)
@@ -881,11 +911,34 @@ export function renderQuestionHtml(q, answers, lang) {
       return `<label class="opt"><input type="radio" name="q_${gid}" data-gid="${esc(gid)}" data-kind="truefalse" value="${val ? '1' : '0'}"${checked}><span>${esc(opt)}</span></label>`;
     }).join('');
   } else if (q.type === 'fill') {
+    const meta = questionFillMeta(q, lang);
     const n = fillBlankCount(q, stem);
     const arr = Array.isArray(cur) ? cur : (cur != null && cur !== '' ? [String(cur)] : []);
-    body = `<div class="fill-blanks">${Array.from({ length: n }, (_, i) =>
-      `<input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" placeholder="${i + 1}">`
-    ).join('')}</div>`;
+    const labels = meta.blank_labels;
+    const fillLayout = meta.fill_layout;
+    const stemBlankCount = (stem.match(/____/g) || []).length;
+
+    if (fillLayout === 'table' && Array.isArray(meta.table_rows) && meta.table_rows.length) {
+      const headers = meta.table_headers || ['章节', '主题'];
+      body = `<table class="fill-table"><thead><tr>${headers.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>` +
+        meta.table_rows.map((row, ri) =>
+          `<tr><td>${esc(row.label)}</td><td><input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${ri}" value="${esc(arr[ri] || '')}" placeholder="${ri + 1}"></td></tr>`
+        ).join('') + '</tbody></table>';
+    } else if (fillLayout === 'inline' || (stemBlankCount > 0 && stemBlankCount === n && !labels?.length)) {
+      stemContent = renderInlineFillStem(stem, gid, arr);
+      stemCls = 'q-stem fill-inline-stem';
+      body = '';
+    } else if (Array.isArray(labels) && labels.length === n) {
+      const dash = fillLayout === 'contrast' ? '<span class="fill-dash">——</span>' : '';
+      body = `<div class="fill-blanks labeled${fillLayout === 'contrast' ? ' contrast' : ''}">${labels.map((label, i) =>
+        `<div class="fill-row"><span class="fill-label">${esc(label)}</span>${dash}<input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" placeholder="${i + 1}"></div>`
+      ).join('')}</div>`;
+    } else {
+      stemContent = esc(stem.replace(/\n\d+\.\s*____/g, '').trim());
+      body = `<div class="fill-blanks">${Array.from({ length: n }, (_, i) =>
+        `<input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" placeholder="${i + 1}">`
+      ).join('')}</div>`;
+    }
   } else if (q.type === 'essay') {
     const { rows, sizeCls } = essayTextareaSpec(q);
     const secLbl = esc(q.section_label || '');
@@ -902,7 +955,7 @@ export function renderQuestionHtml(q, answers, lang) {
   const qcls = q.type === 'essay' ? ` q-card essay-${q.essay_kind || 'short'}` : ' q-card';
   return `<div class="${qcls.trim()}" data-qid="${esc(gid)}">
     <div class="q-head"><span class="q-no">${no}</span><span class="q-score">${q.score} ${lang === 'zh' ? '分' : 'pts'}</span></div>
-    <div class="q-stem">${esc(stem)}</div>
+    <div class="${stemCls}">${stemContent}</div>
     <div class="q-body">${body}</div>
   </div>`;
 }
@@ -949,7 +1002,16 @@ export function isAllSubjectivePaper(paper) {
 }
 
 export function questionLocale(q, lang) {
-  return q?.locales?.[lang] || q?.locales?.zh || q?.locales?.en || {};
+  const nested = q?.locales?.[lang] || q?.locales?.zh || q?.locales?.en || {};
+  return {
+    ...nested,
+    stem: nested.stem || q?.stem || '',
+    options: (Array.isArray(nested.options) && nested.options.length) ? nested.options : (q?.options || []),
+    blank_labels: nested.blank_labels || q?.blank_labels,
+    fill_layout: nested.fill_layout || q?.fill_layout,
+    table_headers: nested.table_headers || q?.table_headers,
+    table_rows: nested.table_rows || q?.table_rows,
+  };
 }
 
 export function normGradeText(text, lang) {
