@@ -47,6 +47,7 @@ a{color:#4f46e5}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .sub-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #f3f4f6}
 .sub-row:last-child{border-bottom:none}
+.sub-makeup{background:linear-gradient(90deg,#fffbeb 0%,#fff 40%);margin:0 -16px;padding-left:16px;padding-right:16px;border-radius:8px}
 .tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px}
 .tag-up{background:#f1f5f9;color:#475569}
 .tag-open{background:#dcfce7;color:#15803d}
@@ -65,6 +66,8 @@ a{color:#4f46e5}
 .q-no{font-weight:800;color:#4f46e5}
 .q-score{font-size:12px;color:#6b7280}
 .q-stem{font-size:16px;line-height:1.7;margin-bottom:12px;white-space:pre-wrap}
+.fill-blanks{display:flex;flex-direction:column;gap:10px}
+.fill-blanks .inp{width:100%}
 .essay-wrap .essay-count{font-size:12px;color:#6b7280;margin-top:10px;text-align:right;font-variant-numeric:tabular-nums;line-height:1.5}
 .essay-wrap .essay-count .essay-count-n{font-weight:700;color:#374151}
 .essay-wrap .essay-count .essay-count-req{font-weight:600}
@@ -108,11 +111,14 @@ import {
   createSb, SESSION_KEY, LANG_KEY, t, tFmt, esc, fmtTime, fmtTimer,
   gradeLabel, trackLabel, classTrackOptions, examLangForTrack,
   resolvePaperDisplayTitle, examContentLang,
-  renderExamWithSections, collectAnswers, installProctor, installEssayCounters,
+  renderExamWithSections, collectAnswers, installProctor, installEssayCounters, fillBlankCount,
+  isFlexMakeupSubject, isInMakeupSession, getMakeupSchedule, getMakeupSubjectState,
+  resolveExamDeadlineIso, examTimerSeconds,
   isCoverConfirmed, setCoverConfirmed, clearCoverConfirmed, withTimeout,
   resolveExamDay, rpcDirect, rpcCall, saveExamDayCache,
   EXAM_DAY_EMERGENCY, jakartaTodayYmd, loadExamDayCache,
-} from './shared.js?v=202606152200';
+  scheduleHasActionableExam,
+} from './shared.js?v=202606221200';
 
 const DRAFT_BASE_MS = 30000;
 const DRAFT_JITTER_MS = 15000;
@@ -173,20 +179,37 @@ function setLang(lang) {
 
 let loadTodayBusy = false;
 
+async function maybeResumeMakeupExam() {
+  if (!S.token || !isInMakeupSession(S.schedule)) return false;
+  const queue = getMakeupSchedule(S.schedule);
+  const inProg = queue.find((s) => s.attempt_status === 'in_progress');
+  if (!inProg) return false;
+  S.subject = inProg;
+  await enterExam(inProg, S.checkIn?.full_name);
+  return true;
+}
+
 async function loadScheduleIfToken() {
   if (!S.token) return;
   const { data: schData, error } = await rpcCall('student_exam_get_schedule', { p_token: S.token }, { timeoutMs: 10000, tries: 3 });
   if (!error && schData?.ok) {
     S.checkIn = schData.check_in;
     S.schedule = schData.subjects || [];
-    S.view = 'schedule';
+    if (isInMakeupSession(S.schedule)) {
+      if (await maybeResumeMakeupExam()) return;
+      S.view = 'schedule';
+    } else if (scheduleHasActionableExam(S.schedule)) {
+      S.view = 'schedule';
+    } else {
+      S.view = 'no_exam';
+    }
     render();
     return;
   }
   console.warn('get_schedule', error);
   S.token = null;
   localStorage.removeItem(SESSION_KEY);
-  S.view = 'checkin';
+  S.view = S.examDay ? 'checkin' : 'no_exam';
   render();
 }
 
@@ -214,6 +237,27 @@ async function loadToday() {
   try {
     const { examDay, fromFallback } = await resolveExamDay();
     if (!examDay) {
+      if (S.token) {
+        const { data: schData } = await rpcCall('student_exam_get_schedule', { p_token: S.token }, { timeoutMs: 10000, tries: 2 });
+        if (schData?.ok && schData.check_in) {
+          S.checkIn = schData.check_in;
+          S.schedule = schData.subjects || [];
+          if (isInMakeupSession(S.schedule) || scheduleHasActionableExam(S.schedule)) {
+            S.examDay = {
+              id: schData.check_in.exam_day_id,
+              title: 'MMS2026春季期末考试',
+              exam_date: '2026-06-15',
+              timezone: 'Asia/Jakarta',
+              status: 'active',
+            };
+            if (await maybeResumeMakeupExam()) return;
+            S.view = 'schedule';
+          } else {
+            S.view = 'no_exam';
+          }
+          return;
+        }
+      }
       S.examDay = null;
       S.view = 'no_exam';
       return;
@@ -241,9 +285,14 @@ function getCheckInTrack() {
 }
 
 function canEditCheckIn() {
+  if (isInMakeupSession(S.schedule)) return false;
   return !(S.schedule || []).some((s) =>
     s.attempt_status === 'in_progress' || s.attempt_status === 'submitted'
   );
+}
+
+function isMakeupExamView() {
+  return S.view === 'exam' && isFlexMakeupSubject(S.subject);
 }
 
 function rpcErrorText(code) {
@@ -251,6 +300,10 @@ function rpcErrorText(code) {
     check_in_locked: 'err_check_in_locked',
     phone_last4_required: 'phone_last4',
     window_closed: 'err_window_closed',
+    makeup_in_progress: 'err_makeup_in_progress',
+    makeup_wait_previous: 'err_makeup_wait_previous',
+    not_on_makeup_roster: 'err_not_on_makeup_roster',
+    subject_not_allowed: 'err_subject_not_allowed',
     submit_failed: 'err_submit_fail',
     not_found: 'err',
   }[code];
@@ -329,9 +382,15 @@ async function finishSubmitSuccess() {
   clearInterval(submitCooldownIv);
   submitCooldownIv = null;
   submitCooldownUntil = 0;
-  S.view = 'done';
   toast(t(S.uiLang, 'submitted_ok'));
   await refreshSchedule();
+  if (isInMakeupSession(S.schedule) && scheduleHasActionableExam(S.schedule)) {
+    S.view = 'schedule';
+  } else if (isInMakeupSession(S.schedule)) {
+    S.view = 'no_exam';
+  } else {
+    S.view = 'done';
+  }
   render();
 }
 
@@ -433,7 +492,12 @@ async function refreshSchedule() {
   if (data?.ok) {
     S.checkIn = data.check_in;
     S.schedule = data.subjects || [];
-    S.view = 'schedule';
+    if (S.view !== 'exam' && await maybeResumeMakeupExam()) return;
+    if (!scheduleHasActionableExam(S.schedule) && !isInMakeupSession(S.schedule)) {
+      S.view = 'no_exam';
+    } else if (S.view !== 'exam') {
+      S.view = 'schedule';
+    }
     render();
   }
 }
@@ -441,6 +505,15 @@ async function refreshSchedule() {
 async function openCover(subjectId) {
   const sub = S.schedule.find((x) => x.id === subjectId);
   if (!sub) return;
+  if (isInMakeupSession(S.schedule)) {
+    const queue = getMakeupSchedule(S.schedule);
+    const state = getMakeupSubjectState(queue, sub);
+    if (state === 'locked') {
+      toast(t(S.uiLang, 'err_makeup_wait_previous'), false);
+      return;
+    }
+    if (state === 'done') return;
+  }
   if (sub.window_status === 'upcoming') { toast(t(S.uiLang, 'window_upcoming'), false); return; }
   if (sub.window_status === 'ended' && sub.attempt_status !== 'in_progress') {
     toast(t(S.uiLang, 'window_ended'), false);
@@ -465,11 +538,15 @@ async function openCover(subjectId) {
   render();
 }
 
-const PAPER_CACHE_KEY = 'mms_student_exam_paper_v2';
+const PAPER_CACHE_KEY = 'mms_student_exam_paper_v5';
 
 function paperCacheLooksStale(paper) {
   const qs = paper?.questions || [];
   return qs.some((q) => q.type === 'single' && !(Array.isArray(q.options) && q.options.length));
+}
+
+function clearPaperCache() {
+  try { sessionStorage.removeItem(PAPER_CACHE_KEY); } catch (_) {}
 }
 
 function loadPaperCache(subjectId) {
@@ -491,6 +568,18 @@ function savePaperCache(subjectId, paper) {
   } catch (_) {}
 }
 
+async function pauseExamAndReturnToSchedule() {
+  const root = document.getElementById('exam-root');
+  if (root) S.answers = collectAnswers(root);
+  await saveDraft({ silent: true });
+  saveLocalDraft();
+  clearInterval(timerIv);
+  clearTimeout(draftTimer);
+  S.view = 'schedule';
+  await refreshSchedule();
+  toast(t(S.uiLang, 'pause_exam'), true);
+}
+
 async function enterExam(sub, displayName) {
   const name = displayName?.trim();
   if (!name) return;
@@ -504,6 +593,11 @@ async function enterExam(sub, displayName) {
     toast(rpcErrorText(data?.error) || t(S.uiLang, 'err'), false);
     return;
   }
+  if (!data.attempt?.id) {
+    toast(t(S.uiLang, 'err'), false);
+    console.error('start_attempt missing attempt id', data);
+    return;
+  }
   S.attempt = data.attempt;
   S.answers = S.attempt.answers_json || {};
   const localDraft = loadLocalDraft(S.attempt.id);
@@ -512,20 +606,21 @@ async function enterExam(sub, displayName) {
   }
   S.proctorFlags = S.attempt.proctor_flags || localDraft?.proctorFlags || 0;
 
-  let paperData = loadPaperCache(sub.id);
-  if (!paperData) {
-    const paperRes = await rpcCall('student_exam_get_paper', { p_token: S.token, p_day_subject_id: sub.id }, { timeoutMs: 20000, tries: 4 });
-    if (!paperRes.data?.ok) {
+  let paperData = null;
+  const paperRes = await rpcCall('student_exam_get_paper', { p_token: S.token, p_day_subject_id: sub.id }, { timeoutMs: 20000, tries: 4 });
+  if (paperRes.data?.ok) {
+    paperData = paperRes.data;
+    savePaperCache(sub.id, paperData);
+  } else {
+    paperData = loadPaperCache(sub.id);
+    if (!paperData) {
       toast(t(S.uiLang, 'err'), false);
       return;
     }
-    paperData = paperRes.data;
-    savePaperCache(sub.id, paperData);
   }
   S.paper = paperData;
   S.subject = { ...sub, ...paperData.subject };
-  const endMs = new Date(S.subject.end_at).getTime();
-  S.timerSec = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
+  S.timerSec = examTimerSeconds(S.subject, S.attempt);
   S.timerTotal = S.timerSec;
   S.timerWarn10m = false;
   S.view = 'exam';
@@ -716,7 +811,10 @@ function renderSchedule() {
   const L = S.uiLang;
   const ci = S.checkIn;
   const examL = examLangForTrack(ci?.class_track);
-  const rows = (S.schedule || []).map((sub) => {
+  const makeupMode = isInMakeupSession(S.schedule);
+  const list = makeupMode ? getMakeupSchedule(S.schedule) : (S.schedule || []);
+  const queue = makeupMode ? list : [];
+  const rows = list.map((sub) => {
     const subTitle = resolvePaperDisplayTitle({
       paper_title: sub.paper_display_title || sub.paper_title,
       title_locales: sub.title_locales,
@@ -724,35 +822,65 @@ function renderSchedule() {
       course_code: sub.course_code,
       exam_lang: examL,
     }, examL);
-    const ws = sub.window_status;
-    const tagCls = ws === 'open' ? 'tag-open' : ws === 'ended' ? 'tag-end' : 'tag-up';
-    const tagTxt = t(L, `window_${ws}`);
+    const min = sub.duration_minutes || 60;
+    const mState = makeupMode ? getMakeupSubjectState(queue, sub) : null;
     let st = t(L, 'status_not_started');
     let btn = '';
-    if (sub.attempt_status === 'submitted') {
-      st = t(L, 'status_submitted');
-      btn = `<button class="btn btn-o" disabled>${esc(t(L, 'btn_done'))}</button>`;
-    } else if (sub.attempt_status === 'in_progress') {
-      st = t(L, 'status_in_progress');
-      btn = `<button class="btn btn-p" data-open="${sub.id}">${esc(t(L, 'btn_continue'))}</button>`;
-    } else if (ws === 'open') {
-      btn = `<button class="btn btn-p" data-open="${sub.id}">${esc(t(L, 'btn_enter'))}</button>`;
+    let tagCls = 'tag-up';
+    let tagTxt = tFmt(L, 'makeup_label', { min });
+    if (makeupMode) {
+      if (mState === 'done') {
+        st = t(L, 'status_submitted');
+        tagCls = 'tag-end';
+        btn = `<button class="btn btn-o" disabled>${esc(t(L, 'btn_done'))}</button>`;
+      } else if (mState === 'active') {
+        st = t(L, 'status_in_progress');
+        tagCls = 'tag-open';
+        btn = `<button class="btn btn-p" data-open="${sub.id}">${esc(t(L, 'btn_continue'))}</button>`;
+      } else if (mState === 'ready') {
+        st = t(L, 'status_not_started');
+        tagCls = 'tag-open';
+        btn = `<button class="btn btn-p" data-open="${sub.id}">${esc(t(L, 'btn_start_makeup'))}</button>`;
+      } else {
+        st = t(L, 'makeup_locked');
+        tagCls = 'tag-up';
+        btn = `<button class="btn btn-o" disabled>${esc(t(L, 'makeup_locked'))}</button>`;
+      }
+    } else {
+      const ws = sub.window_status;
+      tagCls = ws === 'open' ? 'tag-open' : ws === 'ended' ? 'tag-end' : 'tag-up';
+      tagTxt = t(L, `window_${ws}`);
+      if (sub.attempt_status === 'submitted') {
+        st = t(L, 'status_submitted');
+        btn = `<button class="btn btn-o" disabled>${esc(t(L, 'btn_done'))}</button>`;
+      } else if (sub.attempt_status === 'in_progress') {
+        st = t(L, 'status_in_progress');
+        btn = `<button class="btn btn-p" data-open="${sub.id}">${esc(t(L, 'btn_continue'))}</button>`;
+      } else if (ws === 'open') {
+        btn = `<button class="btn btn-p" data-open="${sub.id}">${esc(t(L, 'btn_enter'))}</button>`;
+      }
     }
-    return `<div class="sub-row">
+    const timeLine = makeupMode
+      ? esc(tFmt(L, 'makeup_label', { min }))
+      : `${fmtTime(sub.start_at, L)} – ${fmtTime(sub.end_at, L)}`;
+    return `<div class="sub-row${makeupMode ? ' sub-makeup' : ''}">
       <div>
-        <div style="font-weight:700">${esc(subTitle)}</div>
-        <div style="font-size:12px;color:#6b7280;margin-top:4px">${fmtTime(sub.start_at, L)} – ${fmtTime(sub.end_at, L)} · ${esc(st)}</div>
+        <div style="font-weight:700">${esc(subTitle)}${makeupMode ? ` <span class="tag tag-open" style="font-size:11px;margin-left:6px">${esc(t(L, 'makeup_short'))}</span>` : ''}</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:4px">${timeLine} · ${esc(st)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="tag ${tagCls}">${esc(tagTxt)}</span>${btn}
       </div>
     </div>`;
   }).join('');
+  const allMakeupDone = makeupMode && queue.length > 0 && queue.every((s) => s.attempt_status === 'submitted');
   return `<div class="card">
-    <h2>${esc(t(L, 'schedule_title'))}</h2>
+    <h2>${esc(t(L, makeupMode ? 'schedule_makeup_title' : 'schedule_title'))}</h2>
+    ${makeupMode ? `<p class="hint">${esc(t(L, 'schedule_makeup_hint'))}</p>` : ''}
+    ${allMakeupDone ? `<p class="hint" style="color:#059669">${esc(t(L, 'schedule_makeup_all_done'))}</p>` : ''}
     <p class="hint">${esc(t(L, 'hello'))}，<strong>${esc(ci?.full_name)}</strong> · ${esc(gradeLabel(ci?.grade, L))} · ${esc(trackLabel(ci?.class_track, L))}</p>
-    ${canEditCheckIn() ? `<div class="btn-row" style="margin-bottom:12px"><button class="btn btn-o" id="btn-edit-checkin">${esc(t(L, 'btn_edit_checkin'))}</button></div>` : ''}
-    ${rows || '<p class="hint">—</p>'}
+    ${!makeupMode && canEditCheckIn() ? `<div class="btn-row" style="margin-bottom:12px"><button class="btn btn-o" id="btn-edit-checkin">${esc(t(L, 'btn_edit_checkin'))}</button></div>` : ''}
+    ${rows || `<p class="hint">${esc(t(L, 'no_exam'))}</p>`}
   </div>`;
 }
 
@@ -778,7 +906,7 @@ function renderCover() {
         <input class="inp" id="cover-name" value="${esc(S.checkIn?.full_name || '')}" style="flex:1"></div>
     </div>
     <button class="btn btn-p" id="btn-cover-start">${esc(t(L, 'cover_confirm'))}</button>
-    <div class="btn-row"><button class="btn btn-o" id="btn-back-sched">${esc(t(L, 'back_schedule'))}</button></div>
+    ${isInMakeupSession(S.schedule) ? '' : `<div class="btn-row"><button class="btn btn-o" id="btn-back-sched">${esc(t(L, 'back_schedule'))}</button></div>`}
   </div>`;
 }
 
@@ -798,6 +926,7 @@ function renderExam() {
     <span>${esc(t(uiL, 'timer'))}</span>
     <span class="t" id="timer-d">${fmtTimer(S.timerSec)}</span>
     <div class="timer-track"><div class="timer-fill" id="timer-fill" style="width:0%"></div></div>
+    <button class="btn btn-o" id="btn-pause-exam" style="padding:8px 12px;white-space:nowrap">${esc(t(uiL, 'pause_exam'))}</button>
     <button class="btn btn-p" id="btn-submit" style="padding:8px 14px">${esc(t(uiL, 'submit'))}</button>
   </div>
   <div class="card" style="margin-top:12px">
@@ -816,6 +945,30 @@ function renderDone() {
   </div>`;
 }
 
+function ensureFillBlankInputs(root) {
+  if (!root) return;
+  const qs = S.paper?.questions || [];
+  root.querySelectorAll('.q-card').forEach((card) => {
+    const qid = card.dataset.qid;
+    const q = qs.find((x) => x.group_id === qid);
+    const stemEl = card.querySelector('.q-stem');
+    const stem = stemEl?.textContent || q?.stem || '';
+    const need = fillBlankCount(q || {}, stem);
+    if (need <= 1) return;
+    const body = card.querySelector('.q-body');
+    if (!body) return;
+    const existing = body.querySelectorAll('[data-kind="fill"]');
+    if (existing.length >= need) return;
+    const gid = qid || existing[0]?.dataset.gid;
+    if (!gid) return;
+    const raw = S.answers[gid];
+    const arr = Array.isArray(raw) ? raw : (raw != null && raw !== '' ? [String(raw)] : []);
+    body.innerHTML = `<div class="fill-blanks">${Array.from({ length: need }, (_, i) =>
+      `<input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" placeholder="${i + 1}">`
+    ).join('')}</div>`;
+  });
+}
+
 function render() {
   const app = document.getElementById('app');
   let html = '';
@@ -830,7 +983,9 @@ function render() {
   app.innerHTML = html;
   bind();
   if (S.view === 'exam') {
-    installEssayCounters(document.getElementById('exam-root'), examContentLang(S.checkIn, S.paper));
+    const examRoot = document.getElementById('exam-root');
+    installEssayCounters(examRoot, examContentLang(S.checkIn, S.paper));
+    ensureFillBlankInputs(examRoot);
   }
 }
 
@@ -860,8 +1015,10 @@ function bind() {
     el.addEventListener('click', () => openCover(el.dataset.open));
   });
   document.getElementById('btn-cover-start')?.addEventListener('click', confirmCoverAndStart);
+  document.getElementById('btn-pause-exam')?.addEventListener('click', () => pauseExamAndReturnToSchedule());
   document.getElementById('btn-submit')?.addEventListener('click', () => submitExam('manual'));
   document.getElementById('btn-back-sched')?.addEventListener('click', async () => {
+    if (isMakeupExamView()) return;
     clearInterval(timerIv);
     clearTimeout(draftTimer);
     S.view = 'schedule';
@@ -875,6 +1032,12 @@ document.querySelectorAll('#lang-sw button').forEach((b) => {
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && S.view === 'exam') saveDraft({ silent: true });
+});
+window.addEventListener('beforeunload', (e) => {
+  if (isMakeupExamView()) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
 });
 window.addEventListener('pagehide', () => {
   if (S.view === 'exam') {

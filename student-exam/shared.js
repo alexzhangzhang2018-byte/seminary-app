@@ -18,10 +18,143 @@ export const EXAM_DAY_EMERGENCY = {
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
+  '2026-06-20': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  '2026-06-21': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  // 补考日（6/22 起）：仍关联 6/15 考试日签到记录；科目列表见 makeup_open + duration_minutes
+  '2026-06-22': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  '2026-06-23': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  '2026-06-24': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  '2026-06-25': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  '2026-06-26': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  '2026-06-27': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  '2026-06-28': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  '2026-06-29': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
+  '2026-06-30': {
+    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+    title: 'MMS2026春季期末考试',
+    exam_date: '2026-06-15',
+    timezone: 'Asia/Jakarta',
+    status: 'active',
+  },
 };
 
 export function jakartaTodayYmd() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+}
+
+/** 补考科目：进入后独立计时（duration_minutes），非固定开考时刻 */
+export function isFlexMakeupSubject(sub) {
+  return Number(sub?.duration_minutes) > 0 && !!sub?.makeup_open;
+}
+
+/** 是否出现在补考列表（缺考且开放补考；正考已交卷的不显示） */
+export function isMakeupShowSubject(sub) {
+  if (sub?.makeup_show != null) return !!sub.makeup_show;
+  if (!isFlexMakeupSubject(sub)) return false;
+  if (sub.attempt_status === 'submitted' && sub.submitted_at && sub.start_at) {
+    return new Date(sub.submitted_at) >= new Date(sub.start_at);
+  }
+  return sub.attempt_status !== 'submitted';
+}
+
+export function getMakeupSchedule(schedule) {
+  return (schedule || [])
+    .filter(isMakeupShowSubject)
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+}
+
+export function isInMakeupSession(schedule) {
+  return getMakeupSchedule(schedule).length > 0;
+}
+
+/** 补考/正考：计算本场答题截止时间（补考绝不用窗口 end_at 当倒计时） */
+export function resolveExamDeadlineIso(subject, attempt) {
+  if (attempt?.exam_deadline_at) return attempt.exam_deadline_at;
+  if (isFlexMakeupSubject(subject)) {
+    const mins = Number(subject.duration_minutes) || 60;
+    const base = attempt?.started_at || attempt?.created_at;
+    if (base) {
+      return new Date(new Date(base).getTime() + mins * 60 * 1000).toISOString();
+    }
+    return new Date(Date.now() + mins * 60 * 1000).toISOString();
+  }
+  return subject?.end_at || null;
+}
+
+export function examTimerSeconds(subject, attempt) {
+  const deadlineAt = resolveExamDeadlineIso(subject, attempt);
+  if (!deadlineAt) return 0;
+  return Math.max(0, Math.floor((new Date(deadlineAt).getTime() - Date.now()) / 1000));
+}
+
+/** ready=可开始 active=答题中 locked=等待上一科 done=已交卷 */
+export function getMakeupSubjectState(queue, sub) {
+  if (sub.attempt_status === 'submitted') return 'done';
+  if (sub.attempt_status === 'in_progress') return 'active';
+  const inProg = queue.find((s) => s.attempt_status === 'in_progress');
+  if (inProg) return 'locked';
+  const firstPending = queue.find((s) => s.attempt_status !== 'submitted');
+  return sub.id === firstPending?.id ? 'ready' : 'locked';
 }
 
 export function saveExamDayCache(examDay) {
@@ -88,6 +221,22 @@ export async function rpcCall(fn, body = {}, { timeoutMs = 12000, tries = 3, del
   return { data: null, error: lastErr };
 }
 
+/** 科目列表里是否还有可进行的考试（补考开放 / 时段内 / 答题中） */
+export function scheduleHasActionableExam(schedule) {
+  if (isInMakeupSession(schedule)) {
+    const queue = getMakeupSchedule(schedule);
+    return queue.some((s) => {
+      const st = getMakeupSubjectState(queue, s);
+      return st === 'active' || st === 'ready';
+    });
+  }
+  return (schedule || []).some((s) =>
+    s.needs_makeup ||
+    s.window_status === 'open' ||
+    s.attempt_status === 'in_progress'
+  );
+}
+
 export async function resolveExamDay() {
   const today = jakartaTodayYmd();
   const fallback = loadExamDayCache(today) || EXAM_DAY_EMERGENCY[today];
@@ -105,20 +254,21 @@ export async function resolveExamDay() {
   const firstTimeout = fallback ? 3000 : 6000;
   try {
     const examDay = await tryRpc(firstTimeout);
-    return { examDay, fromFallback: false };
+    if (examDay) return { examDay, fromFallback: false };
   } catch (e) {
     console.warn('resolveExamDay attempt 1', e);
+    if (fallback) return { examDay: fallback, fromFallback: true };
   }
 
-  if (fallback) return { examDay: fallback, fromFallback: true };
+  if (fallback) return { examDay: fallback, fromFallback: false };
 
   try {
     const examDay = await tryRpc(8000);
-    return { examDay, fromFallback: false };
+    if (examDay) return { examDay, fromFallback: false };
   } catch (e) {
     console.warn('resolveExamDay attempt 2', e);
-    return { examDay: null, fromFallback: false };
   }
+  return { examDay: null, fromFallback: false };
 }
 
 export function coverConfirmedStorageKey(examDayId, token) {
@@ -188,6 +338,13 @@ export const UI = {
     btn_checkin: '签到并开始',
     btn_resume: '恢复今日进度',
     schedule_title: '今日考试安排',
+    schedule_makeup_title: '补考安排',
+    schedule_makeup_hint: '请按顺序逐科补考：交卷后下一科才会解锁。答题中请勿关闭页面，须交卷后才能考下一科。',
+    schedule_makeup_all_done: '本轮补考科目已全部交卷。如有下一科待开放，交卷后会自动出现在列表中。',
+    makeup_short: '补考',
+    makeup_label: '补考 · 限时 {min} 分钟',
+    makeup_locked: '请先完成上一科',
+    btn_start_makeup: '开始考试',
     hello: '您好',
     subject: '科目',
     window_upcoming: '未开始',
@@ -211,17 +368,22 @@ export const UI = {
     checkin_saved: '签到信息已更新',
     err_check_in_locked: '已有科目开始或交卷，无法修改试卷语言',
     submit: '交卷',
+    pause_exam: '稍后继续',
     submitted_ok: '答卷已提交，谢谢！',
     timer: '剩余时间',
     timer_10m: '距离自动交卷还剩约 10 分钟，请抓紧完成并检查答案。',
     proctor_warn: '检测到切屏（已记录）',
-    no_exam: '今日暂无安排的考试，请联系教务。',
+    no_exam: '目前没有考试安排。',
     err: '操作失败，请重试',
     err_checkin_server: '签到服务繁忙，请稍等几秒再试；若仍失败请联系教务',
     err_submit: '交卷失败，正在重试…',
     err_submit_fail: '交卷未完成，请稍等片刻再点「再次交卷」，勿连续点击',
     err_submit_network: '网络繁忙，系统已自动重试；请稍等，勿重复点击',
     err_window_closed: '考试已结束过久，请联系教务协助交卷',
+    err_makeup_in_progress: '请先完成当前正在补考的科目',
+    err_makeup_wait_previous: '请按顺序补考，先完成上一科',
+    err_not_on_makeup_roster: '您不在本次补考名单内，如有疑问请联系教务',
+    err_subject_not_allowed: '该科目不在您的补考安排中',
     err_submitting: '正在提交答卷，请勿重复点击…',
     submitting_progress: '正在交卷（第 {n}/{total} 次）…',
     submit_busy: '正在交卷中，请勿重复点击',
@@ -251,6 +413,12 @@ export const UI = {
     btn_checkin: 'Check in',
     btn_resume: 'Resume today',
     schedule_title: "Today's schedule",
+    schedule_makeup_title: 'Make-up exams',
+    schedule_makeup_hint: 'Complete subjects in order. The next subject unlocks after you submit. Do not close the page during an exam.',
+    makeup_short: 'Makeup',
+    makeup_label: 'Makeup · {min} min limit',
+    makeup_locked: 'Finish the previous subject first',
+    btn_start_makeup: 'Start exam',
     hello: 'Hello',
     subject: 'Subject',
     window_upcoming: 'Upcoming',
@@ -274,17 +442,22 @@ export const UI = {
     checkin_saved: 'Check-in updated',
     err_check_in_locked: 'Cannot change paper language after a subject has started or been submitted',
     submit: 'Submit',
+    pause_exam: 'Continue later',
     submitted_ok: 'Submitted. Thank you!',
     timer: 'Time left',
     timer_10m: 'About 10 minutes left before auto-submit. Please finish and review your answers.',
     proctor_warn: 'Tab switch recorded',
-    no_exam: 'No exam scheduled today.',
+    no_exam: 'No exam is scheduled at this time.',
     err: 'Something went wrong',
     err_checkin_server: 'Check-in busy. Wait a few seconds and retry, or contact the office.',
     err_submit: 'Submit failed, retrying…',
     err_submit_fail: 'Not submitted yet. Wait a moment, then tap Submit again once.',
     err_submit_network: 'Network busy; auto-retrying. Please wait, do not tap repeatedly.',
     err_window_closed: 'Exam window closed. Please contact the office.',
+    err_makeup_in_progress: 'Please finish your current make-up exam first.',
+    err_makeup_wait_previous: 'Complete subjects in order. Finish the previous one first.',
+    err_not_on_makeup_roster: 'You are not on today\'s make-up roster. Contact the office if this is a mistake.',
+    err_subject_not_allowed: 'This subject is not on your make-up schedule.',
     err_submitting: 'Submitting… Please do not tap again.',
     submitting_progress: 'Submitting ({n}/{total})…',
     submit_busy: 'Submit in progress. Please wait.',
@@ -313,6 +486,12 @@ export const UI = {
     btn_checkin: 'Check-in',
     btn_resume: 'Lanjutkan hari ini',
     schedule_title: 'Jadwal hari ini',
+    schedule_makeup_title: 'Jadwal susulan',
+    schedule_makeup_hint: 'Kerjakan mata kuliah berurutan. Mata kuliah berikutnya terbuka setelah Anda mengirim jawaban.',
+    makeup_short: 'Susulan',
+    makeup_label: 'Susulan · {min} menit',
+    makeup_locked: 'Selesaikan mata kuliah sebelumnya dulu',
+    btn_start_makeup: 'Mulai ujian',
     hello: 'Shalom',
     subject: 'Mata kuliah',
     window_upcoming: 'Belum mulai',
@@ -336,17 +515,22 @@ export const UI = {
     checkin_saved: 'Check-in diperbarui',
     err_check_in_locked: 'Tidak dapat mengubah bahasa setelah ada mata kuliah yang dimulai atau dikumpulkan',
     submit: 'Kumpulkan',
+    pause_exam: 'Lanjut nanti',
     submitted_ok: 'Terkirim. Terima kasih!',
     timer: 'Sisa waktu',
     timer_10m: 'Sekitar 10 menit lagi ujian akan dikumpulkan otomatis. Selesaikan dan periksa jawaban Anda.',
     proctor_warn: 'Pindah tab tercatat',
-    no_exam: 'Tidak ada ujian hari ini.',
+    no_exam: 'Saat ini tidak ada jadwal ujian.',
     err: 'Gagal',
     err_checkin_server: 'Check-in sibuk. Tunggu beberapa detik lalu coba lagi.',
     err_submit: 'Gagal mengumpulkan, mencoba lagi…',
     err_submit_fail: 'Belum terkirim. Tunggu sebentar, lalu tekan Kumpulkan sekali lagi.',
     err_submit_network: 'Jaringan sibuk; mencoba otomatis. Tunggu, jangan tekan berulang.',
     err_window_closed: 'Waktu ujian sudah lewat. Hubungi kantor.',
+    err_makeup_in_progress: 'Selesaikan ujian susulan yang sedang berjalan terlebih dahulu.',
+    err_makeup_wait_previous: 'Kerjakan berurutan. Selesaikan mata kuliah sebelumnya dulu.',
+    err_not_on_makeup_roster: 'Anda tidak ada dalam daftar ujian susulan hari ini. Hubungi kantor jika ada kesalahan.',
+    err_subject_not_allowed: 'Mata kuliah ini tidak termasuk jadwal ujian susulan Anda.',
     err_submitting: 'Mengirim… Jangan tekan berulang.',
     submitting_progress: 'Mengirim ({n}/{total})…',
     submit_busy: 'Sedang mengirim. Harap tunggu.',
@@ -397,7 +581,11 @@ export function fmtTime(iso, lang) {
 
 export function fmtTimer(sec) {
   const s = Math.max(0, Math.floor(sec));
-  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const r = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+  return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
 }
 
 export function gradeLabel(g, lang) {
@@ -658,6 +846,17 @@ export function installEssayCounters(root, lang = 'zh') {
   });
 }
 
+export function fillBlankCount(q, stem = '') {
+  const n = Number(q?.blank_count);
+  if (n > 0) return n;
+  const stemStr = String(stem || '');
+  const fromStem = (stemStr.match(/____/g) || []).length;
+  if (fromStem > 0) return fromStem;
+  const loc = q?.locales ? Object.values(q.locales).find((l) => l?.answer_key?.answers?.length) : null;
+  const fromKey = loc?.answer_key?.answers?.length || 0;
+  return Math.max(1, fromKey || 1);
+}
+
 export function renderQuestionHtml(q, answers, lang) {
   const gid = q.group_id;
   const cur = answers[gid];
@@ -682,12 +881,11 @@ export function renderQuestionHtml(q, answers, lang) {
       return `<label class="opt"><input type="radio" name="q_${gid}" data-gid="${esc(gid)}" data-kind="truefalse" value="${val ? '1' : '0'}"${checked}><span>${esc(opt)}</span></label>`;
     }).join('');
   } else if (q.type === 'fill') {
-    const stemStr = String(stem);
-    const n = Math.max(1, (Array.isArray(cur) ? cur.length : 0) || (stemStr.match(/____/g) || []).length || 1);
-    const arr = Array.isArray(cur) ? cur : [];
-    body = Array.from({ length: n }, (_, i) =>
+    const n = fillBlankCount(q, stem);
+    const arr = Array.isArray(cur) ? cur : (cur != null && cur !== '' ? [String(cur)] : []);
+    body = `<div class="fill-blanks">${Array.from({ length: n }, (_, i) =>
       `<input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" placeholder="${i + 1}">`
-    ).join('');
+    ).join('')}</div>`;
   } else if (q.type === 'essay') {
     const { rows, sizeCls } = essayTextareaSpec(q);
     const secLbl = esc(q.section_label || '');
