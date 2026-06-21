@@ -325,7 +325,8 @@ export const UI = {
   zh: {
     site: '美村宣教学院 · 内部考试',
     checkin_title: '今日考试签到',
-    checkin_hint: '请填写姓名，选择年级与答卷语言。今日只需签到一次。',
+    checkin_hint: '请填写姓名，选择年级与班级轨道。今日只需签到一次。',
+    checkin_makeup_test: '补考试测（张 + 手机后四位 5668）：中文班→张小娟 6 科；英文班→Madhu 4 科；印尼语班→Nomi 4 科。右上角界面语言不改变科目名单与试卷语言。',
     full_name: '姓名',
     grade: '年级',
     grade1: '一年级', grade2: '二年级', grade3: '三年级',
@@ -400,7 +401,8 @@ export const UI = {
   en: {
     site: 'MMS · Internal Exam',
     checkin_title: 'Check-in for today',
-    checkin_hint: 'Enter your name, grade, and exam language. Check in once per day.',
+    checkin_hint: 'Enter your name, grade, and class track. Check in once per day.',
+    checkin_makeup_test: 'Make-up test (name 张, phone last 4: 5668): Chinese track → 6 subjects; English → Madhu 4; Indonesian → Nomi 4. The EN/ID buttons only change UI labels, not your roster or exam language.',
     full_name: 'Full name',
     grade: 'Year',
     grade1: 'Year 1', grade2: 'Year 2', grade3: 'Year 3',
@@ -473,7 +475,8 @@ export const UI = {
   id: {
     site: 'MMS · Ujian Internal',
     checkin_title: 'Check-in hari ini',
-    checkin_hint: 'Isi nama, angkatan, dan bahasa ujian. Cukup sekali per hari.',
+    checkin_hint: 'Isi nama, angkatan, dan jalur kelas. Cukup sekali per hari.',
+    checkin_makeup_test: 'Uji susulan (nama 张, 4 digit terakhir 5668): jalur Cina → 6 mata kuliah; Inggris → Madhu 4; Indonesia → Nomi 4. Tombol bahasa hanya mengubah antarmuka, bukan daftar ujian.',
     full_name: 'Nama lengkap',
     grade: 'Angkatan',
     grade1: 'Tahun 1', grade2: 'Tahun 2', grade3: 'Tahun 3',
@@ -592,17 +595,35 @@ export function gradeLabel(g, lang) {
   return t(lang, `grade${g}`);
 }
 
-/** 课程卷名三语（与答卷语言 exam_lang 一致，非界面语言切换） */
+/** 课程卷名三语（日程/封面随界面语言；答卷内卷名随 exam_lang） */
 export const COURSE_TITLE_LOCALES = {
-  希伯来书: { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
-  诗篇: { zh: '诗篇', en: 'Psalms', id: 'Mazmur' },
-  启示录: { zh: '启示录', en: 'Revelation', id: 'Wahyu' },
-  撒母耳记: { zh: '撒母耳记', en: 'Samuel', id: 'Samuel' },
+  GEN: { zh: '创世记', en: 'Genesis', id: 'Kejadian' },
+  EXO: { zh: '出埃及记', en: 'Exodus', id: 'Keluaran' },
+  MRK: { zh: '马可福音', en: 'Mark', id: 'Markus' },
+  JHN: { zh: '约翰福音', en: 'John', id: 'Yohanes' },
+  ACT: { zh: '使徒行传', en: 'Acts', id: 'Kisah Para Rasul' },
+  ROM: { zh: '罗马书', en: 'Romans', id: 'Roma' },
   HEB: { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
   'HEB-S': { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
+  ISA: { zh: '以赛亚书', en: 'Isaiah', id: 'Yesaya' },
+  NTS: { zh: '新约概论', en: 'New Testament Survey', id: 'Pengantar Perjanjian Baru' },
+  OTS: { zh: '旧约概论', en: 'Old Testament Survey', id: 'Pengantar Perjanjian Lama' },
   PSA: { zh: '诗篇', en: 'Psalms', id: 'Mazmur' },
   REV: { zh: '启示录', en: 'Revelation', id: 'Wahyu' },
   SAM: { zh: '撒母耳记', en: 'Samuel', id: 'Samuel' },
+  创世记: { zh: '创世记', en: 'Genesis', id: 'Kejadian' },
+  出埃及记: { zh: '出埃及记', en: 'Exodus', id: 'Keluaran' },
+  马可福音: { zh: '马可福音', en: 'Mark', id: 'Markus' },
+  约翰福音: { zh: '约翰福音', en: 'John', id: 'Yohanes' },
+  使徒行传: { zh: '使徒行传', en: 'Acts', id: 'Kisah Para Rasul' },
+  罗马书: { zh: '罗马书', en: 'Romans', id: 'Roma' },
+  希伯来书: { zh: '希伯来书', en: 'Hebrews', id: 'Ibrani' },
+  以赛亚书: { zh: '以赛亚书', en: 'Isaiah', id: 'Yesaya' },
+  新约概论: { zh: '新约概论', en: 'New Testament Survey', id: 'Pengantar Perjanjian Baru' },
+  旧约概论: { zh: '旧约概论', en: 'Old Testament Survey', id: 'Pengantar Perjanjian Lama' },
+  诗篇: { zh: '诗篇', en: 'Psalms', id: 'Mazmur' },
+  启示录: { zh: '启示录', en: 'Revelation', id: 'Wahyu' },
+  撒母耳记: { zh: '撒母耳记', en: 'Samuel', id: 'Samuel' },
 };
 
 function normPaperLang(lang) {
@@ -632,19 +653,20 @@ export function inferTitleLocales(title, courseCode) {
 }
 
 /**
- * 学生端卷名：跟随答卷语言（英文班→英文卷名，印尼语班→印尼语卷名）
- * meta: { paper_title?, title?, subject_name?, title_locales?, course_code?, exam_lang? }
+ * 学生端科目/卷名显示
+ * @param meta 含 subject_name、course_code、title_locales 等
+ * @param lang 界面语言 uiLang，或答卷语言 exam_lang
  */
 export function resolvePaperDisplayTitle(meta, lang = 'zh') {
   const L = normPaperLang(lang);
   const m = typeof meta === 'string' ? { title: meta } : (meta || {});
   const loc = m.title_locales && typeof m.title_locales === 'object' ? m.title_locales : null;
   if (loc?.[L]) return loc[L];
+  const rawName = stripYearSuffix(m.subject_name || m.paper_title || m.title || '');
+  const inferred = inferTitleLocales(rawName || m.subject_name || m.paper_title || m.title, m.course_code);
+  if (inferred[L]) return inferred[L];
   if (m.paper_title && m.exam_lang === L) return stripYearSuffix(m.paper_title);
-  const raw = stripYearSuffix(m.paper_title || m.title || m.subject_name || '');
-  if (!raw) return '';
-  const inferred = inferTitleLocales(raw, m.course_code);
-  return inferred[L] || inferred.zh || raw;
+  return inferred.zh || rawName || '';
 }
 
 /** @deprecated 使用 resolvePaperDisplayTitle */
@@ -740,7 +762,8 @@ export function renderExamWithSections(questions, answers, lang) {
   let html = '';
   let lastLabel = '';
   for (const q of questions || []) {
-    const label = displaySectionLabel(q.section_label || '', lang);
+    const secRaw = q.section_labels?.[lang] || q.section_label || '';
+    const label = displaySectionLabel(secRaw, lang);
     if (label && label !== lastLabel) {
       const sec = q.section || '';
       const cls = sec === '五' ? 'sec-head sec-long' : sec === '四' ? 'sec-head sec-short' : 'sec-head';
@@ -857,19 +880,29 @@ export function questionFillMeta(q, lang) {
   };
 }
 
-export function fillBlankCount(q, stem = '') {
-  const meta = questionFillMeta(q, 'zh');
+export function fillBlankCount(q, stem = '', lang = 'zh') {
+  const meta = questionFillMeta(q, lang);
+  const stemStr = String(stem || meta.stem || '');
+  const fromStem = (stemStr.match(/____/g) || []).length;
+  if (fromStem > 0) return fromStem;
   const labels = meta.blank_labels;
   if (Array.isArray(labels) && labels.length) return labels.length;
   if (meta.fill_layout === 'table' && Array.isArray(meta.table_rows)) return meta.table_rows.length;
   const n = Number(q?.blank_count);
   if (n > 0) return n;
-  const stemStr = String(stem || meta.stem || '');
-  const fromStem = (stemStr.match(/____/g) || []).length;
-  if (fromStem > 0) return fromStem;
-  const loc = questionLocale(q, 'zh');
+  const loc = questionLocale(q, lang);
   const fromKey = loc?.answer_key?.answers?.length || 0;
   return Math.max(1, fromKey || 1);
+}
+
+function inlineBlankWidthCh(stem, partIndex) {
+  const parts = String(stem || '').split('____');
+  const after = parts[partIndex + 1] || '';
+  const before = parts[partIndex] || '';
+  if (/章|chapter/i.test(before + after)) return 4;
+  if (/^\s*[\d\-–]/.test(after)) return 5;
+  if (/[，,;.]\s*$/.test(before)) return 12;
+  return 9;
 }
 
 function renderInlineFillStem(stem, gid, arr) {
@@ -879,7 +912,8 @@ function renderInlineFillStem(stem, gid, arr) {
   for (let i = 0; i < parts.length; i++) {
     html += esc(parts[i]);
     if (i < n) {
-      html += `<input class="inp inp-inline" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" aria-label="${i + 1}">`;
+      const w = inlineBlankWidthCh(stem, i);
+      html += `<input class="inp inp-inline" style="width:${w}ch" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" aria-label="${i + 1}">`;
     }
   }
   return html;
@@ -925,6 +959,10 @@ export function renderQuestionHtml(q, answers, lang) {
           `<tr><td>${esc(row.label)}</td><td><input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${ri}" value="${esc(arr[ri] || '')}" placeholder="${ri + 1}"></td></tr>`
         ).join('') + '</tbody></table>';
     } else if (fillLayout === 'inline' || (stemBlankCount > 0 && stemBlankCount === n && !labels?.length)) {
+      stemContent = renderInlineFillStem(stem, gid, arr);
+      stemCls = 'q-stem fill-inline-stem';
+      body = '';
+    } else if (stemBlankCount > 0 && !labels?.length && fillLayout !== 'table') {
       stemContent = renderInlineFillStem(stem, gid, arr);
       stemCls = 'q-stem fill-inline-stem';
       body = '';

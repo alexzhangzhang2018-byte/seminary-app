@@ -549,7 +549,7 @@ async function openCover(subjectId) {
   render();
 }
 
-const PAPER_CACHE_KEY = 'mms_student_exam_paper_v6';
+const PAPER_CACHE_KEY = 'mms_student_exam_paper_v8';
 
 function paperCacheLooksStale(paper) {
   const qs = paper?.questions || [];
@@ -792,6 +792,7 @@ function renderCheckin() {
   return `<div class="card">
     <h2>${esc(t(L, 'checkin_title'))}</h2>
     <p class="hint">${esc(t(L, editing ? 'checkin_edit_hint' : 'checkin_hint'))}</p>
+    <p class="hint" style="color:#6b7280;font-size:13px">${esc(t(L, 'checkin_makeup_test'))}</p>
     ${S.syncing ? `<p class="hint">${esc(t(L, 'loading_slow'))}</p>` : ''}
     <div class="fld"><label>${esc(t(L, 'full_name'))}</label>
       <input class="inp" id="f-name" value="${esc(S.checkIn?.full_name || '')}"></div>
@@ -821,7 +822,6 @@ function renderCheckin() {
 function renderSchedule() {
   const L = S.uiLang;
   const ci = S.checkIn;
-  const examL = examLangForTrack(ci?.class_track);
   const makeupMode = isInMakeupSession(S.schedule);
   const list = makeupMode ? getMakeupSchedule(S.schedule) : (S.schedule || []);
   const queue = makeupMode ? list : [];
@@ -831,8 +831,7 @@ function renderSchedule() {
       title_locales: sub.title_locales,
       subject_name: sub.subject_name,
       course_code: sub.course_code,
-      exam_lang: examL,
-    }, examL);
+    }, L);
     const min = sub.duration_minutes || 60;
     const mState = makeupMode ? getMakeupSubjectState(queue, sub) : null;
     let st = t(L, 'status_not_started');
@@ -898,14 +897,12 @@ function renderSchedule() {
 function renderCover() {
   const L = S.uiLang;
   const sub = S.subject;
-  const examL = examLangForTrack(S.checkIn?.class_track);
   const subTitle = resolvePaperDisplayTitle({
     paper_title: sub.paper_display_title || sub.paper_title,
     title_locales: sub.title_locales,
     subject_name: sub.subject_name,
     course_code: sub.course_code,
-    exam_lang: examL,
-  }, examL);
+  }, L);
   return `<div class="card">
     <h2>${esc(t(L, 'cover_title'))}</h2>
     <p class="hint">${esc(t(L, 'cover_hint'))}</p>
@@ -931,7 +928,6 @@ function renderExam() {
     title_locales: S.paper?.title_locales,
     subject_name: S.subject?.subject_name,
     course_code: S.paper?.course_code || S.subject?.course_code,
-    exam_lang: examL,
   }, examL);
   return `<div class="timer-bar">
     <span>${esc(t(uiL, 'timer'))}</span>
@@ -965,7 +961,7 @@ function ensureFillBlankInputs(root) {
     const q = qs.find((x) => x.group_id === qid);
     const stemEl = card.querySelector('.q-stem');
     const stem = stemEl?.textContent || q?.stem || '';
-    const need = fillBlankCount(q || {}, stem);
+    const need = fillBlankCount(q || {}, stem, examContentLang(S.checkIn, S.paper));
     if (need <= 1) return;
     const body = card.querySelector('.q-body');
     if (!body) return;
