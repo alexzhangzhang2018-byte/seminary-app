@@ -74,7 +74,7 @@ a{color:#4f46e5}
 .fill-blanks.labeled.contrast .fill-label{min-width:3em;text-align:right}
 .fill-blanks.labeled .fill-dash{color:#6b7280;font-weight:600;white-space:nowrap}
 .fill-inline-stem{line-height:2}
-.inp-inline{display:inline-block;width:4.5em;min-width:3.5em;max-width:12em;padding:6px 8px;margin:0 2px;vertical-align:baseline;font-size:15px}
+.inp-inline{display:inline-block;min-width:3.5em;max-width:100%;padding:6px 8px;margin:0 2px;vertical-align:baseline;font-size:15px;box-sizing:content-box}
 .fill-table{width:100%;border-collapse:collapse;margin-top:4px;font-size:14px}
 .fill-table th,.fill-table td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left}
 .fill-table th{background:#f8fafc;font-weight:700}
@@ -549,7 +549,7 @@ async function openCover(subjectId) {
   render();
 }
 
-const PAPER_CACHE_KEY = 'mms_student_exam_paper_v9';
+const PAPER_CACHE_KEY = 'mms_student_exam_paper_v11';
 
 function normalizeExamAnswers(questions, answers) {
   const out = { ...(answers || {}) };

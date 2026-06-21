@@ -874,6 +874,7 @@ export function questionFillMeta(q, lang) {
   return {
     stem: loc.stem ?? q?.stem ?? '',
     blank_labels: loc.blank_labels || q?.blank_labels,
+    blank_widths: loc.blank_widths || q?.blank_widths,
     fill_layout: loc.fill_layout || q?.fill_layout,
     table_headers: loc.table_headers || q?.table_headers,
     table_rows: loc.table_rows || q?.table_rows,
@@ -895,14 +896,34 @@ export function fillBlankCount(q, stem = '', lang = 'zh') {
   return Math.max(1, fromKey || 1);
 }
 
-function inlineBlankWidthCh(stem, partIndex) {
+function inlineBlankWidthCh(stem, partIndex, value = '', widthHint = 0) {
+  const typed = String(value ?? '').trim().length;
+  const hint = Number(widthHint) || 0;
+  let w = Math.max(typed + 2, hint);
+  if (w > 6) return Math.min(52, w);
+
   const parts = String(stem || '').split('____');
   const after = parts[partIndex + 1] || '';
   const before = parts[partIndex] || '';
-  if (/章|chapter/i.test(before + after)) return 4;
-  if (/^\s*[\d\-–]/.test(after)) return 5;
-  if (/[，,;.]\s*$/.test(before)) return 12;
-  return 9;
+  if (/章|chapter/i.test(before + after)) return 6;
+  if (/^\s*[\d\-–]/.test(after)) return 7;
+  if (/[，,;.]\s*$/.test(before)) return 14;
+  if (/said|told|swear|prayed/i.test(before + after)) return 18;
+  return 11;
+}
+
+function renderInlineFillStem(stem, gid, arr, widthHints = []) {
+  const parts = String(stem || '').split('____');
+  const n = parts.length - 1;
+  let html = '';
+  for (let i = 0; i < parts.length; i++) {
+    html += esc(parts[i]);
+    if (i < n) {
+      const w = inlineBlankWidthCh(stem, i, arr[i], widthHints[i]);
+      html += `<input class="inp inp-inline" style="width:${w}ch;min-width:${w}ch" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" aria-label="${i + 1}">`;
+    }
+  }
+  return html;
 }
 
 function stripSingleChoiceStem(stem, options) {
@@ -916,20 +937,6 @@ function stripSingleChoiceStem(stem, options) {
     if (cut.length > 8) return cut;
   }
   return s.replace(/\s*[A-D][.．].*$/s, '').trim();
-}
-
-function renderInlineFillStem(stem, gid, arr) {
-  const parts = String(stem || '').split('____');
-  const n = parts.length - 1;
-  let html = '';
-  for (let i = 0; i < parts.length; i++) {
-    html += esc(parts[i]);
-    if (i < n) {
-      const w = inlineBlankWidthCh(stem, i);
-      html += `<input class="inp inp-inline" style="width:${w}ch" data-gid="${esc(gid)}" data-kind="fill" data-blank="${i}" value="${esc(arr[i] || '')}" aria-label="${i + 1}">`;
-    }
-  }
-  return html;
 }
 
 export function renderQuestionHtml(q, answers, lang) {
@@ -965,6 +972,7 @@ export function renderQuestionHtml(q, answers, lang) {
     const labels = meta.blank_labels;
     const fillLayout = meta.fill_layout;
     const stemBlankCount = (stem.match(/____/g) || []).length;
+    const blankWidths = loc.blank_widths || q.blank_widths || [];
 
     if (fillLayout === 'table' && Array.isArray(meta.table_rows) && meta.table_rows.length) {
       const headers = meta.table_headers || ['章节', '主题'];
@@ -973,11 +981,11 @@ export function renderQuestionHtml(q, answers, lang) {
           `<tr><td>${esc(row.label)}</td><td><input class="inp" data-gid="${esc(gid)}" data-kind="fill" data-blank="${ri}" value="${esc(arr[ri] || '')}" placeholder="${ri + 1}"></td></tr>`
         ).join('') + '</tbody></table>';
     } else if (fillLayout === 'inline' || (stemBlankCount > 0 && stemBlankCount === n && !labels?.length)) {
-      stemContent = renderInlineFillStem(stem, gid, arr);
+      stemContent = renderInlineFillStem(stem, gid, arr, blankWidths);
       stemCls = 'q-stem fill-inline-stem';
       body = '';
     } else if (stemBlankCount > 0 && !labels?.length && fillLayout !== 'table') {
-      stemContent = renderInlineFillStem(stem, gid, arr);
+      stemContent = renderInlineFillStem(stem, gid, arr, blankWidths);
       stemCls = 'q-stem fill-inline-stem';
       body = '';
     } else if (Array.isArray(labels) && labels.length === n) {
@@ -1062,6 +1070,7 @@ export function questionLocale(q, lang) {
     stem: nested.stem || q?.stem || '',
     options: (Array.isArray(nested.options) && nested.options.length) ? nested.options : (q?.options || []),
     blank_labels: nested.blank_labels || q?.blank_labels,
+    blank_widths: nested.blank_widths || q?.blank_widths,
     fill_layout: nested.fill_layout || q?.fill_layout,
     table_headers: nested.table_headers || q?.table_headers,
     table_rows: nested.table_rows || q?.table_rows,
