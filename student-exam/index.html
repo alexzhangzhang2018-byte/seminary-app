@@ -549,7 +549,18 @@ async function openCover(subjectId) {
   render();
 }
 
-const PAPER_CACHE_KEY = 'mms_student_exam_paper_v8';
+const PAPER_CACHE_KEY = 'mms_student_exam_paper_v9';
+
+function normalizeExamAnswers(questions, answers) {
+  const out = { ...(answers || {}) };
+  for (const q of questions || []) {
+    const gid = q.group_id;
+    if (q.type === 'essay' || q.type === 'dictation') {
+      if (Array.isArray(out[gid])) out[gid] = '';
+    }
+  }
+  return out;
+}
 
 function paperCacheLooksStale(paper) {
   const qs = paper?.questions || [];
@@ -631,6 +642,7 @@ async function enterExam(sub, displayName) {
   }
   S.paper = paperData;
   S.subject = { ...sub, ...paperData.subject };
+  S.answers = normalizeExamAnswers(S.paper?.questions, S.answers);
   S.timerSec = examTimerSeconds(S.subject, S.attempt);
   S.timerTotal = S.timerSec;
   S.timerWarn10m = false;
@@ -959,6 +971,7 @@ function ensureFillBlankInputs(root) {
     if (card.querySelector('.fill-table, .fill-blanks.labeled, .fill-inline-stem')) return;
     const qid = card.dataset.qid;
     const q = qs.find((x) => x.group_id === qid);
+    if (!q || q.type !== 'fill') return;
     const stemEl = card.querySelector('.q-stem');
     const stem = stemEl?.textContent || q?.stem || '';
     const need = fillBlankCount(q || {}, stem, examContentLang(S.checkIn, S.paper));

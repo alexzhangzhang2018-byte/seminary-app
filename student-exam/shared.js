@@ -905,6 +905,19 @@ function inlineBlankWidthCh(stem, partIndex) {
   return 9;
 }
 
+function stripSingleChoiceStem(stem, options) {
+  let s = String(stem || '').trim();
+  s = s.replace(/^（\s*(?:[A-D])?\s*）\s*/, '').replace(/^\(\s*(?:[A-D])?\s*\)\s*/, '');
+  s = s.replace(/\s*\(\s*\)\s*/, ' ').trim();
+  if (!options?.length) return s;
+  const idx = s.search(/(?:^|[\s?？:：,.，])([A-D])[.．]\s/);
+  if (idx >= 0) {
+    const cut = s.slice(0, idx).trim();
+    if (cut.length > 8) return cut;
+  }
+  return s.replace(/\s*[A-D][.．].*$/s, '').trim();
+}
+
 function renderInlineFillStem(stem, gid, arr) {
   const parts = String(stem || '').split('____');
   const n = parts.length - 1;
@@ -933,6 +946,7 @@ export function renderQuestionHtml(q, answers, lang) {
     const opts = (Array.isArray(loc.options) && loc.options.length)
       ? loc.options
       : (Array.isArray(q.options) ? q.options : []);
+    stemContent = esc(stripSingleChoiceStem(stem, opts));
     body = opts.map((opt, i) => {
       const checked = cur === i ? ' checked' : '';
       return `<label class="opt"><input type="radio" name="q_${gid}" data-gid="${esc(gid)}" data-kind="single" value="${i}"${checked}><span>${esc(opt)}</span></label>`;
@@ -979,13 +993,15 @@ export function renderQuestionHtml(q, answers, lang) {
     }
   } else if (q.type === 'essay') {
     const { rows, sizeCls } = essayTextareaSpec(q);
-    const secLbl = esc(q.section_label || '');
+    const secLbl = esc(q.section_labels?.[lang] || q.section_label || '');
+    const essayAns = Array.isArray(cur) ? '' : (cur ?? '');
     body = `<div class="essay-wrap">
-      <textarea class="textarea essay-area ${sizeCls}" rows="${rows}" data-gid="${esc(gid)}" data-kind="essay" data-section-label="${secLbl}" placeholder="">${esc(cur || '')}</textarea>
+      <textarea class="textarea essay-area ${sizeCls}" rows="${rows}" data-gid="${esc(gid)}" data-kind="essay" data-section-label="${secLbl}" placeholder="">${esc(essayAns)}</textarea>
       <div class="essay-count" aria-live="polite"></div>
     </div>`;
   } else if (q.type === 'dictation') {
-    body = `<textarea class="textarea" rows="5" data-gid="${esc(gid)}" data-kind="dictation" placeholder="">${esc(cur || '')}</textarea>`;
+    const dictAns = Array.isArray(cur) ? '' : (cur ?? '');
+    body = `<textarea class="textarea" rows="5" data-gid="${esc(gid)}" data-kind="dictation" placeholder="">${esc(dictAns)}</textarea>`;
   } else {
     body = `<input class="inp" data-gid="${esc(gid)}" data-kind="text" value="${esc(cur || '')}">`;
   }
