@@ -1,0 +1,534 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "1以赛亚书共有 ____ 章，是旧约中章数最多的先知书之一。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "66"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "2以赛亚先知在 ____ 王去世那年蒙召，他在异象中看见了主坐在高高的宝座上（以赛亚书第6章）。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "乌西雅"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "3以赛亚书 7:14 预言道：必有童女怀孕生子，给他起名叫 ____，意思是“神与我们同在”。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "以马内利"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "4以赛亚书第五十三章被称为“受苦的仆人”篇，预言了弥赛亚为人类的 ____ 而受苦受死。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "罪"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q05",
+    "sort_order": 5,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "5以赛亚书 40:31 说，等候耶和华的人必重新得力，他们必如 ____ 展翅上腾。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "鹰"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q06",
+    "sort_order": 6,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "6以赛亚书中常常用“公义”一次和____互换使用。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "救恩"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q07",
+    "sort_order": 7,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "7以赛亚书中和历史性的内容相互交替出现的是____内容。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "预言"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q08",
+    "sort_order": 8,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "8希西家病愈之后给____的使者看了他一切所有的。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "巴比伦"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q09",
+    "sort_order": 9,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "9 40-55章共有____首仆人之歌。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "4"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q10",
+    "sort_order": 10,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "10 第9章中这位婴孩的名字是____，全能的神、永在的父、和平的君。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "奇妙策士"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空2分，共20分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q11",
+    "sort_order": 11,
+    "type": "single",
+    "section": "二",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "以赛亚的名字在希伯来文的意思是：",
+        "options": [
+          "耶和华是我的力量",
+          "耶和华是救恩",
+          "神是我的牧者",
+          "荣耀归于神"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "二、单选题（每题4分，共32分）"
+  },
+  {
+    "group_id": "q12",
+    "sort_order": 12,
+    "type": "single",
+    "section": "二",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "以赛亚先知蒙召时，在异象中看见撒拉弗呼喊什么？",
+        "options": [
+          "哈利路亚，我们的主全能神作王了",
+          "圣哉！圣哉！圣哉！万军之耶和华",
+          "主耶稣快来",
+          "和平！和平！远近都有和平"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "二、单选题（每题4分，共32分）"
+  },
+  {
+    "group_id": "q13",
+    "sort_order": 13,
+    "type": "single",
+    "section": "二",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "3以赛亚书第一章开篇，神批评百姓的主要罪状是什么？",
+        "options": [
+          "拜偶像、杀人流血",
+          "背叛神、行事悖逆",
+          "不献祭、不守安息日",
+          "不缴纳十一奉献"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "二、单选题（每题4分，共32分）"
+  },
+  {
+    "group_id": "q14",
+    "sort_order": 14,
+    "type": "single",
+    "section": "二",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "以赛亚书哪一章节以亚述作为神手中的审判工具？",
+        "options": [
+          "第一章",
+          "第十章",
+          "第二十章",
+          "第三十六章"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "二、单选题（每题4分，共32分）"
+  },
+  {
+    "group_id": "q15",
+    "sort_order": 15,
+    "type": "single",
+    "section": "二",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "5以赛亚书第九章的预言中，「政权必担在他肩头上」，这里「他」指的是：",
+        "options": [
+          "大卫王",
+          "西结家王",
+          "将要降生的弥赛亚",
+          "所罗门王"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "二、单选题（每题4分，共32分）"
+  },
+  {
+    "group_id": "q16",
+    "sort_order": 16,
+    "type": "single",
+    "section": "二",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "6以赛亚书第四十章中，「有人声喊着说：在旷野预备耶和华的路」，新约将此预言应用在哪位人物身上？",
+        "options": [
+          "使徒保罗",
+          "施洗约翰",
+          "先知以利亚",
+          "门徒彼得"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "二、单选题（每题4分，共32分）"
+  },
+  {
+    "group_id": "q17",
+    "sort_order": 17,
+    "type": "single",
+    "section": "二",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "以赛亚书 9 中列举了弥赛亚政权的几种特征，以下哪项不在其中？",
+        "options": [
+          "有智慧",
+          "有公义",
+          "有和平",
+          "有苦难"
+        ],
+        "answer_key": {
+          "answer_index": 3
+        }
+      }
+    },
+    "section_label": "二、单选题（每题4分，共32分）"
+  },
+  {
+    "group_id": "q18",
+    "sort_order": 18,
+    "type": "single",
+    "section": "二",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "以下哪位君王在以赛亚书第三十六至三十九章中占有重要篇幅？",
+        "options": [
+          "亚哈王",
+          "约沙法王",
+          "希西家王",
+          "约雅敬王"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "二、单选题（每题4分，共32分）"
+  },
+  {
+    "group_id": "q19",
+    "sort_order": 19,
+    "type": "truefalse",
+    "section": "三",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "1以赛亚是南国犹大的先知，他事奉的年代横跨乌西雅、约坦、亚哈斯、希西家四位君王。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断对错题（每题3分，共18分）"
+  },
+  {
+    "group_id": "q20",
+    "sort_order": 20,
+    "type": "truefalse",
+    "section": "三",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "2 以赛亚书 53:5 说：「他为我们的过犯受害，为我们的罪孽压伤。」这是对北国以色列灭亡的哀歌。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断对错题（每题3分，共18分）"
+  },
+  {
+    "group_id": "q21",
+    "sort_order": 21,
+    "type": "truefalse",
+    "section": "三",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "3 以赛亚书第一至三十九章主要侧重于审判与警告，第四十至六十六章则以安慰与复兴为主题。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断对错题（每题3分，共18分）"
+  },
+  {
+    "group_id": "q22",
+    "sort_order": 22,
+    "type": "truefalse",
+    "section": "三",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "4以赛亚书中，神称波斯王古列为“我的受膏者”，并预言他将下令让被掳的以色列人归回故土。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断对错题（每题3分，共18分）"
+  },
+  {
+    "group_id": "q23",
+    "sort_order": 23,
+    "type": "truefalse",
+    "section": "三",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "5以赛亚书第六十六章结尾，描述的是最终的审判和新天新地——万民都要来敬拜耶和华。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断对错题（每题3分，共18分）"
+  },
+  {
+    "group_id": "q24",
+    "sort_order": 24,
+    "type": "truefalse",
+    "section": "三",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "6 在以赛亚书中，耶路撒冷曾被称为“忠信的城”，但后来堕落，被比作妓女。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断对错题（每题3分，共18分）"
+  },
+  {
+    "group_id": "q25",
+    "sort_order": 25,
+    "type": "essay",
+    "section": "四",
+    "score": 8,
+    "locales": {
+      "zh": {
+        "stem": "请简述以赛亚书7-11章的“婴孩系列”。",
+        "options": [],
+        "answer_key": {
+          "reference": "7-11章出现了4个婴孩。\n7章中，亚兰与以色列攻击时，神给的预言是童女生子，名字叫以马内利。\n8章中，以马内利是指在亚述的攻击中，犹大全地要被保守。\n9章中，这个孩子的名号是神的名，他带来平安，建立永远的国。\n11章中，大卫后裔，在他的统治下极为繁盛和太平，形成了全地的景象。\n不是7章中的婴孩是谁，而是整个系列中的婴孩是谁？这是一个发展的主题。\n这里有比较明显的，历史中的困境，历史中拯救；终极性的困境，终极性的拯救。这其实是一个行动，在这个行动系列中，不单单以色列受责罚，而且也是全地受责罚；这些行动是从历史中开始，指向终末，并且同时带着审判与拯救。"
+        }
+      }
+    },
+    "section_label": "四、简答题（共30分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q26",
+    "sort_order": 26,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "2以赛亚书第53章中，“受苦的仆人”有哪些特点？请列举至少三点。（10分）",
+        "options": [],
+        "answer_key": {
+          "reference": "无佳形美容。\n被藐视\n被神击打，受刑罚，\n甘心受苦\n与恶人同埋，死的时候与财主同葬\n作为赎罪祭\n死后复活"
+        }
+      }
+    },
+    "section_label": "四、简答题（共30分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q27",
+    "sort_order": 27,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "3请综合陈述以赛亚书中的弥赛亚以及受苦仆人的主题如何结合？这位受苦仆人是如何作王的？（12分）",
+        "options": [],
+        "answer_key": {
+          "reference": "这位弥赛亚是以受苦的仆人的形象出现，这位受苦的仆人是通过他的死带来拯救，作王掌权，实现永远和平的国度。"
+        }
+      }
+    },
+    "section_label": "四、简答题（共30分）",
+    "essay_kind": "short"
+  }
+]

@@ -127,9 +127,10 @@ import {
   resolveExamDeadlineIso, examTimerSeconds,
   isCoverConfirmed, setCoverConfirmed, clearCoverConfirmed, withTimeout,
   resolveExamDay, rpcDirect, rpcCall, saveExamDayCache,
-  EXAM_DAY_EMERGENCY, jakartaTodayYmd, loadExamDayCache,
+  EXAM_DAY_EMERGENCY, jakartaTodayYmd, loadExamDayCache, examDayFromQuery,
+  EXAM_DAY_SPRING, EXAM_DAY_MAKEUP,
   scheduleHasActionableExam,
-} from './shared.js?v=202606221300';
+} from './shared.js?v=202606221700';
 
 const DRAFT_BASE_MS = 30000;
 const DRAFT_JITTER_MS = 15000;
@@ -234,7 +235,8 @@ async function loadToday() {
   loadTodayBusy = true;
 
   const today = jakartaTodayYmd();
-  const instant = loadExamDayCache(today) || EXAM_DAY_EMERGENCY[today];
+  const queryDay = examDayFromQuery();
+  const instant = queryDay || loadExamDayCache(today) || EXAM_DAY_EMERGENCY[today];
   if (instant) {
     S.examDay = instant;
     S.view = 'checkin';
@@ -273,9 +275,9 @@ async function loadToday() {
       S.view = 'no_exam';
       return;
     }
-    S.examDay = examDay;
+    S.examDay = queryDay || examDay;
     if (S.view !== 'schedule') S.view = 'checkin';
-    if (fromFallback) toast(t(S.uiLang, 'err_load_offline'), true);
+    if (fromFallback && !queryDay) toast(t(S.uiLang, 'err_load_offline'), true);
     render();
     await loadScheduleIfToken();
   } catch (e) {
@@ -458,14 +460,14 @@ async function doCheckIn(resume = false) {
       return;
     }
 
-    let rpc, args;
-    if (resume && pl4) {
-      rpc = 'student_exam_resume';
-      args = { p_exam_day_id: S.examDay.id, p_full_name: name, p_grade: grade, p_phone_last4: pl4, p_class_track: classTrack };
-    } else {
-      rpc = 'student_exam_check_in';
-      args = {
-        p_exam_day_id: S.examDay.id,
+    const tryCheckIn = async (examDayId) => {
+      if (resume && pl4) {
+        return rpcCall('student_exam_resume', {
+          p_exam_day_id: examDayId, p_full_name: name, p_grade: grade, p_phone_last4: pl4, p_class_track: classTrack,
+        }, { timeoutMs: 15000, tries: 4 });
+      }
+      return rpcCall('student_exam_check_in', {
+        p_exam_day_id: examDayId,
         p_full_name: name,
         p_grade: grade,
         p_ui_lang: S.uiLang,
@@ -473,10 +475,24 @@ async function doCheckIn(resume = false) {
         p_phone_last4: pl4,
         p_resume_token: S.token || null,
         p_class_track: classTrack,
-      };
+      }, { timeoutMs: 15000, tries: 4 });
+    };
+
+    let usedDay = S.examDay;
+    let { data, error } = await tryCheckIn(S.examDay.id);
+
+    // 今日默认补考日：期末补考名单（如郑智成·撒母耳记）自动改签春季期末考试日
+    if ((data?.error === 'not_on_makeup_roster' || data?.error === 'not_found')
+      && S.examDay.id === EXAM_DAY_MAKEUP.id) {
+      const alt = await tryCheckIn(EXAM_DAY_SPRING.id);
+      if (alt.data?.ok) {
+        data = alt.data;
+        error = alt.error;
+        usedDay = EXAM_DAY_SPRING;
+        saveExamDayCache(EXAM_DAY_SPRING);
+      }
     }
 
-    const { data, error } = await rpcCall(rpc, args, { timeoutMs: 15000, tries: 4 });
     if (error || !data?.ok) {
       const errMsg = data?.error
         ? rpcErrorText(data.error)
@@ -489,6 +505,7 @@ async function doCheckIn(resume = false) {
     S.token = data.check_in.session_token;
     localStorage.setItem(SESSION_KEY, S.token);
     S.checkIn = data.check_in;
+    S.examDay = usedDay;
     if (!data.resumed) clearCoverConfirmed();
     S.editingCheckIn = false;
     await refreshSchedule();
@@ -549,7 +566,7 @@ async function openCover(subjectId) {
   render();
 }
 
-const PAPER_CACHE_KEY = 'mms_student_exam_paper_v12';
+const PAPER_CACHE_KEY = 'mms_student_exam_paper_v17';
 
 function normalizeExamAnswers(questions, answers) {
   const out = { ...(answers || {}) };
@@ -804,7 +821,6 @@ function renderCheckin() {
   return `<div class="card">
     <h2>${esc(t(L, 'checkin_title'))}</h2>
     <p class="hint">${esc(t(L, editing ? 'checkin_edit_hint' : 'checkin_hint'))}</p>
-    <p class="hint" style="color:#6b7280;font-size:13px">${esc(t(L, 'checkin_makeup_test'))}</p>
     ${S.syncing ? `<p class="hint">${esc(t(L, 'loading_slow'))}</p>` : ''}
     <div class="fld"><label>${esc(t(L, 'full_name'))}</label>
       <input class="inp" id="f-name" value="${esc(S.checkIn?.full_name || '')}"></div>

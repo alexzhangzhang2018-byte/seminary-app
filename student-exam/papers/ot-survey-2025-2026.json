@@ -1,0 +1,522 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "____，耶和华 神在园中行走。那人和他妻子听见 神的声音，就藏在园里的树木中，躲避耶和华 神的面。（创世记 3:8）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "天起了凉风"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "塞特也生了一个儿子，起名叫____。那时候，人才____。（创世记 4:26）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "以挪士",
+            "求告耶和华的名"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "fill",
+    "section": "一",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "利未记中的五种祭：____、____、____、____、____",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "燔祭",
+            "素祭",
+            "平安祭",
+            "赎罪祭",
+            "赎愆祭"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "被巴勒召来咒诅以色列的假先知是____",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "巴兰"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q05",
+    "sort_order": 5,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "摩西在约旦河东的____讲律法说：“耶和华我们的 神在何烈山晓谕我们说：你们在这山上住的日子够了”。（申命记 1:5-6）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "摩押地"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q06",
+    "sort_order": 6,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "以色列啊，你要听！耶和华我们 神是____。你要尽心、尽性、尽力爱耶和华你的 神。（申命记 6:4-5）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "独一的主"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q07",
+    "sort_order": 7,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "当下，嫩的儿子约书亚从什亭暗暗打发两个人作探子，吩咐说：“你们去窥探那地和____。”于是二人去了，来到一个妓女名叫____的家里，就在那里躺卧。（约书亚记 2:1）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "耶利哥",
+            "喇合"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q08",
+    "sort_order": 8,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "约书亚靠近____的时候，举目观看，不料，有一个人手里有拔出来的刀，对面站立。约书亚到他那里，问他说：“你是帮助我们呢，是帮助我们敌人呢？”他回答说：“不是的，我来是要作____。”约书亚就俯伏在地下拜，说：“我主有什么话吩咐仆人。”（约书亚记 5:13-14）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "耶利哥",
+            "耶和华军队的元帅"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q09",
+    "sort_order": 9,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "当____的时候，国中遭遇饥荒。在犹大的____，有一个人带着妻子和两个儿子往摩押地去寄居。（路得记 1:1）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "士师秉政",
+            "伯利恒"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q10",
+    "sort_order": 10,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "撒母耳说：“耶和华喜悦____和平安祭，岂如喜悦人听从他的话呢？____胜于献祭；____胜于公羊的脂油。（撒母耳记上 15:22）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "燔祭",
+            "听命",
+            "顺从"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q11",
+    "sort_order": 11,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "所罗门的臣仆、尼八的儿子____也举手攻击王。他是以法莲支派的洗利达人，他母亲是寡妇，名叫洗鲁阿。（列王纪上 11:26）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "耶罗波安"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q12",
+    "sort_order": 12,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "____背叛巴比伦王。他作王第九年十月初十日，巴比伦王____率领全军来攻击耶路撒冷，对城安营，四围筑垒攻城。（列王纪下 25:1）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "西底家",
+            "尼布甲尼撒"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q13",
+    "sort_order": 13,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "____有一个人名叫约伯；那人完全正直，敬畏神，远离____。（约伯记 1:1）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "乌斯地",
+            "恶事"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q14",
+    "sort_order": 14,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "受膏者说：“我要传圣旨。耶和华曾对我说：‘你是我的____，我____。（诗篇 2:7）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "儿子",
+            "今日生你"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q15",
+    "sort_order": 15,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "那时，我在他那里为____，日日为他所喜爱，常常在他面前踊跃，踊跃在他为人预备____，也喜悦住在世人之间。（箴言 8:30-31）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "工师",
+            "可住之地"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q16",
+    "sort_order": 16,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "当三十年四月初五日，以西结（原文作“我”）在____被掳的人中，天就开了，得见 神的异象。（以西结书 1:1）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "迦巴鲁河边"
+          ]
+        }
+      }
+    },
+    "section_label": "一、填空题（每空1分，共30分）"
+  },
+  {
+    "group_id": "q17",
+    "sort_order": 17,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "1.摩西因击打磐石两次得罪神而不得入迦南。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q18",
+    "sort_order": 18,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "2.申命记是摩西临终前的三篇讲章。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q19",
+    "sort_order": 19,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "3.金香坛放在至圣所中。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q20",
+    "sort_order": 20,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "4.但以理书》中三个朋友因不拜金像被扔入狮子坑。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q21",
+    "sort_order": 21,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "5.攻打艾城第一次失败，是因为以色列百姓没有求问耶和华。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q22",
+    "sort_order": 22,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "6.诗篇第 119 篇是最长的一章，以律法为主题。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q23",
+    "sort_order": 23,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "7.以赛亚书共有66章，前39章以审判为主，后27章以安慰为主。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q24",
+    "sort_order": 24,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "8.耶利米哀歌的中心主题是预言百姓被掳以及归回。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q25",
+    "sort_order": 25,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "9.约珥书预言圣灵降临在末后的日子。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q26",
+    "sort_order": 26,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "10.那鸿书预言巴比伦的毁灭。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（每题1分，共10分）"
+  },
+  {
+    "group_id": "q27",
+    "sort_order": 27,
+    "type": "essay",
+    "section": "五",
+    "score": 15,
+    "locales": {
+      "zh": {
+        "stem": "请阐述亚当之约、挪亚之约、亚伯拉罕之约、西奈之约、大卫之约、旧约预言新约的主要内容。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "五、论述题（每题15分，共30分）",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q28",
+    "sort_order": 28,
+    "type": "essay",
+    "section": "五",
+    "score": 15,
+    "locales": {
+      "zh": {
+        "stem": "任选一卷旧约书卷，说明其主要内容以及学习的收获。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "五、论述题（每题15分，共30分）",
+    "essay_kind": "long"
+  }
+]

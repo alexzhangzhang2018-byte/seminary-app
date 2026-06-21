@@ -1,0 +1,501 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "1（罗1:11-12）因为我切切地想见你们，要把些____分给你们，使你们可以坚固。这样，我在你们中间，因你与我彼此的信心，就可以同得安慰。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "属灵的恩赐"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "2（罗1:14-15）无论是希腊人、化外人、聪明人、愚拙人，我都____，所以情愿尽我的力量，将福音也传给你们在罗马的人。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "欠他们的债"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "3（罗1:16）我不以福音为耻；这福音本是____，要救一切相信的，先是犹太人，后是希腊人。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神的大能"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "4（罗2:14-15）没有律法的外邦人若顺着本性行律法上的事，他们虽然没有律法，自己就是自己的律法。这是显出律法的____刻在他们心里，他们是非之心同作见证，并且他们的思念互相较量，或以为是，或以为非。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "功用"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q05",
+    "sort_order": 5,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "5（罗2:28-29） 因为外面作犹太人的，不是真犹太人；外面肉身的割礼，也不是真割礼。惟有里面作的，才是真犹太人；真割礼也是心里的，在乎____，不在乎____。这人的称赞不是从人来的，乃是从神来的。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "灵",
+            "仪文"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q06",
+    "sort_order": 6,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "6（罗3:19-20）我们晓得律法上的话，都是对律法以下之人说的，好塞住各人的口，叫普世的人都伏在神审判之下。所以凡有血气的，没有一个因行律法能在神面前称义，因为律法本是____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "叫人知罪"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q07",
+    "sort_order": 7,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "7（罗3:23-24）因为世人都犯了罪，亏缺了____，如今却蒙神的恩典，因基督耶稣的救赎，就白白地称义。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神的荣耀"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q08",
+    "sort_order": 8,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "8（罗4:13）因为神____亚伯拉罕和他后裔必得承受世界，不是因律法，乃是因信而得的义。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "应许"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q09",
+    "sort_order": 9,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "9（罗5:6-8）因我们还软弱的时候，基督就按所定的日期为罪人死。为义人死，是少有的；为仁人死，或者有敢作的。惟有基督在我们还作罪人的时候为我们死，____就在此向我们显明了。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神的爱"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q10",
+    "sort_order": 10,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "10（罗5:20-21）律法本是外添的，叫过犯显多；只是罪在哪里显多，恩典就更显多了。就如罪作王叫人死；照样，恩典也藉着____作王，叫人因我们的主耶稣基督得永生。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "义"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q11",
+    "sort_order": 11,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "11（罗6:6-8）因为知道我们的旧人和他同钉十字架，使____灭绝，叫我们不再作罪的奴仆。因为____的人是脱离了罪，我们若是与基督同死，就信必与他同活。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "罪身",
+            "已死"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q12",
+    "sort_order": 12,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "12（罗7:4）我的弟兄们，这样说来，你们藉着____，在律法上也是死了，叫你们归于别人，就是归于那从死里复活的，叫我们____给神。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "基督的身体",
+            "结果子"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q13",
+    "sort_order": 13,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "13（罗7:14）我们原晓得律法是属乎____的，但我是属乎____的，是已经卖给罪了。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "灵",
+            "肉体"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q14",
+    "sort_order": 14,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "14（罗8:1-2）如今那些在基督耶稣里的，就不____了。因为赐生命圣灵的律在基督耶稣里释放了我，使我脱离罪和死的律了。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "定罪"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q15",
+    "sort_order": 15,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "15（罗8:16-17）圣灵与我们的心同证我们是神的儿女；既是儿女，便是后嗣，就是神的后嗣，和基督同作后嗣。如果我们和他一同____，也必和他一同____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "受苦",
+            "得荣耀"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q16",
+    "sort_order": 16,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "16（罗9:15-16）因他对摩西说：\"我要怜悯谁，就怜悯谁；要恩待谁，就恩待谁。\"据此看来，这不在乎那定意的，也不在乎那奔跑的，只在乎____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "那施怜悯的神"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q17",
+    "sort_order": 17,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "17（罗10:4）律法的____就是基督，使凡信他的都得着义。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "总结"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q18",
+    "sort_order": 18,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "18（罗11:25-26）弟兄们，我不愿意你们不知道这____（恐怕你们自以为聪明），就是以色列人有几分是硬心的，等到外邦人的数目添满了，于是以色列全家都要得救。如经上所记：\"必有一位救主从锡安出来，要消除雅各家的一切____。\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "奥秘",
+            "罪恶"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q19",
+    "sort_order": 19,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "19（罗12:1-2）所以弟兄们，我以____劝你们，将身体献上，当作活祭，是圣洁的，是神所喜悦的，你们如此侍奉，乃是理所当然的。不要效法这个____，只要心意更新而变化，叫你们察验何为神的善良、纯全、可喜悦的旨意。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神的慈悲",
+            "世界"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q20",
+    "sort_order": 20,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "20（罗13:8）凡事都不可亏欠人，惟有彼此相爱，要常以为亏欠，因为爱人的就完全了____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "律法"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q21",
+    "sort_order": 21,
+    "type": "fill",
+    "section": "一",
+    "score": 6,
+    "locales": {
+      "zh": {
+        "stem": "21（罗16:25-26）惟有神能照我所传的____和所讲的____，并照永古隐藏不言的奥秘，坚固你们的心。这奥秘如今显明出来，而且按着永生神的命，藉众先知的书指示____，使他们信服真道。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "福音",
+            "耶稣基督",
+            "万国的民"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空2分，共60分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q22",
+    "sort_order": 22,
+    "type": "essay",
+    "section": "二",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "1罗1:17因为神的义正在这福音上显明出来；这义是本于信，以致于信。如经上所记：“义人必因信得生。”请解释“神的义”。",
+        "options": [],
+        "answer_key": {
+          "reference": "神存在本身的义\n神与人关系中的义\n神在约中的义，单方面守约施慈爱及由此发出的拯救行动。"
+        }
+      }
+    },
+    "section_label": "二、论述题（每题 10分，共 40 分）",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q23",
+    "sort_order": 23,
+    "type": "essay",
+    "section": "二",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "2罗3:24如今却蒙神的恩典，因基督耶稣的救赎，就白白地称义。请解释“称义”模型。",
+        "options": [],
+        "answer_key": {
+          "reference": "法庭模型\n人在神面前存在的正当性合法性。\n双重归算。"
+        }
+      }
+    },
+    "section_label": "二、论述题（每题 10分，共 40 分）",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q24",
+    "sort_order": 24,
+    "type": "essay",
+    "section": "二",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "3罗6:1-2这样，怎么说呢？我们可以仍在罪中，叫恩典显多吗？断乎不可！我们在罪上死了的人岂可仍在罪中活着呢？请阐述“我们在罪上死了”的含义。",
+        "options": [],
+        "answer_key": {
+          "reference": "客观上，罪的权势被废掉了。\n实际上，圣灵内住支配，叫我们胜过罪，过圣洁的生活。"
+        }
+      }
+    },
+    "section_label": "二、论述题（每题 10分，共 40 分）",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q25",
+    "sort_order": 25,
+    "type": "essay",
+    "section": "二",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "4浅谈你学习罗马书的收获。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "二、论述题（每题 10分，共 40 分）",
+    "essay_kind": "long"
+  }
+]

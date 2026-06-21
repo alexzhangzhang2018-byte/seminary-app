@@ -1,0 +1,455 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "有不认识____的新王起来，治理埃及。对他的百姓说：\"看哪，这____比我们还多，又比我们____。来吧，我们不如用巧计待他们，恐怕他们多起来，日后若遇什么争战的事，就连合我们的仇敌攻击我们，离开这地去了。\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "约瑟",
+            "以色列民",
+            "强盛"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "那女人怀孕，生一个儿子，见他俊美，就藏了他三个月。后来不能再藏，就取了一个____，抹上石漆和石油，将孩子放在里头，把箱子搁在河边的芦荻中。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "蒲草箱"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "过了多年，埃及王死了。以色列人因作苦工，就叹息哀求，他们的哀声达于神。神听见他们的哀声，就记念他与____、以撒、雅各____。神____以色列人，神也____他们的苦情。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "亚伯拉罕",
+            "所立的约",
+            "看顾",
+            "知道"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 4
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "摩西牧养他岳父米甸祭司____的羊群。一日，领羊群往野外去，到了____，就是____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "叶忒罗",
+            "神的山",
+            "何烈山"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q05",
+    "sort_order": 5,
+    "type": "fill",
+    "section": "一",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "神说：\"不要近前来，当把你脚上的鞋脱下来，因为你所站之地是____。\"又说：\"我是____的神，是亚伯拉罕的神，以撒的神，雅各的神。\"摩西蒙上脸，因为怕____神。耶和华说：\"____在埃及所受的困苦，我实在看见了；他们因受督工的辖制所发的哀声，我也听见了。我原____他们的痛苦。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "圣地",
+            "你父亲",
+            "观看",
+            "我的百姓",
+            "知道"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 5
+  },
+  {
+    "group_id": "q06",
+    "sort_order": 6,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "神对摩西说：\"我是____。\"又说：\"你要对以色列人这样说：____打发我到你们这里来。……'耶和华____神，就是亚伯拉罕的神，以撒的神，雅各的神，打发我到你们这里来。'耶和华是____，直到永远；这也是我的纪念，直到万代。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "自有永有的",
+            "那自有的",
+            "你们祖宗的",
+            "我的名"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 4
+  },
+  {
+    "group_id": "q07",
+    "sort_order": 7,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "神晓谕摩西说：\"我是耶和华。我从前向亚伯拉罕、以撒、雅各显现为____，至于____耶和华，他们未曾知道。我也与他们坚定所立的____，要把他们寄居的____赐给他们。\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "全能的神",
+            "我的名",
+            "约",
+            "迦南地"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 4
+  },
+  {
+    "group_id": "q08",
+    "sort_order": 8,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "我要使法老的心____，也要在埃及地多行神迹奇事。……我伸手攻击埃及，将以色列人从他们中间领出来的时候。埃及人就要知道____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "刚硬",
+            "我是耶和华"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q09",
+    "sort_order": 9,
+    "type": "fill",
+    "section": "一",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "因为那夜我要____埃及地，把埃及地一切头生的……都____。又要败坏埃及____。我是耶和华。这____要在你们所住的房屋上作记号，我一见这____，就越过你们去，……。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "巡行",
+            "击杀",
+            "一切的神",
+            "血",
+            "血"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 5
+  },
+  {
+    "group_id": "q10",
+    "sort_order": 10,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "以色列人住在埃及共有____年。正满了____年的那一天，耶和华的____都从埃及地出来了。这夜是耶和华的夜，因耶和华领他们出了埃及地，所以当向耶和华谨守，是以色列众人世世代代该谨守的。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "四百三十",
+            "四百三十",
+            "军队"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q11",
+    "sort_order": 11,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "你举手向海____，把水分开，以色列人要下海中走____。我要使埃及人的心刚硬，他们就跟着下去，我要在法老和他的全军、车辆、马兵上得荣耀。我在法老和他的车辆、马兵上得荣耀的时候，埃及人就知道____了。\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "伸杖",
+            "干地",
+            "我是耶和华"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q12",
+    "sort_order": 12,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "耶和华对摩西说：\"我要将粮食从天降给你们。百姓可以出去，每天收每天的____，我好____他们遵不遵我的____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "份",
+            "试验",
+            "法度"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q13",
+    "sort_order": 13,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "如今你们若实在听从我的____，遵守我的____，就要在万民中作属我的子民；因为全地都是我的。你们要归我作____的国度，为____的国民。'这些话你要告诉以色列人。\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "话",
+            "约",
+            "祭司",
+            "圣洁"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 4
+  },
+  {
+    "group_id": "q14",
+    "sort_order": 14,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "摩西将血洒在百姓身上，说：\"你看！这是立约的血，是耶和华按这一切话与你们立约的____。\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "凭据"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q15",
+    "sort_order": 15,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "百姓见摩西迟延不下山，就大家聚集到____那里，对他说：\"起来，为我们作神像，可以在我们前面____，因为领我们出埃及地的那个摩西，我们不知道他遭了什么事。\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "亚伦",
+            "引路"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q16",
+    "sort_order": 16,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "就站在营门中说：\"凡属耶和华的，都要到我这里来！\"于是____的子孙都到他那里聚集。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "利未"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q17",
+    "sort_order": 17,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "耶和华在云中降临，和摩西一同站在那里，宣告耶和华的____。耶和华在他面前宣告说：\"耶和华，耶和华，是有怜悯、有恩典的神，不轻易发怒，并有丰盛的慈爱和诚实。为千万人存留慈爱，赦免罪孽、过犯和罪恶，万不以有罪的为无罪，必____他的罪，自父及子，直到三四代。\"",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "名",
+            "追讨"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空（每空1分，共计50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q18",
+    "sort_order": 18,
+    "type": "essay",
+    "section": "二",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "在五经的整体脉络中，说明出埃及记所在的位置和作用。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "二、简答题 (50分)",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q19",
+    "sort_order": 19,
+    "type": "essay",
+    "section": "二",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "请解释在出埃及记中神的名和约的含义以及两者之间的关联",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "二、简答题 (50分)",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q20",
+    "sort_order": 20,
+    "type": "essay",
+    "section": "二",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "说明十灾之间的彼此关联。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "二、简答题 (50分)",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q21",
+    "sort_order": 21,
+    "type": "essay",
+    "section": "二",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "说明逾越节中“血”的意义",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "二、简答题 (50分)",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q22",
+    "sort_order": 22,
+    "type": "essay",
+    "section": "二",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "在32-34章金牛犊事件中，神如何向摩西显出他的荣耀？",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "二、简答题 (50分)",
+    "essay_kind": "short"
+  }
+]

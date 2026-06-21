@@ -29,7 +29,11 @@ th,td{padding:8px 10px;border-bottom:1px solid #f1f5f9;text-align:left}
 th{font-size:11px;color:#64748b;text-transform:uppercase}
 tr.sel{background:#eef2ff;cursor:pointer}
 tr.sel.on{background:#dbeafe;box-shadow:inset 3px 0 0 #4f46e5}
+tr.sel.proctor-alert{box-shadow:inset 0 0 0 2px #dc2626}
+tr.sel.proctor-alert.on{box-shadow:inset 3px 0 0 #4f46e5,inset 0 0 0 2px #dc2626}
+.proctor-high{color:#dc2626;font-weight:800}
 tr.grade-expand td{padding:0;background:#f8fafc;border-bottom:2px solid #c7d2fe;vertical-align:top}
+tr.grade-expand.proctor-alert-expand td{box-shadow:inset 2px 0 0 #dc2626,inset -2px 0 0 #dc2626,inset 0 -2px 0 #dc2626;border-bottom-color:#dc2626}
 .grade-inline{padding:14px 16px 18px}
 .grade-nav{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .grade-inline .card{margin:0;border:none;box-shadow:none;padding:0;background:transparent}
@@ -45,6 +49,9 @@ tr.grade-expand td{padding:0;background:#f8fafc;border-bottom:2px solid #c7d2fe;
 .tag{font-size:11px;padding:3px 8px;border-radius:999px;font-weight:700}
 .tag-pending{background:#fef3c7;color:#92400e}
 .tag-done{background:#dcfce7;color:#15803d}
+.tag-zero{background:#fee2e2;color:#b91c1c}
+.void-cell{white-space:nowrap}
+.void-cell .btn{margin:0}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:800px){.grid2{grid-template-columns:1fr}}
 .grade-box{border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px}
@@ -191,7 +198,7 @@ let createSb, esc, trackLabel, teacherPaperTitle,
   paperLocaleBadgesHtml, paperLocaleSummary, paperLocaleCodes, withTimeout,
   isObjectiveType, paperHasObjective, isAllSubjectivePaper,
   questionLocale, gradeOneQuestion, formatStudentAnswer, formatCorrectAnswer,
-  mergeGradingItems;
+  mergeGradingItems, essayCountUnits;
 let docxFileToSnapshot, mergeSnapshotsByIndex;
 function escBoot(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -203,7 +210,7 @@ try {
     paperLocaleBadgesHtml, paperLocaleSummary, paperLocaleCodes, withTimeout,
     isObjectiveType, paperHasObjective, isAllSubjectivePaper,
     questionLocale, gradeOneQuestion, formatStudentAnswer, formatCorrectAnswer,
-    mergeGradingItems,
+    mergeGradingItems, essayCountUnits,
   } = mod);
   const docxMod = await import('./docx-import.js');
   docxFileToSnapshot = docxMod.docxFileToSnapshot;
@@ -243,6 +250,7 @@ const S = {
   gradingAttempt: null,
   gradingLoading: false,
   showObjective: false,
+  gradeSort: 'none', // 'none' | 'total_desc'
 };
 
 function toast(msg) {
@@ -349,6 +357,76 @@ function gradingStatusClass(status) {
   return 'tag-pending';
 }
 
+function effectiveScore(a) {
+  if (a.score_voided) return 0;
+  return a.total_score ?? '';
+}
+
+function scoreVoidCellHtml(a) {
+  const pf = Number(a.proctor_flags) || 0;
+  if (a.score_voided) {
+    return `<td class="void-cell" data-void-cell>
+      <span class="tag tag-zero">认定0分</span>
+      <button type="button" class="btn btn-o btn-sm" data-score-unvoid data-aid="${esc(a.id)}">取消</button>
+    </td>`;
+  }
+  if (pf <= 10) {
+    return '<td class="void-cell muted" data-void-cell>—</td>';
+  }
+  return `<td class="void-cell" data-void-cell>
+    <button type="button" class="btn btn-danger btn-sm" data-score-void data-aid="${esc(a.id)}" title="切屏 ${pf} 次">记为0分</button>
+  </td>`;
+}
+
+async function setScoreVoid(attemptId, voided) {
+  const att = S.attempts.find((x) => x.id === attemptId);
+  const name = att?.display_name || '该考生';
+  const total = att?.total_score ?? '—';
+  const pf = Number(att?.proctor_flags) || 0;
+  if (voided && pf <= 10) {
+    toast('仅切屏超过 10 次可记为认定 0 分');
+    return;
+  }
+  const msg = voided
+    ? `确定将「${name}」认定成绩记为 0 分？\n\n阅卷原始总分 ${total} 分将保留在列表中；导出与成绩台账按 0 分计。${pf > 10 ? `\n切屏 ${pf} 次。` : ''}`
+    : `确定取消「${name}」的 0 分认定？\n将恢复按原始总分 ${total} 分计入导出。`;
+  if (!confirm(msg)) return;
+  const res = await sb.rpc('staff_student_exam_set_score_void', {
+    p_attempt_id: attemptId,
+    p_void: voided,
+  });
+  if (res.data?.ok) {
+    toast(voided ? '已记为认定 0 分' : '已取消 0 分认定');
+    await loadAttempts();
+    if (S.expandedAttemptId === attemptId) await openGrading(attemptId, { keepOpen: true });
+    else render();
+  } else {
+    const err = res.data?.error || res.error?.message || '操作失败';
+    if (String(err).includes('Could not find') || String(err).includes('does not exist')) {
+      toast('请先在 Supabase 执行迁移 20260624120000_student_exam_score_void.sql');
+    } else if (err === 'proctor_flags_not_exceeded') {
+      toast('仅切屏超过 10 次可记为认定 0 分');
+    } else {
+      toast(err);
+    }
+  }
+}
+
+function bindScoreVoidEvents() {
+  document.querySelectorAll('[data-score-void]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setScoreVoid(btn.dataset.aid, true);
+    });
+  });
+  document.querySelectorAll('[data-score-unvoid]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setScoreVoid(btn.dataset.aid, false);
+    });
+  });
+}
+
 function clearStudentErrorText(err) {
   if (err === 'forbidden') return '无权限';
   if (err === 'full_name_required') return '请填写姓名';
@@ -419,6 +497,18 @@ function applyOcrSplitToForm(raw, paper) {
   return n;
 }
 
+function attemptsForGradeList() {
+  const list = [...S.attempts];
+  if (S.gradeSort === 'total_desc') {
+    list.sort((a, b) => {
+      const ta = a.total_score == null ? -Infinity : +a.total_score;
+      const tb = b.total_score == null ? -Infinity : +b.total_score;
+      return tb - ta;
+    });
+  }
+  return list;
+}
+
 function renderGrades() {
   const dayOpts = S.days.map((d) =>
     `<option value="${d.id}"${d.id === S.selectedDayId ? ' selected' : ''}>${esc(d.title)} (${d.exam_date})</option>`
@@ -428,12 +518,17 @@ function renderGrades() {
   ).join('');
   const subj = S.subjects.find((s) => s.id === S.selectedSubjectId);
   const allSubjSubject = subj && /启示录|撒母耳|revelation|samuel|wahyu/i.test(subj.subject_name || '');
-  const rows = S.attempts.flatMap((a) => {
+  const rows = attemptsForGradeList().flatMap((a) => {
     const gs = gradingStatusClass(a.grading_status);
     const gt = allSubjSubject && a.grading_status === 'none' ? '待阅' : gradingStatusLabel(a.grading_status);
     const objCol = allSubjSubject ? '—' : (a.objective_score ?? '—');
     const isOn = a.id === S.expandedAttemptId;
-    const head = `<tr class="sel${isOn ? ' on' : ''}" data-aid="${a.id}">
+    const pf = Number(a.proctor_flags) || 0;
+    const proctorAlert = pf > 10;
+    const proctorCell = proctorAlert
+      ? `<td><strong class="proctor-high">${pf}</strong></td>`
+      : `<td>${pf}</td>`;
+    const head = `<tr class="sel${isOn ? ' on' : ''}${proctorAlert ? ' proctor-alert' : ''}" data-aid="${a.id}">
       <td>${esc(a.display_name)}</td>
       <td>${a.grade}</td>
       <td>${esc(trackLabelZh(a.class_track))}</td>
@@ -442,13 +537,14 @@ function renderGrades() {
       <td>${a.subjective_score ?? '—'}</td>
       <td><strong>${a.total_score ?? '—'}</strong></td>
       <td><span class="tag ${gs}">${gt}</span></td>
-      <td>${a.proctor_flags || 0}</td>
+      ${proctorCell}
+      ${scoreVoidCellHtml(a)}
     </tr>`;
     if (!isOn) return [head];
     const panel = S.gradingLoading
       ? '<p class="muted">加载答卷中…</p>'
       : (S.gradingAttempt?.attempt?.id === a.id ? buildGradingPanelHtml(S.gradingAttempt, a.id) : '<p class="muted">加载答卷中…</p>');
-    return [head, `<tr class="grade-expand" data-expand-for="${a.id}"><td colspan="9"><div class="grade-inline">${panel}</div></td></tr>`];
+    return [head, `<tr class="grade-expand${proctorAlert ? ' proctor-alert-expand' : ''}" data-expand-for="${a.id}"><td colspan="10"><div class="grade-inline">${panel}</div></td></tr>`];
   }).join('');
 
   document.getElementById('tab-grades').innerHTML = `
@@ -458,12 +554,13 @@ function renderGrades() {
         <select class="sel" id="sel-day">${dayOpts || '<option>暂无考试日</option>'}</select>
         <select class="sel" id="sel-subject">${subOpts || '<option>暂无科目</option>'}</select>
       </div>
-      <button class="btn btn-o" id="btn-export-csv" style="margin:8px 0">导出 CSV</button>
+      <button class="btn btn-o" id="btn-export-csv" style="margin:8px 8px 8px 0">导出 CSV</button>
+      <button class="btn btn-o${S.gradeSort === 'total_desc' ? ' btn-primary' : ''}" id="btn-sort-total" style="margin:8px 0" type="button">按总分 ↓ 排序</button>
       <table>
         <thead><tr>
-          <th>姓名</th><th>年级</th><th>班级</th><th>语言</th><th>客观</th><th>主观</th><th>总分</th><th>阅卷</th><th>切屏</th>
+          <th>姓名</th><th>年级</th><th>班级</th><th>语言</th><th>客观</th><th>主观</th><th>总分</th><th>阅卷</th><th>切屏</th><th>认定成绩</th>
         </tr></thead>
-        <tbody>${rows || '<tr><td colspan="9" class="muted">暂无答卷</td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="10" class="muted">暂无答卷</td></tr>'}</tbody>
       </table>
     </div>`;
 
@@ -485,8 +582,13 @@ function renderGrades() {
   document.querySelectorAll('tr.sel[data-aid]').forEach((tr) => {
     tr.addEventListener('click', () => openGrading(tr.dataset.aid));
   });
+  bindScoreVoidEvents();
   if (S.expandedAttemptId) bindGradePanelEvents(S.expandedAttemptId);
   document.getElementById('btn-export-csv')?.addEventListener('click', exportCsv);
+  document.getElementById('btn-sort-total')?.addEventListener('click', () => {
+    S.gradeSort = S.gradeSort === 'total_desc' ? 'none' : 'total_desc';
+    render();
+  });
 }
 
 function scrollToExpanded(attemptId) {
@@ -496,15 +598,13 @@ function scrollToExpanded(attemptId) {
   });
 }
 
-/** 主观题作答字数（中文按非空白字符；印尼语额外显示词数，卷面要求 300–500 kata） */
+/** 主观题作答字数：中文按字（不计空白），英文/印尼语按词（与考试页 shared.js 一致） */
 function answerTextStats(text, lang) {
-  const t = String(text || '');
-  const charsNoWs = t.replace(/\s/g, '').length;
-  if (lang === 'id') {
-    const words = t.trim() ? t.trim().split(/\s+/).length : 0;
-    return `共 ${words} 词 · ${charsNoWs} 字符`;
-  }
-  return `共 ${charsNoWs} 字`;
+  const L = ['zh', 'en', 'id'].includes(lang) ? lang : 'zh';
+  const n = essayCountUnits(text, L);
+  if (L === 'zh') return `共 ${n} 字`;
+  if (L === 'id') return `共 ${n} kata`;
+  return `共 ${n} words`;
 }
 
 function wrapAnswerWithCount(innerHtml, gid, text, lang) {
@@ -818,10 +918,11 @@ async function openGrading(attemptId, { keepOpen = false } = {}) {
 }
 
 function exportCsv() {
-  const hdr = ['姓名', '年级', '班级', '语言', '客观分', '主观分', '总分', '阅卷状态', '切屏', '交卷时间'];
-  const lines = S.attempts.map((a) => [
+  const hdr = ['姓名', '年级', '班级', '语言', '客观分', '主观分', '总分', '认定成绩', '已记0分', '阅卷状态', '切屏', '交卷时间'];
+  const lines = attemptsForGradeList().map((a) => [
     a.display_name, a.grade, trackLabelZh(a.class_track), a.exam_lang,
     a.objective_score ?? '', a.subjective_score ?? '', a.total_score ?? '',
+    effectiveScore(a), a.score_voided ? '是' : '否',
     a.grading_status, a.proctor_flags ?? 0, a.submitted_at ?? '',
   ].map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','));
   const blob = new Blob(['\uFEFF' + hdr.join(',') + '\n' + lines.join('\n')], { type: 'text/csv' });

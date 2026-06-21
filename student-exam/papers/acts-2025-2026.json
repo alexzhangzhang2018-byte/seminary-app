@@ -1,0 +1,176 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "从路加福音和使徒行传具体说明福音是什么？",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "简述圣灵降临的意义是什么？",
+        "options": [],
+        "answer_key": {
+          "reference": "圣灵降临，基督的行动继续通过教会成就。"
+        }
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "具体说明使徒行传对宣教的预备？",
+        "options": [],
+        "answer_key": {
+          "reference": "神为宣教预备工人，保罗，提摩太，百基拉亚居拉"
+        }
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "解释徒7章？",
+        "options": [],
+        "answer_key": {
+          "reference": "第7章司提反殉道，耶路撒冷教会被逼迫，福音传到撒玛利亚。"
+        }
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q05",
+    "sort_order": 5,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "徒15章的意义？",
+        "options": [],
+        "answer_key": {
+          "reference": "耶路撒冷会议，明确了福音，只靠基督的救恩得救。"
+        }
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q06",
+    "sort_order": 6,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "藉着经文具体说明道的兴旺与教会之间的关系？",
+        "options": [],
+        "answer_key": {
+          "reference": "道的兴旺带来教会复兴。"
+        }
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q07",
+    "sort_order": 7,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "简述哥尼流事件的意义？",
+        "options": [],
+        "answer_key": {
+          "reference": "福音临到外邦人。外邦人蒙恩。"
+        }
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q08",
+    "sort_order": 8,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "简述保罗宣教的特征？",
+        "options": [],
+        "answer_key": {
+          "reference": "进入犹太人的会堂宣讲福音。长期在一个地方停留辨明福音。"
+        }
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q09",
+    "sort_order": 9,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "简述福音与万国万民的关系？",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q10",
+    "sort_order": 10,
+    "type": "essay",
+    "section": "四",
+    "score": 10,
+    "locales": {
+      "zh": {
+        "stem": "教会与万国万民的关系？",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "简答题（每题10分）",
+    "essay_kind": "short"
+  }
+]

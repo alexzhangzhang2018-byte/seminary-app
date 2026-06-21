@@ -1,0 +1,350 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "1 凡接待他的，就是信他名的人，他就赐他们____，作神的儿女。这等人不是从____生的，不是从情欲生的，也不是从人意生的，乃是从神生的。（约1:12-13）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "权柄",
+            "血气"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "2 从来没有人看见神，只有____将他表明出来。（约1:18）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "在父怀里的独生子"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "3 次日，约翰看见耶稣来到他那里，就说：\"看哪，____，除去（或作\"背负\"）世人罪孽的。（约1:29）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神的羔羊"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "4 耶稣说：\"母亲（原文作\"妇人\"），我与你有什么相干？我的____还没有到。\"（约2:4）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "时候"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q05",
+    "sort_order": 5,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "5 耶稣回答说：\"你们拆毁这殿，我三日内要再建立起来。\"犹太人便说：\"这殿是四十六年才造成的，你三日内就再建立起来吗？\"但耶稣这话，是以他的____为殿。（约2:19-21）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "身体"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q06",
+    "sort_order": 6,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "6 耶稣说：\"我实实在在地告诉你：人若不是从水和圣灵生的，就不能进神的国，从肉身生的，就是肉身；从____生的，就是____。（约3:5-6）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "灵",
+            "灵"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q07",
+    "sort_order": 7,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "7 时候将到，如今就是了，那真正拜父的，要用____和____拜他，因为父要这样的人拜他。（约4:23）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "心灵",
+            "诚实"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q08",
+    "sort_order": 8,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "8 从此，他门徒中多有退去的，不再和他同行。耶稣就对那十二个门徒说：\"你们也要去吗？\"西门彼得回答说：\"主啊，你有____，我们还归从谁呢？我们已经信了，又知道你是神的圣者。\"（约6:67-69）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "永生之道"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q09",
+    "sort_order": 9,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "9 节期的末日，就是最大之日，耶稣站着高声说：\"人若渴了，可以到我这里来喝。信我的人，就如经上所说，'从他腹中要流出活水的江河来'。\"耶稣这话是指着信他之人要受____说的，那时还没有赐下____来，因为耶稣尚未得着荣耀。（约7:37-39）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "圣灵",
+            "圣灵"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q10",
+    "sort_order": 10,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "10 你们为什么不明白我的话呢？无非是因你们不能听我的道。你们是出于你们的父____，你们父的私欲，你们偏要行。他从起初是____，不守真理，因他心里没有真理。他说谎是出于自己，因他本来是说谎的，也是说谎之人的父。（约8:43-44）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "魔鬼",
+            "杀人的"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q11",
+    "sort_order": 11,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "11 逾越节以前，耶稣知道自己____的时候到了，他既然爱世间属自己的人，就爱他们到底。（约13:1）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "离世归父"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q12",
+    "sort_order": 12,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "12 耶稣回答说：\"我所作的，你如今不知道，后来必明白。\"彼得说：\"你永不可洗我的脚。\"耶稣说：\"我若不洗你，你就与我____了。\"（约13:7-8）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "无份"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q13",
+    "sort_order": 13,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "13 \"你们心里不要忧愁，你们信____，也当信我。在我父的家里有许多____；若是没有，我就早已告诉你们了。我去原是为你们预备地方去。（约14:1-2）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神",
+            "住处"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q14",
+    "sort_order": 14,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "14 \"我还有好些事要告诉你们，但你们现在担当不了（或作\"不能领会\"）。只等____来了，他要引导你们明白（原文作\"进入\"）一切的真理；因为他不是凭自己说的，乃是把他所听见的都说出来，并要把将来的事告诉你们。（约16:12-13）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "真理的圣灵"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q15",
+    "sort_order": 15,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "15 认识你独一的真神，并且认识你所差来的耶稣基督，这就是____。（约17:3）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "永生"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q16",
+    "sort_order": 16,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "16 耶稣说：\"不要摸我，因我还没有升上去见我的父。你往我弟兄那里去，告诉他们说：我要升上去见我的父，也是____；见我的神，也是____。\"（约20:17）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "你们的父",
+            "你们的神"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q17",
+    "sort_order": 17,
+    "type": "fill",
+    "section": "一",
+    "score": 4,
+    "locales": {
+      "zh": {
+        "stem": "17 耶稣在门徒面前另外行了许多____，没有记在这书上。但记这些事，要叫你们信耶稣是基督，是神的儿子，并且叫你们信了他，就可以因他的名____。（约20:30-31）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神迹",
+            "得生命"
+          ]
+        }
+      }
+    },
+    "section_label": "一 经文填空 （每空2分，共50分）",
+    "blank_count": 2
+  }
+]

@@ -1,0 +1,1107 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "起初神____。地是____，____；____运行在水面上。(创1:1-2)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "创造天地",
+            "空虚混沌",
+            "渊面黑暗",
+            "神的灵"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 4
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "fill",
+    "section": "一",
+    "score": 1.5,
+    "locales": {
+      "zh": {
+        "stem": "耶和华神吩咐他说：“园中各样树上的果子，你可以____，只是____树上的果子，你不可吃，因为你____。”(创2:16-17)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "随意吃",
+            "分别善恶",
+            "吃的日子必定死"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "fill",
+    "section": "一",
+    "score": 1.5,
+    "locales": {
+      "zh": {
+        "stem": "蛇对女人说：“你们____，因为神知道，你们吃的日子____，你们便____。”(创3:4-5)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "不一定死",
+            "眼睛就明亮了",
+            "如神能知道善恶"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "他们说：“来吧，我们要建造一座城和一座塔，塔顶通天，为要____，免得我们____在全地上。”(创11:4)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "传扬我们的名",
+            "分散"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q05",
+    "sort_order": 5,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "亚伯兰____耶和华，耶和华就____。(创15:6)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "以此为他的义",
+            "信"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q06",
+    "sort_order": 6,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "三人就从那里起行，向所多玛观看，亚伯拉罕也与他们同行，要送他们一程。耶和华说：“我所要作的事岂可瞒着亚伯拉罕呢？亚伯拉罕必要成为强大的国，地上的万国都必因他得福。我眷顾他，为要叫他吩咐他的众子和他的眷属____，____，使我所应许亚伯拉罕的话都成就了。”(创18:16-19)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "遵守我的道",
+            "秉公行义"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q07",
+    "sort_order": 7,
+    "type": "fill",
+    "section": "一",
+    "score": 0.5,
+    "locales": {
+      "zh": {
+        "stem": "当时，撒拉看见埃及人夏甲给亚伯拉罕所生的儿子戏笑，就对亚伯拉罕说：“你把这使女和她儿子赶出去！因为这使女的儿子不可与我的儿子以撒____。”(创21:9-10)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "一同承受产业"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q08",
+    "sort_order": 8,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "这些事以后，神要____亚伯拉罕，就呼叫他说：“亚伯拉罕！”他说：“我在这里。”神说：“你带着____，就是____，你____，往摩利亚地去，在我所要指示你的山上，把他献为燔祭。”(创22:1-2)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "试验",
+            "你的儿子",
+            "你独生的儿子",
+            "所爱的以撒"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 4
+  },
+  {
+    "group_id": "q09",
+    "sort_order": 9,
+    "type": "fill",
+    "section": "一",
+    "score": 1.5,
+    "locales": {
+      "zh": {
+        "stem": "此后，亚伯拉罕把他妻子撒拉埋葬在迦南地幔利前的____田间的洞里。幔利就是希伯仑。从此，那块田和田间的洞，就藉着____定准，归与亚伯拉罕作____。(创23:19-20)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "麦比拉",
+            "赫人",
+            "坟地"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q10",
+    "sort_order": 10,
+    "type": "fill",
+    "section": "一",
+    "score": 1.5,
+    "locales": {
+      "zh": {
+        "stem": "以撒因他妻子不生育，就为她祈求耶和华。耶和华应允他的祈求，他的妻子利百加就怀了孕。孩子们在她腹中彼此相争，她就说：“若是这样，我为什么活着呢？”她就去求问耶和华。耶和华对她说：“____在你腹内，____要从你身上出来，这族必强于那族，将来____。”(创25:21-23)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "两国",
+            "两族",
+            "大的要服侍小的"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q11",
+    "sort_order": 11,
+    "type": "fill",
+    "section": "一",
+    "score": 0.5,
+    "locales": {
+      "zh": {
+        "stem": "于是雅各将饼和红豆汤给了以扫，以扫吃了喝了，便起来走了。这就是以扫____。(创25:34)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "轻看了他长子的名分"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q12",
+    "sort_order": 12,
+    "type": "fill",
+    "section": "一",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "梦见一个梯子立在地上，梯子的头顶着天，有____在梯子上，上去下来。____站在梯子以上，说：“我是耶和华你祖亚伯拉罕的 神，也是以撒的神，我要将你现在所躺卧之地赐给____。____必像地上的尘沙那样多，必向东西南北开展，地上万族必因____得福。我也与你____，你无论往哪里去，我必保佑你，领你____这地，总不离弃你，直到我成全了向你所应许的。”就惧怕说：“这地方何等可畏！这不是别的，乃是____，也是____。”雅各清早起来，把所枕的石头立作柱子，浇油在上面。他就给那地方起名叫____；但那地方起先名叫路斯。(创28:12-19)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神的使者",
+            "耶和华",
+            "你和你的后裔",
+            "你的后裔",
+            "你和你的后裔",
+            "同在",
+            "归回",
+            "神的殿",
+            "天的门",
+            "伯特利"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 10
+  },
+  {
+    "group_id": "q13",
+    "sort_order": 13,
+    "type": "fill",
+    "section": "一",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "雅各说：“耶和华我祖亚伯拉罕的神，我父亲以撒的神啊，你曾对我说：‘回你本地本族去，我要厚待你。’你向仆人所施的一切____，我一点也____。我先前只拿着我的____过这约旦河，如今我却成了____了。求你救我脱离我哥哥以扫的手，因为我怕他来杀我，连妻子带儿女一同杀了。(创32:9-11)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "慈爱和诚实",
+            "不配得",
+            "两队",
+            "杖"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 4
+  },
+  {
+    "group_id": "q14",
+    "sort_order": 14,
+    "type": "fill",
+    "section": "一",
+    "score": 1.5,
+    "locales": {
+      "zh": {
+        "stem": "以扫说：“我所遇见的这些群畜是什么意思呢？”雅各说：“是要在____面前蒙恩的。”以扫说：“兄弟啊，我的已经够了，你的仍归你吧！”雅各说：“不然，我若在你眼前蒙恩，就求你从我手里收下这礼物，因为我见了____，如同见了____，并且你容纳了我。(创33:8-10)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "我主",
+            "你的面",
+            "神的面"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q15",
+    "sort_order": 15,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "约过了三个月，有人告诉犹大说：“你的儿妇他玛作了____，且因行淫有了身孕。”犹大说：“拉出她来，把她烧了！”他玛被拉出来的时候，便打发人去见她公公，对他说：“这些东西是谁的，我就是从谁怀的孕。请你认一认，这印和带子并杖都是谁的？”犹大承认说：“____，因为我没有将她给我的儿子示拉。”(创38:24-26)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "妓女",
+            "她比我更有义"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q16",
+    "sort_order": 16,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "凡在约瑟手下的事，司狱一概不察，因为耶和华与约瑟____，耶和华使他所作的____。(创39:23)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "同在",
+            "尽都顺利"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q17",
+    "sort_order": 17,
+    "type": "fill",
+    "section": "一",
+    "score": 1.5,
+    "locales": {
+      "zh": {
+        "stem": "夜间，神在异象中对以色列说：“雅各！雅各！”他说：“我在这里。”神说：“我是神，就是你父亲的神。你下埃及去不要害怕，因为我必使你在那里____。我要和你同下埃及去，也必定带你____，____必给你送终。”(创46:2-4)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "成为大族",
+            "上来",
+            "约瑟"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 3
+  },
+  {
+    "group_id": "q18",
+    "sort_order": 18,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "当日就给他们祝福说：“以色列人要指着你们祝福说：‘愿神使你如以法莲、玛拿西一样。’”于是立____在____以上。(创48:20)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "以法莲",
+            "玛拿西"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q19",
+    "sort_order": 19,
+    "type": "fill",
+    "section": "一",
+    "score": 2.5,
+    "locales": {
+      "zh": {
+        "stem": "____必不离____，____必不离他两脚之间，直等____来到，____都必归顺。(创49:10)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "圭",
+            "犹大",
+            "杖",
+            "细罗",
+            "万民"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 5
+  },
+  {
+    "group_id": "q20",
+    "sort_order": 20,
+    "type": "fill",
+    "section": "一",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "____“神必定看顾你们，你们要把我的____从这里搬上去。”(创50:25)",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "骸骨",
+            "约瑟叫以色列的子孙起誓说："
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空0.5分，共30分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q21",
+    "sort_order": 21,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "神六日的创造中，哪一日创造了结果子的树木：",
+        "options": [
+          "第三日",
+          "第四日",
+          "第五日",
+          "第六日"
+        ],
+        "answer_key": {
+          "answer_index": 0
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q22",
+    "sort_order": 22,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "被称为“原始福音”的是哪节经文：",
+        "options": [
+          "（3:15）",
+          "（3:16）",
+          "（3:20）",
+          "（3:21）"
+        ],
+        "answer_key": {
+          "answer_index": 0
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q23",
+    "sort_order": 23,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "挪亚之约的记号是：",
+        "options": [
+          "割礼",
+          "彩虹",
+          "方舟",
+          "安息日"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q24",
+    "sort_order": 24,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "以下这段经文中出现的“神的儿子们”指的是谁？",
+        "options": [
+          "）以下这段经文中出现的“神的儿子们”指的是谁？",
+          "）以下这段经文中出现的“神的儿子们”指的是谁？"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q25",
+    "sort_order": 25,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "割礼位于哪一章：",
+        "options": [
+          "创15",
+          "创16",
+          "创17",
+          "创19"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q26",
+    "sort_order": 26,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "以撒娶妻故事的要点在于：",
+        "options": [
+          "）以撒娶妻故事的要点在于：",
+          "）以撒娶妻故事的要点在于："
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q27",
+    "sort_order": 27,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "挪亚之约是：",
+        "options": [
+          "民族性的",
+          "普世性的",
+          "条件性的",
+          "律法性的"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q28",
+    "sort_order": 28,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "亚伯拉罕献以撒主要强调：",
+        "options": [
+          "神喜欢人祭",
+          "亚伯拉罕的信心",
+          "神在约中的赐福",
+          "以撒的顺服"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q29",
+    "sort_order": 29,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "雅各首次得名“以色列”发生在：",
+        "options": [
+          "伯特利",
+          "示剑",
+          "毗努伊勒",
+          "哈兰"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q30",
+    "sort_order": 30,
+    "type": "single",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "约瑟的故事主要显明了：",
+        "options": [
+          "神的保守",
+          "亚伯拉罕之约的发展",
+          "神的带领",
+          "神的供给"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "二、单项选择题 （每题1分，共10分）"
+  },
+  {
+    "group_id": "q31",
+    "sort_order": 31,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "人是神创造工作的中心。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q32",
+    "sort_order": 32,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "挪亚之约与神的救赎工作无关。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q33",
+    "sort_order": 33,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "人与神关系的破裂带来了人与其他所有关系的破裂",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q34",
+    "sort_order": 34,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "神与亚伯拉罕、以撒、雅各分别立了不同的约。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q35",
+    "sort_order": 35,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "约瑟的故事与亚伯拉罕之约无关。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q36",
+    "sort_order": 36,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "亚伯被神看中是因为他所献的供物。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q37",
+    "sort_order": 37,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "创世记以万国得福为终极指向。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": true
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q38",
+    "sort_order": 38,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "雅各比以扫更配得祝福。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q39",
+    "sort_order": 39,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "洪水审判否定了神的怜悯。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q40",
+    "sort_order": 40,
+    "type": "truefalse",
+    "section": "三",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "巴别塔事件的意义在于，它是人类文明的发源地。",
+        "options": [],
+        "answer_key": {
+          "answer_bool": false
+        }
+      }
+    },
+    "section_label": "三、判断题（请在括号内打✓或×，每题1分，共10分）"
+  },
+  {
+    "group_id": "q41",
+    "sort_order": 41,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "根据创世记第3章概括人犯罪的本质是什么？",
+        "options": [],
+        "answer_key": {
+          "reference": "人要如神能知道善恶，反应出人的罪的本质是向着神的反叛。"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q42",
+    "sort_order": 42,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "亚当的皮衣的属灵含义是什么？",
+        "options": [],
+        "answer_key": {
+          "reference": "无辜动物的死"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q43",
+    "sort_order": 43,
+    "type": "dictation",
+    "section": "A",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "默写亚伯拉罕之约在12章1-3节的内容：\n耶和华对亚伯兰说：“____”",
+        "options": [],
+        "answer_key": {
+          "expected": "你要离开本地、本族、父家，往我所要指示你的地去。我必叫你成为大国。我必赐福给你，叫你的名为大，你也要叫别人得福。为你祝福的，我必赐福与他；那咒诅你的，我必咒诅他。地上的万族都要因你得福"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q44",
+    "sort_order": 44,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "挪亚之约的要点：",
+        "options": [],
+        "answer_key": {
+          "reference": "凡有血肉的，不再被洪水灭绝，也不再有洪水毁坏地了"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q45",
+    "sort_order": 45,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "神与亚伯兰立约所应许的大国，其三要素分别是什么？分别在旧约哪卷书得以实现？",
+        "options": [],
+        "answer_key": {
+          "reference": "后裔——出埃及记，土地——约书亚记，王权——撒母耳记"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q46",
+    "sort_order": 46,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "割礼与亚伯拉罕之约的关系？",
+        "options": [],
+        "answer_key": {
+          "reference": "割礼是神与亚伯拉罕及其后裔立约的记号或证据"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q47",
+    "sort_order": 47,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "亚伯拉罕寄居埃及和亚比米勒那里，所带来的主要危机是什么？",
+        "options": [],
+        "answer_key": {
+          "reference": "后裔的危机"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q48",
+    "sort_order": 48,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "雅各十二个儿子的名字：",
+        "options": [],
+        "answer_key": {
+          "reference": "流便，西缅、利未、犹大、以萨迦、西布伦、约瑟、便雅悯、但、拿弗他利、迦得、亚设。"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q49",
+    "sort_order": 49,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "约瑟被哥哥们卖到埃及，神的意思是什么？",
+        "options": [],
+        "answer_key": {
+          "reference": "在大饥荒中，给以色列家存留余种，保全生命，从而实现亚伯拉罕之约中后裔的应许。"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q50",
+    "sort_order": 50,
+    "type": "essay",
+    "section": "四",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "如何理解儿妇他玛假扮妓女，从犹大怀孕得子？",
+        "options": [],
+        "answer_key": {
+          "reference": "神藉他玛忠于为已故的丈夫生子立后，为君王从犹大而出的埋下伏笔。"
+        }
+      }
+    },
+    "section_label": "四、简答题（每题2分，共20分）",
+    "essay_kind": "short"
+  },
+  {
+    "group_id": "q51",
+    "sort_order": 51,
+    "type": "essay",
+    "section": "五",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "以4次“犯罪-审判-恩典”总结创世记3-11章。",
+        "options": [],
+        "answer_key": {
+          "reference": "章\n犯罪\n审判\n恩典"
+        }
+      }
+    },
+    "section_label": "五、论述题（每题5分，共30分）",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q52",
+    "sort_order": 52,
+    "type": "essay",
+    "section": "五",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "简要分析12章1-3节经文的各个要点，及要点之间的关联。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "五、论述题（每题5分，共30分）",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q53",
+    "sort_order": 53,
+    "type": "essay",
+    "section": "五",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "简述15章神与亚伯兰立约仪式的属灵含义。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "五、论述题（每题5分，共30分）",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q54",
+    "sort_order": 54,
+    "type": "essay",
+    "section": "五",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "简述17章1-8节神与亚伯拉罕立约的要点。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "五、论述题（每题5分，共30分）",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q55",
+    "sort_order": 55,
+    "type": "essay",
+    "section": "五",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "简述亚伯拉罕之约在整个创世记中的发展和成就。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "五、论述题（每题5分，共30分）",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q56",
+    "sort_order": 56,
+    "type": "essay",
+    "section": "五",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "简述亚伯拉罕之约在整本圣经中的地位、关系和发展。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "五、论述题（每题5分，共30分）",
+    "essay_kind": "long"
+  }
+]

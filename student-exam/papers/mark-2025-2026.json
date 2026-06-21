@@ -1,0 +1,689 @@
+[
+  {
+    "group_id": "q01",
+    "sort_order": 1,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "1.神的儿子，____ 福音的起头。（可 1:1）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "耶稣基督"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q02",
+    "sort_order": 2,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "2.耶稣说：“日期满了， ____ 近了！你们当悔改，信福音。”（可 1:15）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神的国"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q03",
+    "sort_order": 3,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "3.耶稣看见他们的信心，就对瘫子说：“小子，____ 了。”（可 2:5）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "你的罪赦了"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q04",
+    "sort_order": 4,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "4.人子来，并不是要受人的服事，乃是要服事人，并且要舍命，作多人的 ____。（可 10:45）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "赎价"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q05",
+    "sort_order": 5,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "5.耶稣说：“你们还不明白吗？岂不晓得凡从外面进入的，不能 ____ 人吗？”（可 7:18）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "污秽"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q06",
+    "sort_order": 6,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "6.耶稣说：“凡要救自己生命的，必 ____；凡为我和福音丧掉生命的，必救了生命。”（可 8:35）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "丧掉生命"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q07",
+    "sort_order": 7,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "7.于是他带着彼得、雅各、约翰，暗暗地上了高山，就在他们面前 ____。（可 9:2）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "变了形像"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q08",
+    "sort_order": 8,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "8.耶稣说：“让小孩子到我这里来，不要禁止他们； 因为神的国，正是 ____ 。（可 10:14）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "这样的人"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q09",
+    "sort_order": 9,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "9.百夫长看见耶稣这样断气，就说：“这人真是 ____ ！”（可 15:39）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神的儿子"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q10",
+    "sort_order": 10,
+    "type": "fill",
+    "section": "一",
+    "score": 3,
+    "locales": {
+      "zh": {
+        "stem": "10.那少年人对她们说：“不要惊恐！你们寻找那钉十字架的拿撒勒人耶稣；他已经 ____ 了，不在这里。”（可 16:6）",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "复活"
+          ]
+        }
+      }
+    },
+    "section_label": "一、经文填空 （每空3分，共30分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q11",
+    "sort_order": 11,
+    "type": "fill",
+    "section": "二",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "1.《马可福音》的传统作者是 ____，与使徒 ____ 的服事密切相关。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "马可",
+            "彼得"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q12",
+    "sort_order": 12,
+    "type": "fill",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "2.《马可福音》最突出的基督论称号是 ____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神的儿子"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q13",
+    "sort_order": 13,
+    "type": "fill",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "3.《马可福音》中“立刻 / 随即”（εὐθύς）一词反复出现，体现了本书叙事的 ____ 特点。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "紧凑、快速"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q14",
+    "sort_order": 14,
+    "type": "fill",
+    "section": "二",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "4.耶稣在《马可福音》中三次预言自己的 ____和 ____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "受难/受死/受苦",
+            "复活"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q15",
+    "sort_order": 15,
+    "type": "fill",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "5.马可福音第 4 章集中记载了耶稣关于 ____ 的比喻。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "神国（天国）"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q16",
+    "sort_order": 16,
+    "type": "fill",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "6.“弥赛亚的奥秘”是指耶稣多次吩咐人 ____ 他的身份。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "隐藏/不要宣扬/不要张扬"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q17",
+    "sort_order": 17,
+    "type": "fill",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "7.马可福音的结构中心通常被认为是在第 ____ 章，彼得认信耶稣为基督。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "8"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q18",
+    "sort_order": 18,
+    "type": "fill",
+    "section": "二",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "8.耶稣在马可福音中最严厉责备的是 ____ 和 ____。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "法利赛人",
+            "文士"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 2
+  },
+  {
+    "group_id": "q19",
+    "sort_order": 19,
+    "type": "fill",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "9.马可福音特别强调耶稣的 ____，而非详细的教导内容。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "行动/权能/事工"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q20",
+    "sort_order": 20,
+    "type": "fill",
+    "section": "二",
+    "score": 1,
+    "locales": {
+      "zh": {
+        "stem": "10.马可福音的主要受众一般认为是 ____ 地区的外邦信徒。",
+        "options": [],
+        "answer_key": {
+          "answers": [
+            "罗马"
+          ]
+        }
+      }
+    },
+    "section_label": "二、填空题（每空 2 分，共 30 分）",
+    "blank_count": 1
+  },
+  {
+    "group_id": "q21",
+    "sort_order": 21,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "《马可福音》中耶稣受洗时，天上有声音说：",
+        "options": [
+          "这是我的爱子，我所喜悦的",
+          "这是我的仆人",
+          "你是我的爱子，我喜悦你",
+          "这是弥赛亚"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q22",
+    "sort_order": 22,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "马可福音中第一个神迹是：",
+        "options": [
+          "医治瞎子",
+          "赶逐污鬼",
+          "平静风浪",
+          "五饼二鱼"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q23",
+    "sort_order": 23,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "耶稣在凯撒利亚腓立比被认信为：",
+        "options": [
+          "先知",
+          "以利亚",
+          "基督",
+          "神的儿子"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q24",
+    "sort_order": 24,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "马可福音 13 章的主题是：",
+        "options": [
+          "比喻讲论",
+          "登山宝训",
+          "末世与警醒",
+          "圣灵降临"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q25",
+    "sort_order": 25,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "在马可福音中，门徒最突出的软弱是：",
+        "options": [
+          "不顺服",
+          "不祷告",
+          "不明白",
+          "不传福音"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q26",
+    "sort_order": 26,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "耶稣在客西马尼园的祷告主要集中在：",
+        "options": [
+          "能力",
+          "顺服父的旨意",
+          "门徒合一",
+          "以色列复兴"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q27",
+    "sort_order": 27,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "马可福音中，谁三次不认主？",
+        "options": [
+          "犹大",
+          "约翰",
+          "雅各",
+          "彼得"
+        ],
+        "answer_key": {
+          "answer_index": 3
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q28",
+    "sort_order": 28,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "百夫长在十字架下的认信强调了耶稣的：",
+        "options": [
+          "王权",
+          "先知身份",
+          "神子身份",
+          "弥赛亚使命"
+        ],
+        "answer_key": {
+          "answer_index": 2
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q29",
+    "sort_order": 29,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "马可福音对妇女门徒的描写主要集中在：",
+        "options": [
+          "医治事工",
+          "复活清晨",
+          "登山变像",
+          "差遣宣教"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q30",
+    "sort_order": 30,
+    "type": "single",
+    "section": "三",
+    "score": 2,
+    "locales": {
+      "zh": {
+        "stem": "马可福音的结尾（16:1–8）最突出的情绪是：",
+        "options": [
+          "喜乐",
+          "惊恐",
+          "愤怒",
+          "怀疑"
+        ],
+        "answer_key": {
+          "answer_index": 1
+        }
+      }
+    },
+    "section_label": "三、单选题（每题 2 分，共 20 分）"
+  },
+  {
+    "group_id": "q31",
+    "sort_order": 31,
+    "type": "essay",
+    "section": "四",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "简述《马可福音》大致结构。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "四、论述题（每题 5 分，共 20 分）请简要作答，逻辑清楚，言之有据。",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q32",
+    "sort_order": 32,
+    "type": "essay",
+    "section": "四",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "如何理解《马可福音》中“受苦的弥赛亚”这一主题？",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "四、论述题（每题 5 分，共 20 分）请简要作答，逻辑清楚，言之有据。",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q33",
+    "sort_order": 33,
+    "type": "essay",
+    "section": "四",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "《马可福音》中多次的冲突集中在哪些章节，为什么出现这么多冲突？",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "四、论述题（每题 5 分，共 20 分）请简要作答，逻辑清楚，言之有据。",
+    "essay_kind": "long"
+  },
+  {
+    "group_id": "q34",
+    "sort_order": 34,
+    "type": "essay",
+    "section": "四",
+    "score": 5,
+    "locales": {
+      "zh": {
+        "stem": "结合马可福音，谈“跟随耶稣”的代价与呼召。",
+        "options": [],
+        "answer_key": {}
+      }
+    },
+    "section_label": "四、论述题（每题 5 分，共 20 分）请简要作答，逻辑清楚，言之有据。",
+    "essay_kind": "long"
+  }
+]

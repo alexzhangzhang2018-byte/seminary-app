@@ -32,71 +32,96 @@ export const EXAM_DAY_EMERGENCY = {
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
-  // 补考日（6/22 起）：仍关联 6/15 考试日签到记录；科目列表见 makeup_open + duration_minutes
+  // 补考日（6/22 起）：独立考试日「MMS期末补考」，含出埃及记及以下科目
   '2026-06-22': {
-    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
-    title: 'MMS2026春季期末考试',
-    exam_date: '2026-06-15',
+    id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+    title: 'MMS期末补考',
+    exam_date: '2026-06-22',
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
   '2026-06-23': {
-    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
-    title: 'MMS2026春季期末考试',
-    exam_date: '2026-06-15',
+    id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+    title: 'MMS期末补考',
+    exam_date: '2026-06-22',
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
   '2026-06-24': {
-    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
-    title: 'MMS2026春季期末考试',
-    exam_date: '2026-06-15',
+    id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+    title: 'MMS期末补考',
+    exam_date: '2026-06-22',
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
   '2026-06-25': {
-    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
-    title: 'MMS2026春季期末考试',
-    exam_date: '2026-06-15',
+    id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+    title: 'MMS期末补考',
+    exam_date: '2026-06-22',
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
   '2026-06-26': {
-    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
-    title: 'MMS2026春季期末考试',
-    exam_date: '2026-06-15',
+    id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+    title: 'MMS期末补考',
+    exam_date: '2026-06-22',
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
   '2026-06-27': {
-    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
-    title: 'MMS2026春季期末考试',
-    exam_date: '2026-06-15',
+    id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+    title: 'MMS期末补考',
+    exam_date: '2026-06-22',
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
   '2026-06-28': {
-    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
-    title: 'MMS2026春季期末考试',
-    exam_date: '2026-06-15',
+    id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+    title: 'MMS期末补考',
+    exam_date: '2026-06-22',
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
   '2026-06-29': {
-    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
-    title: 'MMS2026春季期末考试',
-    exam_date: '2026-06-15',
+    id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+    title: 'MMS期末补考',
+    exam_date: '2026-06-22',
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
   '2026-06-30': {
-    id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
-    title: 'MMS2026春季期末考试',
-    exam_date: '2026-06-15',
+    id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+    title: 'MMS期末补考',
+    exam_date: '2026-06-22',
     timezone: 'Asia/Jakarta',
     status: 'active',
   },
 };
+
+/** 春季期末 / 补考考试日（预演可用 ?exam=spring 或 ?exam=makeup 切换） */
+export const EXAM_DAY_SPRING = {
+  id: 'c49167a4-9cdc-45b1-b297-9725648f8e22',
+  title: 'MMS2026春季期末考试',
+  exam_date: '2026-06-15',
+  timezone: 'Asia/Jakarta',
+  status: 'active',
+};
+export const EXAM_DAY_MAKEUP = {
+  id: 'e8f3a1b2-4c5d-6e7f-8a9b-0c1d2e3f4a5b',
+  title: 'MMS期末补考',
+  exam_date: '2026-06-22',
+  timezone: 'Asia/Jakarta',
+  status: 'active',
+};
+
+export function examDayFromQuery() {
+  try {
+    const q = new URLSearchParams(location.search).get('exam');
+    if (q === 'spring') return EXAM_DAY_SPRING;
+    if (q === 'makeup') return EXAM_DAY_MAKEUP;
+  } catch (_) {}
+  return null;
+}
 
 export function jakartaTodayYmd() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
@@ -326,7 +351,6 @@ export const UI = {
     site: '美村宣教学院 · 内部考试',
     checkin_title: '今日考试签到',
     checkin_hint: '请填写姓名，选择年级与班级轨道。今日只需签到一次。',
-    checkin_makeup_test: '补考试测（张 + 手机后四位 5668）：中文班→张小娟 6 科；英文班→Madhu 4 科；印尼语班→Nomi 4 科。右上角界面语言不改变科目名单与试卷语言。',
     full_name: '姓名',
     grade: '年级',
     grade1: '一年级', grade2: '二年级', grade3: '三年级',
@@ -402,7 +426,6 @@ export const UI = {
     site: 'MMS · Internal Exam',
     checkin_title: 'Check-in for today',
     checkin_hint: 'Enter your name, grade, and class track. Check in once per day.',
-    checkin_makeup_test: 'Make-up test (name 张, phone last 4: 5668): Chinese track → 6 subjects; English → Madhu 4; Indonesian → Nomi 4. The EN/ID buttons only change UI labels, not your roster or exam language.',
     full_name: 'Full name',
     grade: 'Year',
     grade1: 'Year 1', grade2: 'Year 2', grade3: 'Year 3',
@@ -476,7 +499,6 @@ export const UI = {
     site: 'MMS · Ujian Internal',
     checkin_title: 'Check-in hari ini',
     checkin_hint: 'Isi nama, angkatan, dan jalur kelas. Cukup sekali per hari.',
-    checkin_makeup_test: 'Uji susulan (nama 张, 4 digit terakhir 5668): jalur Cina → 6 mata kuliah; Inggris → Madhu 4; Indonesia → Nomi 4. Tombol bahasa hanya mengubah antarmuka, bukan daftar ujian.',
     full_name: 'Nama lengkap',
     grade: 'Angkatan',
     grade1: 'Tahun 1', grade2: 'Tahun 2', grade3: 'Tahun 3',
@@ -758,10 +780,43 @@ export function displaySectionLabel(raw, lang = 'zh') {
   return name;
 }
 
+const SECTION_RANK = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6 };
+const ROMAN_SECTION_RANK = { I: 1, II: 2, III: 3, IV: 4, V: 5 };
+
+/** 大题排序：优先罗马数字 I–V，其次中文 一–六 */
+export function sectionOrderRank(q, lang = 'zh') {
+  const labels = [
+    q?.section_labels?.[lang],
+    q?.section_label,
+    q?.section_labels?.en,
+    q?.section_labels?.zh,
+    q?.section_labels?.id,
+  ];
+  for (const raw of labels) {
+    if (!raw) continue;
+    const roman = String(raw).trim().match(/^(I{1,3}|IV|V)\./i);
+    if (roman) return ROMAN_SECTION_RANK[roman[1].toUpperCase()] ?? 99;
+    const cn = String(raw).match(/^([一二三四五六])/);
+    if (cn) return SECTION_RANK[cn[1]] ?? 99;
+  }
+  if (q?.section && SECTION_RANK[q.section]) return SECTION_RANK[q.section];
+  return 99;
+}
+
+/** 按 I→IV / 一→五 排卷面，并重编号 1…n（仅影响展示与题号，group_id 不变） */
+export function orderExamQuestions(questions, lang = 'zh') {
+  return [...(questions || [])]
+    .sort((a, b) => {
+      const d = sectionOrderRank(a, lang) - sectionOrderRank(b, lang);
+      return d !== 0 ? d : (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    })
+    .map((q, idx) => ({ ...q, sort_order: idx + 1 }));
+}
+
 export function renderExamWithSections(questions, answers, lang) {
   let html = '';
   let lastLabel = '';
-  for (const q of questions || []) {
+  for (const q of orderExamQuestions(questions, lang)) {
     const secRaw = q.section_labels?.[lang] || q.section_label || '';
     const label = displaySectionLabel(secRaw, lang);
     if (label && label !== lastLabel) {
@@ -1085,6 +1140,28 @@ export function normGradeText(text, lang) {
   return v.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
 }
 
+/** 填空答案中 / 分隔多个可接受写法 */
+export function splitFillAnswerAlternatives(ans) {
+  return String(ans ?? '')
+    .split(/\s*\/\s*/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export function blankWidthForAnswer(ans) {
+  const alts = splitFillAnswerAlternatives(ans);
+  const n = alts.length ? Math.min(...alts.map((a) => a.length)) : String(ans ?? '').trim().length;
+  return Math.min(52, Math.max(6, n + 2));
+}
+
+export function fillAnswerMatches(user, expected, lang) {
+  const u = normGradeText(user, lang);
+  if (!u) return false;
+  const alts = splitFillAnswerAlternatives(expected);
+  if (!alts.length) return normGradeText(expected, lang) === u;
+  return alts.some((alt) => normGradeText(alt, lang) === u);
+}
+
 export function normDictationText(text, lang) {
   return normGradeText(text, lang);
 }
@@ -1105,7 +1182,7 @@ export function gradeOneQuestion(type, maxScore, userAns, answerKey, lang) {
     if (eArr.length > 0) {
       const per = score / eArr.length;
       eArr.forEach((exp, i) => {
-        if (normGradeText(uArr[i], lang) === normGradeText(exp, lang)) earned += per;
+        if (fillAnswerMatches(uArr[i], exp, lang)) earned += per;
       });
     }
   } else if (type === 'match') {
