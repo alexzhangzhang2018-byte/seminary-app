@@ -391,6 +391,9 @@ export const UI = {
     btn_cancel_edit: '返回科目列表',
     checkin_edit_hint: '尚未开始任何科目时可修改姓名、年级与试卷语言。保存后返回科目列表。',
     checkin_saved: '签到信息已更新',
+    stale_session_recheckin: '之前的签到已失效，请重新签到',
+    btn_logout: '退出重新登录',
+    logout_ok: '已退出，请重新签到',
     err_check_in_locked: '已有科目开始或交卷，无法修改试卷语言',
     submit: '交卷',
     pause_exam: '稍后继续',
@@ -465,6 +468,9 @@ export const UI = {
     btn_cancel_edit: 'Back to schedule',
     checkin_edit_hint: 'You may edit name, year, and paper language before starting any subject.',
     checkin_saved: 'Check-in updated',
+    stale_session_recheckin: 'Your previous check-in is no longer valid. Please check in again.',
+    btn_logout: 'Sign out',
+    logout_ok: 'Signed out. Please check in again.',
     err_check_in_locked: 'Cannot change paper language after a subject has started or been submitted',
     submit: 'Submit',
     pause_exam: 'Continue later',
@@ -538,6 +544,9 @@ export const UI = {
     btn_cancel_edit: 'Kembali ke jadwal',
     checkin_edit_hint: 'Sebelum mulai mata kuliah apa pun, Anda dapat mengubah nama, angkatan, dan bahasa kertas ujian.',
     checkin_saved: 'Check-in diperbarui',
+    stale_session_recheckin: 'Check-in sebelumnya tidak berlaku. Silakan check-in lagi.',
+    btn_logout: 'Keluar / ganti akun',
+    logout_ok: 'Sudah keluar. Silakan check-in lagi.',
     err_check_in_locked: 'Tidak dapat mengubah bahasa setelah ada mata kuliah yang dimulai atau dikumpulkan',
     submit: 'Kumpulkan',
     pause_exam: 'Lanjut nanti',
@@ -994,6 +1003,27 @@ function stripSingleChoiceStem(stem, options) {
   return s.replace(/\s*[A-D][.．].*$/s, '').trim();
 }
 
+/** 修复导入错误：选项里混入题干，或 A/B/C/D 挤在一个选项内 */
+export function normalizeSingleOptions(stem, options) {
+  let opts = (options || []).map((o) => String(o ?? '').trim()).filter(Boolean);
+  while (opts.length > 4 && /^[）)]/.test(opts[0])) opts.shift();
+  if (opts.length === 2 && opts[0] === opts[1]) opts = [];
+  if (opts.length === 1 || (opts.length === 2 && opts[0] === opts[1])) {
+    const blob = opts[0] || '';
+    const parsed = [];
+    for (const L of ['A', 'B', 'C', 'D']) {
+      const m = blob.match(new RegExp(`${L}[.．]?\\s*([^A-D]+)`));
+      if (m) parsed.push(m[1].trim());
+    }
+    if (parsed.length === 4) opts = parsed;
+  }
+  if (opts.length > 4) {
+    const stemNorm = String(stem || '').trim();
+    opts = opts.filter((o) => o !== stemNorm && !o.startsWith('）' + stemNorm.slice(0, 12)));
+  }
+  return opts.length >= 2 ? opts : (options || []);
+}
+
 export function renderQuestionHtml(q, answers, lang) {
   const gid = q.group_id;
   const cur = answers[gid];
@@ -1005,9 +1035,10 @@ export function renderQuestionHtml(q, answers, lang) {
   let stemCls = 'q-stem';
 
   if (q.type === 'single') {
-    const opts = (Array.isArray(loc.options) && loc.options.length)
+    const rawOpts = (Array.isArray(loc.options) && loc.options.length)
       ? loc.options
       : (Array.isArray(q.options) ? q.options : []);
+    const opts = normalizeSingleOptions(stem, rawOpts);
     stemContent = esc(stripSingleChoiceStem(stem, opts));
     body = opts.map((opt, i) => {
       const checked = cur === i ? ' checked' : '';

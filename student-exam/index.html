@@ -130,7 +130,7 @@ import {
   EXAM_DAY_EMERGENCY, jakartaTodayYmd, loadExamDayCache, examDayFromQuery,
   EXAM_DAY_SPRING, EXAM_DAY_MAKEUP,
   scheduleHasActionableExam,
-} from './shared.js?v=202606221700';
+} from './shared.js?v=202606221900';
 
 const DRAFT_BASE_MS = 30000;
 const DRAFT_JITTER_MS = 15000;
@@ -213,6 +213,18 @@ async function loadScheduleIfToken() {
     } else if (scheduleHasActionableExam(S.schedule)) {
       S.view = 'schedule';
     } else {
+      const wrongDay = S.examDay?.id && S.checkIn?.exam_day_id && S.checkIn.exam_day_id !== S.examDay.id;
+      const emptySchedule = !(S.schedule || []).length;
+      if (wrongDay || (emptySchedule && S.examDay?.id === EXAM_DAY_MAKEUP.id)) {
+        S.token = null;
+        localStorage.removeItem(SESSION_KEY);
+        S.checkIn = null;
+        S.schedule = [];
+        S.view = 'checkin';
+        toast(t(S.uiLang, 'stale_session_recheckin'), false);
+        render();
+        return;
+      }
       S.view = 'no_exam';
     }
     render();
@@ -417,6 +429,27 @@ function goEditCheckIn() {
   render();
 }
 
+function logoutCheckIn() {
+  clearInterval(timerIv);
+  clearTimeout(draftTimer);
+  S.token = null;
+  S.checkIn = null;
+  S.schedule = [];
+  S.attempt = null;
+  S.subject = null;
+  S.paper = null;
+  S.answers = {};
+  S.editingCheckIn = false;
+  S.submitting = false;
+  localStorage.removeItem(SESSION_KEY);
+  clearCoverConfirmed();
+  clearPaperCache();
+  try { sessionStorage.removeItem(LOCAL_DRAFT_KEY); } catch (_) {}
+  S.view = 'checkin';
+  render();
+  toast(t(S.uiLang, 'logout_ok'), true);
+}
+
 async function doCheckIn(resume = false) {
   const name = document.getElementById('f-name')?.value?.trim();
   const grade = +document.getElementById('f-grade')?.value;
@@ -566,7 +599,7 @@ async function openCover(subjectId) {
   render();
 }
 
-const PAPER_CACHE_KEY = 'mms_student_exam_paper_v17';
+const PAPER_CACHE_KEY = 'mms_student_exam_paper_v18';
 
 function normalizeExamAnswers(questions, answers) {
   const out = { ...(answers || {}) };
@@ -917,7 +950,10 @@ function renderSchedule() {
     ${makeupMode ? `<p class="hint">${esc(t(L, 'schedule_makeup_hint'))}</p>` : ''}
     ${allMakeupDone ? `<p class="hint" style="color:#059669">${esc(t(L, 'schedule_makeup_all_done'))}</p>` : ''}
     <p class="hint">${esc(t(L, 'hello'))}，<strong>${esc(ci?.full_name)}</strong> · ${esc(gradeLabel(ci?.grade, L))} · ${esc(trackLabel(ci?.class_track, L))}</p>
-    ${!makeupMode && canEditCheckIn() ? `<div class="btn-row" style="margin-bottom:12px"><button class="btn btn-o" id="btn-edit-checkin">${esc(t(L, 'btn_edit_checkin'))}</button></div>` : ''}
+    <div class="btn-row" style="margin-bottom:12px">
+      ${!makeupMode && canEditCheckIn() ? `<button class="btn btn-o" id="btn-edit-checkin">${esc(t(L, 'btn_edit_checkin'))}</button>` : ''}
+      <button class="btn btn-o" id="btn-logout">${esc(t(L, 'btn_logout'))}</button>
+    </div>
     ${rows || `<p class="hint">${esc(t(L, 'no_exam'))}</p>`}
   </div>`;
 }
@@ -1011,7 +1047,7 @@ function render() {
   let html = '';
   if (S.view === 'loading') html = `<div class="card"><p>${esc(t(S.uiLang, 'loading'))}</p><p class="hint">${esc(t(S.uiLang, 'loading_slow'))}</p><button class="btn btn-o" id="btn-reload-today">${esc(t(S.uiLang, 'btn_retry_load'))}</button></div>`;
   else if (S.view === 'boot_err') html = `<div class="card"><p>${esc(t(S.uiLang, 'err_load_fail'))}</p><p class="hint">${esc(t(S.uiLang, 'loading_slow'))}</p><button class="btn btn-p" id="btn-reload-today">${esc(t(S.uiLang, 'btn_retry_load'))}</button></div>`;
-  else if (S.view === 'no_exam') html = `<div class="card"><p>${esc(t(S.uiLang, 'no_exam'))}</p></div>`;
+  else if (S.view === 'no_exam') html = `<div class="card"><p>${esc(t(S.uiLang, 'no_exam'))}</p>${S.token ? `<div class="btn-row" style="margin-top:12px"><button class="btn btn-o" id="btn-logout">${esc(t(S.uiLang, 'btn_logout'))}</button></div>` : ''}</div>`;
   else if (S.view === 'checkin') html = renderCheckin();
   else if (S.view === 'schedule') html = renderSchedule();
   else if (S.view === 'cover') html = renderCover();
@@ -1043,6 +1079,7 @@ function bind() {
   document.getElementById('btn-checkin')?.addEventListener('click', () => doCheckIn(false));
   document.getElementById('btn-resume')?.addEventListener('click', () => doCheckIn(true));
   document.getElementById('btn-edit-checkin')?.addEventListener('click', goEditCheckIn);
+  document.getElementById('btn-logout')?.addEventListener('click', logoutCheckIn);
   document.getElementById('btn-cancel-edit')?.addEventListener('click', () => {
     S.editingCheckIn = false;
     S.view = 'schedule';
