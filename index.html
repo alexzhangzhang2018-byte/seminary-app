@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MMS招生系统 · MMS Admissions</title>
 <meta name="mms-portal" content="admissions">
+<meta name="mms-build" content="20260620-continuing-sch">
 <script src="/vendor/supabase.js"></script>
 <script src="/vendor/jszip.min.js"></script>
 <script>try{if(typeof JSZip!=='undefined'&&(typeof window.JSZip==='undefined'||!window.JSZip))window.JSZip=JSZip;}catch(_){}</script>
 <script src="exam-locale.js"></script>
 <script src="exam-plain-bundled.js"></script>
-<script src="continuing-locale.js"></script>
+<script src="continuing-locale.js?v=202606201000"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f4f5ff;color:#1e1e2e;font-size:14px}
@@ -124,6 +125,8 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 .pipeline-subgroup-campus.pipeline-subgroup-np .pipeline-subgroup-h{color:#047857}
 .pipeline-subgroup-campus.pipeline-subgroup-stu{background:#eff6ff;border-color:#dbeafe}
 .pipeline-subgroup-campus.pipeline-subgroup-stu .pipeline-subgroup-h{color:#1d4ed8}
+.pipeline-subgroup-campus.pipeline-subgroup-norm{background:#f0fdfa;border-color:#ccfbf1}
+.pipeline-subgroup-campus.pipeline-subgroup-norm .pipeline-subgroup-h{color:#0f766e}
 .pipeline-col-empty{font-size:11px;color:#d1d5db;text-align:center;padding:20px 8px;border:1px dashed #e5e7eb;border-radius:10px;background:#fafafa}
 .exam-lang-section{margin-bottom:28px}
 .exam-lang-section-h{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e5e7eb}
@@ -408,6 +411,7 @@ function examLangPipelineGroupTitle(lang){
 const NP_CAMPUS_PIPELINE_TITLE='尼泊尔（加德满都）· Nepal Campus';
 const AI_CAMPUS_PIPELINE_TITLE='AI项目 · AI Project';
 const STU_CAMPUS_PIPELINE_TITLE='神学生 · Enrolled Students';
+const NORM_CAMPUS_PIPELINE_TITLE='师范生 · Teacher-Training Track';
 /** 根据姓名字符推测笔试/面试分组（不用 \\p 属性类，避免旧版浏览器整段脚本解析失败导致首页永久转圈） */
 function guessExamLangFromNameString(raw){
   const t=String(raw||'').trim();
@@ -458,6 +462,7 @@ const PIPELINE_TRACKS=[
   {id:'id',label:'印尼语班'},
   {id:'ai',label:'AI项目'},
   {id:'stu',label:'神学生'},
+  {id:'norm',label:'师范生'},
   {id:'np',label:'尼泊尔'},
 ];
 function applicantPipelineTrack(ap){
@@ -465,6 +470,7 @@ function applicantPipelineTrack(ap){
   if(c==='np') return 'np';
   if(c==='ai') return 'ai';
   if(c==='stu') return 'stu';
+  if(c==='norm') return 'norm';
   const lang=getApplicantExamLang(ap);
   return ['en','id'].includes(lang)?lang:'zh';
 }
@@ -507,8 +513,9 @@ function pipelineStageCountBreakdown(aps){
   const np=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='np').length;
   const ai=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='ai').length;
   const stu=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='stu').length;
+  const norm=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='norm').length;
   const by=partitionApplicantsByExamLang(idAps);
-  return {zh:(by.zh||[]).length,en:(by.en||[]).length,id:(by.id||[]).length,np,ai,stu,total:(aps||[]).length};
+  return {zh:(by.zh||[]).length,en:(by.en||[]).length,id:(by.id||[]).length,np,ai,stu,norm,total:(aps||[]).length};
 }
 function renderKanbanSubgroup(title,list,cardHtml,{campus=''}={}){
   if(!list.length) return '';
@@ -524,10 +531,12 @@ function renderKanbanLangSubgroups(aps,cardHtml,emptyHtml,sortFn){
   const npAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='np').slice().sort(sort);
   const aiAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='ai').slice().sort(sort);
   const stuAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='stu').slice().sort(sort);
+  const normAps=(aps||[]).filter(ap=>getApplicantCampusCode(ap)==='norm').slice().sort(sort);
   const by=partitionApplicantsByExamLang(idAps);
   const parts=[
     renderKanbanSubgroup(AI_CAMPUS_PIPELINE_TITLE,aiAps,cardHtml,{campus:'ai'}),
     renderKanbanSubgroup(STU_CAMPUS_PIPELINE_TITLE,stuAps,cardHtml,{campus:'stu'}),
+    renderKanbanSubgroup(NORM_CAMPUS_PIPELINE_TITLE,normAps,cardHtml,{campus:'norm'}),
     ...['zh','en','id'].map(L=>renderKanbanSubgroup(examLangPipelineGroupTitle(L),(by[L]||[]).slice().sort(sort),cardHtml)),
     renderKanbanSubgroup(NP_CAMPUS_PIPELINE_TITLE,npAps,cardHtml,{campus:'np'}),
   ].filter(Boolean);
@@ -1372,7 +1381,7 @@ const A = {
   loginMode: null,   // 'applicant' | 'staff'
   adminDataLoading: false, // 职员登录/恢复会话：先出工作台壳，再异步拉 applicants/slots/records
   staffCacheCount: 0, // 管理端本地缓存条数（用于“秒开”提示）
-  pipelineTrack: 'all', // 申请人看板筛选：all | zh | en | id | ai | np
+  pipelineTrack: 'all', // 申请人看板筛选：all | zh | en | id | ai | stu | norm | np
   applicantSearch: '', // 教务搜索：姓名/手机/邮箱等
 
   // Applicant exam state
@@ -1404,7 +1413,10 @@ const A = {
   // 继续申请（二/三年级）：公开提交，老师后台审核
   allContinuing: [],
   continuingSelectedId: null,
+  continuingView: 'applications', // applications | scholarship
+  continuingFocusScholarship: false,
   continuingFilter: { year:'all', lang:'all', status:'all' },
+  continuingSchFilter: { status:'all' }, // all | has | submitted | approved | rejected | none
   continuingLastSyncError: null,
   allContinuingScholarships: [],   // continuing_scholarship_applications 全量
   continuingLoading: false,
@@ -1792,9 +1804,75 @@ function getExamWindowUtc(){
   return bestFuture; // may be null if something unexpected
 }
 
+const EXAM_BYPASS_PHONE = '18686885668';
+
+function applicantPhoneDigitsOnly(phone){
+  return String(phone||'').replace(/\D/g,'');
+}
+function isExamBypassPhoneNum(phone){
+  const d=applicantPhoneDigitsOnly(phone);
+  return d===EXAM_BYPASS_PHONE;
+}
 function isExamExemptApplicant(ap){
-  // 白名单：只允许这个手机号的申请人随时进入测试
-  return String(ap?.phone_last4||'') === '5668' || String(ap?.phone||'').includes('18686885668');
+  // 教务一键换测试号后，申请人可随时进入招生笔试（不受开放时段限制）
+  return String(ap?.phone_last4||'')==='5668' || isExamBypassPhoneNum(ap?.phone);
+}
+function isApplicantOnExamBypassPhone(ap){
+  return isExamBypassPhoneNum(ap?.phone);
+}
+function renderExamBypassPhoneToolsHtml(ap){
+  if(A.role!=='admin'&&A.role!=='teacher') return '';
+  const onBypass=isApplicantOnExamBypassPhone(ap);
+  const backup=ap?.phone_real_backup;
+  if(onBypass){
+    return `<div class="mt2 row g2 wrap" style="align-items:center">
+      <span class="tag" style="background:#dbeafe;color:#1d4ed8">随时笔试已开</span>
+      ${backup
+        ? `<button type="button" class="btn btn-outline btn-sm" data-action="restore-exam-phone" data-apid="${esc(ap.id)}">恢复原手机号</button>
+           <span class="t11 c-gray4">备份：${esc(backup)}</span>`
+        : `<span class="t11" style="color:#b45309">无原号备份，考完请手动改回</span>`}
+    </div>`;
+  }
+  return `<div class="mt2 row g2 wrap" style="align-items:center">
+    <button type="button" class="btn btn-outline btn-sm" data-action="enable-exam-phone" data-apid="${esc(ap.id)}">换测试号（随时笔试）</button>
+    <span class="t11 c-gray4">改为 ${esc(EXAM_BYPASS_PHONE)}，原号自动备份可一键恢复</span>
+  </div>`;
+}
+async function enableApplicantExamBypassPhone(apid){
+  if(!sb||(A.role!=='admin'&&A.role!=='teacher')) return;
+  const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+  if(!ap) return;
+  const inp=document.getElementById('brief-ap-phone');
+  const current=(inp?.value||ap.phone||'').trim();
+  if(isExamBypassPhoneNum(current)){ toast('当前已是测试号',false); return; }
+  if(!current){ toast('请先填写真实手机号',false); return; }
+  const msg=`将「${fullName(ap)}」手机改为 ${EXAM_BYPASS_PHONE}，可随时进入招生笔试。\n\n原号将备份：${current}\n考完后可点「恢复原手机号」。`;
+  if(!confirm(msg)) return;
+  const {error}=await sb.from('applicants').update({phone:EXAM_BYPASS_PHONE,phone_real_backup:current}).eq('id',apid);
+  if(error){ toast('切换失败：'+(error.message||''),false); return; }
+  ap.phone=EXAM_BYPASS_PHONE;
+  ap.phone_real_backup=current;
+  ap.phone_last4='5668';
+  if(inp) inp.value=EXAM_BYPASS_PHONE;
+  toast('已换测试号，申请人可随时笔试');
+  render();
+}
+async function restoreApplicantExamBypassPhone(apid){
+  if(!sb||(A.role!=='admin'&&A.role!=='teacher')) return;
+  const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+  if(!ap) return;
+  const backup=String(ap.phone_real_backup||'').trim();
+  if(!backup){ toast('没有备份的原手机号',false); return; }
+  if(!confirm(`将「${fullName(ap)}」手机恢复为：\n${backup}`)) return;
+  const {error}=await sb.from('applicants').update({phone:backup,phone_real_backup:null}).eq('id',apid);
+  if(error){ toast('恢复失败：'+(error.message||''),false); return; }
+  ap.phone=backup;
+  ap.phone_real_backup=null;
+  ap.phone_last4=backup.replace(/\D/g,'').slice(-4)||ap.phone_last4;
+  const inp=document.getElementById('brief-ap-phone');
+  if(inp) inp.value=backup;
+  toast('已恢复原手机号');
+  render();
 }
 
 function isExamAllowedNow(ap){
@@ -2096,7 +2174,7 @@ const APPLICANTS_STAFF_LIST_COLS =
   'scholarship_form_json,enrollment_survey_json,pastor_letter_json,mat_files_json,mat_financial_proof_filename,mat_survey_alert,mat_survey_alert_reason,'+
   'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,gospel_confession,conversion_testimony,ministry_experience,admin_notes,'+
   'gender,hometown,education,church_name,denomination,language_proficiency,marital_status,conversion_time,date_of_birth,'+
-  'sheet_import_unseen,google_sheet_row,campus_code';
+  'sheet_import_unseen,sheet_reimport_diff,sheet_reimport_merged_at,google_sheet_row,campus_code,phone_real_backup';
 
 /** 列裁剪查询失败时回退（缺列 / 旧库），至少让看板有卡片 */
 const APPLICANTS_STAFF_LIST_COLS_MIN =
@@ -2105,11 +2183,11 @@ const APPLICANTS_STAFF_LIST_COLS_MIN =
 
 // 首屏极简列表：不含 scholarship_form_json（大 JSON 仍走 v1 / phase2）；含批复标量便于顶栏与奖学金页摘要
 const APPLICANTS_STAFF_LIST_COLS_LITE =
-  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row,'+
-  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,campus_code,language_proficiency,hometown';
+  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,sheet_reimport_diff,google_sheet_row,'+
+  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,campus_code,language_proficiency,hometown,phone_real_backup';
 /** lite 主查询失败时回退（与历史版本一致，列最少） */
 const APPLICANTS_STAFF_LIST_COLS_LITE_FALLBACK =
-  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,google_sheet_row';
+  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,sheet_reimport_diff,google_sheet_row';
 
 /** 面试时段列表：避免 select * 拉取无用列（预约页 / 教务排班会频繁查） */
 const INTERVIEW_SLOTS_PUBLIC_COLS =
@@ -2171,10 +2249,46 @@ async function mergeApplicantHeavyFields(apid){
 }
 
 /** 表格新导入小红点：教务点开详情或档案后清除 */
+function parseSheetReimportDiff(ap){
+  const raw=ap?.sheet_reimport_diff;
+  if(!raw) return [];
+  if(Array.isArray(raw)) return raw;
+  try{
+    const p=typeof raw==='string'?JSON.parse(raw):raw;
+    return Array.isArray(p)?p:[];
+  }catch(_){ return []; }
+}
+function renderSheetReimportBannerHtml(ap){
+  const diffs=parseSheetReimportDiff(ap);
+  if(!diffs.length) return '';
+  const rows=diffs.map(d=>{
+    const lab=esc(d.label||d.field||'字段');
+    const before=d.before!=null&&d.before!==''?esc(String(d.before)):'（空）';
+    const after=d.after!=null&&d.after!==''?esc(String(d.after)):'（空）';
+    return `<li><span class="fw6">${lab}</span>：${before} → <span class="fw6 c-amber8">${after}</span></li>`;
+  }).join('');
+  const rowHint=ap.google_sheet_row?`（表格第 ${esc(ap.google_sheet_row)} 行）`:'';
+  return `<div class="b1 bc-amber200 bg-amber50 r12 p3 mb4" style="color:#92400e">
+    <div class="fw7 mb2">🔄 检测到重复报名，已合并到本条档案${rowHint}</div>
+    <div class="t12 mb2">以下字段已按<strong>最新一次提交</strong>更新；招生阶段、笔试成绩、面试预约未改动。</div>
+    <ul class="t13 lh16" style="margin:0 0 10px 18px;padding:0">${rows}</ul>
+    <button type="button" class="btn btn-outline btn-sm" data-action="dismiss-sheet-reimport" data-apid="${ap.id}">知道了</button>
+  </div>`;
+}
+async function dismissSheetReimportDiff(apid){
+  if(!sb||apid==null||apid===''||(A.role!=='admin'&&A.role!=='teacher')) return;
+  const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
+  const {error}=await sb.from('applicants').update({sheet_reimport_diff:null,sheet_import_unseen:false}).eq('id',apid);
+  if(!error&&ap){
+    ap.sheet_reimport_diff=null;
+    ap.sheet_import_unseen=false;
+  }
+}
 async function acknowledgeApplicantSheetImport(apid){
   if(!sb||apid==null||apid===''||(A.role!=='admin'&&A.role!=='teacher')) return;
   const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
   if(!ap||!ap.sheet_import_unseen) return;
+  if(parseSheetReimportDiff(ap).length) return;
   const {error}=await sb.from('applicants').update({sheet_import_unseen:false}).eq('id',apid);
   if(!error) ap.sheet_import_unseen=false;
 }
@@ -3377,6 +3491,7 @@ async function loginStaff(email,password){
   const {data:prof}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
   A.profile=prof;
   A.role=prof?.role||'teacher';
+  restoreContinuingViewPref();
   // 先用本地缓存秒开（网络慢时避免长时间空白/0 卡片）
   const cache = loadStaffCache();
   if(cache && Array.isArray(cache.allApplicants) && cache.allApplicants.length){
@@ -4171,11 +4286,10 @@ function pastorLetterUploadOk(sch){
   if(!sch||(sch.guarantee_type||'deposit')!=='pastor_letter') return true;
   return !!(sch.pastor_letter_upload_data&&String(sch.pastor_letter_upload_data).length>32);
 }
-/** 根据籍贯/国家文本推断校区：巴基斯坦→印尼雅加达；尼泊尔→加德满都 */
+/** 根据籍贯/国家文本推断校区（仅尼泊尔→加德满都；其余不自动推断，由教务手选） */
 function inferCampusCodeFromOriginText(text){
   const t=String(text||'').toLowerCase();
   if(!t.trim()) return null;
-  if(/pakistan|pakistani|巴基斯坦|巴基|islamabad|karachi|lahore|punjab|peshawar|rawalpindi|faisalabad|伊斯兰堡|卡拉奇|拉合尔|白沙瓦/.test(t)) return 'id';
   if(/nepal|尼泊尔|kathmandu|加德满都|pokhara|lalitpur|bhaktapur|博克拉/.test(t)) return 'np';
   return null;
 }
@@ -4185,32 +4299,36 @@ function inferCampusCodeFromApplicant(ap){
     .filter(Boolean).join(' ');
   return inferCampusCodeFromOriginText(blob);
 }
-/** 就读校区：id 印尼雅加达；np 加德满都；ai AI项目；stu 神学生续读（巴基斯坦籍贯一律归 id，神学生显式标记除外） */
+/** 就读校区：id 印尼雅加达；np 加德满都；ai AI项目；stu 神学生续读；norm 师范生 */
 function getApplicantCampusCode(ap){
   const v=String(ap?.campus_code??'').trim().toLowerCase();
   if(v==='stu'||v==='student'||v==='神学生'||v==='seminary_student') return 'stu';
-  const inferred=inferCampusCodeFromApplicant(ap);
-  if(inferred==='id'||inferred==='np') return inferred;
-  if(v==='np'||v==='nepal'||v==='kathmandu') return 'np';
+  if(v==='norm'||v==='师范生'||v==='normal_school'||v==='teacher_training') return 'norm';
   if(v==='ai'||v==='ai项目'||v==='ai project') return 'ai';
+  if(v==='np'||v==='nepal'||v==='kathmandu') return 'np';
+  if(v==='id') return 'id';
+  const inferred=inferCampusCodeFromApplicant(ap);
+  if(inferred==='np') return 'np';
   return 'id';
 }
 function campusCodeFromStaffSelect(sel){
   if(sel==='np') return 'np';
   if(sel==='ai') return 'ai';
   if(sel==='stu') return 'stu';
+  if(sel==='norm') return 'norm';
   return 'id';
 }
 function applyHometownCampusInference(campus_code,hometown){
-  if(campus_code==='stu'||campus_code==='ai') return campus_code;
+  if(campus_code==='stu'||campus_code==='ai'||campus_code==='np'||campus_code==='norm'||campus_code==='id') return campus_code;
   const inferred=inferCampusCodeFromHometown(hometown);
-  return inferred||campus_code;
+  return inferred||campus_code||'id';
 }
 function getApplicantCampusLabel(ap){
   const c=getApplicantCampusCode(ap);
   if(c==='np') return '尼泊尔（加德满都）';
   if(c==='ai') return 'AI项目';
   if(c==='stu') return '神学生（续读）';
+  if(c==='norm') return '师范生';
   return '印尼（雅加达）';
 }
 function applicantCampusTagHtml(ap){
@@ -4218,6 +4336,7 @@ function applicantCampusTagHtml(ap){
   if(c==='np') return mkTag('#ecfdf5','#047857','尼泊尔');
   if(c==='ai') return mkTag('#ede9fe','#6d28d9','AI');
   if(c==='stu') return mkTag('#dbeafe','#1d4ed8','神学生');
+  if(c==='norm') return mkTag('#ccfbf1','#0f766e','师范生');
   return '';
 }
 function applicantHometownDisplay(ap){
@@ -4948,7 +5067,7 @@ function renderMaterials(){
       <div class="b1 bc-gray200 r8 p3 mb3" style="background:#fff">
         <div>${mmsT('学费：','Tuition:','Biaya kuliah:')} <strong>$3,000</strong></div>
         <div>${mmsT('餐费：','Meals:','Biaya makan:')} <strong>$1,200</strong></div>
-        <div>${mmsT('住宿费：$1,200（不包含在奖学金范围内）','Accommodation: $1,200 (not covered by the scholarship)','Biaya asrama: $1,200 (tidak termasuk beasiswa)')}</div>
+        <div>${mmsT('住宿费：$720（$60×12 个月，不包含在奖学金范围内）','Accommodation: $720 ($60 × 12 months, not covered by the scholarship)','Biaya asrama: $720 ($60 × 12 bulan, tidak termasuk beasiswa)')}</div>
         <div>${mmsT('注册费：$80（不退还）','Registration fee: $80 (non-refundable)','Biaya pendaftaran: $80 (tidak dapat dikembalikan)')}</div>
         <div>${mmsT('最高资助限额：','Max aid limit:','Batas maksimum bantuan:')} <strong>$4,200</strong></div>
       </div>
@@ -5210,12 +5329,20 @@ const CONTINUING_AID_LABEL = {
   none:             '不申请',
 };
 
+function restoreContinuingViewPref(){
+  try{
+    const v = localStorage.getItem('mms_continuing_view');
+    if(v==='scholarship' || v==='applications') A.continuingView = v;
+  }catch(_){}
+}
+
 async function loadContinuingForStaff(opts){
   opts = opts || {};
   if(!sb) return;
   if(A.role!=='admin' && A.role!=='teacher') return;
   if(isVisaOpsStaff()) return;
   A.continuingLoading = true;
+  if(opts.silent!==true) render(); // 立即画出标题与「奖学金」子标签，避免刷新时整页被 loading 顶替
   try{
     const [mainRes, schRes] = await Promise.all([
       sb.from('continuing_applications').select('*').order('created_at', {ascending:false}),
@@ -5319,6 +5446,52 @@ function continuingStatusTag(status){
   return mkTag(s.bg, s.color, s.label);
 }
 
+function continuingSchForApp(r){
+  if(!r || r.status!=='admitted') return null;
+  return (A.allContinuingScholarships||[]).find(s=>String(s.application_id)===String(r.id)) || null;
+}
+
+function continuingSchStatusTag(sch){
+  if(!sch) return mkTag('#f1f5f9','#64748b','未申请');
+  const map = {
+    submitted: {bg:'#dbeafe',color:'#1d4ed8',label:'审核中'},
+    approved:  {bg:'#dcfce7',color:'#15803d',label:'已批复'},
+    rejected:  {bg:'#fee2e2',color:'#dc2626',label:'未通过'},
+  };
+  const s = map[sch.status] || {bg:'#f3f4f6',color:'#6b7280',label:sch.status||'—'};
+  return mkTag(s.bg, s.color, s.label);
+}
+
+function continuingSchUsd(n){
+  if(n==null || n==='' || isNaN(Number(n))) return '—';
+  return '$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:0});
+}
+
+function continuingSchSummaryCell(r){
+  if(r.status!=='admitted') return '<span class="t12 c-gray4">—</span>';
+  const sch = continuingSchForApp(r);
+  if(!sch) return continuingSchStatusTag(null);
+  const req = continuingSchUsd(sch.requested_amount);
+  const appr = sch.status==='approved' && sch.amount_approved!=null
+    ? ` · 批 ${continuingSchUsd(sch.amount_approved)}`
+    : '';
+  return `<div class="col g1" style="gap:3px;min-width:88px">${continuingSchStatusTag(sch)}<span class="t11 c-gray6">${esc(req+appr)}</span></div>`;
+}
+
+function continuingSchStats(){
+  const admitted = (A.allContinuing||[]).filter(r=>r.status==='admitted');
+  const schMap = new Map();
+  (A.allContinuingScholarships||[]).forEach(s=>{ if(s.application_id) schMap.set(String(s.application_id), s); });
+  return {
+    admitted: admitted.length,
+    has: admitted.filter(r=>schMap.has(String(r.id))).length,
+    pending: admitted.filter(r=>{ const s=schMap.get(String(r.id)); return s&&s.status==='submitted'; }).length,
+    approved: admitted.filter(r=>{ const s=schMap.get(String(r.id)); return s&&s.status==='approved'; }).length,
+    rejected: admitted.filter(r=>{ const s=schMap.get(String(r.id)); return s&&s.status==='rejected'; }).length,
+    none: admitted.filter(r=>!schMap.has(String(r.id))).length,
+  };
+}
+
 function continuingApplyUrl(){
   try{ return location.origin + '/apply-continuing.html'; }catch(_){ return 'apply-continuing.html'; }
 }
@@ -5348,28 +5521,134 @@ function copyText(text){
   }catch(_){}
 }
 
+function renderContinuingScholarshipPanel(){
+  const sf = A.continuingSchFilter || {status:'all'};
+  const langLab = lc => ({zh:'中文', id:'印尼语', en:'英语'})[lc] || lc || '—';
+  const schMap = new Map();
+  (A.allContinuingScholarships||[]).forEach(s=>{ if(s.application_id) schMap.set(String(s.application_id), s); });
+  const admitted = (A.allContinuing||[]).filter(r=>r.status==='admitted');
+  let rows = admitted.map(r=>({app:r, sch:schMap.get(String(r.id))||null}));
+  if(sf.status==='has') rows = rows.filter(x=>x.sch);
+  else if(sf.status==='submitted') rows = rows.filter(x=>x.sch&&x.sch.status==='submitted');
+  else if(sf.status==='approved') rows = rows.filter(x=>x.sch&&x.sch.status==='approved');
+  else if(sf.status==='rejected') rows = rows.filter(x=>x.sch&&x.sch.status==='rejected');
+  else if(sf.status==='none') rows = rows.filter(x=>!x.sch);
+  rows.sort((a,b)=>{
+    const rank = x=>{
+      if(!x.sch) return 3;
+      if(x.sch.status==='submitted') return 0;
+      if(x.sch.status==='approved') return 1;
+      if(x.sch.status==='rejected') return 2;
+      return 4;
+    };
+    const ra=rank(a), rb=rank(b);
+    if(ra!==rb) return ra-rb;
+    const ta=a.sch?.submitted_at||a.app.created_at||'';
+    const tb=b.sch?.submitted_at||b.app.created_at||'';
+    return String(tb).localeCompare(String(ta));
+  });
+  const st = continuingSchStats();
+  const tableRow = ({app, sch})=>{
+    const sel = String(A.continuingSelectedId||'')===String(app.id);
+    const reasonPrev = sch?.financial_description
+      ? String(sch.financial_description).replace(/\s+/g,' ').trim().slice(0,48)+(String(sch.financial_description).length>48?'…':'')
+      : '';
+    return `<tr style="cursor:pointer${sel?';background:#ecfeff':''}" data-action="continuing-select" data-cid="${app.id}" data-sch-focus="1">
+      <td class="fw6 c-gray8">${esc(formatChineseDisplayName(app.full_name)||'—')}</td>
+      <td><span class="mono t12">${esc(app.application_no||'—')}</span></td>
+      <td>Y${esc(String(app.target_year||'—'))}</td>
+      <td class="t12 c-gray6">${esc(langLab(app.class_lang))}</td>
+      <td class="fw6" style="color:#0e7490">${sch?esc(continuingSchUsd(sch.requested_amount)):'<span class="c-gray4 fw4">—</span>'}</td>
+      <td>${continuingSchStatusTag(sch)}</td>
+      <td class="fw6" style="color:#15803d">${sch&&sch.amount_approved!=null?esc(continuingSchUsd(sch.amount_approved)):'<span class="c-gray4 fw4">—</span>'}</td>
+      <td class="t12 c-gray6" style="max-width:180px;word-break:break-word" title="${sch?.review_note?esc(sch.review_note):''}">${sch?.review_note?esc(String(sch.review_note).slice(0,60))+(String(sch.review_note).length>60?'…':''):'<span class="c-gray4">—</span>'}</td>
+      <td class="t12 c-gray5 nowrap">${sch?esc(String(sch.submitted_at||'').slice(0,16).replace('T',' ')):'—'}</td>
+      <td class="t12 c-gray6" style="max-width:200px;word-break:break-word">${reasonPrev?esc(reasonPrev):'<span class="c-gray4">—</span>'}</td>
+      <td><button type="button" class="btn btn-outline btn-sm" data-action="continuing-sch-detail" data-cid="${app.id}" ${sch?'':'disabled style="opacity:.45"'}>查看</button></td>
+    </tr>`;
+  };
+  return `<div class="card p4 mb3" style="background:linear-gradient(180deg,#f0f9ff,#fff)">
+    <div class="t12 c-gray6 lh16 mb3">已录取学员的奖学金申请一览。点击行或「查看」可打开档案，阅读<strong>申请理由</strong>并填写批复。</div>
+    <div class="row g2 wrap mb3" style="align-items:flex-end">
+      <div class="col g1">
+        <label class="t11 c-gray5 fw6">奖学金状态</label>
+        <select class="sel" id="ct-sch-f-status" style="width:160px">
+          <option value="all" ${sf.status==='all'?'selected':''}>全部已录取 (${st.admitted})</option>
+          <option value="has" ${sf.status==='has'?'selected':''}>已提交 (${st.has})</option>
+          <option value="submitted" ${sf.status==='submitted'?'selected':''}>待批复 (${st.pending})</option>
+          <option value="approved" ${sf.status==='approved'?'selected':''}>已批复 (${st.approved})</option>
+          <option value="rejected" ${sf.status==='rejected'?'selected':''}>未通过 (${st.rejected})</option>
+          <option value="none" ${sf.status==='none'?'selected':''}>未申请 (${st.none})</option>
+        </select>
+      </div>
+      <div class="col g1 ml-auto">
+        <div class="row g1 wrap">
+          <span class="tag" style="background:#dbeafe;color:#1d4ed8">待批复 ${st.pending}</span>
+          <span class="tag" style="background:#dcfce7;color:#15803d">已批复 ${st.approved}</span>
+          <span class="tag" style="background:#f1f5f9;color:#64748b">未申请 ${st.none}</span>
+        </div>
+      </div>
+    </div>
+    <div style="overflow:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>姓名</th><th>申请编号</th><th>年级</th><th>班级</th>
+          <th>申请金额</th><th>状态</th><th>批复金额</th><th>批复备注</th><th>提交时间</th><th>申请理由摘要</th><th>操作</th>
+        </tr></thead>
+        <tbody>
+          ${rows.length
+            ? rows.map(tableRow).join('')
+            : `<tr><td colspan="11" class="t13 c-gray4 tc" style="padding:32px">${st.admitted?'没有符合筛选条件的奖学金记录':'暂无已录取学员'}</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
 function renderContinuing(){
-  if(A.continuingLoading && !A.allContinuing.length){
-    return `<div class="card p8 tc" style="max-width:420px;margin:32px auto">
-      <div class="t15 fw6 c-gray7 mb2">正在加载继续申请…</div>
-      <div class="t12 c-gray5 lh16">首次进入时同步一次列表，之后切回此页将复用缓存。</div>
-    </div>`;
-  }
-  const isAd = A.role==='admin';
   const f = A.continuingFilter || {year:'all',lang:'all',status:'all'};
+  const total = (A.allContinuing||[]).length;
+  const unread = (A.allContinuing||[]).filter(r=>r.staff_unread).length;
+  const view = A.continuingView || 'applications';
+  const schSt = continuingSchStats();
+  const dataLoading = A.continuingLoading && !total;
+
   const rows = (A.allContinuing||[]).filter(r=>{
     if(f.year!=='all' && String(r.target_year)!==String(f.year)) return false;
     if(f.lang!=='all' && String(r.class_lang||'')!==String(f.lang)) return false;
     if(f.status!=='all' && String(r.status||'')!==String(f.status)) return false;
     return true;
   });
-  const total = (A.allContinuing||[]).length;
-  const unread = (A.allContinuing||[]).filter(r=>r.staff_unread).length;
   const stats = CONTINUING_STATUSES.map(s=>({
     s, n: (A.allContinuing||[]).filter(r=>r.status===s).length,
   }));
 
   const langLab = lc => ({zh:'中文', id:'印尼语', en:'英语'})[lc] || lc || '—';
+
+  const viewTabs = `<div class="row g2 wrap" style="align-items:center">
+      <button type="button" class="btn btn-sm ${view==='applications'?'btn-primary':'btn-outline'}" data-continuing-view="applications">📋 全部申请</button>
+      <button type="button" class="btn btn-sm ${view==='scholarship'?'btn-primary':'btn-outline'}" data-continuing-view="scholarship">💰 奖学金${schSt.pending?` <span class="tag" style="background:#fef3c7;color:#92400e;margin-left:4px;padding:1px 6px;font-size:11px">${schSt.pending} 待批</span>`:''}${schSt.has&&!schSt.pending?` <span class="tag" style="background:#e0f2fe;color:#0369a1;margin-left:4px;padding:1px 6px;font-size:11px">${schSt.has} 已交</span>`:''}</button>
+    </div>`;
+
+  const header = `<div class="row g2 wrap" style="align-items:center">
+      <div class="fw7 c-gray8 t16">继续申请（二/三年级）</div>
+      <span class="t12 c-gray5">共 ${total} 条${unread?` · <span style="color:#dc2626;font-weight:600">${unread} 条未读</span>`:''}${A.continuingLoading?` · <span class="c-indigo5">同步中…</span>`:''}</span>
+      <div class="ml-auto row g2 wrap" style="align-items:center">
+        ${viewTabs}
+        <button class="btn btn-outline btn-sm" id="btn-continuing-copy-apply">📋 复制申请链接</button>
+        <button class="btn btn-ghost btn-sm" id="btn-continuing-refresh">🔄 刷新</button>
+      </div>
+    </div>`;
+
+  if(dataLoading){
+    return `<div class="maxw-3xl col g4">
+      ${header}
+      <div class="card p8 tc">
+        <div class="t15 fw6 c-gray7 mb2">正在加载继续申请…</div>
+        <div class="t12 c-gray5 lh16">列表加载中；上方「💰 奖学金」可随时切换查看奖学金申请。</div>
+      </div>
+    </div>`;
+  }
 
   const tableRow = r => {
     const sel = String(A.continuingSelectedId||'')===String(r.id);
@@ -5379,21 +5658,17 @@ function renderContinuing(){
       <td>Y${esc(String(r.target_year||'—'))}</td>
       <td class="t12 c-gray6">${esc(langLab(r.class_lang))}</td>
       <td>${continuingStatusTag(r.status)}</td>
+      <td>${continuingSchSummaryCell(r)}</td>
       <td class="t12 c-gray5 nowrap">${esc(String(r.created_at||'').slice(0,16).replace('T',' '))}</td>
     </tr>`;
   };
 
   return `<div class="maxw-3xl col g4">
-    <div class="row g2 wrap" style="align-items:center">
-      <div class="fw7 c-gray8 t16">继续申请（二/三年级）</div>
-      <span class="t12 c-gray5">共 ${total} 条${unread?` · <span style="color:#dc2626;font-weight:600">${unread} 条未读</span>`:''}</span>
-      <div class="ml-auto row g2">
-        <button class="btn btn-outline btn-sm" id="btn-continuing-copy-apply">📋 复制申请链接</button>
-        <button class="btn btn-ghost btn-sm" id="btn-continuing-refresh">🔄 刷新</button>
-      </div>
-    </div>
+    ${header}
+
     ${A.continuingLastSyncError?`<div class="b1 bc-red200 bg-red50 r10 p3 t12" style="color:#b91c1c">同步异常：${esc(String(A.continuingLastSyncError).slice(0,260))}</div>`:''}
 
+    ${view==='scholarship' ? renderContinuingScholarshipPanel() : `
     <div class="card p4">
       <div class="row g2 wrap">
         <div class="col g1">
@@ -5431,15 +5706,16 @@ function renderContinuing(){
     <div class="card" style="overflow:auto">
       <table class="tbl">
         <thead><tr>
-          <th>申请编号</th><th>姓名</th><th>年级</th><th>班级</th><th>状态</th><th>提交时间</th>
+          <th>申请编号</th><th>姓名</th><th>年级</th><th>班级</th><th>状态</th><th>奖学金</th><th>提交时间</th>
         </tr></thead>
         <tbody>
           ${rows.length
             ? rows.map(tableRow).join('')
-            : `<tr><td colspan="6" class="t13 c-gray4 tc" style="padding:32px">${total?'没有符合筛选条件的申请':'还没有继续申请数据。请将申请链接发给学生：'+esc(continuingApplyUrl())}</td></tr>`}
+            : `<tr><td colspan="7" class="t13 c-gray4 tc" style="padding:32px">${total?'没有符合筛选条件的申请':'还没有继续申请数据。请将申请链接发给学生：'+esc(continuingApplyUrl())}</td></tr>`}
         </tbody>
       </table>
     </div>
+    `}
 
     ${A.continuingSelectedId?renderContinuingDetailModal():''}
   </div>`;
@@ -5461,23 +5737,22 @@ function renderContinuingDetailModal(){
   const sch = r.status==='admitted'
     ? (A.allContinuingScholarships||[]).find(s=>String(s.application_id)===String(r.id))
     : null;
-  const schStatusLabel = {'submitted':'审核中','approved':'已批复','rejected':'未通过'};
   const schBlock = r.status==='admitted' ? `
-    <div class="b1 r12 p4 mb3" style="border-color:#a5f3fc;background:#ecfeff">
-      <div class="fw7 t14 mb2" style="color:#0e7490">🎓 奖学金申请</div>
+    <div id="ct-sch-section" class="b1 r12 p4 mb3" style="border-color:#a5f3fc;background:#ecfeff${A.continuingFocusScholarship?';box-shadow:0 0 0 3px rgba(8,145,178,.25)':''}">
+      <div class="fw7 t14 mb2" style="color:#0e7490">💰 奖学金申请与批复</div>
       ${sch ? `
         <div class="row g2 wrap mb3" style="align-items:center">
-          <div>${mkTag(
-            sch.status==='approved'?'#dcfce7':sch.status==='rejected'?'#fee2e2':'#dbeafe',
-            sch.status==='approved'?'#15803d':sch.status==='rejected'?'#dc2626':'#1d4ed8',
-            schStatusLabel[sch.status]||sch.status
-          )}</div>
-          <div class="t12 c-gray6">申请金额：<b>$${esc(String(sch.requested_amount||0))}</b></div>
-          ${sch.amount_approved!=null?`<div class="t12" style="color:#15803d">批复金额：<b>$${esc(String(sch.amount_approved))}</b></div>`:''}
-          <div class="t12 c-gray5">${esc(String(sch.submitted_at||'').slice(0,10))}</div>
+          <div>${continuingSchStatusTag(sch)}</div>
+          <div class="t12 c-gray6">申请金额：<b>${esc(continuingSchUsd(sch.requested_amount))}</b></div>
+          ${sch.amount_approved!=null?`<div class="t12" style="color:#15803d">批复金额：<b>${esc(continuingSchUsd(sch.amount_approved))}</b></div>`:''}
+          <div class="t12 c-gray5">提交：${esc(String(sch.submitted_at||'').slice(0,16).replace('T',' '))}</div>
+          ${sch.reviewed_at?`<div class="t12 c-gray5">批复：${esc(String(sch.reviewed_at).slice(0,16).replace('T',' '))}</div>`:''}
         </div>
-        ${sch.financial_description?sec('家庭经济简述', sch.financial_description):''}
-        <div class="t12 c-gray5 mb2">承诺书签名：<b>${esc(sch.commitment_name||'')}</b></div>
+        <div class="b1 bc-sky200 bg-white r10 p3 mb3">
+          <div class="fw7 t12 c-gray7 mb2">申请理由</div>
+          <div class="t13 c-gray8" style="white-space:pre-line;line-height:1.75">${esc(sch.financial_description||'（未填写）')}</div>
+        </div>
+        <div class="t12 c-gray5 mb3">承诺书签名：<b>${esc(sch.commitment_name||'')}</b></div>
         <div class="b1 bc-indigo100 bg-white r10 p3">
           <div class="fw6 t12 c-gray6 mb2">批复操作</div>
           <div class="row g2 wrap mb2" style="align-items:center">
@@ -5495,8 +5770,8 @@ function renderContinuingDetailModal(){
               style="width:120px">
           </div>
           <div class="col g1 mb2">
-            <label class="t12 c-gray6 fw6">批复备注</label>
-            <textarea class="textarea" id="ct-sch-note" rows="2">${esc(sch.review_note||'')}</textarea>
+            <label class="t12 c-gray6 fw6">批复备注（学生查询页可见）</label>
+            <textarea class="textarea" id="ct-sch-note" rows="2" placeholder="例如：批准部分助学金，其余自筹">${esc(sch.review_note||'')}</textarea>
           </div>
           <button class="btn btn-primary btn-sm" id="ct-sch-save" data-schid="${esc(sch.id)}">保存奖学金批复</button>
         </div>
@@ -5507,8 +5782,24 @@ function renderContinuingDetailModal(){
     </div>
   ` : '';
 
+  const profileBlock = `
+      <div class="grid-2 mb4">
+        ${kv('出生年月', r.date_of_birth||'')}
+        ${kv('性别', r.gender==='male'?'男':r.gender==='female'?'女':r.gender)}
+        ${kv('国家/籍贯', r.nationality||'')}
+        ${kv('学历', r.education||'')}
+        ${kv('信主时间', r.conversion_time||'')}
+        ${kv('入学时间', r.enrollment_time||'')}
+        ${kv('邮箱', r.email||'')}
+        ${kv('WhatsApp', r.whatsapp||'')}
+        ${kv('提交时间', String(r.created_at||'').slice(0,19).replace('T',' '))}
+      </div>
+      ${sec('在本学院学习的主要收获', r.first_year_reflection)}
+      ${sec('福音认信', r.gospel_confession)}
+      ${sec('蒙召见证', r.calling_testimony)}`;
+
   return `<div class="modal-overlay" data-action="continuing-close">
-    <div class="modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-lg" onclick="event.stopPropagation()" style="max-height:90vh;overflow:auto">
       <div class="row g3 mb4" style="align-items:flex-start">
         <div class="flex1">
           <div class="t11 c-gray5 mb1 mono">${esc(r.application_no||'')}</div>
@@ -5522,23 +5813,7 @@ function renderContinuingDetailModal(){
         <button class="btn btn-ghost btn-sm" data-action="continuing-close">✕</button>
       </div>
 
-      <div class="grid-2 mb4">
-        ${kv('出生年月', r.date_of_birth||'')}
-        ${kv('性别', r.gender==='male'?'男':r.gender==='female'?'女':r.gender)}
-        ${kv('国家/籍贯', r.nationality||'')}
-        ${kv('学历', r.education||'')}
-        ${kv('信主时间', r.conversion_time||'')}
-        ${kv('入学时间', r.enrollment_time||'')}
-        ${kv('邮箱', r.email||'')}
-        ${kv('WhatsApp', r.whatsapp||'')}
-        ${kv('提交时间', String(r.created_at||'').slice(0,19).replace('T',' '))}
-      </div>
-
-      ${sec('在本学院学习的主要收获', r.first_year_reflection)}
-      ${sec('福音认信', r.gospel_confession)}
-      ${sec('蒙召见证', r.calling_testimony)}
-
-      ${schBlock}
+      ${A.continuingFocusScholarship && schBlock ? schBlock + profileBlock : profileBlock + schBlock}
 
       <div class="b1 bc-indigo100 bg-indigo50 r12 p4 mb3">
         <div class="fw7 c-gray8 t14 mb2">审核操作</div>
@@ -5602,12 +5877,13 @@ function renderAdmin(){
       <div class="t15 fw6 c-gray7 mb2">正在同步招生数据…</div>
       <div class="t12 c-gray5 lh16">网络较慢时可能要几秒，数据就绪后看板会自动出现。</div>
     </div>`;
+    if(A.adminTab==='continuing') content=renderContinuing();
   }else if(A.adminTab==='pipeline') content=renderPipeline();
   else if(A.adminTab==='exams') content=renderExams();
   else if(A.adminTab==='schedule') content=renderSchedule();
   else if(A.adminTab==='docs') content=renderDocs();
   else if(A.adminTab==='scholarship') content=renderScholarshipReview();
-  else if(A.adminTab==='continuing') content=renderContinuing();
+  else if(A.adminTab==='continuing') content=renderContinuing(); // 继续申请页自带加载壳，勿被全局 boot 顶替
   else if(A.adminTab==='me') content=renderStaffMe();
 
   const selAp=A.selectedApId?A.allApplicants.find(a=>a.id===A.selectedApId):null;
@@ -5693,7 +5969,7 @@ function renderPipeline(){
       ? (ap.phone||countryLbl?`<div class="t11 c-gray4 mb1 row g1 wrap" style="align-items:center">${ap.phone?`<span>📞 ${esc(ap.phone)}</span>`:''}${countryLbl?mkTag('#ecfdf5','#047857',countryLbl):''}</div>`:'')
       : `<div class="t11 c-gray5 mb1 row g1 wrap" style="align-items:center">${esc(examLangLabelShort(getApplicantExamLang(ap)))}${applicantCampusTagHtml(ap)}</div>${ap.phone?`<div class="t11 c-gray4">📞 ${esc(ap.phone)}</div>`:''}`;
     return `<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
-            ${ap.sheet_import_unseen?`<span title="报名表新导入" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
+            ${(ap.sheet_import_unseen||parseSheetReimportDiff(ap).length)?`<span title="${parseSheetReimportDiff(ap).length?'重复报名已合并，请查看变更':'报名表新导入'}" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
             ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
             <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
             ${contactLines}
@@ -5718,7 +5994,7 @@ function renderPipeline(){
       };
       const inner=renderKanbanLangSubgroups(aps,cardHtml,emptyHtml,sg.id==='interview'?interviewSort:null);
       const bd=pipelineStageCountBreakdown(aps);
-      const bdLine=`<div class="t10 c-gray4" style="line-height:1.45;margin-top:2px">${bd.ai?`AI ${bd.ai} · `:''}${bd.stu?`神学生 ${bd.stu} · `:''}中 ${bd.zh} · En ${bd.en} · Id ${bd.id}${bd.np?` · 尼 ${bd.np}`:''}</div>`;
+      const bdLine=`<div class="t10 c-gray4" style="line-height:1.45;margin-top:2px">${bd.ai?`AI ${bd.ai} · `:''}${bd.stu?`神学生 ${bd.stu} · `:''}${bd.norm?`师范 ${bd.norm} · `:''}中 ${bd.zh} · En ${bd.en} · Id ${bd.id}${bd.np?` · 尼 ${bd.np}`:''}</div>`;
       return `<div class="${colClass}">
         <div style="margin-bottom:10px">
           <div style="display:flex;align-items:center;gap:6px">
@@ -6021,6 +6297,8 @@ function renderBriefingModal(ap){
       <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18 row g2 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','调查表·需留意'):''}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
       <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-briefing">✕</button></div>
 
+      ${renderSheetReimportBannerHtml(ap)}
+
       ${canStaff&&canEditStage?`<div class="staff-stage-edit card p3 mb4" data-apid="${ap.id}">
         <div class="fw7 c-gray6 t11 mb2">招生流程阶段</div>
         <div class="row g2 wrap" style="align-items:center">
@@ -6038,7 +6316,7 @@ function renderBriefingModal(ap){
         ${schFinalLine}
         ${canStaff?`<div class="mt2">
           <div class="grid-2">
-            <div><div class="t12 fw6 c-gray6 mb1">电话</div><input id="brief-ap-phone" class="inp" style="width:100%" value="${valB(ap.phone)}" placeholder="手机"></div>
+            <div><div class="t12 fw6 c-gray6 mb1">电话</div><input id="brief-ap-phone" class="inp" style="width:100%" value="${valB(ap.phone)}" placeholder="手机">${renderExamBypassPhoneToolsHtml(ap)}</div>
             <div><div class="t12 fw6 c-gray6 mb1">邮箱</div><input id="brief-ap-email" class="inp" style="width:100%" value="${valB(ap.email)}" placeholder="邮箱"></div>
             <div><div class="t12 fw6 c-gray6 mb1">笔试/面试语言</div>
               <select id="brief-ap-exam-lang" class="sel" style="width:100%">
@@ -6060,6 +6338,7 @@ function renderBriefingModal(ap){
                 <option value="np" ${getApplicantCampusCode(ap)==='np'?'selected':''}>尼泊尔（加德满都）</option>
                 <option value="ai" ${getApplicantCampusCode(ap)==='ai'?'selected':''}>AI项目</option>
                 <option value="stu" ${getApplicantCampusCode(ap)==='stu'?'selected':''}>神学生（续读）</option>
+                <option value="norm" ${getApplicantCampusCode(ap)==='norm'?'selected':''}>师范生</option>
               </select></div>
             <div><div class="t12 fw6 c-gray6 mb1">籍贯</div><input id="brief-ap-hometown" class="inp" style="width:100%" value="${valB(ap.hometown)}" placeholder="籍贯"></div>
             <div><div class="t12 fw6 c-gray6 mb1">学历</div><input id="brief-ap-education" class="inp" style="width:100%" value="${valB(ap.education)}" placeholder="学历"></div>
@@ -6244,6 +6523,16 @@ function renderEditApInfoModal(ap){
             <option value="">未填写</option>
             <option value="男" ${ap.gender==='男'?'selected':''}>男</option>
             <option value="女" ${ap.gender==='女'?'selected':''}>女</option>
+          </select>
+        </div>
+        <div>
+          <div class="t12 fw6 c-gray6 mb1">就读校区 Campus</div>
+          <select id="edit-ap-campus" class="sel" style="width:100%">
+            <option value="id" ${getApplicantCampusCode(ap)==='id'?'selected':''}>印尼（雅加达）</option>
+            <option value="np" ${getApplicantCampusCode(ap)==='np'?'selected':''}>尼泊尔（加德满都）</option>
+            <option value="ai" ${getApplicantCampusCode(ap)==='ai'?'selected':''}>AI项目</option>
+            <option value="stu" ${getApplicantCampusCode(ap)==='stu'?'selected':''}>神学生（续读）</option>
+            <option value="norm" ${getApplicantCampusCode(ap)==='norm'?'selected':''}>师范生</option>
           </select>
         </div>
         <div>
@@ -6885,8 +7174,11 @@ function bind(){
         return;
       }
       A.adminTab=tab;A.selectedApId=null;
-      if(tab==='continuing' && !A.continuingLoadedAt && !A.continuingLoading){
-        loadContinuingForStaff();
+      if(tab==='continuing'){
+        restoreContinuingViewPref();
+        if(!A.continuingLoadedAt && !A.continuingLoading){
+          loadContinuingForStaff();
+        }
       }
       render();
     });
@@ -6899,10 +7191,40 @@ function bind(){
   if(ctSel('ct-f-year'))   ctSel('ct-f-year').addEventListener('change', e=>{ A.continuingFilter.year   = e.target.value; render(); });
   if(ctSel('ct-f-lang'))   ctSel('ct-f-lang').addEventListener('change', e=>{ A.continuingFilter.lang   = e.target.value; render(); });
   if(ctSel('ct-f-status')) ctSel('ct-f-status').addEventListener('change', e=>{ A.continuingFilter.status = e.target.value; render(); });
+  if(ctSel('ct-sch-f-status')) ctSel('ct-sch-f-status').addEventListener('change', e=>{ A.continuingSchFilter.status = e.target.value; render(); });
+  root.querySelectorAll('[data-continuing-view]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      A.continuingView = el.dataset.continuingView || 'applications';
+      try{ localStorage.setItem('mms_continuing_view', A.continuingView); }catch(_){}
+      render();
+    });
+  });
+  root.querySelectorAll('[data-action="continuing-sch-detail"]').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.stopPropagation();
+      const cid = el.dataset.cid;
+      if(!cid) return;
+      A.continuingSelectedId = cid;
+      A.continuingFocusScholarship = true;
+      const row = (A.allContinuing||[]).find(r=>String(r.id)===String(cid));
+      if(row && row.staff_unread){
+        row.staff_unread = false;
+        saveContinuingByStaff(cid, {mark_read:true, toastMsg:false});
+      }
+      render();
+      requestAnimationFrame(()=>{
+        const sec = document.getElementById('ct-sch-section');
+        if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+    });
+  });
   root.querySelectorAll('[data-action="continuing-select"]').forEach(el=>{
     el.addEventListener('click', async ()=>{
       const cid = el.dataset.cid;
       A.continuingSelectedId = cid;
+      if(el.dataset.schFocus==='1' || A.continuingView==='scholarship'){
+        A.continuingFocusScholarship = true;
+      }
       // 标记已读
       const row = (A.allContinuing||[]).find(r=>String(r.id)===String(cid));
       if(row && row.staff_unread){
@@ -6910,9 +7232,15 @@ function bind(){
         saveContinuingByStaff(cid, {mark_read:true, toastMsg:false});
       }
       render();
+      if(A.continuingFocusScholarship){
+        requestAnimationFrame(()=>{
+          const sec = document.getElementById('ct-sch-section');
+          if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+        });
+      }
     });
   });
-  bindModalClose(root, '[data-action="continuing-close"]', ()=>{ A.continuingSelectedId = null; render(); });
+  bindModalClose(root, '[data-action="continuing-close"]', ()=>{ A.continuingSelectedId = null; A.continuingFocusScholarship = false; render(); });
   if(ctSel('ct-d-save-status')){
     ctSel('ct-d-save-status').addEventListener('click', e=>{
       e.stopPropagation();
@@ -6966,6 +7294,15 @@ function bind(){
   });
   bindModalClose(root, '[data-action=close-modal]', ()=>{ A.selectedApId=null; render(); });
 
+  root.querySelectorAll('[data-action=dismiss-sheet-reimport]').forEach(el=>{
+    el.addEventListener('click',async(e)=>{
+      e.stopPropagation();
+      const apid=el.dataset.apid;
+      await dismissSheetReimportDiff(apid);
+      render();
+    });
+  });
+
   // ── Briefing ──
   root.querySelectorAll('[data-action=view-briefing]').forEach(el=>{
     el.addEventListener('click',async()=>{
@@ -6990,6 +7327,18 @@ function bind(){
     });
   });
 
+  root.querySelectorAll('[data-action=enable-exam-phone]').forEach(el=>{
+    el.addEventListener('click',async(e)=>{
+      e.stopPropagation();
+      await enableApplicantExamBypassPhone(el.dataset.apid);
+    });
+  });
+  root.querySelectorAll('[data-action=restore-exam-phone]').forEach(el=>{
+    el.addEventListener('click',async(e)=>{
+      e.stopPropagation();
+      await restoreApplicantExamBypassPhone(el.dataset.apid);
+    });
+  });
   root.querySelectorAll('[data-action=save-brief-basic]').forEach(el=>{
     el.addEventListener('click',async e=>{
       e.stopPropagation();
@@ -7001,9 +7350,8 @@ function bind(){
       const conversion_time_raw=document.getElementById('brief-ap-conversion-time')?.value||'';
       const dob_raw=document.getElementById('brief-ap-dob')?.value||'';
       const campusSel=document.getElementById('brief-ap-campus')?.value||'id';
-      let campus_code=campusCodeFromStaffSelect(campusSel);
+      const campus_code=campusCodeFromStaffSelect(campusSel);
       const hometownVal=(document.getElementById('brief-ap-hometown')?.value||'').trim()||null;
-      campus_code=applyHometownCampusInference(campus_code,hometownVal);
       const payload={
         exam_lang,
         campus_code,
@@ -7289,9 +7637,8 @@ function bind(){
     if(exam_lang!=='en'&&exam_lang!=='id') exam_lang='zh';
 
     const hometownVal=hometown||null;
-    const apRow=A.allApplicants.find(a=>String(a.id)===String(apid));
-    let campus_code=apRow?getApplicantCampusCode(apRow):'id';
-    campus_code=applyHometownCampusInference(campus_code,hometownVal);
+    const campusSel=document.getElementById('edit-ap-campus')?.value||'id';
+    const campus_code=campusCodeFromStaffSelect(campusSel);
     const payload={
       exam_lang,
       campus_code,
@@ -7616,6 +7963,7 @@ async function init(){
       }catch(e){ console.warn(e); }
       if(prof){
         A.profile=prof;A.role=prof.role;
+        restoreContinuingViewPref();
         if(A.role==='admin'||A.role==='teacher'){
           A.adminDataLoading=true;
           try{ render(); }catch(e){ console.warn(e); }
