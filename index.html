@@ -88,7 +88,10 @@ input,textarea,select{font-family:inherit;font-size:inherit}
 .btn-full{width:100%}.btn:disabled{background:#f3f4f6;color:#9ca3af;cursor:not-allowed;transform:none;box-shadow:none}
 
 /* Header */
-.header{background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid #f3f4f6;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.header{background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid #f3f4f6;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;gap:8px}
+.app-lang-switch{display:inline-flex;align-items:center;gap:2px;padding:2px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;flex-shrink:0}
+.app-lang-switch button{border:none;background:transparent;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:600;color:#6b7280;cursor:pointer;line-height:1.2;white-space:nowrap}
+.app-lang-switch button.active{background:#fff;color:#4f46e5;box-shadow:0 1px 2px rgba(0,0,0,.06)}
 
 /* Steps */
 .steps{display:flex;align-items:center;justify-content:center;padding:20px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -262,6 +265,7 @@ html{overflow-x:hidden}
   .header .row:first-child span.fw7{font-size:12px}
   /* 用户名：极小屏可隐藏 */
   .header .row:last-child .t12{display:none}
+  .app-lang-switch button{padding:3px 6px;font-size:10px}
 }
 
 /* 考试计时器：小屏允许换行 */
@@ -364,6 +368,22 @@ function staffCanDownloadVisaZip(){
 /** 奖学金批复页：可编辑批复额度与备注（签证/入学同工只读） */
 function staffCanEditScholarshipApproval(){
   return (A.role==='admin'||A.role==='teacher')&&!isVisaOpsStaff();
+}
+function isScholarshipApproved(ap){
+  const v=ap?.scholarship_amount_approved;
+  return v!=null&&String(v)!==''&&!isNaN(Number(v));
+}
+/** 奖学金批复列表排序：0 已提交未批复 · 1 未提交未批复 · 2 已批复 */
+function scholarshipReviewBucket(ap){
+  if(isScholarshipApproved(ap)) return 2;
+  if(ap?.materials_submitted_at) return 0;
+  return 1;
+}
+function scholarshipReviewStatusTag(ap){
+  const b=scholarshipReviewBucket(ap);
+  if(b===2) return mkTag('#dcfce7','#15803d','已批复');
+  if(b===0) return mkTag('#fef3c7','#92400e','已提交·待批复');
+  return mkTag('#f3f4f6','#6b7280','未提交');
 }
 function staffAdminTabDefs(){
   const all=[
@@ -1450,6 +1470,13 @@ function persistApplicantAppLang(lang){
   });
 }
 
+/** 右上角界面语言切换（中 / EN / ID） */
+function renderAppLangSwitcher(){
+  const cur=A.appLang||'zh';
+  const langs=[{id:'zh',label:'中文'},{id:'en',label:'EN'},{id:'id',label:'ID'}];
+  return `<div class="app-lang-switch" role="group" aria-label="${esc(apLine('界面语言','Interface language','Bahasa antarmuka'))}">${langs.map(l=>`<button type="button" class="${cur===l.id?'active':''}" data-action="set-app-lang" data-lang="${l.id}">${esc(l.label)}</button>`).join('')}</div>`;
+}
+
 /** 持久化答卷语言（面试时段按此匹配教师） */
 function persistApplicantExamLang(lang){
   if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
@@ -1733,7 +1760,7 @@ const stageTag = stage => {const s=STAGE_STYLE[stage]||{bg:'#f3f4f6',color:'#6b7
 // ── Exam schedule helpers ──────────────────────────────────────
 const EXAM_OPEN_DAYS_WIB = [1,3,5]; // Mon/Wed/Fri (0=Sun)
 const EXAM_WIB_START = '09:00';
-const EXAM_WIB_END   = '11:30';
+const EXAM_WIB_END   = '13:00';
 const EXAM_ZOOM_ID = '847 5014 4631';
 const EXAM_ZOOM_PW = '156903';
 
@@ -1771,11 +1798,17 @@ function nextExamStartUtc(){
   return null;
 }
 
+function examBeijingRangeLabel(){
+  const s=parseHHMM(EXAM_WIB_START)||{hh:9,mm:0};
+  const e=parseHHMM(EXAM_WIB_END)||{hh:13,mm:0};
+  return `${pad2(s.hh+1)}:${pad2(s.mm)}–${pad2(e.hh+1)}:${pad2(e.mm)}`;
+}
+
 function getExamWindowUtc(){
-  // 考试窗口固定：WIB 周一/周三/周五 09:00-11:30（150 分钟）
+  // 考试开放窗口：WIB 周一/周三/周五 EXAM_WIB_START–EXAM_WIB_END；单次答卷最长 150 分钟
   const nowMs = Date.now();
   const startParts = parseHHMM(EXAM_WIB_START) || {hh:9,mm:0};
-  const intervalMs = 150*60*1000;
+  const endParts = parseHHMM(EXAM_WIB_END) || {hh:13,mm:0};
 
   let bestFuture = null;
   for(let delta=-7; delta<=14; delta++){
@@ -1790,7 +1823,7 @@ function getExamWindowUtc(){
     if(!EXAM_OPEN_DAYS_WIB.includes(day)) continue;
 
     const startUtc = new Date(Date.UTC(y,m,d,startParts.hh,startParts.mm,0) - 7*3600000);
-    const endUtc   = new Date(startUtc.getTime() + intervalMs);
+    const endUtc   = new Date(Date.UTC(y,m,d,endParts.hh,endParts.mm,0) - 7*3600000);
 
     if(nowMs >= startUtc.getTime() && nowMs <= endUtc.getTime()){
       return {startUtc,endUtc,inWindow:true};
@@ -2103,6 +2136,7 @@ async function finalizeApplicantHydration(data){
 
 async function tryRestoreApplicantFromBrowser(){
   if(!sb) return false;
+  try{ await sb.auth.signOut(); }catch(_){}
   let snap=null;
   try{ snap=JSON.parse(localStorage.getItem(APPLICANT_SESSION_KEY)||''); }catch(_){ return false; }
   if(!snap||!snap.applicantId) return false;
@@ -2179,7 +2213,7 @@ const APPLICANTS_STAFF_LIST_COLS =
 /** 列裁剪查询失败时回退（缺列 / 旧库），至少让看板有卡片 */
 const APPLICANTS_STAFF_LIST_COLS_MIN =
   'id,created_at,first_name,last_name,full_name,phone,phone_last4,email,stage,exam_lang,ui_lang,exam_score,exam_essay,interview_slot_id,materials_submitted_at,'+
-  'scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,admin_notes,campus_code';
+  'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,admin_notes,campus_code';
 
 // 首屏极简列表：不含 scholarship_form_json（大 JSON 仍走 v1 / phase2）；含批复标量便于顶栏与奖学金页摘要
 const APPLICANTS_STAFF_LIST_COLS_LITE =
@@ -2187,7 +2221,8 @@ const APPLICANTS_STAFF_LIST_COLS_LITE =
   'mat_survey_alert,mat_survey_alert_reason,scholarship_amount_approved,scholarship_approved_at,scholarship_review_note,campus_code,language_proficiency,hometown,phone_real_backup';
 /** lite 主查询失败时回退（与历史版本一致，列最少） */
 const APPLICANTS_STAFF_LIST_COLS_LITE_FALLBACK =
-  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,sheet_reimport_diff,google_sheet_row';
+  'id,created_at,first_name,last_name,full_name,phone,stage,exam_lang,ui_lang,exam_score,interview_slot_id,materials_submitted_at,sheet_import_unseen,sheet_reimport_diff,google_sheet_row,'+
+  'mat_survey_alert,mat_survey_alert_reason,campus_code';
 
 /** 面试时段列表：避免 select * 拉取无用列（预约页 / 教务排班会频繁查） */
 const INTERVIEW_SLOTS_PUBLIC_COLS =
@@ -2226,7 +2261,7 @@ function mergeApplicantsById_(prev, next){
 /** 教务列表轻量签名：用于定时 lite 刷新判断是否需 re-render */
 function staffApplicantsListSig_(list){
   try{
-    return (list||[]).map(a=>`${a.id}\t${getApplicantCampusCode(a)}\t${a.stage||''}\t${a.exam_score??''}\t${a.scholarship_amount_approved??''}\t${String(a.materials_submitted_at||'').slice(0,19)}`).join('\n');
+    return (list||[]).map(a=>`${a.id}\t${getApplicantCampusCode(a)}\t${a.stage||''}\t${a.exam_score??''}\t${a.scholarship_amount_approved??''}\t${String(a.materials_submitted_at||'').slice(0,19)}\t${applicantSurveyNeedsAttention(a)?'1':'0'}`).join('\n');
   }catch(_){
     return String((list||[]).length);
   }
@@ -2237,10 +2272,14 @@ async function mergeApplicantHeavyFields(apid){
   const ap=A.allApplicants.find(a=>String(a.id)===String(apid));
   if(!ap) return;
   // 列表 RPC 会裁剪奖助表内大字段；打开档案时按单行补全，便于教务下载收入/资产证明等 data URL
-  const {data,error}=await sb.from('applicants').select('visa_files_json,mat_financial_proof_data,scholarship_form_json').eq('id',apid).maybeSingle();
+  const {data,error}=await sb.from('applicants').select('visa_files_json,mat_financial_proof_data,scholarship_form_json,enrollment_survey_json,mat_survey_alert,mat_survey_alert_reason').eq('id',apid).maybeSingle();
   if(error||!data) return;
   if(data.visa_files_json!==undefined) ap.visa_files_json=data.visa_files_json;
   if(data.mat_financial_proof_data!==undefined) ap.mat_financial_proof_data=data.mat_financial_proof_data;
+  if(data.enrollment_survey_json!=null) ap.enrollment_survey_json=data.enrollment_survey_json;
+  if(data.mat_survey_alert!=null) ap.mat_survey_alert=data.mat_survey_alert;
+  if(data.mat_survey_alert_reason!=null) ap.mat_survey_alert_reason=data.mat_survey_alert_reason;
+  syncApplicantSurveyAlertFlags(ap);
   if(data.scholarship_form_json!=null){
     const prev=parseApplicantJsonCol(ap.scholarship_form_json,{});
     const incoming=parseApplicantJsonCol(data.scholarship_form_json,{});
@@ -2421,6 +2460,8 @@ async function loadAdminData(opts){
   if(apRes.ok && !suspiciousEmptyApplicants){
     // fast 模式下为极简列表；后续会在后台再补全字段
     A.allApplicants = apRes.data;
+    hydrateAllApplicantSurveyAlerts_(A.allApplicants);
+    setTimeout(()=>{ hydrateStaffSurveyAlertScalars_(); }, 0);
   }else if(apRes.ok && suspiciousEmptyApplicants){
     // REST 在 RLS 收紧时常见：HTTP 200 + data=[]，会把看板清空；此处保留上一份并提示
     A.allApplicants = prevApplicants;
@@ -2492,6 +2533,7 @@ async function loadAdminData(opts){
           const full = await fetchApplicantsListForStaff_({lite:false});
           if(full?.ok && Array.isArray(full.data) && full.data.length){
             A.allApplicants = mergeApplicantsById_(A.allApplicants, full.data);
+            hydrateAllApplicantSurveyAlerts_(A.allApplicants);
             autoSyncApplicantExamLangs_();
           }
         }catch(e){ console.warn('loadAdminData phase2 applicants full', e); }
@@ -2719,6 +2761,7 @@ async function refreshStaffApplicantsOnce(opts){
     A.staffLastSyncError = null;
     A.staffLastSyncAt = new Date().toISOString();
     const merged=mergeApplicantsById_(prev, rows);
+    hydrateAllApplicantSurveyAlerts_(merged);
     const prevSig=staffApplicantsListSig_(prev);
     const nextSig=staffApplicantsListSig_(merged);
     const prevTop = prev[0]?.created_at ? String(prev[0].created_at) : '';
@@ -2732,6 +2775,7 @@ async function refreshStaffApplicantsOnce(opts){
       saveStaffCache();
       render();
     }
+    hydrateStaffSurveyAlertScalars_();
   }catch(e){
     // 静默失败：避免刷屏影响工作台使用
     console.warn('refreshStaffApplicantsOnce', e);
@@ -3496,7 +3540,9 @@ async function loginStaff(email,password){
   const cache = loadStaffCache();
   if(cache && Array.isArray(cache.allApplicants) && cache.allApplicants.length){
     A.allApplicants = cache.allApplicants;
+    hydrateAllApplicantSurveyAlerts_(A.allApplicants);
     A.staffCacheCount = cache.allApplicants.length;
+    setTimeout(()=>{ hydrateStaffSurveyAlertScalars_(); }, 0);
   }
   A.adminDataLoading=true;
   render();
@@ -3602,11 +3648,7 @@ function renderApplicantLogin(){
       <div class="tc mb6"><div class="t48 mb2">🙋</div><div class="t20 fw8 c-gray8">${esc(apLine('申请人登录','Applicant login','Login pelamar'))}</div></div>
       <div class="b1 bc-indigo100 bg-indigo50 r12 p3 mb4">
         <div class="t12 fw6 c-gray6 mb2">${esc(apLine('界面语言','Interface language','Bahasa antarmuka'))}</div>
-        <div class="row wrap g2">
-          <button type="button" class="btn ${A.appLang==='zh'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="zh">中文</button>
-          <button type="button" class="btn ${A.appLang==='en'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="en">English</button>
-          <button type="button" class="btn ${A.appLang==='id'?'btn-primary':'btn-outline'} btn-sm" data-action="set-app-lang" data-lang="id">Bahasa Indonesia</button>
-        </div>
+        ${renderAppLangSwitcher()}
       </div>
       <div class="col g3">
         <div>
@@ -3675,9 +3717,10 @@ function renderApplicant(){
       const beijing = win ? fmtRangeInTZ(win.startUtc, win.endUtc, 'Asia/Shanghai') : null;
       const allowedNow = isExamAllowedNow(ap);
 
-      const proctorZh = `双机位线上考试：请考生准备两个设备（手机或电脑均可）：一个设备正对本人，需全程开启摄像头并打开麦克风；另一个设备放在本人斜后方约45度，对准屏幕、答题区域及周围环境。\n\n进入会议室时，请将两个设备的显示名称分别设置为「姓名-1」和「姓名-2」，以便监考识别。\n\n考试时间为北京时间 10:00-12:30（印尼时间9:00-11:30），请至少提前15分钟进入会议室完成设备调试。\n\nZoom会议号：${EXAM_ZOOM_ID}，密码：${EXAM_ZOOM_PW}。\n\n请提前充满电、保证网络稳定，并将环境保持安静，考试过程中不随意移动设备或离开镜头范围，不使用其他电子设备，如遇设备或网络问题请第一时间在会议室中说明。\n\n感谢您的配合与理解。`;
-      const proctorEn = `Dual-device online exam: use two devices (phone or computer). One faces you with camera and microphone on; the other is about 45° behind you, showing your screen and workspace. Rename devices to “Name-1” and “Name-2”. Exam time: Beijing 10:00–12:30 / Jakarta 9:00–11:30. Join Zoom at least 15 minutes early. Zoom ID: ${EXAM_ZOOM_ID}, passcode: ${EXAM_ZOOM_PW}. Stay charged, stable network, quiet room; do not leave view or use other devices. Report tech issues in the meeting room immediately. Thank you.`;
-      const proctorId = `Ujian daring dua perangkat: sediakan dua perangkat (ponsel atau komputer). Satu menghadap Anda dengan kamera dan mikrofon menyala sepanjang ujian; yang lain di belakang samping sekitar 45°, memperlihatkan layar, area menjawab, dan lingkungan sekitar.\n\nSaat bergabung ke Zoom, ubah nama tampilan menjadi “Nama-1” dan “Nama-2” agar proktor dapat mengenali Anda.\n\nWaktu ujian: WIB 09:00–11:30; Waktu Beijing 10:00–12:30. Harap masuk ruang rapat minimal 15 menit lebih awal untuk uji coba perangkat.\n\nZoom ID: ${EXAM_ZOOM_ID}, kode sandi: ${EXAM_ZOOM_PW}.\n\nPastikan baterai terisi, jaringan stabil, dan ruangan tenang; jangan meninggalkan bidang kamera atau memakai perangkat lain. Jika ada masalah perangkat atau jaringan, segera laporkan di ruang Zoom.\n\nTerima kasih atas kerja sama Anda.`;
+      const bjRange = examBeijingRangeLabel();
+      const proctorZh = `双机位线上考试：请考生准备两个设备（手机或电脑均可）：一个设备正对本人，需全程开启摄像头并打开麦克风；另一个设备放在本人斜后方约45度，对准屏幕、答题区域及周围环境。\n\n进入会议室时，请将两个设备的显示名称分别设置为「姓名-1」和「姓名-2」，以便监考识别。\n\n考试开放时间为北京时间 ${bjRange}（印尼时间 ${EXAM_WIB_START}–${EXAM_WIB_END}），单次答卷最长 150 分钟，请至少提前15分钟进入会议室完成设备调试。\n\nZoom会议号：${EXAM_ZOOM_ID}，密码：${EXAM_ZOOM_PW}。\n\n请提前充满电、保证网络稳定，并将环境保持安静，考试过程中不随意移动设备或离开镜头范围，不使用其他电子设备，如遇设备或网络问题请第一时间在会议室中说明。\n\n感谢您的配合与理解。`;
+      const proctorEn = `Dual-device online exam: use two devices (phone or computer). One faces you with camera and microphone on; the other is about 45° behind you, showing your screen and workspace. Rename devices to “Name-1” and “Name-2”. Exam window: Beijing ${bjRange} / Jakarta ${EXAM_WIB_START}–${EXAM_WIB_END} (150 min per attempt). Join Zoom at least 15 minutes early. Zoom ID: ${EXAM_ZOOM_ID}, passcode: ${EXAM_ZOOM_PW}. Stay charged, stable network, quiet room; do not leave view or use other devices. Report tech issues in the meeting room immediately. Thank you.`;
+      const proctorId = `Ujian daring dua perangkat: sediakan dua perangkat (ponsel atau komputer). Satu menghadap Anda dengan kamera dan mikrofon menyala sepanjang ujian; yang lain di belakang samping sekitar 45°, memperlihatkan layar, area menjawab, dan lingkungan sekitar.\n\nSaat bergabung ke Zoom, ubah nama tampilan menjadi “Nama-1” dan “Nama-2” agar proktor dapat mengenali Anda.\n\nJendela ujian: WIB ${EXAM_WIB_START}–${EXAM_WIB_END}; Waktu Beijing ${bjRange}; durasi lembar 150 menit. Harap masuk ruang rapat minimal 15 menit lebih awal untuk uji coba perangkat.\n\nZoom ID: ${EXAM_ZOOM_ID}, kode sandi: ${EXAM_ZOOM_PW}.\n\nPastikan baterai terisi, jaringan stabil, dan ruangan tenang; jangan meninggalkan bidang kamera atau memakai perangkat lain. Jika ada masalah perangkat atau jaringan, segera laporkan di ruang Zoom.\n\nTerima kasih atas kerja sama Anda.`;
       const proctorNotice = A.appLang==='en' ? proctorEn : A.appLang==='id' ? proctorId : proctorZh;
 
       const isExempt = isExamExemptApplicant(ap);
@@ -3696,7 +3739,7 @@ function renderApplicant(){
           ${esc(apLine(`共 ${nQ} 道题`,`${nQ} questions`,`${nQ} soal`))}<br>
           ${esc(apLine('考试时长 150 分钟','150 minutes total','Durasi 150 menit'))}<br>
           ${esc(apLine('开放时间：周一 / 周三 / 周五','Open: Mon / Wed / Fri','Buka: Sen / Rab / Jum'))}<br>
-          ${esc(apLine(`印尼时间（WIB） ${EXAM_WIB_START}–${EXAM_WIB_END}；北京时间 10:00–12:30`,`WIB ${EXAM_WIB_START}–${EXAM_WIB_END}; Beijing 10:00–12:30`,`WIB ${EXAM_WIB_START}–${EXAM_WIB_END}; Beijing 10:00–12:30`))}
+          ${esc(apLine(`印尼时间（WIB） ${EXAM_WIB_START}–${EXAM_WIB_END}；北京时间 ${examBeijingRangeLabel()}`,`WIB ${EXAM_WIB_START}–${EXAM_WIB_END}; Beijing ${examBeijingRangeLabel()}`,`WIB ${EXAM_WIB_START}–${EXAM_WIB_END}; Beijing ${examBeijingRangeLabel()}`))}
         </div>
 
         <div class="card p4 tl mb4" style="max-width:520px">
@@ -3761,7 +3804,7 @@ function renderApplicant(){
   return `<div style="min-height:100vh;background:linear-gradient(135deg,#eef2ff,#fff 50%,#f5f3ff)">
     <div class="header">
       <div class="row g2"><span class="t20">🏫</span><span class="fw7 c-gray8 t14">${esc(brandLine)}</span></div>
-      <div class="row g2">${mkAv(initials(ap),'sm')}<span class="t12 c-gray6">${esc(fullName(ap))}</span><button class="btn btn-ghost btn-sm" id="btn-logout">${esc(logoutLine)}</button></div>
+      <div class="row g2" style="align-items:center;flex-wrap:nowrap">${renderAppLangSwitcher()}${mkAv(initials(ap),'sm')}<span class="t12 c-gray6">${esc(fullName(ap))}</span><button class="btn btn-ghost btn-sm" id="btn-logout">${esc(logoutLine)}</button></div>
     </div>
     ${renderSteps(stage, ap)}
     <main style="padding-bottom:48px">${content}</main>
@@ -4097,6 +4140,80 @@ function readFileAsBase64(file){
     fr.readAsDataURL(file);
   });
 }
+/** 申请人保存资料须走 anon：若浏览器仍带教务 JWT，RLS 会拦 UPDATE 导致「保存未生效」 */
+async function ensureApplicantAnonSession(){
+  if(!sb) return;
+  try{
+    const {data}=await sb.auth.getSession();
+    if(data?.session?.access_token) await sb.auth.signOut();
+  }catch(_){}
+}
+function parseSaveMaterialsRpcData(raw){
+  if(raw==null) return null;
+  if(typeof raw==='object') return raw;
+  try{return JSON.parse(String(raw));}catch(_){return null;}
+}
+function compactScholarshipFormJsonForSave(sch){
+  const o={...sch};
+  delete o.financial_proof_data;
+  delete o.income_proof_data;
+  return o;
+}
+function estimateJsonUtf8Bytes(obj){
+  try{return new Blob([JSON.stringify(obj)]).size;}catch(_){return 0;}
+}
+function materialsRpcPayloadToPatch(p){
+  const patch={};
+  if(p.p_scholarship_form_json!=null) patch.scholarship_form_json=p.p_scholarship_form_json;
+  if(p.p_enrollment_survey_json!=null) patch.enrollment_survey_json=p.p_enrollment_survey_json;
+  if(p.p_mat_survey_alert!=null) patch.mat_survey_alert=p.p_mat_survey_alert;
+  if(p.p_mat_survey_alert_reason!==undefined) patch.mat_survey_alert_reason=p.p_mat_survey_alert_reason;
+  if(p.p_visa_files_json!=null) patch.visa_files_json=p.p_visa_files_json;
+  if(p.p_materials_submitted_at!=null) patch.materials_submitted_at=p.p_materials_submitted_at;
+  if(p.p_mat_financial_proof_data!=null) patch.mat_financial_proof_data=p.p_mat_financial_proof_data;
+  if(p.p_mat_financial_proof_filename!=null) patch.mat_financial_proof_filename=p.p_mat_financial_proof_filename;
+  return patch;
+}
+async function callSaveMaterialsRpc(payload){
+  await ensureApplicantAnonSession();
+  let error=null;
+  const attempts=[payload];
+  if(payload.p_mat_financial_proof_data!=null){
+    const legacy={...payload};
+    if(legacy.p_scholarship_form_json&&typeof legacy.p_scholarship_form_json==='object'){
+      legacy.p_scholarship_form_json={
+        ...legacy.p_scholarship_form_json,
+        financial_proof_data:payload.p_mat_financial_proof_data,
+        income_proof_data:payload.p_mat_financial_proof_data,
+        financial_proof_filename:payload.p_mat_financial_proof_filename||legacy.p_scholarship_form_json.financial_proof_filename,
+        income_proof_filename:payload.p_mat_financial_proof_filename||legacy.p_scholarship_form_json.income_proof_filename
+      };
+    }
+    delete legacy.p_mat_financial_proof_data;
+    delete legacy.p_mat_financial_proof_filename;
+    attempts.push(legacy);
+  }
+  for(const pl of attempts){
+    try{
+      const rpc=await sb.rpc('save_materials_for_applicant',pl);
+      if(rpc?.error){
+        error=rpc.error;
+        if(/function|schema cache|42883|PGRST202/i.test(String(rpc.error.message||''))) continue;
+      }else{
+        const data=parseSaveMaterialsRpcData(rpc.data);
+        if(data?.ok===true) return {ok:true,id:data.id,materials_submitted_at:data.materials_submitted_at};
+        if(data?.ok===false) error={message:String(data.error||'not_found_or_denied')};
+      }
+    }catch(e){ error={message:String(e?.message||e||'')}; }
+  }
+  const patch=materialsRpcPayloadToPatch(payload);
+  if(Object.keys(patch).length){
+    const fb=await sb.from('applicants').update(patch).eq('id',payload.p_applicant_id);
+    if(!fb.error) return {ok:true,id:payload.p_applicant_id,materials_submitted_at:patch.materials_submitted_at||null};
+    if(!error) error=fb.error;
+  }
+  return {ok:false,error:error||{message:'save_failed'}};
+}
 const VISA_FILE_MAX_BYTES=Math.floor(2.6*1024*1024);
 function parseVisaFiles(ap){
   return parseApplicantJsonCol(ap&&ap.visa_files_json,{});
@@ -4401,6 +4518,64 @@ function applicantCountryLabel(ap){
     || inferCountryLabelFromOriginText(applicantHometownDisplay(ap))
     || '';
 }
+function applicantSurveyNeedsAttention(ap){
+  if(!ap) return false;
+  const flag=ap.mat_survey_alert;
+  if(flag===true||flag===1||String(flag).toLowerCase()==='true') return true;
+  const sur=parseApplicantJsonCol(ap.enrollment_survey_json,{});
+  if(!sur||!Object.keys(sur).length) return false;
+  return !!computeSurveyAlertFromSurveyJson(sur).alert;
+}
+function applicantSurveyAlertReason(ap){
+  if(!ap) return '';
+  if(ap.mat_survey_alert_reason) return String(ap.mat_survey_alert_reason);
+  const sur=parseApplicantJsonCol(ap.enrollment_survey_json,{});
+  return computeSurveyAlertFromSurveyJson(sur).reason||'';
+}
+function applicantSurveyAlertTagHtml(ap,label){
+  if(!applicantSurveyNeedsAttention(ap)) return '';
+  return mkTag('#fef3c7','#92400e',label||'需留意');
+}
+/** 列表缺标量时，用调查表 JSON 在内存补全（教师 lite 列表与管理员一致显示「需留意」） */
+function syncApplicantSurveyAlertFlags(ap){
+  if(!ap) return;
+  if(ap.mat_survey_alert===true||ap.mat_survey_alert===1||String(ap.mat_survey_alert).toLowerCase()==='true') return;
+  const sur=parseApplicantJsonCol(ap.enrollment_survey_json,{});
+  if(!sur||!Object.keys(sur).length) return;
+  const al=computeSurveyAlertFromSurveyJson(sur);
+  if(al.alert){
+    ap.mat_survey_alert=true;
+    if(!ap.mat_survey_alert_reason) ap.mat_survey_alert_reason=al.reason||'';
+  }
+}
+function hydrateAllApplicantSurveyAlerts_(list){
+  (list||[]).forEach(syncApplicantSurveyAlertFlags);
+}
+/** lite 列表缺警示字段时，后台补拉标量（教师与管理员看板一致） */
+async function hydrateStaffSurveyAlertScalars_(){
+  if(!sb||!Array.isArray(A.allApplicants)||!A.allApplicants.length) return;
+  if(A.role!=='admin'&&A.role!=='teacher') return;
+  try{
+    const {data,error}=await sb.from('applicants').select('id,mat_survey_alert,mat_survey_alert_reason');
+    if(error||!Array.isArray(data)||!data.length) return;
+    const map=new Map(data.map(r=>[String(r.id),r]));
+    let changed=false;
+    A.allApplicants.forEach(ap=>{
+      const row=map.get(String(ap.id));
+      if(!row) return;
+      const prev=applicantSurveyNeedsAttention(ap);
+      if(row.mat_survey_alert!=null) ap.mat_survey_alert=row.mat_survey_alert;
+      if(row.mat_survey_alert_reason!=null) ap.mat_survey_alert_reason=row.mat_survey_alert_reason;
+      syncApplicantSurveyAlertFlags(ap);
+      if(applicantSurveyNeedsAttention(ap)!==prev) changed=true;
+    });
+    if(changed){
+      saveStaffCache();
+      render();
+    }
+  }catch(e){ console.warn('hydrateStaffSurveyAlertScalars_', e); }
+}
+
 function computeSurveyAlertFromSurveyJson(sur){
   const drug=String(sur.drug_history||sur.drug_hist||sur.substance_history||'').toLowerCase()==='yes';
   const drugDet=String(sur.drug_detail||sur.drug_detail_line||sur.substance_detail||'').trim();
@@ -5287,7 +5462,7 @@ function renderScholarshipReview(){
     const actions=(canEdit?`<button type="button" class="btn btn-primary btn-sm btn-save-sch-amt" data-apid="${ap.id}">保存</button>`:'')+
       `<button type="button" class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${ap.id}">档案</button>`;
     return `<tr>
-      <td><div class="row g1 wrap" style="align-items:center"><span class="fw6">${esc(fullName(ap))}</span>${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>
+      <td><div class="row g1 wrap" style="align-items:center"><span class="fw6">${esc(fullName(ap))}</span>${applicantSurveyAlertTagHtml(ap)}</div>
         <div class="t11 c-gray4">${esc(ap.phone||'')}</div></td>
       <td>${ap.exam_score!=null?esc(String(ap.exam_score)):'—'}</td>
       <td class="t11 c-gray6" style="max-width:220px;word-break:break-word">${esc(reqDisp)}</td>
@@ -5971,7 +6146,7 @@ function renderPipeline(){
     return `<div class="kanban-card" style="position:relative" data-action="select-ap" data-apid="${ap.id}">
             ${(ap.sheet_import_unseen||parseSheetReimportDiff(ap).length)?`<span title="${parseSheetReimportDiff(ap).length?'重复报名已合并，请查看变更':'报名表新导入'}" style="position:absolute;top:8px;left:8px;width:8px;height:8px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #fff;z-index:1"></span>`:''}
             ${isAd?`<button class="btn btn-danger btn-xs" style="position:absolute;top:6px;right:6px;padding:2px 6px;font-size:11px" data-action="delete-ap" data-apid="${ap.id}">🗑</button>`:''}
-            <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','需留意'):''}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
+            <div class="row g2 mb2">${mkAv(initials(ap),'sm')}<div><div class="fw6 c-gray8 t13 row g1 wrap" style="align-items:center">${esc(fullName(ap))}${applicantSurveyAlertTagHtml(ap)}</div>${ap.exam_score!=null?mkTag('#eef2ff','#4f46e5',ap.exam_score+' 分'):''}</div></div>
             ${contactLines}
             ${ap.interview_slot_id&&ap.stage!=='complete'?`<div class="t11 mt1" style="color:#4f46e5;font-weight:600">📅 ${esc(formatInterviewSlotLine(ap))}</div>`:''}
           </div>`;
@@ -6194,7 +6369,7 @@ function renderApDetailModal(ap){
   const schApprOk=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''&&!isNaN(Number(ap.scholarship_amount_approved));
   return `<div class="modal-overlay" id="ap-modal" data-action="close-modal">
     <div class="modal-sm" onclick="event.stopPropagation()">
-      <div class="row g3 mb4">${mkAv(initials(ap),'xl')}<div><div class="fw7 c-gray8 t16">${esc(fullName(ap))}</div>${stageTag(ap.stage)}</div>
+      <div class="row g3 mb4">${mkAv(initials(ap),'xl')}<div><div class="fw7 c-gray8 t16 row g2 wrap" style="align-items:center">${esc(fullName(ap))}${applicantSurveyAlertTagHtml(ap)}</div>${stageTag(ap.stage)}</div>
       <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-modal">✕</button></div>
       <div class="col g2 t13 c-gray5 mb4">
         <div class="info-row"><span>电话</span><span class="fw5">${esc(ap.phone||'—')}</span></div>
@@ -6294,7 +6469,7 @@ function renderBriefingModal(ap){
     :`<div class="info-row"><span class="c-gray5">奖学金批复（最终）</span><span class="t12 c-gray4">尚未批复</span></div>`;
   return `<div class="modal-overlay" data-action="close-briefing">
     <div class="modal-lg" onclick="event.stopPropagation()">
-      <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18 row g2 wrap" style="align-items:center">${esc(fullName(ap))}${ap.mat_survey_alert?mkTag('#fef3c7','#92400e','调查表·需留意'):''}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
+      <div class="row g3 mb5">${mkAv(initials(ap),'xl')}<div><div class="fw8 c-gray8 t18 row g2 wrap" style="align-items:center">${esc(fullName(ap))}${applicantSurveyAlertTagHtml(ap,'调查表·需留意')}</div><div class="row g2 mt1">${stageTag(ap.stage)}</div></div>
       <button class="ml-auto c-gray4 t20" style="line-height:1" data-action="close-briefing">✕</button></div>
 
       ${renderSheetReimportBannerHtml(ap)}
@@ -6429,7 +6604,7 @@ function renderBriefingModal(ap){
 
       <div class="fw7 c-gray6 t11 mb2">7. 入学调查</div>
       ${hasSurvey?`<div class="card p4 mb4">
-        ${ap.mat_survey_alert?`<div class="b1 bc-red200 bg-red50 r8 p3 mb3 t12" style="color:#991b1b"><strong>⚠ 调查表需教务留意</strong>：${esc(ap.mat_survey_alert_reason||'—')}</div>`:''}
+        ${applicantSurveyNeedsAttention(ap)?`<div class="b1 bc-red200 bg-red50 r8 p3 mb3 t12" style="color:#991b1b"><strong>⚠ 调查表需留意</strong>：${esc(applicantSurveyAlertReason(ap)||'—')}</div>`:''}
         ${surBriefSecs.length?renderBriefStaffSections(surBriefSecs):'<div class="t13 c-gray4 mb2">调查表已保存（无需要特别留意的条目）。</div>'}
         ${canStaff?`<details class="mt3">
           <summary class="t12 c-indigo6 fw6" style="cursor:pointer;user-select:none">编辑入学调查表</summary>
@@ -6708,7 +6883,10 @@ function bind(){
       toast(apLine('无法获取考试时间窗口','Cannot load exam schedule.','Tidak bisa memuat jadwal ujian.'),false);
       return;
     }
-    const remainSec = isExamExemptApplicant(ap) ? (A.examTotalTime||9000) : Math.max(0, Math.floor((win.endUtc.getTime() - Date.now())/1000));
+    const windowRemain = Math.max(0, Math.floor((win.endUtc.getTime() - Date.now())/1000));
+    const remainSec = isExamExemptApplicant(ap)
+      ? (A.examTotalTime||9000)
+      : Math.min(A.examTotalTime||9000, windowRemain);
     if(remainSec<=0){
       toast(apLine('该开放时间已结束，请刷新后选择下一次','This window has ended — refresh for the next one.','Jendela ini berakhir — muat ulang.'),false);
       render();
@@ -6867,40 +7045,32 @@ function bind(){
       sponsor_proof_filename:spN||null,
       _saved_at:new Date().toISOString()
     };
-    let updSchRows=null;
-    let error=null;
-    try{
-      const rpc=await sb.rpc('save_materials_for_applicant',{
-        p_applicant_id:A.applicant.id,
-        p_scholarship_form_json:sch
-      });
-      if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
-        updSchRows=[{id:rpc.data.id,scholarship_form_json:sch}];
-      }else if(rpc?.error){
-        error=rpc.error;
-      }
-    }catch(e){
-      error={message:String(e?.message||e||'')};
-    }
-    if(!updSchRows){
-      const fb=await sb.from('applicants').update({scholarship_form_json:sch}).eq('id',A.applicant.id).select('id,scholarship_form_json');
-      updSchRows=fb.data||null;
-      error=fb.error||error;
-    }
-    if(error){
-      toast(apLine('保存失败','Save failed','Gagal simpan')+(error.message?': '+error.message:''),false);
+    const finData=(data&&String(data).length>32)?data:null;
+    const schForDb=compactScholarshipFormJsonForSave(sch);
+    const rpcPayload={
+      p_applicant_id:A.applicant.id,
+      p_scholarship_form_json:schForDb,
+      p_mat_financial_proof_data:finData,
+      p_mat_financial_proof_filename:fn||null
+    };
+    const estBytes=estimateJsonUtf8Bytes(rpcPayload);
+    if(estBytes>4.5*1024*1024){
+      toast(apLine('上传内容过大（约 '+Math.round(estBytes/1024)+'KB），请压缩 PDF/图片后重试（单文件建议小于 2.5MB）','Upload too large — compress files (each under ~2.5MB)','Unggahan terlalu besar — kompres berkas'),false);
       return;
     }
-    if(!updSchRows||!updSchRows.length){
-      toast(apLine('保存未生效，请刷新后重试','Save did not persist; refresh and retry','Simpan belum tersimpan; muat ulang'),false);
+    const res=await callSaveMaterialsRpc(rpcPayload);
+    if(!res.ok){
+      const msg=res.error?.message||'';
+      toast(apLine('保存失败','Save failed','Gagal simpan')+(msg?': '+msg:'')+(msg.includes('function')?apLine('（请在 Supabase 执行 manual_save_materials_financial_proof.sql）',' (run manual_save_materials_financial_proof.sql in Supabase)',' (jalankan SQL di Supabase)'):''),false);
       return;
     }
-    {
-      const row=updSchRows[0]||{};
-      Object.assign(A.applicant,{scholarship_form_json:row.scholarship_form_json??sch});
-      toast(apLine('奖助学金申请表已保存','Scholarship form saved','Tersimpan'));
-      render();
-    }
+    Object.assign(A.applicant,{
+      scholarship_form_json:sch,
+      mat_financial_proof_data:finData||A.applicant.mat_financial_proof_data,
+      mat_financial_proof_filename:fn||A.applicant.mat_financial_proof_filename
+    });
+    toast(apLine('奖助学金申请表已保存','Scholarship form saved','Tersimpan'));
+    render();
   });
   document.getElementById('btn-save-mat-sv')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
@@ -6915,51 +7085,24 @@ function bind(){
       return;
     }
     const al=computeSurveyAlertFromSurveyJson(sur);
-    let updSurRows=null;
-    let error=null;
-    try{
-      const rpc=await sb.rpc('save_materials_for_applicant',{
-        p_applicant_id:A.applicant.id,
-        p_enrollment_survey_json:sur,
-        p_mat_survey_alert:al.alert,
-        p_mat_survey_alert_reason:al.reason||null
-      });
-      if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
-        updSurRows=[{
-          id:rpc.data.id,
-          enrollment_survey_json:sur,
-          mat_survey_alert:al.alert,
-          mat_survey_alert_reason:al.reason||null
-        }];
-      }else if(rpc?.error){
-        error=rpc.error;
-      }
-    }catch(e){
-      error={message:String(e?.message||e||'')};
-    }
-    if(!updSurRows){
-      const fb=await sb.from('applicants').update({enrollment_survey_json:sur,mat_survey_alert:al.alert,mat_survey_alert_reason:al.reason||null}).eq('id',A.applicant.id).select('id,enrollment_survey_json,mat_survey_alert,mat_survey_alert_reason');
-      updSurRows=fb.data||null;
-      error=fb.error||error;
-    }
-    if(error){
-      toast(apLine('保存失败','Save failed','Gagal')+(error.message?': '+error.message:''),false);
+    const res=await callSaveMaterialsRpc({
+      p_applicant_id:A.applicant.id,
+      p_enrollment_survey_json:sur,
+      p_mat_survey_alert:al.alert,
+      p_mat_survey_alert_reason:al.reason||null
+    });
+    if(!res.ok){
+      const msg=res.error?.message||'';
+      toast(apLine('保存失败','Save failed','Gagal')+(msg?': '+msg:''),false);
       return;
     }
-    if(!updSurRows||!updSurRows.length){
-      toast(apLine('保存未生效，请刷新后重试','Save did not persist; refresh and retry','Simpan belum tersimpan; muat ulang'),false);
-      return;
-    }
-    {
-      const row=updSurRows[0]||{};
-      Object.assign(A.applicant,{
-        enrollment_survey_json:row.enrollment_survey_json??sur,
-        mat_survey_alert:row.mat_survey_alert??al.alert,
-        mat_survey_alert_reason:row.mat_survey_alert_reason??(al.reason||null)
-      });
-      toast(apLine('入学调查表已保存','Survey saved','Tersimpan'));
-      render();
-    }
+    Object.assign(A.applicant,{
+      enrollment_survey_json:sur,
+      mat_survey_alert:al.alert,
+      mat_survey_alert_reason:al.reason||null
+    });
+    toast(apLine('入学调查表已保存','Survey saved','Tersimpan'));
+    render();
   });
   root.querySelectorAll('input[name="mat-sch-guarantee"]').forEach(r=>{
     r.addEventListener('change',()=>{
@@ -6997,41 +7140,19 @@ function bind(){
       _saved_at:new Date().toISOString()
     };
     const spec=visaMaterialsSpecOk(vf);
-    let updVisaRows=null;
-    let error=null;
-    try{
-      const rpc=await sb.rpc('save_materials_for_applicant',{
-        p_applicant_id:A.applicant.id,
-        p_visa_files_json:vf
-      });
-      if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
-        updVisaRows=[{id:rpc.data.id,visa_files_json:vf}];
-      }else if(rpc?.error){
-        error=rpc.error;
-      }
-    }catch(e){
-      error={message:String(e?.message||e||'')};
-    }
-    if(!updVisaRows){
-      const fb=await sb.from('applicants').update({visa_files_json:vf}).eq('id',A.applicant.id).select('id,visa_files_json');
-      updVisaRows=fb.data||null;
-      error=fb.error||error;
-    }
-    if(error){
-      toast(apLine('保存失败','Save failed','Gagal')+(error.message?': '+error.message:''),false);
+    if(estimateJsonUtf8Bytes({p_visa_files_json:vf})>4.5*1024*1024){
+      toast(apLine('上传内容过大，请压缩后重试','Upload too large — compress files','Unggahan terlalu besar'),false);
       return;
     }
-    if(!updVisaRows||!updVisaRows.length){
-      toast(apLine('保存未生效，请刷新后重试','Save did not persist; refresh and retry','Simpan belum tersimpan; muat ulang'),false);
+    const res=await callSaveMaterialsRpc({p_applicant_id:A.applicant.id,p_visa_files_json:vf});
+    if(!res.ok){
+      toast(apLine('保存失败','Save failed','Gagal')+(res.error?.message?': '+res.error.message:''),false);
       return;
     }
-    {
-      const row=updVisaRows[0]||{};
-      Object.assign(A.applicant,{visa_files_json:row.visa_files_json??vf});
-      if(spec.ok) toast(apLine('签证材料已保存，三份已齐','Visa files saved (all 3)','Berkas visa lengkap'));
-      else toast(apLine('已保存。尚未交齐：','Saved. Still missing: ','Tersimpan. Kurang: ')+spec.issues.join('、'));
-      render();
-    }
+    Object.assign(A.applicant,{visa_files_json:vf});
+    if(spec.ok) toast(apLine('签证材料已保存，三份已齐','Visa files saved (all 3)','Berkas visa lengkap'));
+    else toast(apLine('已保存。尚未交齐：','Saved. Still missing: ','Tersimpan. Kurang: ')+spec.issues.join('、'));
+    render();
   });
   document.getElementById('btn-materials-submit-review')?.addEventListener('click',async()=>{
     if(A.role!=='applicant'||!A.applicant?.id||!sb) return;
@@ -7039,35 +7160,16 @@ function bind(){
     const miss=materialsMissingCount(A.applicant);
     if(miss>0){toast(apLine('尚有 '+miss+' 项必填未完成',''+miss+' item(s) missing',miss+' wajib'),false);return;}
     const submitAt=new Date().toISOString();
-    let updMatRows=null;
-    let error=null;
-    try{
-      const rpc=await sb.rpc('save_materials_for_applicant',{
-        p_applicant_id:A.applicant.id,
-        p_materials_submitted_at:submitAt
-      });
-      if(rpc && !rpc.error && rpc.data && rpc.data.ok===true){
-        updMatRows=[{id:rpc.data.id,materials_submitted_at:rpc.data.materials_submitted_at||submitAt}];
-      }else if(rpc?.error){
-        error=rpc.error;
-      }
-    }catch(e){
-      error={message:String(e?.message||e||'')};
-    }
-    if(!updMatRows){
-      const fb=await sb.from('applicants').update({materials_submitted_at:submitAt}).eq('id',A.applicant.id).select('id,materials_submitted_at');
-      updMatRows=fb.data||null;
-      error=fb.error||error;
-    }
-    if(error){
-      toast(apLine('提交失败','Submit failed','Gagal')+(error.message?': '+error.message:''),false);
+    const res=await callSaveMaterialsRpc({
+      p_applicant_id:A.applicant.id,
+      p_materials_submitted_at:submitAt
+    });
+    if(!res.ok){
+      const msg=res.error?.message||'';
+      toast(apLine('提交失败','Submit failed','Gagal')+(msg?': '+msg:''),false);
       return;
     }
-    if(!updMatRows||!updMatRows.length){
-      toast(apLine('提交未生效，请刷新后重试','Submit did not persist; refresh and retry','Kirim belum tersimpan; muat ulang'),false);
-      return;
-    }
-    A.applicant.materials_submitted_at=(updMatRows[0]&&updMatRows[0].materials_submitted_at)||submitAt;
+    A.applicant.materials_submitted_at=res.materials_submitted_at||submitAt;
     toast(apLine('已提交审核，请等待奖学金批复','Submitted; pending scholarship review','Terkirim'));
     render();
   });
