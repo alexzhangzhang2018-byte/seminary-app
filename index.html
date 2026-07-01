@@ -5438,31 +5438,42 @@ function renderStaffMe(){
 function renderScholarshipReview(){
   const stageOrder={materials:0,visa:1,complete:2};
   const canEdit=staffCanEditScholarshipApproval();
-  const list=(A.allApplicants||[]).filter(a=>['materials','visa','complete'].includes(a.stage)).sort((a,b)=>{
+  const track=A.pipelineTrack||'all';
+  let list=(A.allApplicants||[]).filter(a=>['materials','visa','complete'].includes(a.stage));
+  list=filterApplicantsByPipelineTrack(list,track);
+  list=list.sort((a,b)=>{
+    const ba=scholarshipReviewBucket(a),bb=scholarshipReviewBucket(b);
+    if(ba!==bb) return ba-bb;
     const oa=stageOrder[a.stage]??9,ob=stageOrder[b.stage]??9;
     if(oa!==ob) return oa-ob;
     const ta=String(a.materials_submitted_at||a.created_at||''),tb=String(b.materials_submitted_at||b.created_at||'');
     if(ta!==tb) return ta.localeCompare(tb);
     return String(fullName(a)).localeCompare(String(fullName(b)),'zh');
   });
+  const countHint=track==='all'?`共 ${list.length} 人`:`本类 ${list.length} 人`;
+  const trackSelHtml=`<select id="scholarship-track-filter" class="sel" style="min-width:140px;margin:0">${PIPELINE_TRACKS.map(t=>
+    `<option value="${t.id}"${t.id===track?' selected':''}>${esc(t.label)}</option>`
+  ).join('')}</select><span class="t12 c-gray5">${esc(countHint)}</span>`;
   const row=ap=>{
     const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
-    const v=ap.scholarship_amount_approved!=null&&ap.scholarship_amount_approved!==''?String(ap.scholarship_amount_approved):'';
+    const approved=isScholarshipApproved(ap);
+    const v=approved?String(ap.scholarship_amount_approved):'';
     const reqDisp=String(sch.requested_amount||sch.amount_requested||sch.family_support||sch.total_self_funded||'—').slice(0,120);
     const apprAt=ap.scholarship_approved_at?`<div class="t11 c-gray4 mt1">批复时间：${esc(String(ap.scholarship_approved_at).slice(0,19).replace('T',' '))}</div>`:'';
     const isNpRow=getApplicantCampusCode(ap)==='np';
-    const amtCell=canEdit
+    const rowEditable=canEdit&&!approved;
+    const amtCell=rowEditable
       ?(isNpRow
-        ?`<select class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px"><option value=""${v===''?' selected':''}> — </option><option value="1000"${v==='1000'?' selected':''}>1000</option><option value="500"${v==='500'?' selected':''}>500</option><option value="0"${v==='0'?' selected':''}>0</option></select>`
-        :`<input type="number" class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px" step="1" placeholder="额度" value="${esc(v)}">`)
-      :`<div class="t13 fw6 c-gray8">${v?esc(v):'<span class="c-gray4">—</span>'}</div>${apprAt}`;
-    const noteCell=canEdit
-      ?`<input type="text" class="inp sch-note-inp" data-apid="${ap.id}" style="width:140px" placeholder="批复备注" value="${esc(ap.scholarship_review_note||'')}">`
+        ?`<select class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px"><option value="" selected> — </option><option value="1000">1000</option><option value="500">500</option><option value="0">0</option></select>`
+        :`<input type="number" class="inp sch-amt-inp" data-apid="${ap.id}" style="width:110px" step="1" placeholder="额度" value="">`)
+      :`<div class="t13 fw6 ${approved?'c-green7':'c-gray8'}">${approved?esc(v):'<span class="c-gray4">—</span>'}</div>${apprAt}`;
+    const noteCell=rowEditable
+      ?`<input type="text" class="inp sch-note-inp" data-apid="${ap.id}" style="width:140px" placeholder="批复备注" value="">`
       :`<div class="t12 c-gray7" style="max-width:200px;word-break:break-word">${ap.scholarship_review_note?esc(ap.scholarship_review_note):'<span class="c-gray4">—</span>'}</div>`;
-    const actions=(canEdit?`<button type="button" class="btn btn-primary btn-sm btn-save-sch-amt" data-apid="${ap.id}">保存</button>`:'')+
+    const actions=(rowEditable?`<button type="button" class="btn btn-primary btn-sm btn-save-sch-amt" data-apid="${ap.id}">保存批复</button>`:'')+
       `<button type="button" class="btn btn-outline btn-sm" data-action="view-briefing" data-apid="${ap.id}">档案</button>`;
     return `<tr>
-      <td><div class="row g1 wrap" style="align-items:center"><span class="fw6">${esc(fullName(ap))}</span>${applicantSurveyAlertTagHtml(ap)}</div>
+      <td><div class="row g1 wrap" style="align-items:center"><span class="fw6">${esc(fullName(ap))}</span>${applicantSurveyAlertTagHtml(ap)}${scholarshipReviewStatusTag(ap)}</div>
         <div class="t11 c-gray4">${esc(ap.phone||'')}</div></td>
       <td>${ap.exam_score!=null?esc(String(ap.exam_score)):'—'}</td>
       <td class="t11 c-gray6" style="max-width:220px;word-break:break-word">${esc(reqDisp)}</td>
@@ -5472,14 +5483,15 @@ function renderScholarshipReview(){
     </tr>`;
   };
   const hint=canEdit
-    ? '列表包含当前处于<strong>上传资料、签证、完成</strong>三个阶段的全部申请人（无需先点「提交审核」也会出现）。请结合笔试、面试与家庭经济情况填写<strong>批复额度</strong>（数字）后保存；保存后会在<strong>档案 · 基本资料</strong>与申请人端展示该金额。若入学调查表中披露物质使用/成瘾史等，姓名旁会标「需留意」。'
-    : '列表包含当前处于<strong>上传资料、签证、完成</strong>三个阶段的申请人。以下为<strong>只读</strong>：可查看申请侧填写的额度相关信息与教务已保存的<strong>批复额度、批复备注</strong>；如需修改请使用教务账号。';
+    ? '列表按<strong>已提交待批复 → 未提交 → 已批复</strong>排序。请结合笔试、面试与家庭经济填写<strong>批复额度</strong>，点「保存批复」时会二次确认；<strong>保存后本页不可再改</strong>，结果同步至档案与申请人端。若调查表有需留意项，姓名旁会标黄。'
+    : '列表按批复状态排序。以下为<strong>只读</strong>：可查看申请额度与已保存的<strong>批复额度、备注</strong>；如需修改请使用教务账号。';
   return `<div class="maxw-3xl col g4">
     <div class="fw7 c-gray8 t16">奖学金批复</div>
     <div class="t12 c-gray5 lh16">${hint}</div>
+    <div class="row g2 wrap pipeline-toolbar" style="align-items:center;margin-bottom:4px">${trackSelHtml}</div>
     <div class="card" style="overflow:auto">
       <table class="tbl"><thead><tr><th>申请人</th><th>笔试</th><th>申请额度</th><th>批复额度</th><th>备注</th><th>操作</th></tr></thead>
-      <tbody>${list.length?list.map(row).join(''):`<tr><td colspan="6" class="t13 c-gray4 tc" style="padding:24px">暂无处于「上传资料 / 签证 / 完成」环节的申请人</td></tr>`}</tbody></table>
+      <tbody>${list.length?list.map(row).join(''):`<tr><td colspan="6" class="t13 c-gray4 tc" style="padding:24px">${track==='all'?'暂无处于「上传资料 / 签证 / 完成」环节的申请人':'当前筛选下暂无申请人'}</td></tr>`}</tbody></table>
     </div>
   </div>`;
 }
@@ -6085,6 +6097,16 @@ function renderAdmin(){
 function wirePipelineTrackFilter(){
   if(A.adminTab!=='pipeline'||(A.role!=='admin'&&A.role!=='teacher')) return;
   const trackSel=document.getElementById('pipeline-track-filter');
+  if(!trackSel||trackSel.dataset.wired) return;
+  trackSel.dataset.wired='1';
+  trackSel.addEventListener('change',e=>{
+    A.pipelineTrack=e.target.value||'all';
+    render();
+  });
+}
+function wireScholarshipTrackFilter(){
+  if(A.adminTab!=='scholarship'||(A.role!=='admin'&&A.role!=='teacher')) return;
+  const trackSel=document.getElementById('scholarship-track-filter');
   if(!trackSel||trackSel.dataset.wired) return;
   trackSel.dataset.wired='1';
   trackSel.addEventListener('change',e=>{
@@ -6802,6 +6824,7 @@ function render(){
   syncInterviewSlotPoll();
   syncStaffApplicantsPoll();
   wirePipelineTrackFilter();
+  wireScholarshipTrackFilter();
   wireApplicantSearch(A.adminTab==='pipeline'?'pipeline-search':A.adminTab==='exams'?'exams-search':A.adminTab==='schedule'?'schedule-search':'applicant-search');
 }
 
@@ -7247,14 +7270,28 @@ function bind(){
       if(!staffCanEditScholarshipApproval()){toast(apLine('当前账号无修改奖学金批复权限','No permission to edit scholarship approval','Tidak bisa mengubah persetujuan'),false);return;}
       if((A.role!=='admin'&&A.role!=='teacher')||!sb) return;
       const id=btn.dataset.apid;
+      const ap=A.allApplicants.find(a=>String(a.id)===String(id));
+      if(ap&&isScholarshipApproved(ap)){toast('该申请人已批复，本页不可再修改',false);return;}
       const inp=document.querySelector('.sch-amt-inp[data-apid="'+id+'"]');
       const noteInp=document.querySelector('.sch-note-inp[data-apid="'+id+'"]');
       const raw=(inp?.value||'').trim();
       const amt=parseFloat(raw,10);
       if(raw===''||isNaN(amt)){toast('请输入有效数字额度',false);return;}
-      const {error}=await sb.from('applicants').update({scholarship_amount_approved:amt,scholarship_approved_at:new Date().toISOString(),scholarship_review_note:(noteInp?.value||'').trim()||null}).eq('id',id);
-      if(!error){await loadAdminData();toast('批复已保存');render();}
-      else toast('保存失败：'+(error.message||''),false);
+      const note=(noteInp?.value||'').trim();
+      const nm=ap?fullName(ap):'该申请人';
+      const msg=`请再次确认奖学金批复：\n\n申请人：${nm}\n批复额度：${amt}${note?'\n备注：'+note:''}\n\n保存后本页将锁定，不可再修改。确定保存？`;
+      if(!confirm(msg)) return;
+      const {error}=await sb.from('applicants').update({scholarship_amount_approved:amt,scholarship_approved_at:new Date().toISOString(),scholarship_review_note:note||null}).eq('id',id);
+      if(!error){
+        if(ap){
+          ap.scholarship_amount_approved=amt;
+          ap.scholarship_approved_at=new Date().toISOString();
+          ap.scholarship_review_note=note||null;
+          saveStaffCache();
+        }
+        toast('批复已保存');
+        render();
+      }else toast('保存失败：'+(error.message||''),false);
     });
   });
 
