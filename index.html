@@ -385,6 +385,82 @@ function scholarshipReviewStatusTag(ap){
   if(b===0) return mkTag('#fef3c7','#92400e','已提交·待批复');
   return mkTag('#f3f4f6','#6b7280','未提交');
 }
+/** 奖助表 JSON 中仅保留批复页需要的标量（不含 Base64 大字段） */
+const SCHOLARSHIP_FORM_LITE_KEYS=[
+  'requested_amount','amount_requested',
+  'family_support','funding_family','church_support','funding_church',
+  'other_sources','funding_other','total_self_funded','funding_total',
+  '_saved_at','guarantee_type','agree_terms','np_fee_ack','applicant_sign_date',
+];
+function scholarshipFormLiteScalars(raw){
+  const s=parseApplicantJsonCol(raw,{});
+  const out={};
+  SCHOLARSHIP_FORM_LITE_KEYS.forEach(k=>{
+    if(s[k]!=null&&String(s[k]).trim()!=='') out[k]=s[k];
+  });
+  return out;
+}
+function syncApplicantSchRequestedScalar_(ap){
+  if(!ap) return;
+  const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
+  const raw=String(sch.requested_amount||sch.amount_requested||'').trim();
+  ap.sch_requested_amount=raw||null;
+}
+function mergeScholarshipFormLiteInto(ap,rawSch){
+  if(!ap) return false;
+  const incoming=scholarshipFormLiteScalars(rawSch);
+  if(!Object.keys(incoming).length) return false;
+  const prev=parseApplicantJsonCol(ap.scholarship_form_json,{});
+  ap.scholarship_form_json={...prev,...incoming};
+  syncApplicantSchRequestedScalar_(ap);
+  return true;
+}
+function applicantScholarshipRequestedAmountDisplay(ap){
+  if(!ap) return '';
+  const cached=ap.sch_requested_amount;
+  if(cached!=null&&String(cached).trim()!=='') return '$'+String(cached).trim();
+  const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
+  const pick=(...ks)=>{for(const k of ks){const v=sch[k];if(v!=null&&String(v).trim()!=='') return String(v).trim();} return '';};
+  const req=pick('requested_amount','amount_requested');
+  return req?('$'+req):'';
+}
+function applicantNeedsScholarshipFormHydrate(ap){
+  if(!ap||!['materials','visa','complete'].includes(ap.stage)) return false;
+  if(applicantScholarshipRequestedAmountDisplay(ap)) return false;
+  if(ap.materials_submitted_at) return true;
+  const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
+  return !sch._saved_at;
+}
+let __schFormHydrateRunning=false;
+/** lite 列表不含 scholarship_form_json；进入批复页时补拉申请额度等标量 */
+async function hydrateStaffScholarshipForms_(){
+  if(__schFormHydrateRunning||!sb||(A.role!=='admin'&&A.role!=='teacher')) return false;
+  const stages=['materials','visa','complete'];
+  const targets=(A.allApplicants||[]).filter(a=>stages.includes(a.stage));
+  if(!targets.length) return false;
+  if(!targets.some(applicantNeedsScholarshipFormHydrate)) return false;
+  __schFormHydrateRunning=true;
+  try{
+    const {data,error}=await sb.from('applicants').select('id,scholarship_form_json').in('stage',stages);
+    if(error||!Array.isArray(data)||!data.length) return false;
+    const map=new Map(data.map(r=>[String(r.id),r]));
+    let changed=false;
+    A.allApplicants.forEach(ap=>{
+      if(!stages.includes(ap.stage)) return;
+      const row=map.get(String(ap.id));
+      if(!row) return;
+      const before=applicantScholarshipRequestedAmountDisplay(ap);
+      if(mergeScholarshipFormLiteInto(ap,row.scholarship_form_json)&&applicantScholarshipRequestedAmountDisplay(ap)!==before) changed=true;
+    });
+    if(changed) saveStaffCache();
+    return changed;
+  }catch(e){
+    console.warn('hydrateStaffScholarshipForms_', e);
+    return false;
+  }finally{
+    __schFormHydrateRunning=false;
+  }
+}
 function staffAdminTabDefs(){
   const all=[
     {id:'pipeline',label:'申请人看板',icon:'📊'},
@@ -1998,6 +2074,10 @@ function saveStaffCache(){
       scholarship_amount_approved: ap.scholarship_amount_approved,
       scholarship_approved_at: ap.scholarship_approved_at,
       scholarship_review_note: ap.scholarship_review_note,
+      sch_requested_amount: ap.sch_requested_amount||(function(){
+        const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
+        return String(sch.requested_amount||sch.amount_requested||'').trim()||null;
+      })(),
       campus_code: ap.campus_code,
       language_proficiency: ap.language_proficiency,
       hometown: ap.hometown,
@@ -2461,7 +2541,7 @@ async function loadAdminData(opts){
     // fast 模式下为极简列表；后续会在后台再补全字段
     A.allApplicants = apRes.data;
     hydrateAllApplicantSurveyAlerts_(A.allApplicants);
-    setTimeout(()=>{ hydrateStaffSurveyAlertScalars_(); }, 0);
+    setTimeout(()=>{ hydrateStaffSurveyAlertScalars_(); hydrateStaffScholarshipForms_().then(c=>{ if(c) render(); }); }, 0);
   }else if(apRes.ok && suspiciousEmptyApplicants){
     // REST 在 RLS 收紧时常见：HTTP 200 + data=[]，会把看板清空；此处保留上一份并提示
     A.allApplicants = prevApplicants;
@@ -2535,6 +2615,7 @@ async function loadAdminData(opts){
             A.allApplicants = mergeApplicantsById_(A.allApplicants, full.data);
             hydrateAllApplicantSurveyAlerts_(A.allApplicants);
             autoSyncApplicantExamLangs_();
+            A.allApplicants.forEach(syncApplicantSchRequestedScalar_);
           }
         }catch(e){ console.warn('loadAdminData phase2 applicants full', e); }
         const [slotsRes, recsRes] = await Promise.all([
@@ -3541,6 +3622,7 @@ async function loginStaff(email,password){
   if(cache && Array.isArray(cache.allApplicants) && cache.allApplicants.length){
     A.allApplicants = cache.allApplicants;
     hydrateAllApplicantSurveyAlerts_(A.allApplicants);
+    A.allApplicants.forEach(syncApplicantSchRequestedScalar_);
     A.staffCacheCount = cache.allApplicants.length;
     setTimeout(()=>{ hydrateStaffSurveyAlertScalars_(); }, 0);
   }
@@ -5455,10 +5537,9 @@ function renderScholarshipReview(){
     `<option value="${t.id}"${t.id===track?' selected':''}>${esc(t.label)}</option>`
   ).join('')}</select><span class="t12 c-gray5">${esc(countHint)}</span>`;
   const row=ap=>{
-    const sch=parseApplicantJsonCol(ap.scholarship_form_json,{});
+    const reqDisp=applicantScholarshipRequestedAmountDisplay(ap)||'—';
     const approved=isScholarshipApproved(ap);
     const v=approved?String(ap.scholarship_amount_approved):'';
-    const reqDisp=String(sch.requested_amount||sch.amount_requested||sch.family_support||sch.total_self_funded||'—').slice(0,120);
     const apprAt=ap.scholarship_approved_at?`<div class="t11 c-gray4 mt1">批复时间：${esc(String(ap.scholarship_approved_at).slice(0,19).replace('T',' '))}</div>`:'';
     const isNpRow=getApplicantCampusCode(ap)==='np';
     const rowEditable=canEdit&&!approved;
@@ -6825,6 +6906,9 @@ function render(){
   syncStaffApplicantsPoll();
   wirePipelineTrackFilter();
   wireScholarshipTrackFilter();
+  if(A.adminTab==='scholarship'){
+    hydrateStaffScholarshipForms_().then(changed=>{ if(changed) render(); });
+  }
   wireApplicantSearch(A.adminTab==='pipeline'?'pipeline-search':A.adminTab==='exams'?'exams-search':A.adminTab==='schedule'?'schedule-search':'applicant-search');
 }
 
@@ -7318,6 +7402,9 @@ function bind(){
         if(!A.continuingLoadedAt && !A.continuingLoading){
           loadContinuingForStaff();
         }
+      }
+      if(tab==='scholarship'){
+        hydrateStaffScholarshipForms_().then(changed=>{ if(changed) render(); });
       }
       render();
     });
